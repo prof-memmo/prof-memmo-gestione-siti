@@ -62,6 +62,8 @@ const HubApp = {
             
             let eroiUsers = [];
             let commediaUsers = [];
+            let fantaUsers = [];
+            let palestraUsers = [];
 
             // Fetch da La Rotta degli Eroi
             if (window.fbDb.eroi) {
@@ -99,7 +101,43 @@ const HubApp = {
                 });
             }
 
-            const allUsers = [...eroiUsers, ...commediaUsers];
+            // Fetch da Fantaletteratura
+            if (window.fbDb.fanta) {
+                const snapFanta = await window.fbDb.fanta.collection("users").get();
+                snapFanta.forEach(doc => {
+                    const data = doc.data();
+                    fantaUsers.push({
+                        id: doc.id,
+                        nome: data.nome || data.displayName || 'Anonimo',
+                        email: data.email || '',
+                        ruolo: data.role || 'studente',
+                        classe: data.classId || data.class || 'N/A',
+                        gioco: 'Fantaletteratura',
+                        giocoColor: '#9b59b6',
+                        giocoIcon: 'fa-dragon'
+                    });
+                });
+            }
+
+            // Fetch da Palestra di Riflessione
+            if (window.fbDb.palestra) {
+                const snapPalestra = await window.fbDb.palestra.collection("users").get();
+                snapPalestra.forEach(doc => {
+                    const data = doc.data();
+                    palestraUsers.push({
+                        id: doc.id,
+                        nome: data.nome || data.displayName || 'Anonimo',
+                        email: data.email || '',
+                        ruolo: data.role || 'studente',
+                        classe: data.classId || data.class || 'N/A',
+                        gioco: 'Palestra di Riflessione',
+                        giocoColor: '#2ecc71',
+                        giocoIcon: 'fa-brain'
+                    });
+                });
+            }
+
+            const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers];
             
             // Ordina alfabeticamente per nome
             allUsers.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -108,6 +146,8 @@ const HubApp = {
             document.getElementById('counter-total').innerText = allUsers.length;
             document.getElementById('counter-eroi').innerText = eroiUsers.length;
             document.getElementById('counter-commedia').innerText = commediaUsers.length;
+            document.getElementById('counter-fanta').innerText = fantaUsers.length;
+            document.getElementById('counter-palestra').innerText = palestraUsers.length;
 
             // Render Tabella
             tbody.innerHTML = '';
@@ -140,7 +180,7 @@ const HubApp = {
             
             let allArchives = [];
 
-            // Per ora solo da La Rotta degli Eroi
+            // Fetch da La Rotta degli Eroi
             if (window.fbDb.eroi) {
                 const snapEroi = await window.fbDb.eroi.collection("archives").orderBy("timestamp", "desc").get();
                 snapEroi.forEach(doc => {
@@ -152,6 +192,22 @@ const HubApp = {
                         gioco: 'La Rotta degli Eroi',
                         giocoColor: '#3498db',
                         giocoIcon: 'fa-ship'
+                    });
+                });
+            }
+
+            // Fetch da Fantaletteratura
+            if (window.fbDb.fanta) {
+                const snapFanta = await window.fbDb.fanta.collection("archives").orderBy("timestamp", "desc").get();
+                snapFanta.forEach(doc => {
+                    const data = doc.data();
+                    allArchives.push({
+                        id: doc.id,
+                        nomeAnno: data.yearName || 'N/A',
+                        timestamp: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('it-IT') : 'N/A',
+                        gioco: 'Fantaletteratura',
+                        giocoColor: '#9b59b6',
+                        giocoIcon: 'fa-dragon'
                     });
                 });
             }

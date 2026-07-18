@@ -28,6 +28,24 @@ const configHub = {
   appId: "1:839149485689:web:04ee4fa6237d94d0b71ea8"
 };
 
+const configFanta = {
+  apiKey: "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ",
+  authDomain: "fantaletteratura-a7ff1.firebaseapp.com",
+  projectId: "fantaletteratura-a7ff1",
+  storageBucket: "fantaletteratura-a7ff1.firebasestorage.app",
+  messagingSenderId: "358353594988",
+  appId: "1:358353594988:web:07d26d2f4439e9116b8649"
+};
+
+const configPalestra = {
+  apiKey: "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo",
+  authDomain: "palestra-riflessione.firebaseapp.com",
+  projectId: "palestra-riflessione",
+  storageBucket: "palestra-riflessione.firebasestorage.app",
+  messagingSenderId: "617112106958",
+  appId: "1:617112106958:web:f017958c52e4f1d5845d9f"
+};
+
 // Inizializzazione Firebase
 window.fbApps = {};
 window.fbDb = {};
@@ -51,7 +69,17 @@ try {
     window.fbApps.hub = appHub;
     window.fbDb.hub = appHub.firestore();
 
-    console.log("🔥 Firebase Multi-Istanza inizializzato correttamente");
+    // Inizializza Fantaletteratura
+    const appFanta = firebase.initializeApp(configFanta, "Fanta");
+    window.fbApps.fanta = appFanta;
+    window.fbDb.fanta = appFanta.firestore();
+
+    // Inizializza Palestra di Riflessione
+    const appPalestra = firebase.initializeApp(configPalestra, "Palestra");
+    window.fbApps.palestra = appPalestra;
+    window.fbDb.palestra = appPalestra.firestore();
+
+    console.log("🔥 Firebase Multi-Istanza inizializzato correttamente (Eroi, Commedia, Hub, Fanta, Palestra)");
 } catch (e) {
     console.error("Errore inizializzazione Firebase:", e);
 }
