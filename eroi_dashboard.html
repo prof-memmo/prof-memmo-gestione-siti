@@ -1,0 +1,371 @@
+      <section id="view-teacher-dashboard" class="view">
+        <div class="glass-panel">
+          <h2 class="section-title"><i class="fa-solid fa-graduation-cap" style="color: var(--gold);"></i> Pannello di Controllo Docente</h2>
+          
+          <div class="tabs-header">
+            <button class="tab-btn active" onclick="EroiApp.switchTeacherTab('panoramica')">Panoramica</button>
+            <button class="tab-btn" onclick="EroiApp.switchTeacherTab('missioni')">Missioni & Quiz</button>
+            <button class="tab-btn" onclick="EroiApp.switchTeacherTab('shop')">Shop & Economia</button>
+            <button class="tab-btn" onclick="EroiApp.switchTeacherTab('aiutanti')">Aiutanti & Artefatti</button>
+            <button class="tab-btn" onclick="EroiApp.switchTeacherTab('guide')">Guide Didattiche</button>
+            <button class="tab-btn" onclick="EroiApp.switchTeacherTab('registro')">Registro Attività</button>
+            <button class="tab-btn" onclick="EroiApp.switchTeacherTab('tornei')">Tornei Interni</button>
+            <button class="tab-btn" onclick="EroiApp.switchTeacherTab('diario')">Valutazione Diari</button>
+            <button class="tab-btn" onclick="EroiApp.switchTeacherTab('impostazioni')"><i class="fa-solid fa-gear"></i> Impostazioni</button>
+          </div>
+
+          <!-- TAB PANORAMICA -->
+          <div id="t-tab-panoramica" class="tab-content active">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 24px;">
+              <div id="card-stats-teachers" class="glass-panel stat-card-interactive" style="margin-bottom: 0; text-align: center; padding: 15px; cursor: pointer;" onclick="EroiApp.selectStatsCategory('teachers')">
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Docenti</span>
+                <h4 style="font-size: 1.8rem; color: var(--gold); margin-top: 5px;" id="teacher-stats-teachers">0</h4>
+              </div>
+              <div id="card-stats-students" class="glass-panel stat-card-interactive active" style="margin-bottom: 0; text-align: center; padding: 15px; cursor: pointer;" onclick="EroiApp.selectStatsCategory('students')">
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Studenti</span>
+                <h4 style="font-size: 1.8rem; color: var(--gold); margin-top: 5px;" id="teacher-stats-students">0</h4>
+              </div>
+              <div id="card-stats-classes" class="glass-panel stat-card-interactive" style="margin-bottom: 0; text-align: center; padding: 15px; cursor: pointer;" onclick="EroiApp.selectStatsCategory('classes')">
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Classi</span>
+                <h4 style="font-size: 1.8rem; color: var(--gold); margin-top: 5px;" id="teacher-stats-classes">0</h4>
+              </div>
+              <div id="card-stats-schools" class="glass-panel stat-card-interactive" style="margin-bottom: 0; text-align: center; padding: 15px; cursor: pointer;" onclick="EroiApp.selectStatsCategory('schools')">
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Scuole</span>
+                <h4 style="font-size: 1.8rem; color: var(--gold); margin-top: 5px;" id="teacher-stats-schools">0</h4>
+              </div>
+              <div id="card-stats-forestieri" class="glass-panel stat-card-interactive" style="margin-bottom: 0; text-align: center; padding: 15px; cursor: pointer;" onclick="EroiApp.selectStatsCategory('forestieri')">
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Forestieri</span>
+                <h4 style="font-size: 1.8rem; color: var(--gold); margin-top: 5px;" id="teacher-stats-forestieri">0</h4>
+              </div>
+            </div>
+            
+
+            <!-- CONTENITORE PANNELLI DINAMICI -->
+            <div id="panoramica-panels-container">
+              
+              <!-- PANNELLO: DOCENTI -->
+              <div id="panel-stats-teachers" class="panoramica-sub-panel" style="display: none;">
+                <div class="glass-panel">
+                  <h3 class="panel-title"><i class="fa-solid fa-user-tie" style="color: var(--gold);"></i> Registro Docenti e Collaboratori</h3>
+                  <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Elenco di tutti i docenti e amministratori registrati nella piattaforma.</p>
+                  <div class="table-responsive">
+                    <table class="game-table" id="teacher-docenti-table">
+                      <thead>
+                        <tr>
+                          <th>Nome</th>
+                          <th>Email</th>
+                          <th>Ruolo</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PANNELLO: CLASSI -->
+              <div id="panel-stats-classes" class="panoramica-sub-panel" style="display: none;">
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                  <div class="glass-panel">
+                    <h3 class="panel-title">Nuova Classe</h3>
+                    <form id="form-create-class" onsubmit="return false;" style="margin-bottom: 15px;">
+                      <div class="form-group">
+                        <label for="new-class-id">Codice Classe (ID)</label>
+                        <input type="text" id="new-class-id" class="form-control" required placeholder="es: 1C">
+                      </div>
+                      <div class="form-group">
+                        <label for="new-class-name">Nome Classe esteso</label>
+                        <input type="text" id="new-class-name" class="form-control" required placeholder="Classe 1ª C Miti">
+                      </div>
+                      <div class="form-group">
+                        <label for="new-class-school">Istituto (Scuola)</label>
+                        <input type="text" id="new-class-school" class="form-control" placeholder="es: I.C. Olimpo">
+                      </div>
+                      <div class="form-group">
+                        <label for="new-class-city">Città</label>
+                        <input type="text" id="new-class-city" class="form-control" placeholder="es: Atene">
+                      </div>
+                      <button type="submit" class="btn" style="width: 100%;" id="btn-save-new-class">Crea Classe</button>
+                    </form>
+                    
+                    <!-- Collaborazione con codice -->
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
+                      <h4 style="font-size: 0.9rem; color: var(--gold); margin-bottom: 8px; font-family: var(--font-heading);">Collabora con un'altra Classe</h4>
+                      <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 10px; line-height: 1.3;">
+                        Se un altro docente ha creato una classe, inserisci il suo codice per collaborare e visualizzare/gestire i suoi studenti.
+                      </p>
+                      <form id="form-join-collaborator" onsubmit="return false;" style="display: flex; gap: 10px;">
+                        <input type="text" id="recover-class-code" class="form-control" placeholder="Es: ER-XXXX" style="font-family: monospace; text-transform: uppercase;" required>
+                        <button type="submit" class="btn" style="padding: 0 15px;" id="btn-join-collaborator">Unisciti</button>
+                      </form>
+                    </div>
+                  </div>
+
+                  <div class="glass-panel">
+                    <h3 class="panel-title">Classi Attive</h3>
+                  <div style="margin-bottom: 15px;"><input type="text" placeholder="Cerca in questo elenco..." class="form-control" style="width: 100%; border-radius: 20px; font-style: italic; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);"></div>
+                  <div class="table-responsive">
+                      <table class="game-table" id="teacher-classes-table">
+                        <thead>
+                          <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Codice Iscrizione</th>
+                            <th>Docenti</th>
+                            <th>Azione</th>
+                          </tr>
+                        </thead>
+                        <tbody></tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PANNELLO: SCUOLE -->
+              <div id="panel-stats-schools" class="panoramica-sub-panel" style="display: none;">
+                <div class="glass-panel">
+                  <h3 class="panel-title"><i class="fa-solid fa-school" style="color: var(--gold);"></i> Istituti Scolastici Associati</h3>
+                  <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Elenco delle scuole inserite con le rispettive classi attive.</p>
+                  <div class="table-responsive">
+                    <table class="game-table" id="teacher-schools-table">
+                      <thead>
+                        <tr>
+                          <th>Nome Istituto</th>
+                          <th>Città</th>
+                          <th>Classi Associate</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PANNELLO: STUDENTI -->
+              <div id="panel-stats-students" class="panoramica-sub-panel" style="display: none;">
+                <!-- Nuovo Studente -->
+                <div class="glass-panel" style="margin-bottom: 24px;">
+                  <h3 class="panel-title">Nuovo Studente</h3>
+                  <form id="form-create-student" onsubmit="return false;" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: flex-end;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                      <label for="new-student-name">Nome e Cognome</label>
+                      <input type="text" id="new-student-name" class="form-control" required placeholder="Ettore Priamo">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                      <label for="new-student-email">Email</label>
+                      <input type="email" id="new-student-email" class="form-control" required placeholder="ettore@scuola.it">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                      <label for="new-student-class">Classe</label>
+                      <select id="new-student-class" class="form-control" required>
+                        <!-- Popolata dinamicamente -->
+                      </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                      <label for="new-student-avatar">Avatar Iniziale</label>
+                      <select id="new-student-avatar" class="form-control" required>
+                        <option value="Custode della Sapienza">Custode della Sapienza</option>
+                        <option value="Guerriero">Guerriero</option>
+                        <option value="Navigatore">Navigatore</option>
+                        <option value="Cantastorie">Cantastorie</option>
+                        <option value="Esploratore">Esploratore</option>
+                      </select>
+                    </div>
+                    <button type="submit" class="btn" style="height: 44px;" id="btn-save-new-student">Aggiungi</button>
+                  </form>
+                </div>
+
+                <div class="glass-panel" id="teacher-students-section">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 class="panel-title" id="students-panel-title-text">Studenti Iscritti</h3>
+                    <div style="display: flex; gap: 10px;">
+                      <input type="text" id="search-student-teacher" class="form-control" placeholder="Cerca studente..." style="padding: 6px 12px; font-size: 0.85rem; width: 180px;">
+                      <select id="filter-class-teacher" class="form-control" style="padding: 6px 12px; font-size: 0.85rem; width: 130px;">
+                        <option value="all">Tutte le Classi</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="game-table" id="teacher-students-table">
+                      <thead>
+                        <tr>
+                          <th>Studente</th>
+                          <th>Classe</th>
+                          <th>Livello</th>
+                          <th>XP / Dracme</th>
+                          <th>Azioni e Assegnazioni</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- TAB MISSIONI -->
+          <div id="t-tab-missioni" class="tab-content">
+            <div class="glass-panel">
+              <h3 class="panel-title">Crea Nuova Missione / Quiz</h3>
+              <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 16px;">
+                Crea missioni personalizzate per le tue classi. Le missioni predefinite (🔒 preset) possono essere modificate o nascoste — ma non eliminate definitivamente: sono sempre ripristinabili.
+              </p>
+              <form id="form-create-mission" onsubmit="return false;" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div class="form-group">
+                  <label for="new-mission-id">ID Missione (Univoco)</label>
+                  <input type="text" id="new-mission-id" class="form-control" placeholder="es: ili_patroclo" required>
+                </div>
+                <div class="form-group">
+                  <label for="new-mission-title">Titolo</label>
+                  <input type="text" id="new-mission-title" class="form-control" placeholder="La morte di Patroclo" required>
+                </div>
+                <div class="form-group">
+                  <label for="new-mission-category">Categoria Epica</label>
+                  <select id="new-mission-category" class="form-control" required>
+                    <option value="Mitologia">Mitologia</option>
+                    <option value="Iliade">Iliade</option>
+                    <option value="Odissea">Odissea</option>
+                    <option value="Eneide">Eneide</option>
+                    <option value="Ciclo Carolingio">Ciclo Carolingio</option>
+                    <option value="Ciclo Bretone">Ciclo Bretone</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="new-mission-area">Area Mappa Sbloccata</label>
+                  <select id="new-mission-area" class="form-control" required>
+                    <option value="Olimpo">Olimpo</option>
+                    <option value="Creta">Creta</option>
+                    <option value="Troia">Troia</option>
+                    <option value="Itaca">Itaca</option>
+                    <option value="Lazio">Lazio</option>
+                    <option value="Aquisgrana">Aquisgrana</option>
+                    <option value="Roncisvalle">Roncisvalle</option>
+                    <option value="Camelot">Camelot</option>
+                    <option value="Foresta di Brocelandia">Foresta di Brocelandia</option>
+                    <option value="Castello del Graal">Castello del Graal</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="new-mission-gametype">Tipologia Gioco</label>
+                  <select id="new-mission-gametype" class="form-control" required onchange="EroiApp.onGameTypeChange()">
+                    <option value="quiz">Quiz (Risposta Multipla)</option>
+                    <option value="puzzle">Puzzle (Riordina Frase)</option>
+                    <option value="cloze">Cloze (Completa Testo)</option>
+                    <option value="cantami_o_diva">Cantami o Diva (Spiegazione Orale 10s)</option>
+                    <option value="impiccato">Impiccato (Parola Segreta)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="new-mission-xp">XP Premio</label>
+                  <input type="number" id="new-mission-xp" class="form-control" value="50" required>
+                </div>
+                <div class="form-group">
+                  <label for="new-mission-dracme">Dracme Premio</label>
+                  <input type="number" id="new-mission-dracme" class="form-control" value="30" required>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label for="new-mission-desc">Descrizione/Trama Introduzione</label>
+                  <textarea id="new-mission-desc" class="form-control" rows="2" placeholder="Narra lo scontro fatale tra Patroclo ed Ettore..." required></textarea>
+                </div>
+                
+                <!-- Struttura della prima domanda per facilitare la creazione -->
+                <div class="glass-panel" style="grid-column: 1 / -1; margin-bottom: 0; border: 1px dashed var(--gold);">
+                  <h4 id="new-mission-editor-header" style="font-family: var(--font-heading); color: var(--gold); margin-bottom: 10px;">Domanda di Esempio (Modificabile in seguito nel DB)</h4>
+                  <div class="form-group">
+                    <label id="new-mission-q-label" for="new-mission-q">Testo Domanda</label>
+                    <input type="text" id="new-mission-q" class="form-control" placeholder="Chi uccide Patroclo in battaglia?" value="Chi uccide Patroclo in battaglia?">
+                    <p id="new-mission-editor-hint" style="color:var(--text-muted); font-size:0.78rem; margin-top:5px; display:none;"></p>
+                  </div>
+                  <div id="new-mission-options-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group"><label>Opzione 0 (Corretta)</label><input type="text" id="new-mission-opt0" class="form-control" value="Ettore"></div>
+                    <div class="form-group"><label>Opzione 1</label><input type="text" id="new-mission-opt1" class="form-control" value="Achille"></div>
+                    <div class="form-group"><label>Opzione 2</label><input type="text" id="new-mission-opt2" class="form-control" value="Agamennone"></div>
+                    <div class="form-group"><label>Opzione 3</label><input type="text" id="new-mission-opt3" class="form-control" value="Paride"></div>
+                  </div>
+                </div>
+                
+                <button type="submit" class="btn" style="grid-column: 1 / -1;" id="btn-save-mission">Crea e Pubblica Missione</button>
+              </form>
+            </div>
+
+            <div class="glass-panel">
+              <h3 class="panel-title">Elenco Missioni Disponibili</h3>
+              <div class="table-responsive">
+                <table class="game-table" id="teacher-missions-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Titolo</th>
+                      <th>Categoria</th>
+                      <th>Area Mappa</th>
+                      <th>Premi</th>
+                      <th>Domande</th>
+                      <th>Azione</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB SHOP E BILANCIAMENTO -->
+          <div id="t-tab-shop" class="tab-content">
+            <div class="glass-panel">
+              <h3 class="panel-title">Aggiungi/Modifica Oggetti dello Shop</h3>
+              <form id="form-create-shop-item" onsubmit="return false;" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                <div class="form-group">
+                  <label for="new-item-id">Codice Oggetto (ID)</label>
+                  <input type="text" id="new-item-id" class="form-control" placeholder="es: item_pergamena" required>
+                </div>
+                <div class="form-group">
+                  <label for="new-item-name">Nome Prodotto</label>
+                  <input type="text" id="new-item-name" class="form-control" placeholder="Pergamena della Chiarezza" required>
+                </div>
+                <div class="form-group">
+                  <label for="new-item-price">Prezzo in Dracme</label>
+                  <input type="number" id="new-item-price" class="form-control" value="20" required>
+                </div>
+                <div class="form-group">
+                  <label for="new-item-rarity">Rarità</label>
+                  <select id="new-item-rarity" class="form-control" required>
+                    <option value="Comune">Comune</option>
+                    <option value="Raro">Raro</option>
+                    <option value="Epico">Epico</option>
+                    <option value="Leggendario">Leggendario</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="new-item-type">Tipologia</label>
+                  <select id="new-item-type" class="form-control" required>
+                    <option value="consumable">Consumabile (Monouso)</option>
+                    <option value="permanent">Permanente (Equipaggiamento/Titolo)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="new-item-stock">Stock Disponibile</label>
+                  <input type="number" id="new-item-stock" class="form-control" value="99" required>
+                </div>
+                <div class="form-group" style="grid-column: 3 / -1;">
+                  <label for="new-item-desc">Descrizione Effetto</label>
+                  <input type="text" id="new-item-desc" class="form-control" placeholder="Fornisce una mappa concettuale per lo studio" required>
+                </div>
+                <button type="submit" class="btn" style="grid-column: 1 / -1;" id="btn-save-shop-item">Salva Oggetto Shop</button>
+              </form>
+            </div>
+
+            <div class="glass-panel">
+              <h3 class="panel-title">Lista Articoli dello Shop</h3>
+              <div class="table-responsive">
+                <table class="game-table" id="teacher-shop-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Nome</th>
+                      <th>Rarità</th>
+                      <th>Prezzo</th>
+                      <th>Stock</th>
+                      <th>Stato</th>

@@ -60,18 +60,32 @@ const HubApp = {
         if (!window.fbDb.eroi) return;
 
         window.fbDb.eroi.collection("users").get().then(snap => {
+            const tbody = document.querySelector('#hub-eroi-students-table tbody');
+            tbody.innerHTML = ''; // Svuota caricamento
             let studentiCount = 0;
+            
             snap.forEach(doc => {
-                if (doc.data().role === "studente" || doc.data().role === "student") studentiCount++;
+                const data = doc.data();
+                if (data.role === "studente" || data.role === "student") {
+                    studentiCount++;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="padding: 10px;">
+                            <strong>${data.name || 'Sconosciuto'}</strong><br>
+                            <span style="font-size:0.8rem; color:#aaa;">${data.avatarClass || ''}</span>
+                        </td>
+                        <td style="padding: 10px;">${data.class || 'N/A'}</td>
+                        <td style="padding: 10px;">Liv. ${data.level || 1}</td>
+                        <td style="padding: 10px; color: var(--gold);">${data.xp || 0} XP / ${data.dracme || 0} Dracme</td>
+                        <td style="padding: 10px; font-size:0.8rem; color:#aaa;">${doc.id}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
             });
-            document.getElementById('eroi-content').innerHTML = `
-                <div class="panel-section">
-                    <h3>Statistiche Generali (La Rotta degli Eroi)</h3>
-                    <p>Studenti totali iscritti: <strong>${studentiCount}</strong></p>
-                    <p><em>(Qui verranno integrate le tabelle di gestione di La Rotta degli Eroi)</em></p>
-                </div>
-            `;
-            statusEl.textContent = "Connesso";
+
+            if (studentiCount === 0) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">Nessuno studente trovato.</td></tr>';
+
+            statusEl.textContent = `Connesso (${studentiCount} studenti)`;
             statusEl.style.color = "#2ecc71";
         }).catch(err => {
             statusEl.textContent = "Errore di connessione";
@@ -85,18 +99,32 @@ const HubApp = {
         if (!window.fbDb.commedia) return;
 
         window.fbDb.commedia.collection("users").get().then(snap => {
+            const tbody = document.querySelector('#hub-commedia-students-table tbody');
+            tbody.innerHTML = '';
             let studentiCount = 0;
+
             snap.forEach(doc => {
-                if (doc.data().role === "studente" || doc.data().role === "student") studentiCount++;
+                const data = doc.data();
+                if (data.role === "studente" || data.role === "student") {
+                    studentiCount++;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="padding: 10px;">
+                            <strong>${data.name || 'Sconosciuto'}</strong><br>
+                            <span style="font-size:0.8rem; color:#aaa;">${data.avatarClass || ''}</span>
+                        </td>
+                        <td style="padding: 10px;">${data.class || 'N/A'}</td>
+                        <td style="padding: 10px;">Liv. ${data.level || 1}</td>
+                        <td style="padding: 10px; color: var(--gold);">${data.xp || 0} XP / ${data.fiorini || data.dracme || 0} Fiorini</td>
+                        <td style="padding: 10px; font-size:0.8rem; color:#aaa;">${doc.id}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
             });
-            document.getElementById('commedia-content').innerHTML = `
-                <div class="panel-section">
-                    <h3>Statistiche Generali (La Corte della Commedia)</h3>
-                    <p>Studenti totali iscritti: <strong>${studentiCount}</strong></p>
-                    <p><em>(Qui verranno integrate le tabelle di gestione di La Corte della Commedia)</em></p>
-                </div>
-            `;
-            statusEl.textContent = "Connesso";
+
+            if (studentiCount === 0) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">Nessuno studente trovato.</td></tr>';
+
+            statusEl.textContent = `Connesso (${studentiCount} studenti)`;
             statusEl.style.color = "#2ecc71";
         }).catch(err => {
             statusEl.textContent = "Errore di connessione";
