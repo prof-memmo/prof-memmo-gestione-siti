@@ -19,6 +19,15 @@ const configCommedia = {
     appId: "1:298739188542:web:f1613b00d197ff4859e26f"
 };
 
+const configHub = {
+  apiKey: "AIzaSyD-n2m-kYEuzGXPMKclZTggf4Y5Zm8_cdM",
+  authDomain: "prof-memmo-hub.firebaseapp.com",
+  projectId: "prof-memmo-hub",
+  storageBucket: "prof-memmo-hub.firebasestorage.app",
+  messagingSenderId: "839149485689",
+  appId: "1:839149485689:web:04ee4fa6237d94d0b71ea8"
+};
+
 // Inizializzazione Firebase
 window.fbApps = {};
 window.fbDb = {};
@@ -36,6 +45,11 @@ try {
     const appCommedia = firebase.initializeApp(configCommedia, "Commedia");
     window.fbApps.commedia = appCommedia;
     window.fbDb.commedia = appCommedia.firestore();
+
+    // Inizializza l'app centrale (Hub per posta e esperienze)
+    const appHub = firebase.initializeApp(configHub, "Hub");
+    window.fbApps.hub = appHub;
+    window.fbDb.hub = appHub.firestore();
 
     console.log("🔥 Firebase Multi-Istanza inizializzato correttamente");
 } catch (e) {
