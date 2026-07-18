@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" width="120" height="100">
+  <rect width="120" height="100" fill="#000000" rx="6"/>
+  <text x="60" y="38" font-size="36" text-anchor="middle">👾</text>
+  <text x="60" y="70" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#00ff00" text-anchor="middle">SPACE</text>
+  <text x="60" y="83" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#00ff00" text-anchor="middle">INVADERS</text>
+</svg>

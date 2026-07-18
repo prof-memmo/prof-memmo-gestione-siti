@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="120" height="80">
+  <rect width="120" height="80" fill="#6b21a8" rx="6"/>
+  <text x="60" y="33" font-size="22" text-anchor="middle">🎮</text>
+  <text x="60" y="55" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white" text-anchor="middle">AVATAR</text>
+  <text x="60" y="69" font-family="Arial, sans-serif" font-size="9" fill="white" text-anchor="middle">identità virtuale</text>
+</svg>

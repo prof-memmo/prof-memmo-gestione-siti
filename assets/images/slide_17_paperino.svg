@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="120" height="80">
+  <rect width="120" height="80" fill="#1560bd" rx="8"/>
+  <text x="60" y="33" font-size="20" text-anchor="middle">🦆</text>
+  <text x="60" y="53" font-family="Arial, sans-serif" font-size="9.5" font-weight="bold" fill="white" text-anchor="middle">DISNEY</text>
+  <text x="60" y="67" font-family="Arial, sans-serif" font-size="9.5" font-weight="bold" fill="white" text-anchor="middle">COMICS</text>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="120" height="80">
+  <rect width="120" height="80" fill="#e0d8c8" rx="6"/>
+  <text x="60" y="33" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#555" text-anchor="middle">SUPER NINTENDO</text>
+  <text x="60" y="55" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#555" text-anchor="middle">ENTERTAINMENT</text>
+  <text x="60" y="70" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#555" text-anchor="middle">SYSTEM</text>
+</svg>

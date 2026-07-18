@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" width="120" height="100">
+  <rect width="120" height="100" fill="#5c94fc" rx="6"/>
+  <text x="60" y="45" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white" text-anchor="middle">SUPER</text>
+  <text x="60" y="60" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#f83800" text-anchor="middle">MARIO</text>
+  <text x="60" y="75" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white" text-anchor="middle">BROS.</text>
+</svg>

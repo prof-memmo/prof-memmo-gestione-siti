@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="120" height="80">
+  <rect width="120" height="80" fill="#4a4a6a" rx="6"/>
+  <text x="60" y="38" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#00b4d8" text-anchor="middle">PlayStation</text>
+  <text x="60" y="57" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle">1</text>
+</svg>
