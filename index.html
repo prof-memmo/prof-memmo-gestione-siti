@@ -68,17 +68,14 @@
       <h3 style="color:var(--gold); margin:10px 0 0 0; font-family:var(--font-heading);">Hub Centrale</h3>
     </div>
     
-    <div class="nav-item active" data-target="view-eroi" onclick="switchView('view-eroi')">
-      <i class="fa-solid fa-ship"></i> La Rotta degli Eroi
+    <div class="nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
+      <i class="fa-solid fa-chart-pie"></i> Panoramica
     </div>
-    <div class="nav-item" data-target="view-commedia" onclick="switchView('view-commedia')">
-      <i class="fa-solid fa-book-open"></i> La Corte della Commedia
+    <div class="nav-item" data-target="view-iscritti" onclick="switchView('view-iscritti')">
+      <i class="fa-solid fa-users"></i> Gestione Iscritti
     </div>
-    <div class="nav-item" data-target="view-fanta" onclick="switchView('view-fanta')">
-      <i class="fa-solid fa-dragon"></i> Fantaletteratura
-    </div>
-    <div class="nav-item" data-target="view-riflessione" onclick="switchView('view-riflessione')">
-      <i class="fa-solid fa-brain"></i> Palestra di Riflessione
+    <div class="nav-item" data-target="view-archivi" onclick="switchView('view-archivi')">
+      <i class="fa-solid fa-box-archive"></i> Storico Archivi
     </div>
     <div class="nav-item" data-target="view-esperienze" onclick="switchView('view-esperienze')">
       <i class="fa-solid fa-star"></i> Esperienze Sito
@@ -96,49 +93,69 @@
   <!-- Main Content -->
   <div class="hub-main">
     
-    <!-- View: Eroi -->
-    <div id="view-eroi" class="hub-view active">
+    <!-- View: Dashboard / Panoramica -->
+    <div id="view-dashboard" class="hub-view active">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-ship" style="color:var(--gold);"></i> La Rotta degli Eroi - Pannello Amministrazione</h2>
-        <div class="header-actions">
-          <span id="eroi-status" style="color:gray;">Connessione...</span>
+        <h2><i class="fa-solid fa-chart-pie" style="color:var(--gold);"></i> Panoramica Generale</h2>
+      </div>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <!-- Card: Totale Iscritti -->
+        <div class="glass-panel" style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.5); padding: 30px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+          <h3 style="color:#aaa; margin-top:0;">Totale Iscritti Globale</h3>
+          <h1 id="counter-total" style="font-size: 4rem; color:var(--gold); margin: 10px 0;">--</h1>
+          <p style="color:#888; font-size: 0.9rem;">
+            <i class="fa-solid fa-ship" style="color:#3498db;"></i> Eroi: <span id="counter-eroi">--</span> | 
+            <i class="fa-solid fa-book-open" style="color:#e74c3c;"></i> Commedia: <span id="counter-commedia">--</span>
+          </p>
+        </div>
+        <!-- Altre card future... -->
+      </div>
+    </div>
+
+    <!-- View: Iscritti -->
+    <div id="view-iscritti" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-users" style="color:var(--gold);"></i> Tutti gli Iscritti</h2>
+      </div>
+      <div class="glass-panel" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+        <div class="table-responsive">
+          <table class="game-table" id="hub-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--gold);">
+                <th style="padding: 10px;">Nome / Email</th>
+                <th style="padding: 10px;">Ruolo</th>
+                <th style="padding: 10px;">Gioco</th>
+                <th style="padding: 10px;">Classe</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="4" style="text-align:center; padding: 20px;">Caricamento iscritti aggregati...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
-      <div id="eroi-content" style="height: calc(100vh - 80px);">
-        <iframe src="https://prof-memmo.github.io/la-rotta-degli-eroi/" style="width: 100%; height: 100%; border: none; border-radius: 10px;"></iframe>
-      </div>
     </div>
 
-    <!-- View: Commedia -->
-    <div id="view-commedia" class="hub-view">
+    <!-- View: Archivi -->
+    <div id="view-archivi" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-book-open" style="color:var(--gold);"></i> La Corte della Commedia</h2>
-        <div class="header-actions">
-          <span id="commedia-status" style="color:gray;">Connessione...</span>
+        <h2><i class="fa-solid fa-box-archive" style="color:var(--gold);"></i> Archivi Storici</h2>
+      </div>
+      <div class="glass-panel" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+        <div class="table-responsive">
+          <table class="game-table" id="hub-archivi-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--gold);">
+                <th style="padding: 10px;">Data Archiviazione</th>
+                <th style="padding: 10px;">Nome Anno</th>
+                <th style="padding: 10px;">Gioco</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="3" style="text-align:center; padding: 20px;">Caricamento archivi...</td></tr>
+            </tbody>
+          </table>
         </div>
-      </div>
-      <div id="commedia-content" style="height: calc(100vh - 80px);">
-        <iframe src="https://prof-memmo.github.io/la-corte-della-commedia/" style="width: 100%; height: 100%; border: none; border-radius: 10px;"></iframe>
-      </div>
-    </div>
-
-    <!-- View: Fantaletteratura -->
-    <div id="view-fanta" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-dragon" style="color:var(--gold);"></i> Fantaletteratura</h2>
-      </div>
-      <div id="fanta-content" style="height: calc(100vh - 80px);">
-        <iframe src="https://prof-memmo.github.io/fantaletteratura/" style="width: 100%; height: 100%; border: none; border-radius: 10px;"></iframe>
-      </div>
-    </div>
-
-    <!-- View: Riflessione -->
-    <div id="view-riflessione" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-brain" style="color:var(--gold);"></i> Palestra di Riflessione</h2>
-      </div>
-      <div id="riflessione-content" style="height: calc(100vh - 80px);">
-        <iframe src="https://prof-memmo.github.io/palestra-di-riflessione/" style="width: 100%; height: 100%; border: none; border-radius: 10px;"></iframe>
       </div>
     </div>
 
