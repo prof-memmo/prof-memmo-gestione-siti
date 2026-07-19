@@ -8,7 +8,8 @@ const HubApp = {
     },
 
     bindEvents: function() {
-        // Eventi spostati in handlers inline
+        const btn = document.getElementById('btn-google-login');
+        if (btn) btn.addEventListener('click', eseguiLoginGoogle);
     },
 
     checkAuth: function() {
