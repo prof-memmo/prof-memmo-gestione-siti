@@ -16,64 +16,111 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   
   <style>
-    /* Admin Hub Specific Overrides */
-    body { background-color: #0b0c10; color: #c5c6c7; font-family: 'Inter', sans-serif; margin: 0; }
+    /* Admin Hub Specific Overrides - SaaS Light Theme */
+    :root {
+      --bg-color: #f3f4f6;
+      --surface-color: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --border-color: #e5e7eb;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; }
+    
     .hub-sidebar {
-      position: fixed; top: 0; left: 0; width: 250px; height: 100vh;
-      background: linear-gradient(180deg, #1f2833 0%, #0b0c10 100%);
-      border-right: 2px solid var(--gold);
+      position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+      background: var(--surface-color);
+      border-right: 1px solid var(--border-color);
       padding-top: 20px;
       display: flex; flex-direction: column;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.02);
+      z-index: 100;
     }
-    .hub-sidebar .logo { text-align: center; margin-bottom: 30px; }
-    .hub-sidebar .logo img { width: 120px; }
+    .hub-sidebar .logo { text-align: center; margin-bottom: 20px; }
+    .hub-sidebar .logo img { width: 100px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+    .hub-sidebar .logo h3 { color: var(--text-main); font-weight: 700; font-size: 1.1rem; }
+    
+    .sidebar-section-title {
+      font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);
+      font-weight: 700; letter-spacing: 0.05em; padding: 15px 20px 5px 20px;
+    }
+    
     .hub-sidebar .nav-item {
-      padding: 15px 20px; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 15px;
-      border-left: 4px solid transparent; transition: all 0.3s; cursor: pointer;
+      padding: 12px 20px; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 15px;
+      border-left: 4px solid transparent; transition: all 0.2s; cursor: pointer;
+      font-weight: 500; font-size: 0.95rem; margin: 2px 0;
     }
-    .hub-sidebar .nav-item:hover, .hub-sidebar .nav-item.active {
-      background: rgba(212, 175, 55, 0.1); border-left-color: var(--gold); color: var(--gold);
+    .hub-sidebar .nav-item i { width: 20px; text-align: center; font-size: 1.1rem; }
+    .hub-sidebar .nav-item:hover { background: #f9fafb; color: var(--text-main); }
+    .hub-sidebar .nav-item.active {
+      background: #eef2ff; border-left-color: var(--accent); color: var(--accent);
     }
+    
     .hub-main {
-      margin-left: 250px; padding: 30px;
+      margin-left: 260px; padding: 30px; min-height: 100vh; box-sizing: border-box;
     }
     .hub-view { display: none; }
-    .hub-view.active { display: block; animation: fadeIn 0.4s; }
+    .hub-view.active { display: block; animation: fadeIn 0.3s ease-out; }
     
     .hub-header {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 30px;
     }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .hub-header h2 { margin: 0; color: var(--text-main); font-weight: 700; font-size: 1.8rem; display: flex; align-items: center; gap: 12px; }
+    .hub-header h2 i { color: var(--accent); }
+    
+    .glass-panel {
+      background: var(--surface-color); padding: 25px; border-radius: 12px;
+      border: 1px solid var(--border-color); box-shadow: var(--shadow);
+    }
+    
+    .btn {
+      background: var(--accent); color: white; padding: 10px 20px; border-radius: 8px; border: none;
+      font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 0.9rem;
+      display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn.outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+    .btn.outline:hover { background: #eef2ff; }
+    
+    .input-field {
+      width: 100%; padding: 12px; background: #f9fafb; color: var(--text-main);
+      border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box;
+      font-family: inherit; font-size: 0.95rem; transition: border-color 0.2s;
+    }
+    .input-field:focus { outline: none; border-color: var(--accent); background: white; }
+    
+    .game-table th { padding: 12px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600; }
+    .game-table td { padding: 12px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     
     /* Calendario Social CSS */
     .cal-day {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 5px;
-      min-height: 100px;
-      padding: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
+      background: #f9fafb; border: 1px solid var(--border-color); border-radius: 8px;
+      min-height: 110px; padding: 12px; cursor: pointer; transition: all 0.2s; position: relative;
     }
-    .cal-day:hover { background: rgba(255,255,255,0.1); border-color: var(--gold); }
+    .cal-day:hover { background: white; border-color: var(--accent); box-shadow: 0 2px 8px rgba(79,70,229,0.15); }
     .cal-day.empty { background: transparent; border: none; cursor: default; }
-    .cal-day .date-num { font-weight: bold; color: #888; font-size: 0.9rem; margin-bottom: 5px; display: block; }
-    .cal-day.today .date-num { color: var(--gold); }
+    .cal-day .date-num { font-weight: 700; color: var(--text-muted); font-size: 0.95rem; margin-bottom: 8px; display: block; }
+    .cal-day.today { border-color: var(--accent); background: #eef2ff; }
+    .cal-day.today .date-num { color: var(--accent); }
     .cal-event {
-      background: rgba(212, 175, 55, 0.2);
-      color: var(--gold);
-      border: 1px solid var(--gold);
-      font-size: 0.75rem;
-      padding: 3px 5px;
-      border-radius: 3px;
-      margin-bottom: 3px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      background: var(--accent); color: white; font-size: 0.75rem; font-weight: 500;
+      padding: 4px 6px; border-radius: 4px; margin-bottom: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
-    .cal-header-day { text-align: center; font-weight: bold; color: var(--gold); margin-bottom: 10px; }
+    .cal-header-day { text-align: center; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; font-size: 0.9rem; }
+    
+    /* Iframe Wrapper */
+    .iframe-container {
+      width: 100%; height: calc(100vh - 120px); border: none; border-radius: 12px;
+      box-shadow: var(--shadow); background: white;
+    }
   </style>
 
   <!-- Icone per Safari e Dispositivi Mobili -->
@@ -83,40 +130,24 @@
 <body>
 
   <!-- Login Overlay -->
-  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0b0c10; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column;">
-    <img src="assets/prof_memmo.png" style="width:150px; margin-bottom:20px;">
-    <h2 style="color:var(--gold);">Accesso Riservato</h2>
-    <p>Autenticazione richiesta per accedere al cruscotto.</p>
-    <button class="btn" id="btn-google-login" style="margin-top:20px; padding:15px 30px; font-size:1.1rem;"><i class="fa-brands fa-google"></i> Login con Google</button>
+  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-color); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column;">
+    <img src="assets/prof_memmo.png" style="width:150px; margin-bottom:20px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+    <h2 style="color:var(--text-main); font-weight: 700;">Hub Centrale - Accesso</h2>
+    <p style="color:var(--text-muted);">Autenticazione richiesta per accedere al cruscotto.</p>
+    <button class="btn" id="btn-google-login" style="margin-top:20px; padding:15px 30px; font-size:1.1rem;"><i class="fa-brands fa-google"></i> Accedi con Google</button>
   </div>
 
   <!-- Sidebar -->
   <div class="hub-sidebar">
     <div class="logo">
       <img src="assets/prof_memmo.png" alt="Prof Memmo">
-      <h3 style="color:var(--gold); margin:10px 0 0 0; font-family:var(--font-heading);">Hub Centrale</h3>
+      <h3>Hub Centrale</h3>
     </div>
     
+    <div class="sidebar-section-title">Marketing & AI</div>
     <div class="nav-item active" data-target="view-calendario" onclick="switchView('view-calendario')">
       <i class="fa-solid fa-calendar-days"></i> Calendario Social
     </div>
-    <div class="nav-item" data-target="view-dashboard" onclick="switchView('view-dashboard')">
-      <i class="fa-solid fa-chart-pie"></i> Panoramica
-    </div>
-    <div class="nav-item" data-target="view-iscritti" onclick="switchView('view-iscritti')">
-      <i class="fa-solid fa-users"></i> Gestione Iscritti
-    </div>
-    <div class="nav-item" data-target="view-archivi" onclick="switchView('view-archivi')">
-      <i class="fa-solid fa-box-archive"></i> Storico Archivi
-    </div>
-    <div class="nav-item" data-target="view-esperienze" onclick="switchView('view-esperienze')">
-      <i class="fa-solid fa-star"></i> Esperienze Sito
-    </div>
-    <div class="nav-item" data-target="view-posta" onclick="switchView('view-posta')">
-      <i class="fa-solid fa-envelope"></i> Casella Postale
-    </div>
-    
-    <div style="margin-top: 20px; padding: 0 20px; font-size: 0.8rem; color: #666; text-transform: uppercase;">Marketing & AI</div>
     <div class="nav-item" data-target="view-ai" onclick="switchView('view-ai')">
       <i class="fa-solid fa-wand-magic-sparkles"></i> Generatore AI
     </div>
@@ -124,8 +155,30 @@
       <i class="fa-solid fa-paper-plane"></i> Newsletter Manager
     </div>
     
+    <div class="sidebar-section-title">Console Giochi</div>
+    <div class="nav-item" data-target="view-eroi" onclick="loadIframe('view-eroi', 'https://prof-memmo.github.io/la-rotta-degli-eroi/')">
+      <i class="fa-solid fa-ship" style="color:#3b82f6;"></i> La Rotta degli Eroi
+    </div>
+    <div class="nav-item" data-target="view-commedia" onclick="loadIframe('view-commedia', 'https://prof-memmo.github.io/la-corte-della-commedia/')">
+      <i class="fa-solid fa-book-open" style="color:#ef4444;"></i> La Corte della Commedia
+    </div>
+    <div class="nav-item" data-target="view-fanta" onclick="loadIframe('view-fanta', 'https://prof-memmo.github.io/fantaletteratura/')">
+      <i class="fa-solid fa-dragon" style="color:#a855f7;"></i> Fantaletteratura
+    </div>
+    <div class="nav-item" data-target="view-palestra" onclick="loadIframe('view-palestra', 'https://prof-memmo.github.io/palestra-di-riflessione/')">
+      <i class="fa-solid fa-brain" style="color:#22c55e;"></i> Palestra di Riflessione
+    </div>
+    
+    <div class="sidebar-section-title">Comunicazioni</div>
+    <div class="nav-item" data-target="view-esperienze" onclick="switchView('view-esperienze')">
+      <i class="fa-solid fa-star" style="color:#f59e0b;"></i> Esperienze Hub
+    </div>
+    <div class="nav-item" data-target="view-posta" onclick="switchView('view-posta')">
+      <i class="fa-solid fa-envelope" style="color:#64748b;"></i> Casella Postale
+    </div>
+    
     <div style="flex-grow: 1;"></div>
-    <div class="nav-item" style="color:#e74c3c; border-top:1px solid rgba(255,255,255,0.1);" onclick="HubApp.logout()">
+    <div class="nav-item" style="color:#ef4444; border-top:1px solid var(--border-color);" onclick="HubApp.logout()">
       <i class="fa-solid fa-power-off"></i> Disconnetti
     </div>
   </div>
@@ -136,14 +189,14 @@
     <!-- View: Calendario Social (Home) -->
     <div id="view-calendario" class="hub-view active">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-calendar-days" style="color:var(--gold);"></i> Calendario Editoriale Social</h2>
+        <h2><i class="fa-solid fa-calendar-days"></i> Calendario Editoriale Social</h2>
         <button class="btn" onclick="openCalendarModal()" style="font-size: 0.9rem;"><i class="fa-solid fa-plus"></i> Nuovo Post</button>
       </div>
-      <div class="glass-panel" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <button class="btn-icon" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-          <h3 id="calendar-month-title" style="margin: 0; color: #fff;">Mese Anno</h3>
-          <button class="btn-icon" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+      <div class="glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <button class="btn outline" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+          <h3 id="calendar-month-title" style="margin: 0; color: var(--text-main); font-weight: 700;">Mese Anno</h3>
+          <button class="btn outline" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
         <div id="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">
           <!-- Generato via JS -->
@@ -151,73 +204,33 @@
       </div>
     </div>
 
-    <!-- View: Dashboard / Panoramica -->
-    <div id="view-dashboard" class="hub-view">
+    <!-- Views: Iframes dei Giochi -->
+    <div id="view-eroi" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-chart-pie" style="color:var(--gold);"></i> Panoramica Generale</h2>
+        <h2><i class="fa-solid fa-ship" style="color:#3b82f6;"></i> Console: La Rotta degli Eroi</h2>
       </div>
-      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-        <!-- Card: Totale Iscritti -->
-        <div class="glass-panel" style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.5); padding: 30px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
-          <h3 style="color:#aaa; margin-top:0;">Totale Iscritti Globale</h3>
-          <h1 id="counter-total" style="font-size: 4rem; color:var(--gold); margin: 10px 0;">--</h1>
-          <p style="color:#888; font-size: 0.9rem;">
-            <i class="fa-solid fa-ship" style="color:#3498db;"></i> Eroi: <span id="counter-eroi">--</span> | 
-            <i class="fa-solid fa-book-open" style="color:#e74c3c;"></i> Commedia: <span id="counter-commedia">--</span> |
-            <br>
-            <i class="fa-solid fa-dragon" style="color:#9b59b6;"></i> Fanta: <span id="counter-fanta">--</span> |
-            <i class="fa-solid fa-brain" style="color:#2ecc71;"></i> Palestra: <span id="counter-palestra">--</span>
-          </p>
-        </div>
-        <!-- Altre card future... -->
+      <iframe class="iframe-container" id="iframe-eroi" src=""></iframe>
+    </div>
+    
+    <div id="view-commedia" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-book-open" style="color:#ef4444;"></i> Console: La Corte della Commedia</h2>
       </div>
+      <iframe class="iframe-container" id="iframe-commedia" src=""></iframe>
     </div>
 
-    <!-- View: Iscritti -->
-    <div id="view-iscritti" class="hub-view">
+    <div id="view-fanta" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-users" style="color:var(--gold);"></i> Tutti gli Iscritti</h2>
+        <h2><i class="fa-solid fa-dragon" style="color:#a855f7;"></i> Console: Fantaletteratura</h2>
       </div>
-      <div class="glass-panel" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-        <div class="table-responsive">
-          <table class="game-table" id="hub-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
-            <thead>
-              <tr style="border-bottom: 2px solid var(--gold);">
-                <th style="padding: 10px;">Nome / Email</th>
-                <th style="padding: 10px;">Ruolo</th>
-                <th style="padding: 10px;">Gioco</th>
-                <th style="padding: 10px;">Classe</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="4" style="text-align:center; padding: 20px;">Caricamento iscritti aggregati...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <iframe class="iframe-container" id="iframe-fanta" src=""></iframe>
     </div>
 
-    <!-- View: Archivi -->
-    <div id="view-archivi" class="hub-view">
+    <div id="view-palestra" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-box-archive" style="color:var(--gold);"></i> Archivi Storici</h2>
+        <h2><i class="fa-solid fa-brain" style="color:#22c55e;"></i> Console: Palestra di Riflessione</h2>
       </div>
-      <div class="glass-panel" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-        <div class="table-responsive">
-          <table class="game-table" id="hub-archivi-table" style="width: 100%; text-align: left; border-collapse: collapse;">
-            <thead>
-              <tr style="border-bottom: 2px solid var(--gold);">
-                <th style="padding: 10px;">Data Archiviazione</th>
-                <th style="padding: 10px;">Nome Anno</th>
-                <th style="padding: 10px;">Gioco</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="3" style="text-align:center; padding: 20px;">Caricamento archivi...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <iframe class="iframe-container" id="iframe-palestra" src=""></iframe>
     </div>
 
     <!-- View: Esperienze -->
@@ -281,25 +294,25 @@
     <!-- View: Generatore AI & Social -->
     <div id="view-ai" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--gold);"></i> Generatore AI & Social Manager</h2>
+        <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Generatore AI & Social Manager</h2>
         <button class="btn" onclick="window.open('https://business.facebook.com/', '_blank')" style="background: #E1306C;"><i class="fa-brands fa-instagram"></i> Apri Meta Business Suite</button>
       </div>
       
       <div style="display: flex; gap: 20px; flex-wrap: wrap;">
         <!-- Generatore Prompt -->
-        <div class="glass-panel" style="flex: 2; min-width: 300px; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-          <h3 style="color:var(--gold); margin-top:0;">Crea un Prompt Perfetto</h3>
+        <div class="glass-panel" style="flex: 2; min-width: 300px;">
+          <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 20px;">Crea un Prompt Perfetto</h3>
           
-          <label style="display:block; margin-bottom:5px; color:#aaa;">Obiettivo / Tipo di Post:</label>
-          <select id="ai-tipo-post" class="input-field" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px;">
+          <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-weight:600; font-size:0.9rem;">Obiettivo / Tipo di Post:</label>
+          <select id="ai-tipo-post" class="input-field" style="margin-bottom: 20px;">
             <option value="reel">Testo per Reel Educativo (Instagram/TikTok)</option>
             <option value="carosello">Testo per Carosello Immagini (Instagram)</option>
             <option value="adv">Copy per Pubblicità (Facebook Ads / Instagram Ads)</option>
             <option value="canva">Prompt per Generazione Immagine (Canva/Midjourney)</option>
           </select>
 
-          <label style="display:block; margin-bottom:5px; color:#aaa;">Riferimento (Gioco/Argomento):</label>
-          <select id="ai-gioco" class="input-field" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px;">
+          <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-weight:600; font-size:0.9rem;">Riferimento (Gioco/Argomento):</label>
+          <select id="ai-gioco" class="input-field" style="margin-bottom: 20px;">
             <option value="eroi">La Rotta degli Eroi</option>
             <option value="commedia">La Corte della Commedia</option>
             <option value="fanta">Fantaletteratura</option>
@@ -307,26 +320,26 @@
             <option value="generico">Generico (Metodo di Studio / Gamification)</option>
           </select>
           
-          <label style="display:block; margin-bottom:5px; color:#aaa;">Argomento Specifico (Opzionale):</label>
-          <input type="text" id="ai-argomento" class="input-field" placeholder="Es. Dante Alighieri e l'inferno" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; box-sizing: border-box;">
+          <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-weight:600; font-size:0.9rem;">Argomento Specifico (Opzionale):</label>
+          <input type="text" id="ai-argomento" class="input-field" placeholder="Es. Dante Alighieri e l'inferno" style="margin-bottom: 20px;">
 
           <button class="btn" onclick="generaPrompt()" style="width: 100%;"><i class="fa-solid fa-bolt"></i> Genera Istruzione per IA</button>
           
-          <div style="margin-top: 20px;">
-            <label style="display:block; margin-bottom:5px; color:#aaa;">Prompt Generato (Copia e Incolla nell'IA):</label>
-            <textarea id="ai-risultato" rows="6" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.8); color: #00ff00; border: 1px solid var(--gold); border-radius: 5px; box-sizing: border-box; font-family: monospace;" readonly>Seleziona le opzioni in alto e clicca Genera.</textarea>
-            <button class="btn" onclick="copiaPrompt()" style="margin-top: 10px; background: transparent; border: 1px solid var(--gold); color: var(--gold);"><i class="fa-regular fa-copy"></i> Copia Testo</button>
+          <div style="margin-top: 25px;">
+            <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-weight:600; font-size:0.9rem;">Prompt Generato (Copia e Incolla nell'IA):</label>
+            <textarea id="ai-risultato" rows="6" style="width: 100%; padding: 15px; background: #f8fafc; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-family: monospace;" readonly>Seleziona le opzioni in alto e clicca Genera.</textarea>
+            <button class="btn outline" onclick="copiaPrompt()" style="margin-top: 10px; width: 100%;"><i class="fa-regular fa-copy"></i> Copia Testo</button>
           </div>
         </div>
 
         <!-- Strumenti Rapidi -->
-        <div class="glass-panel" style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-          <h3 style="color:var(--gold); margin-top:0;">Lancio Strumenti</h3>
-          <p style="color:#aaa; font-size:0.9rem;">Copia il prompt generato e avvia uno di questi strumenti per completare il lavoro.</p>
+        <div class="glass-panel" style="flex: 1; min-width: 250px;">
+          <h3 style="color:var(--text-main); margin-top:0; margin-bottom:15px;">Lancio Strumenti</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px; line-height: 1.5;">Copia il prompt generato e avvia uno di questi strumenti per completare il lavoro.</p>
           
-          <button class="btn" onclick="window.open('https://chat.openai.com/', '_blank')" style="width: 100%; margin-bottom: 10px; background: #10a37f;"><i class="fa-solid fa-robot"></i> Apri ChatGPT</button>
-          <button class="btn" onclick="window.open('https://gemini.google.com/', '_blank')" style="width: 100%; margin-bottom: 10px; background: #4285f4;"><i class="fa-solid fa-sparkles"></i> Apri Google Gemini</button>
-          <button class="btn" onclick="window.open('https://www.canva.com/', '_blank')" style="width: 100%; margin-bottom: 10px; background: #00c4cc;"><i class="fa-solid fa-pen-nib"></i> Apri Canva</button>
+          <button class="btn" onclick="window.open('https://chat.openai.com/', '_blank')" style="width: 100%; margin-bottom: 15px; background: #10a37f;"><i class="fa-solid fa-robot"></i> Apri ChatGPT</button>
+          <button class="btn" onclick="window.open('https://gemini.google.com/', '_blank')" style="width: 100%; margin-bottom: 15px; background: #4285f4;"><i class="fa-solid fa-sparkles"></i> Apri Google Gemini</button>
+          <button class="btn" onclick="window.open('https://www.canva.com/', '_blank')" style="width: 100%; margin-bottom: 15px; background: #00c4cc;"><i class="fa-solid fa-pen-nib"></i> Apri Canva</button>
         </div>
       </div>
     </div>
@@ -334,50 +347,50 @@
     <!-- View: Newsletter Manager -->
     <div id="view-newsletter" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-paper-plane" style="color:var(--gold);"></i> Newsletter Manager</h2>
+        <h2><i class="fa-solid fa-paper-plane"></i> Newsletter Manager</h2>
       </div>
       
       <div style="display: flex; gap: 20px; flex-wrap: wrap;">
         <!-- Editor -->
-        <div class="glass-panel" style="flex: 2; min-width: 300px; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-          <h3 style="color:var(--gold); margin-top:0;">Nuova Newsletter</h3>
+        <div class="glass-panel" style="flex: 2; min-width: 300px;">
+          <h3 style="color:var(--text-main); margin-top:0; margin-bottom:20px;">Nuova Newsletter</h3>
           
-          <input type="text" id="news-oggetto" class="input-field" placeholder="Oggetto dell'email" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; box-sizing: border-box;">
+          <input type="text" id="news-oggetto" class="input-field" placeholder="Oggetto dell'email" style="margin-bottom: 15px;">
           
-          <textarea id="news-corpo" rows="12" placeholder="Scrivi qui il corpo dell'email... (supporta il testo che poi incollerai in Gmail o Mailchimp)" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; box-sizing: border-box;"></textarea>
+          <textarea id="news-corpo" class="input-field" rows="12" placeholder="Scrivi qui il corpo dell'email... (supporta il testo che poi incollerai in Gmail o Mailchimp)" style="resize: vertical;"></textarea>
           
-          <div style="margin-top: 15px; display: flex; gap: 10px;">
+          <div style="margin-top: 20px; display: flex; gap: 10px;">
             <button class="btn" onclick="salvaBozzaNewsletter()"><i class="fa-solid fa-floppy-disk"></i> Salva Bozza</button>
-            <button class="btn" onclick="preparaInvioGmail()" style="background: transparent; border: 1px solid #ea4335; color: #ea4335;"><i class="fa-brands fa-google"></i> Prepara per Gmail (BCC)</button>
+            <button class="btn outline" onclick="preparaInvioGmail()" style="border-color: #ea4335; color: #ea4335;"><i class="fa-brands fa-google"></i> Prepara per Gmail (BCC)</button>
           </div>
         </div>
 
         <!-- Bozze Salvate -->
-        <div class="glass-panel" style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-          <h3 style="color:var(--gold); margin-top:0;">Bozze Salvate</h3>
+        <div class="glass-panel" style="flex: 1; min-width: 250px;">
+          <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 15px;">Bozze Salvate</h3>
           <div id="newsletter-lista-bozze" style="max-height: 400px; overflow-y: auto;">
-            <p style="color:#888; font-size:0.9rem; text-align:center;">Caricamento bozze...</p>
+            <p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Caricamento bozze...</p>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Modale Calendario Social -->
-    <div id="calendar-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-      <div class="glass-panel" style="background: #1f2833; padding: 30px; border-radius: 10px; border: 2px solid var(--gold); width: 400px; max-width: 90%;">
-        <h3 id="calendar-modal-title" style="color:var(--gold); margin-top:0;">Programma Post</h3>
+    <div id="calendar-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index:9999; justify-content:center; align-items:center;">
+      <div class="glass-panel" style="width: 400px; max-width: 90%;">
+        <h3 id="calendar-modal-title" style="color:var(--text-main); margin-top:0; margin-bottom:20px;">Programma Post</h3>
         <input type="hidden" id="cal-id">
-        <input type="date" id="cal-date" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; box-sizing: border-box;">
-        <input type="text" id="cal-title" placeholder="Titolo o argomento del post" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; box-sizing: border-box;">
-        <select id="cal-platform" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px;">
+        <input type="date" id="cal-date" class="input-field" style="margin-bottom: 15px;">
+        <input type="text" id="cal-title" class="input-field" placeholder="Titolo o argomento del post" style="margin-bottom: 15px;">
+        <select id="cal-platform" class="input-field" style="margin-bottom: 20px;">
           <option value="instagram">Instagram</option>
           <option value="facebook">Facebook</option>
           <option value="tiktok">TikTok</option>
         </select>
         <div style="display: flex; gap: 10px; justify-content: space-between;">
           <button class="btn" onclick="saveCalendarEvent()" style="flex:1;">Salva</button>
-          <button class="btn" id="btn-delete-cal" onclick="deleteCalendarEvent()" style="flex:1; background: #e74c3c; display:none;">Elimina</button>
-          <button class="btn" onclick="closeCalendarModal()" style="flex:1; background: transparent; border: 1px solid #aaa; color: #aaa;">Annulla</button>
+          <button class="btn" id="btn-delete-cal" onclick="deleteCalendarEvent()" style="flex:1; background: #ef4444; display:none;">Elimina</button>
+          <button class="btn outline" onclick="closeCalendarModal()" style="flex:1;">Annulla</button>
         </div>
       </div>
     </div>
@@ -392,7 +405,17 @@
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       
       document.getElementById(targetId).classList.add('active');
-      document.querySelector(`.nav-item[data-target="${targetId}"]`).classList.add('active');
+      const navItem = document.querySelector(`.nav-item[data-target="${targetId}"]`);
+      if (navItem) navItem.classList.add('active');
+    }
+
+    function loadIframe(targetId, url) {
+      switchView(targetId);
+      const iframeId = 'iframe-' + targetId.replace('view-', '');
+      const iframe = document.getElementById(iframeId);
+      if (iframe && iframe.src !== url) {
+        iframe.src = url;
+      }
     }
   </script>
 </body>

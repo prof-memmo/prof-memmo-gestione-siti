@@ -49,8 +49,6 @@ const HubApp = {
     },
 
     loadData: function() {
-        this.loadIscrittiAggregati();
-        this.loadArchivi();
         this.loadEsperienze();
         this.loadPosta();
         
