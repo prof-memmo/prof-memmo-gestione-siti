@@ -23,6 +23,13 @@ const HubApp = {
                 this.user = user;
                 // Controlla se l'utente è l'admin (Prof Memmo)
                 if (user.email === 'prof.memmo@gmail.com') {
+                    // Controlla il risultato del redirect (per prendere il token)
+                    window.fbAuth.getRedirectResult().then(result => {
+                        if (result && result.credential && result.credential.accessToken) {
+                            sessionStorage.setItem('gcalToken', result.credential.accessToken);
+                        }
+                    }).catch(console.error);
+
                     document.getElementById('login-overlay').style.display = 'none';
                     this.loadData();
                 } else {
@@ -883,16 +890,10 @@ function eseguiLoginGoogle() {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.addScope('https://www.googleapis.com/auth/calendar.events');
         
-        window.fbAuth.signInWithPopup(provider).then((result) => {
-            const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-            if (credential && credential.accessToken) {
-                sessionStorage.setItem('gcalToken', credential.accessToken);
-            }
-        }).catch(err => {
-            console.error("Login failed:", err);
-            alert("Errore durante l'accesso: " + err.message);
-            if(btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
-        });
+        window.fbAuth.signInWithRedirect(provider);
+        // Il risultato del redirect viene gestito automaticamente da onAuthStateChanged
+        // Non serve il blocco .then() qui perché la pagina verrà ricaricata da Google.
+
     } catch (error) {
         alert("Errore nello script di login: " + error.message);
         if(btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
