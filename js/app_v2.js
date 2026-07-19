@@ -22,11 +22,11 @@ const HubApp = {
             if (user) {
                 this.user = user;
                 // Controlla se l'utente è l'admin (Prof Memmo)
-                if (user.email === 'prof.memmo@gmail.com') {
+                if (user.email && user.email.toLowerCase() === 'prof.memmo@gmail.com') {
                     document.getElementById('login-overlay').style.display = 'none';
                     this.loadData();
                 } else {
-                    alert("Accesso negato. Solo l'amministratore può accedere al cruscotto.");
+                    alert("Accesso negato. L'email riconosciuta è: " + (user.email || 'Nessuna email') + ". Solo l'amministratore può accedere.");
                     this.logout();
                 }
             } else {
@@ -883,11 +883,19 @@ function eseguiLoginGoogle() {
     // prima di aprire il popup, altrimenti Safari blocca la finestra!
     
     window.fbAuth.signInWithPopup(googleProvider).then((result) => {
+        alert("Successo popup! Email: " + result.user.email);
         const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
         if (credential && credential.accessToken) {
             sessionStorage.setItem('gcalToken', credential.accessToken);
         }
-        // onAuthStateChanged si occuperà del resto
+        
+        // Forza l'aggiornamento manuale se onAuthStateChanged dovesse fallire
+        if (window.HubApp && result.user && result.user.email.toLowerCase() === 'prof.memmo@gmail.com') {
+            document.getElementById('login-overlay').style.display = 'none';
+            window.HubApp.user = result.user;
+            window.HubApp.loadData();
+        }
+        
     }).catch(err => {
         console.error("Login failed:", err);
         if (err.code === 'auth/popup-blocked') {
