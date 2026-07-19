@@ -522,6 +522,32 @@
         <input type="hidden" id="cal-id">
         <input type="date" id="cal-date" class="input-field" style="margin-bottom: 15px;">
         <input type="text" id="cal-title" class="input-field" placeholder="Titolo o argomento del post" style="margin-bottom: 15px;">
+        
+        <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 15px;">
+            <input type="checkbox" id="cal-allday" checked onchange="document.getElementById('cal-time-container').style.display = this.checked ? 'none' : 'flex'">
+            <label for="cal-allday" style="color:var(--text-main); font-weight: 500;">Tutto il giorno</label>
+        </div>
+
+        <div id="cal-time-container" style="display:none; gap: 10px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <label style="display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">Inizio</label>
+                <input type="time" id="cal-start-time" class="input-field" value="09:00">
+            </div>
+            <div style="flex: 1;">
+                <label style="display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">Fine</label>
+                <input type="time" id="cal-end-time" class="input-field" value="10:00">
+            </div>
+        </div>
+
+        <label style="display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">Ripetizione</label>
+        <select id="cal-recurrence" class="input-field" style="margin-bottom: 15px;">
+          <option value="none">Nessuna ripetizione</option>
+          <option value="DAILY">Ogni giorno</option>
+          <option value="WEEKLY">Ogni settimana</option>
+          <option value="MONTHLY">Ogni mese</option>
+        </select>
+
+        <label style="display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">Piattaforma</label>
         <select id="cal-platform" class="input-field" style="margin-bottom: 20px;">
           <option value="instagram">Instagram</option>
           <option value="facebook">Facebook</option>
@@ -541,8 +567,8 @@
 
   </div>
 
-  <script src="js/firebase-init.js?v=16"></script>
-  <script src="js/app_v2.js?v=16"></script>
+  <script src="js/firebase-init.js?v=17"></script>
+  <script src="js/app_v2.js?v=17"></script>
   <script>
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');

@@ -588,8 +588,9 @@ function renderCalendar() {
                     iconClass = "fa-solid fa-bullhorn";
                 }
                 
-                html += `<div class="cal-event" style="color:white; background:${color}; border-color:${color};" onclick="event.stopPropagation(); editCalendarEvent('${dateStr}', '${ev.id}', '${ev.title.replace(/'/g, "\\'")}', '${ev.platform}')">
-                    <i class="${iconClass}"></i> ${ev.title}
+                let timeLabel = ev.allDay === false ? `<strong>${ev.startTime}</strong> - ` : '';
+                html += `<div class="cal-event" style="color:white; background:${color}; border-color:${color};" onclick="event.stopPropagation(); editCalendarEvent('${dateStr}', '${ev.id}')">
+                    <i class="${iconClass}"></i> ${timeLabel}${ev.title}
                 </div>`;
             });
         }
@@ -632,18 +633,34 @@ function openCalendarModal(dateStr = "") {
     document.getElementById('cal-date').value = dateStr || new Date().toISOString().split('T')[0];
     document.getElementById('cal-title').value = "";
     document.getElementById('cal-platform').value = "instagram";
-    document.getElementById('btn-delete-cal').style.display = 'none';
     
+    document.getElementById('cal-allday').checked = true;
+    document.getElementById('cal-time-container').style.display = 'none';
+    document.getElementById('cal-start-time').value = '09:00';
+    document.getElementById('cal-end-time').value = '10:00';
+    document.getElementById('cal-recurrence').value = 'none';
+
+    document.getElementById('btn-delete-cal').style.display = 'none';
     document.getElementById('calendar-modal').style.display = 'flex';
 }
 
-function editCalendarEvent(dateStr, id, title, platform) {
+function editCalendarEvent(dateStr, id) {
+    if (!currentEvents[dateStr]) return;
+    const ev = currentEvents[dateStr].find(e => e.id === id);
+    if (!ev) return;
+
     document.getElementById('cal-id').value = id;
     document.getElementById('cal-date').value = dateStr;
-    document.getElementById('cal-title').value = title;
-    document.getElementById('cal-platform').value = platform;
-    document.getElementById('btn-delete-cal').style.display = 'block';
+    document.getElementById('cal-title').value = ev.title;
+    document.getElementById('cal-platform').value = ev.platform || 'instagram';
     
+    document.getElementById('cal-allday').checked = ev.allDay !== false;
+    document.getElementById('cal-time-container').style.display = ev.allDay !== false ? 'none' : 'flex';
+    document.getElementById('cal-start-time').value = ev.startTime || '09:00';
+    document.getElementById('cal-end-time').value = ev.endTime || '10:00';
+    document.getElementById('cal-recurrence').value = ev.recurrence || 'none';
+
+    document.getElementById('btn-delete-cal').style.display = 'block';
     document.getElementById('calendar-modal').style.display = 'flex';
 }
 
@@ -658,6 +675,11 @@ async function saveCalendarEvent() {
     const title = document.getElementById('cal-title').value;
     const platform = document.getElementById('cal-platform').value;
     
+    const allDay = document.getElementById('cal-allday').checked;
+    const startTime = document.getElementById('cal-start-time').value;
+    const endTime = document.getElementById('cal-end-time').value;
+    const recurrenceVal = document.getElementById('cal-recurrence').value;
+    
     if(!date || !title) return alert("Inserisci data e titolo");
     
     // Recupera l'ID Google Calendar se esiste
@@ -667,7 +689,10 @@ async function saveCalendarEvent() {
         if (ev && ev.gcalEventId) gcalEventId = ev.gcalEventId;
     }
     
-    const data = { date, title, platform, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
+    const data = { 
+        date, title, platform, allDay, startTime, endTime, recurrence: recurrenceVal,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+    };
     
     try {
         let docRefId = id;
@@ -682,10 +707,27 @@ async function saveCalendarEvent() {
         const token = sessionStorage.getItem('gcalToken');
         if (token) {
             const gcalData = {
-                summary: `[${platform.toUpperCase()}] ${title}`,
-                start: { date: date },
-                end: { date: date }
+                summary: `[${platform.toUpperCase()}] ${title}`
             };
+            
+            if (allDay) {
+                // Per All-Day, Google richiede end.date al giorno successivo
+                let nextDay = new Date(date);
+                nextDay.setDate(nextDay.getDate() + 1);
+                const nextDayStr = nextDay.toISOString().split('T')[0];
+                
+                gcalData.start = { date: date };
+                gcalData.end = { date: nextDayStr };
+            } else {
+                const startDateTime = new Date(`${date}T${startTime}:00`).toISOString();
+                const endDateTime = new Date(`${date}T${endTime}:00`).toISOString();
+                gcalData.start = { dateTime: startDateTime };
+                gcalData.end = { dateTime: endDateTime };
+            }
+            
+            if (recurrenceVal && recurrenceVal !== 'none') {
+                gcalData.recurrence = [`RRULE:FREQ=${recurrenceVal}`];
+            }
             
             let url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
             let method = 'POST';
@@ -709,7 +751,8 @@ async function saveCalendarEvent() {
                     await window.fbDb.hub.collection("hub_social_calendar").doc(docRefId).update({ gcalEventId: result.id });
                 }
             } else {
-                console.warn("Sincronizzazione Google Calendar fallita. Token scaduto o permessi non validi.");
+                const errText = await res.text();
+                console.warn("Sincronizzazione Google Calendar fallita:", errText);
             }
         }
         
