@@ -869,36 +869,33 @@ function preparaInvioGmail() {
 }
 
 
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
+
 // --- LOGICA DI LOGIN GLOBALE ---
 function eseguiLoginGoogle() {
-    const btn = document.getElementById('btn-google-login');
-    if(btn) btn.innerHTML = "Accesso in corso...";
-    
     if (!window.fbAuth) {
         alert("Errore critico: Firebase non è inizializzato. Controlla la console.");
         return;
     }
     
-    try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.addScope('https://www.googleapis.com/auth/calendar.events');
-        
-        window.fbAuth.signInWithPopup(provider).then((result) => {
-            const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-            if (credential && credential.accessToken) {
-                sessionStorage.setItem('gcalToken', credential.accessToken);
-            }
-            // onAuthStateChanged si occuperà del resto
-        }).catch(err => {
-            console.error("Login failed:", err);
+    // IMPORTANTE: Nessuna modifica del DOM (es. cambiare il testo del bottone) 
+    // prima di aprire il popup, altrimenti Safari blocca la finestra!
+    
+    window.fbAuth.signInWithPopup(googleProvider).then((result) => {
+        const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+        if (credential && credential.accessToken) {
+            sessionStorage.setItem('gcalToken', credential.accessToken);
+        }
+        // onAuthStateChanged si occuperà del resto
+    }).catch(err => {
+        console.error("Login failed:", err);
+        if (err.code === 'auth/popup-blocked') {
+            alert("Safari (o il tuo browser) ha bloccato il popup di login! 🛑\n\nPER RISOLVERE:\nGuarda nella barra degli indirizzi in alto, clicca sull'iconcina dei popup bloccati e consenti i popup per questo sito, poi riprova.");
+        } else if (err.code !== 'auth/cancelled-popup-request') {
             alert("Errore durante l'accesso: " + err.message);
-            if(btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
-        });
-
-    } catch (error) {
-        alert("Errore nello script di login: " + error.message);
-        if(btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
-    }
+        }
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
