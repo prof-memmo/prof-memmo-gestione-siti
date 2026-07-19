@@ -448,6 +448,27 @@
           </div>
         </div>
 
+        <!-- Destinatari -->
+        <div class="glass-panel" style="flex: 1; min-width: 250px;">
+          <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 15px;">Seleziona Destinatari</h3>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:10px;"><i class="fa-solid fa-circle-info"></i> Assicurati di aver aggiornato i dati nella Panoramica Globale prima di inviare.</p>
+          <select id="filter-news-gioco" class="input-field" style="margin-bottom: 10px; padding: 6px;" onchange="renderNewsletterDestinatari()">
+            <option value="all">Tutti i Giochi</option>
+            <option value="La Rotta degli Eroi">Eroi</option>
+            <option value="La Corte della Commedia">Commedia</option>
+            <option value="Fantaletteratura">Fanta</option>
+            <option value="Palestra di Riflessione">Palestra</option>
+          </select>
+          <div style="margin-bottom: 10px;">
+            <label style="font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="check-all-news" onchange="toggleAllDestinatari(this)" checked> <strong>Seleziona / Deseleziona Tutti</strong>
+            </label>
+          </div>
+          <div id="newsletter-lista-destinatari" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; background: #f9fafb;">
+            <p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Iscritti non ancora caricati. Vai in Panoramica Globale e clicca "Aggiorna Dati Ora".</p>
+          </div>
+        </div>
+
         <!-- Bozze Salvate -->
         <div class="glass-panel" style="flex: 1; min-width: 250px;">
           <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 15px;">Bozze Salvate</h3>

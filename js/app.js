@@ -177,6 +177,7 @@ const HubApp = {
             document.getElementById('counter-palestra').innerText = palestraUsers.length;
 
             this.renderIscrittiTable(this.allUsers);
+            if(window.renderNewsletterDestinatari) window.renderNewsletterDestinatari();
 
         } catch(e) {
             console.error("Errore aggregazione iscritti:", e);
@@ -650,7 +651,57 @@ async function salvaBozzaNewsletter() {
 function preparaInvioGmail() {
     const oggetto = encodeURIComponent(document.getElementById('news-oggetto').value);
     const corpo = encodeURIComponent(document.getElementById('news-corpo').value);
-    window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${oggetto}&body=${corpo}&bcc=`, '_blank');
+    
+    const checkboxes = document.querySelectorAll('.news-dest-checkbox:checked');
+    let emails = [];
+    checkboxes.forEach(cb => {
+        if(cb.value && cb.value.includes('@')) emails.push(cb.value);
+    });
+    
+    if(emails.length === 0 && (document.getElementById('news-oggetto').value || document.getElementById('news-corpo').value)) {
+        if(!confirm("Non hai selezionato nessun destinatario valido. Vuoi preparare l'email vuota su Gmail?")) return;
+    }
+    
+    const bccString = encodeURIComponent(emails.join(', '));
+    window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${oggetto}&body=${corpo}&bcc=${bccString}`, '_blank');
+}
+
+window.renderNewsletterDestinatari = function() {
+    const list = document.getElementById('newsletter-lista-destinatari');
+    if (!HubApp.allUsers || HubApp.allUsers.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Iscritti non ancora caricati. Vai in Panoramica Globale e clicca "Aggiorna Dati Ora".</p>';
+        return;
+    }
+
+    const filterGioco = document.getElementById('filter-news-gioco').value;
+    const isChecked = document.getElementById('check-all-news').checked;
+    
+    let html = '';
+    HubApp.allUsers.forEach((user, index) => {
+        if (filterGioco !== 'all' && user.gioco !== filterGioco) return;
+        if (!user.email) return; // Salta chi non ha email
+        
+        html += `
+        <div style="display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid #eee;">
+            <input type="checkbox" class="news-dest-checkbox" value="${user.email}" ${isChecked ? 'checked' : ''} id="dest-${index}">
+            <label for="dest-${index}" style="font-size: 0.9rem; cursor: pointer; flex: 1; margin:0;">
+                <strong style="color:var(--text-main);">${user.nome}</strong> <span style="color:var(--text-muted); font-size:0.8rem;">(${user.email})</span><br>
+                <span style="font-size:0.75rem; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</span>
+            </label>
+        </div>
+        `;
+    });
+    
+    if(html === '') {
+        list.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Nessun iscritto trovato con email per questo filtro.</p>';
+    } else {
+        list.innerHTML = html;
+    }
+}
+
+window.toggleAllDestinatari = function(checkbox) {
+    const checkboxes = document.querySelectorAll('.news-dest-checkbox');
+    checkboxes.forEach(cb => cb.checked = checkbox.checked);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
