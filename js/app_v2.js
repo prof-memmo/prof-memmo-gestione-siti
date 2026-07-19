@@ -91,7 +91,7 @@ const HubApp = {
                 const fields = doc.fields || {};
                 return {
                     id: doc.name.split('/').pop(),
-                    nome: (fields.nome && fields.nome.stringValue) || (fields.displayName && fields.displayName.stringValue) || 'Anonimo',
+                    nome: (fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || 'Anonimo',
                     email: (fields.email && fields.email.stringValue) || '',
                     ruolo: (fields.role && fields.role.stringValue) || 'studente',
                     classe: (fields.classId && fields.classId.stringValue) || (fields.class && fields.class.stringValue) || 'N/A'
@@ -120,7 +120,7 @@ const HubApp = {
                     snapEroi.forEach(doc => {
                         const data = doc.data();
                         eroiUsers.push({
-                            id: doc.id, nome: data.nome || data.displayName || 'Anonimo', email: data.email || '',
+                            id: doc.id, nome: data.nome || data.name || data.displayName || 'Anonimo', email: data.email || '',
                             ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
                             gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship'
                         });
@@ -145,7 +145,7 @@ const HubApp = {
                     snapFanta.forEach(doc => {
                         const data = doc.data();
                         fantaUsers.push({
-                            id: doc.id, nome: data.nome || data.displayName || 'Anonimo', email: data.email || '',
+                            id: doc.id, nome: data.nome || data.name || data.displayName || 'Anonimo', email: data.email || '',
                             ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
                             gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon'
                         });
