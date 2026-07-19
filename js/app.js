@@ -58,6 +58,53 @@ const HubApp = {
         loadNewsletters();
     },
 
+    getAuthTokenFromDB: async function(apiKey) {
+        return new Promise((resolve) => {
+            const req = indexedDB.open('firebaseLocalStorageDb');
+            req.onsuccess = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains('firebaseLocalStorage')) return resolve(null);
+                const tx = db.transaction('firebaseLocalStorage', 'readonly');
+                const store = tx.objectStore('firebaseLocalStorage');
+                const getReq = store.get(`firebase:authUser:${apiKey}:[DEFAULT]`);
+                getReq.onsuccess = (e2) => {
+                    if (e2.target.result && e2.target.result.value.stsTokenManager) {
+                        resolve(e2.target.result.value.stsTokenManager.accessToken);
+                    } else {
+                        resolve(null);
+                    }
+                };
+                getReq.onerror = () => resolve(null);
+            };
+            req.onerror = () => resolve(null);
+        });
+    },
+
+    fetchUsersREST: async function(projectId, apiKey) {
+        try {
+            const token = await this.getAuthTokenFromDB(apiKey);
+            if (!token) return [];
+            const res = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users?pageSize=1000`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!data.documents) return [];
+            return data.documents.map(doc => {
+                const fields = doc.fields || {};
+                return {
+                    id: doc.name.split('/').pop(),
+                    nome: (fields.nome && fields.nome.stringValue) || (fields.displayName && fields.displayName.stringValue) || 'Anonimo',
+                    email: (fields.email && fields.email.stringValue) || '',
+                    ruolo: (fields.role && fields.role.stringValue) || 'studente',
+                    classe: (fields.classId && fields.classId.stringValue) || (fields.class && fields.class.stringValue) || 'N/A'
+                };
+            });
+        } catch(e) {
+            console.error("REST Fetch error for " + projectId, e);
+            return [];
+        }
+    },
+
     loadIscrittiAggregati: async function() {
         try {
             const tbody = document.querySelector('#hub-iscritti-table tbody');
@@ -83,20 +130,15 @@ const HubApp = {
                 } catch(e) { console.warn("Eroi auth error:", e); }
             }
 
-            // Fetch da La Corte della Commedia
-            if (window.fbDb.commedia) {
-                try {
-                    const snapCommedia = await window.fbDb.commedia.collection("users").get();
-                    snapCommedia.forEach(doc => {
-                        const data = doc.data();
-                        commediaUsers.push({
-                            id: doc.id, nome: data.nome || data.displayName || 'Anonimo', email: data.email || '',
-                            ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
-                            gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open'
-                        });
+            // Fetch da La Corte della Commedia (via REST per bypassare mismatch SDK v8/v10)
+            try {
+                const commediaRestUsers = await this.fetchUsersREST("la-corte-della-commedia", "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls");
+                commediaRestUsers.forEach(u => {
+                    commediaUsers.push({
+                        ...u, gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open'
                     });
-                } catch(e) { console.warn("Commedia auth error:", e); }
-            }
+                });
+            } catch(e) { console.warn("Commedia REST error:", e); }
 
             // Fetch da Fantaletteratura
             if (window.fbDb.fanta) {
@@ -113,20 +155,15 @@ const HubApp = {
                 } catch(e) { console.warn("Fanta auth error:", e); }
             }
 
-            // Fetch da Palestra di Riflessione
-            if (window.fbDb.palestra) {
-                try {
-                    const snapPalestra = await window.fbDb.palestra.collection("users").get();
-                    snapPalestra.forEach(doc => {
-                        const data = doc.data();
-                        palestraUsers.push({
-                            id: doc.id, nome: data.nome || data.displayName || 'Anonimo', email: data.email || '',
-                            ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
-                            gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain'
-                        });
+            // Fetch da Palestra di Riflessione (via REST per bypassare mismatch SDK v8/v10)
+            try {
+                const palestraRestUsers = await this.fetchUsersREST("palestra-riflessione", "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo");
+                palestraRestUsers.forEach(u => {
+                    palestraUsers.push({
+                        ...u, gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain'
                     });
-                } catch(e) { console.warn("Palestra auth error:", e); }
-            }
+                });
+            } catch(e) { console.warn("Palestra REST error:", e); }
 
             const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers];
             allUsers.sort((a, b) => a.nome.localeCompare(b.nome));
