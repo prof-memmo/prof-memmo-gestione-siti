@@ -121,6 +121,31 @@
       width: 100%; height: calc(100vh - 120px); border: none; border-radius: 12px;
       box-shadow: var(--shadow); background: white;
     }
+
+    /* Responsive Sidebar & Navbar */
+    .hamburger-menu {
+      display: none; font-size: 1.5rem; color: var(--text-main); cursor: pointer;
+      position: absolute; top: 20px; left: 20px; z-index: 200; background: white;
+      padding: 8px 12px; border-radius: 8px; box-shadow: var(--shadow); border: 1px solid var(--border-color);
+    }
+
+    @media (max-width: 900px) {
+      .hub-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      .hub-sidebar.open {
+        transform: translateX(0);
+      }
+      .hub-main {
+        margin-left: 0; padding: 70px 15px 20px 15px;
+      }
+      .hamburger-menu { display: block; }
+      #calendar-grid { grid-template-columns: repeat(7, minmax(45px, 1fr)) !important; gap: 5px !important; }
+      .cal-day { min-height: 80px; padding: 5px; }
+      .cal-header-day { font-size: 0.7rem; overflow: hidden; text-overflow: ellipsis; }
+      .cal-event { font-size: 0.65rem; padding: 2px 4px; }
+    }
   </style>
 
   <!-- Icone per Safari e Dispositivi Mobili -->
@@ -137,10 +162,15 @@
     <button class="btn" id="btn-google-login" style="margin-top:20px; padding:15px 30px; font-size:1.1rem;"><i class="fa-brands fa-google"></i> Accedi con Google</button>
   </div>
 
+  <!-- Hamburger Menu -->
+  <div class="hamburger-menu" onclick="toggleSidebar()">
+    <i class="fa-solid fa-bars"></i>
+  </div>
+
   <!-- Sidebar -->
-  <div class="hub-sidebar">
+  <div class="hub-sidebar" id="main-sidebar">
     <div class="logo">
-      <img src="assets/prof_memmo.png" alt="Prof Memmo">
+      <img src="assets/prof_memmo_dark.png" alt="Prof Memmo">
       <h3>Hub Centrale</h3>
     </div>
     
@@ -151,11 +181,11 @@
     <div class="nav-item" data-target="view-ai" onclick="switchView('view-ai')">
       <i class="fa-solid fa-wand-magic-sparkles"></i> Generatore AI
     </div>
-    <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
-      <i class="fa-solid fa-paper-plane"></i> Newsletter Manager
-    </div>
     
     <div class="sidebar-section-title">Console Giochi</div>
+    <div class="nav-item" data-target="view-dashboard" onclick="switchView('view-dashboard')">
+      <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i> Panoramica Globale
+    </div>
     <div class="nav-item" data-target="view-eroi" onclick="loadIframe('view-eroi', 'https://prof-memmo.github.io/la-rotta-degli-eroi/')">
       <i class="fa-solid fa-ship" style="color:#3b82f6;"></i> La Rotta degli Eroi
     </div>
@@ -170,6 +200,9 @@
     </div>
     
     <div class="sidebar-section-title">Comunicazioni</div>
+    <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
+      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter Manager
+    </div>
     <div class="nav-item" data-target="view-esperienze" onclick="switchView('view-esperienze')">
       <i class="fa-solid fa-star" style="color:#f59e0b;"></i> Esperienze Hub
     </div>
@@ -200,6 +233,50 @@
         </div>
         <div id="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">
           <!-- Generato via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Dashboard / Panoramica (Ripristinata) -->
+    <div id="view-dashboard" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-chart-pie"></i> Panoramica Generale Iscritti</h2>
+      </div>
+      <div class="glass-panel" style="margin-bottom: 30px;">
+        <p style="color:var(--text-muted); margin-bottom: 20px;"><i class="fa-solid fa-circle-info"></i> Affinché i numeri si aggiornino, assicurati di aver fatto il login almeno una volta all'interno di ciascuna Console Gioco nel menu laterale. Questo permette all'Hub di accedere ai database in totale sicurezza.</p>
+        <button class="btn" onclick="HubApp.loadIscrittiAggregati()"><i class="fa-solid fa-arrows-rotate"></i> Aggiorna Dati Ora</button>
+      </div>
+
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
+        <div class="glass-panel" style="flex: 1; min-width: 250px; text-align: center;">
+          <h3 style="color:var(--text-muted); margin-top:0;">Totale Iscritti Globale</h3>
+          <h1 id="counter-total" style="font-size: 4rem; color:var(--text-main); margin: 10px 0;">--</h1>
+          <p style="color:var(--text-muted); font-size: 0.9rem;">
+            <i class="fa-solid fa-ship" style="color:#3b82f6;"></i> Eroi: <span id="counter-eroi">--</span> | 
+            <i class="fa-solid fa-book-open" style="color:#ef4444;"></i> Commedia: <span id="counter-commedia">--</span> |
+            <br>
+            <i class="fa-solid fa-dragon" style="color:#a855f7;"></i> Fanta: <span id="counter-fanta">--</span> |
+            <i class="fa-solid fa-brain" style="color:#22c55e;"></i> Palestra: <span id="counter-palestra">--</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="glass-panel">
+        <h3 style="color:var(--text-main); margin-top:0; margin-bottom:20px;">Tabella Iscritti Multi-Sito</h3>
+        <div class="table-responsive" style="overflow-x:auto;">
+          <table class="game-table" id="hub-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th>Nome / Email</th>
+                <th>Ruolo</th>
+                <th>Gioco</th>
+                <th>Classe</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">Clicca "Aggiorna Dati Ora" per caricare.</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -236,57 +313,51 @@
     <!-- View: Esperienze -->
     <div id="view-esperienze" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-star" style="color:var(--gold);"></i> Gestione Esperienze</h2>
+        <h2><i class="fa-solid fa-star"></i> Hub Esperienze in Sospeso</h2>
       </div>
-      <div id="esperienze-content">
-        <div class="glass-panel" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-          <h3 style="color:var(--gold); margin-top:0;">Esperienze in Attesa di Approvazione</h3>
-          <div class="table-responsive">
-            <table class="game-table" id="hub-esperienze-table" style="width: 100%; text-align: left; border-collapse: collapse;">
-              <thead>
-                <tr style="border-bottom: 2px solid var(--gold);">
-                  <th style="padding: 10px;">Data</th>
-                  <th style="padding: 10px;">Autore</th>
-                  <th style="padding: 10px;">Gioco/Materiale</th>
-                  <th style="padding: 10px;">Testo Esperienza</th>
-                  <th style="padding: 10px;">Stato</th>
-                  <th style="padding: 10px;">Azioni</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td colspan="6" style="text-align:center; padding: 20px;">Caricamento in corso...</td></tr>
-              </tbody>
-            </table>
-          </div>
+      <div class="glass-panel">
+        <div class="table-responsive" style="overflow-x:auto;">
+          <table class="game-table" id="hub-esperienze-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Sito</th>
+                <th>Utente</th>
+                <th>Esperienza</th>
+                <th>Punti</th>
+                <th>Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento esperienze...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- View: Posta -->
+    <!-- View: Casella Postale -->
     <div id="view-posta" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-envelope" style="color:var(--gold);"></i> Casella Postale</h2>
+        <h2><i class="fa-solid fa-envelope"></i> Casella Postale (Tutti i Siti)</h2>
       </div>
-      <div id="posta-content">
-        <div class="glass-panel" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-          <h3 style="color:var(--gold); margin-top:0;">Messaggi Ricevuti dai Moduli di Contatto</h3>
-          <div class="table-responsive">
-            <table class="game-table" id="hub-posta-table" style="width: 100%; text-align: left; border-collapse: collapse;">
-              <thead>
-                <tr style="border-bottom: 2px solid var(--gold);">
-                  <th style="padding: 10px;">Data</th>
-                  <th style="padding: 10px;">Mittente</th>
-                  <th style="padding: 10px;">Sito d'Origine</th>
-                  <th style="padding: 10px;">Motivo</th>
-                  <th style="padding: 10px;">Messaggio</th>
-                  <th style="padding: 10px;">Azioni</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td colspan="6" style="text-align:center; padding: 20px;">Caricamento in corso...</td></tr>
-              </tbody>
-            </table>
-          </div>
+      <div class="glass-panel">
+        <div class="table-responsive" style="overflow-x:auto;">
+          <table class="game-table" id="hub-posta-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Sito</th>
+                <th>Mittente</th>
+                <th>Oggetto</th>
+                <th>Stato</th>
+                <th>Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento posta...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -400,6 +471,10 @@
   <script src="js/firebase-init.js"></script>
   <script src="js/app.js"></script>
   <script>
+    function toggleSidebar() {
+      document.getElementById('main-sidebar').classList.toggle('open');
+    }
+
     function switchView(targetId) {
       document.querySelectorAll('.hub-view').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -407,6 +482,11 @@
       document.getElementById(targetId).classList.add('active');
       const navItem = document.querySelector(`.nav-item[data-target="${targetId}"]`);
       if (navItem) navItem.classList.add('active');
+      
+      // Chiude la sidebar se siamo su mobile
+      if (window.innerWidth <= 900) {
+        document.getElementById('main-sidebar').classList.remove('open');
+      }
     }
 
     function loadIframe(targetId, url) {

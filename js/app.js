@@ -60,7 +60,7 @@ const HubApp = {
     loadIscrittiAggregati: async function() {
         try {
             const tbody = document.querySelector('#hub-iscritti-table tbody');
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Caricamento...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Caricamento... se rimane bloccato, apri prima le Console Giochi per accedere ai DB!</td></tr>';
             
             let eroiUsers = [];
             let commediaUsers = [];
@@ -69,79 +69,65 @@ const HubApp = {
 
             // Fetch da La Rotta degli Eroi
             if (window.fbDb.eroi) {
-                const snapEroi = await window.fbDb.eroi.collection("users").get();
-                snapEroi.forEach(doc => {
-                    const data = doc.data();
-                    eroiUsers.push({
-                        id: doc.id,
-                        nome: data.nome || data.displayName || 'Anonimo',
-                        email: data.email || '',
-                        ruolo: data.role || 'studente',
-                        classe: data.classId || data.class || 'N/A',
-                        gioco: 'La Rotta degli Eroi',
-                        giocoColor: '#3498db',
-                        giocoIcon: 'fa-ship'
+                try {
+                    const snapEroi = await window.fbDb.eroi.collection("users").get();
+                    snapEroi.forEach(doc => {
+                        const data = doc.data();
+                        eroiUsers.push({
+                            id: doc.id, nome: data.nome || data.displayName || 'Anonimo', email: data.email || '',
+                            ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
+                            gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship'
+                        });
                     });
-                });
+                } catch(e) { console.warn("Eroi auth error:", e); }
             }
 
             // Fetch da La Corte della Commedia
             if (window.fbDb.commedia) {
-                const snapCommedia = await window.fbDb.commedia.collection("users").get();
-                snapCommedia.forEach(doc => {
-                    const data = doc.data();
-                    commediaUsers.push({
-                        id: doc.id,
-                        nome: data.nome || data.displayName || 'Anonimo',
-                        email: data.email || '',
-                        ruolo: data.role || 'studente',
-                        classe: data.classId || data.class || 'N/A',
-                        gioco: 'La Corte della Commedia',
-                        giocoColor: '#e74c3c',
-                        giocoIcon: 'fa-book-open'
+                try {
+                    const snapCommedia = await window.fbDb.commedia.collection("users").get();
+                    snapCommedia.forEach(doc => {
+                        const data = doc.data();
+                        commediaUsers.push({
+                            id: doc.id, nome: data.nome || data.displayName || 'Anonimo', email: data.email || '',
+                            ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
+                            gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open'
+                        });
                     });
-                });
+                } catch(e) { console.warn("Commedia auth error:", e); }
             }
 
             // Fetch da Fantaletteratura
             if (window.fbDb.fanta) {
-                const snapFanta = await window.fbDb.fanta.collection("users").get();
-                snapFanta.forEach(doc => {
-                    const data = doc.data();
-                    fantaUsers.push({
-                        id: doc.id,
-                        nome: data.nome || data.displayName || 'Anonimo',
-                        email: data.email || '',
-                        ruolo: data.role || 'studente',
-                        classe: data.classId || data.class || 'N/A',
-                        gioco: 'Fantaletteratura',
-                        giocoColor: '#9b59b6',
-                        giocoIcon: 'fa-dragon'
+                try {
+                    const snapFanta = await window.fbDb.fanta.collection("users").get();
+                    snapFanta.forEach(doc => {
+                        const data = doc.data();
+                        fantaUsers.push({
+                            id: doc.id, nome: data.nome || data.displayName || 'Anonimo', email: data.email || '',
+                            ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
+                            gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon'
+                        });
                     });
-                });
+                } catch(e) { console.warn("Fanta auth error:", e); }
             }
 
             // Fetch da Palestra di Riflessione
             if (window.fbDb.palestra) {
-                const snapPalestra = await window.fbDb.palestra.collection("users").get();
-                snapPalestra.forEach(doc => {
-                    const data = doc.data();
-                    palestraUsers.push({
-                        id: doc.id,
-                        nome: data.nome || data.displayName || 'Anonimo',
-                        email: data.email || '',
-                        ruolo: data.role || 'studente',
-                        classe: data.classId || data.class || 'N/A',
-                        gioco: 'Palestra di Riflessione',
-                        giocoColor: '#2ecc71',
-                        giocoIcon: 'fa-brain'
+                try {
+                    const snapPalestra = await window.fbDb.palestra.collection("users").get();
+                    snapPalestra.forEach(doc => {
+                        const data = doc.data();
+                        palestraUsers.push({
+                            id: doc.id, nome: data.nome || data.displayName || 'Anonimo', email: data.email || '',
+                            ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
+                            gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain'
+                        });
                     });
-                });
+                } catch(e) { console.warn("Palestra auth error:", e); }
             }
 
             const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers];
-            
-            // Ordina alfabeticamente per nome
             allUsers.sort((a, b) => a.nome.localeCompare(b.nome));
 
             // Aggiorna Contatori
@@ -154,14 +140,14 @@ const HubApp = {
             // Render Tabella
             tbody.innerHTML = '';
             if (allUsers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Nessun iscritto trovato.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Nessun iscritto trovato. Fai il login nelle Console Giochi per abilitare la lettura!</td></tr>';
                 return;
             }
 
             allUsers.forEach(user => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:#aaa;">${user.email}</span></td>
+                    <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
                     <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
                     <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
                     <td style="padding: 10px;">${user.classe}</td>
