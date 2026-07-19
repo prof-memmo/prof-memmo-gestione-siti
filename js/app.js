@@ -350,10 +350,8 @@ const HubApp = {
             const selected = this.allUsers.filter(u => u.newsSelected && u.email).length;
             countSpan.textContent = selected > 0 ? `(${selected})` : '';
         }
-    }
-};
+    },
 
-window.HubApp = HubApp; },
 
     loadArchivi: async function() {
         try {
@@ -903,3 +901,5 @@ function eseguiLoginGoogle() {
 document.addEventListener("DOMContentLoaded", () => {
     HubApp.init();
 });
+
+window.HubApp = HubApp;
