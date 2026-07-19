@@ -199,10 +199,34 @@ const HubApp = {
                 <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
                 <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
                 <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
-                <td style="padding: 10px;">${user.classe}</td>
             `;
             tbody.appendChild(tr);
         });
+    },
+
+    currentSortCol: 'nome',
+    currentSortAsc: true,
+
+    sortIscritti: function(column) {
+        if (!this.allUsers || this.allUsers.length === 0) return;
+
+        if (this.currentSortCol === column) {
+            this.currentSortAsc = !this.currentSortAsc; // Inverti
+        } else {
+            this.currentSortCol = column;
+            this.currentSortAsc = true;
+        }
+
+        this.allUsers.sort((a, b) => {
+            let valA = (a[column] || '').toString().toLowerCase();
+            let valB = (b[column] || '').toString().toLowerCase();
+            
+            if (valA < valB) return this.currentSortAsc ? -1 : 1;
+            if (valA > valB) return this.currentSortAsc ? 1 : -1;
+            return 0;
+        });
+
+        this.filterIscritti(); // Ridisegna con i filtri attivi
     },
 
     filterIscritti: function() {
