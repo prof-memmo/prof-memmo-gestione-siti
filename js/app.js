@@ -18,18 +18,26 @@ const HubApp = {
             return;
         }
 
+        // Cattura eventuali errori dal redirect (es. dominio non autorizzato)
+        window.fbAuth.getRedirectResult().then(result => {
+            if (result && result.credential && result.credential.accessToken) {
+                sessionStorage.setItem('gcalToken', result.credential.accessToken);
+            }
+        }).catch(err => {
+            console.error("Redirect Auth Error:", err);
+            const overlay = document.getElementById('login-overlay');
+            const errorMsg = document.createElement('p');
+            errorMsg.style.color = "red";
+            errorMsg.style.fontWeight = "bold";
+            errorMsg.innerText = "Errore Accesso: " + err.message + " (Codice: " + err.code + ")";
+            overlay.appendChild(errorMsg);
+        });
+
         window.fbAuth.onAuthStateChanged(user => {
             if (user) {
                 this.user = user;
                 // Controlla se l'utente è l'admin (Prof Memmo)
                 if (user.email === 'prof.memmo@gmail.com') {
-                    // Controlla il risultato del redirect (per prendere il token)
-                    window.fbAuth.getRedirectResult().then(result => {
-                        if (result && result.credential && result.credential.accessToken) {
-                            sessionStorage.setItem('gcalToken', result.credential.accessToken);
-                        }
-                    }).catch(console.error);
-
                     document.getElementById('login-overlay').style.display = 'none';
                     this.loadData();
                 } else {
@@ -39,6 +47,8 @@ const HubApp = {
             } else {
                 this.user = null;
                 document.getElementById('login-overlay').style.display = 'flex';
+                const btn = document.getElementById('btn-google-login');
+                if(btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
             }
         });
     },
