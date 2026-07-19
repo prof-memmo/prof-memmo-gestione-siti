@@ -53,6 +53,10 @@ const HubApp = {
         this.loadArchivi();
         this.loadEsperienze();
         this.loadPosta();
+        
+        // Nuove sezioni
+        initCalendar();
+        loadNewsletters();
     },
 
     loadIscrittiAggregati: async function() {
@@ -339,6 +343,275 @@ const HubApp = {
     }
 
 };
+
+// --- LOGICA CALENDARIO SOCIAL ---
+let currentDate = new Date();
+let currentEvents = {}; // { 'YYYY-MM-DD': [{id, title, platform}] }
+
+function initCalendar() {
+    renderCalendar();
+    fetchCalendarEvents();
+}
+
+function renderCalendar() {
+    const grid = document.getElementById('calendar-grid');
+    const title = document.getElementById('calendar-month-title');
+    if (!grid || !title) return;
+    
+    grid.innerHTML = '';
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+    title.innerText = monthNames[month] + " " + year;
+    
+    // Intestazioni giorni
+    const days = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
+    days.forEach(d => {
+        const div = document.createElement('div');
+        div.className = 'cal-header-day';
+        div.innerText = d;
+        grid.appendChild(div);
+    });
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    let startingDayOfWeek = firstDay.getDay() - 1; // Lunedì = 0
+    if (startingDayOfWeek === -1) startingDayOfWeek = 6; // Domenica = 6
+    
+    // Giorni vuoti
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        const div = document.createElement('div');
+        div.className = 'cal-day empty';
+        grid.appendChild(div);
+    }
+    
+    // Giorni del mese
+    const today = new Date();
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const div = document.createElement('div');
+        div.className = 'cal-day';
+        if (year === today.getFullYear() && month === today.getMonth() && d === today.getDate()) {
+            div.classList.add('today');
+        }
+        
+        div.onclick = () => openCalendarModal(dateStr);
+        
+        let html = `<span class="date-num">${d}</span>`;
+        if (currentEvents[dateStr]) {
+            currentEvents[dateStr].forEach(ev => {
+                let color = "var(--gold)";
+                if(ev.platform === 'instagram') color = "#E1306C";
+                if(ev.platform === 'facebook') color = "#1877F2";
+                if(ev.platform === 'tiktok') color = "#00f2fe";
+                
+                html += `<div class="cal-event" style="color:white; background:${color}; border-color:${color};" onclick="event.stopPropagation(); editCalendarEvent('${dateStr}', '${ev.id}', '${ev.title.replace(/'/g, "\\'")}', '${ev.platform}')">
+                    <i class="fa-brands fa-${ev.platform}"></i> ${ev.title}
+                </div>`;
+            });
+        }
+        
+        div.innerHTML = html;
+        grid.appendChild(div);
+    }
+}
+
+function changeMonth(dir) {
+    currentDate.setMonth(currentDate.getMonth() + dir);
+    renderCalendar();
+    fetchCalendarEvents();
+}
+
+function fetchCalendarEvents() {
+    if (!window.fbDb.hub) return;
+    
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const startStr = `${year}-${String(month+1).padStart(2,'0')}-01`;
+    const endStr = `${year}-${String(month+1).padStart(2,'0')}-31`;
+    
+    window.fbDb.hub.collection("hub_social_calendar")
+        .where("date", ">=", startStr)
+        .where("date", "<=", endStr)
+        .onSnapshot(snap => {
+            currentEvents = {};
+            snap.forEach(doc => {
+                const data = doc.data();
+                if(!currentEvents[data.date]) currentEvents[data.date] = [];
+                currentEvents[data.date].push({ id: doc.id, ...data });
+            });
+            renderCalendar();
+        });
+}
+
+function openCalendarModal(dateStr = "") {
+    document.getElementById('cal-id').value = "";
+    document.getElementById('cal-date').value = dateStr || new Date().toISOString().split('T')[0];
+    document.getElementById('cal-title').value = "";
+    document.getElementById('cal-platform').value = "instagram";
+    document.getElementById('btn-delete-cal').style.display = 'none';
+    
+    document.getElementById('calendar-modal').style.display = 'flex';
+}
+
+function editCalendarEvent(dateStr, id, title, platform) {
+    document.getElementById('cal-id').value = id;
+    document.getElementById('cal-date').value = dateStr;
+    document.getElementById('cal-title').value = title;
+    document.getElementById('cal-platform').value = platform;
+    document.getElementById('btn-delete-cal').style.display = 'block';
+    
+    document.getElementById('calendar-modal').style.display = 'flex';
+}
+
+function closeCalendarModal() {
+    document.getElementById('calendar-modal').style.display = 'none';
+}
+
+async function saveCalendarEvent() {
+    if (!window.fbDb.hub) return;
+    const id = document.getElementById('cal-id').value;
+    const date = document.getElementById('cal-date').value;
+    const title = document.getElementById('cal-title').value;
+    const platform = document.getElementById('cal-platform').value;
+    
+    if(!date || !title) return alert("Inserisci data e titolo");
+    
+    const data = { date, title, platform, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
+    
+    try {
+        if(id) {
+            await window.fbDb.hub.collection("hub_social_calendar").doc(id).update(data);
+        } else {
+            await window.fbDb.hub.collection("hub_social_calendar").add(data);
+        }
+        closeCalendarModal();
+    } catch(e) {
+        alert("Errore salvataggio: " + e.message);
+    }
+}
+
+async function deleteCalendarEvent() {
+    if (!window.fbDb.hub) return;
+    const id = document.getElementById('cal-id').value;
+    if(!id) return;
+    
+    if(confirm("Eliminare questo post?")) {
+        try {
+            await window.fbDb.hub.collection("hub_social_calendar").doc(id).delete();
+            closeCalendarModal();
+        } catch(e) {
+            alert("Errore: " + e.message);
+        }
+    }
+}
+
+// --- LOGICA GENERATORE AI ---
+function generaPrompt() {
+    const tipo = document.getElementById('ai-tipo-post').value;
+    const gioco = document.getElementById('ai-gioco').selectedOptions[0].text;
+    const argomento = document.getElementById('ai-argomento').value.trim();
+    
+    let base = `Agisci come un Social Media Manager esperto nel settore educativo (EdTech) e ludico.\nIl progetto è "${gioco}". `;
+    if (argomento) {
+        base += `L'argomento specifico del post di oggi è: "${argomento}".\n`;
+    } else {
+        base += `Devi inventare tu un argomento didattico interessante collegato al gioco.\n`;
+    }
+    
+    let specifico = "";
+    if (tipo === 'reel') {
+        specifico = `Genera uno script per un video Reel/TikTok di 60 secondi.\nStruttura richiesta: HOOK (primi 3 sec per catturare attenzione), CORPO (spiegazione dinamica), CALL TO ACTION finale.\nFornisci sia il testo da dire a voce sia le indicazioni su cosa mostrare a video. Tono entusiasta e professionale.`;
+    } else if (tipo === 'carosello') {
+        specifico = `Genera il testo per un Carosello di Instagram (massimo 8 slide).\nStruttura: Slide 1 (Titolo a effetto), Slide 2-7 (Contenuto didattico spezzettato e facile da leggere), Slide 8 (Call to Action e salvataggio post).\nScrivi per ogni slide il TESTO VISIVO (quello che c'è nell'immagine) e scrivi a parte una breve CAPTION generale per il post con gli hashtag appropriati.`;
+    } else if (tipo === 'adv') {
+        specifico = `Genera 3 varianti di COPY PUBBLICITARIO (Facebook/Instagram Ads) per vendere il prodotto/gioco ai docenti.\nVariante 1: Focalizzata sul risparmio di tempo per il docente.\nVariante 2: Focalizzata sul coinvolgimento (engagement) degli studenti.\nVariante 3: Focalizzata sui risultati didattici.\nIncludi emoji e call to action chiare.`;
+    } else if (tipo === 'canva') {
+        specifico = `Genera un prompt testuale dettagliato da inserire in un'Intelligenza Artificiale Generativa (come Midjourney o il generatore immagini di Canva) per creare l'immagine di copertina perfetta per questo argomento.\nDescrivi lo stile visivo (es. vettoriale, flat design, epico, illustrato), i colori dominanti, i soggetti principali e l'atmosfera.`;
+    }
+    
+    document.getElementById('ai-risultato').value = base + "\n\n" + specifico;
+}
+
+function copiaPrompt() {
+    const text = document.getElementById('ai-risultato');
+    text.select();
+    document.execCommand("copy");
+    alert("Prompt copiato! Ora apri ChatGPT o Canva e incollalo.");
+}
+
+// --- LOGICA NEWSLETTER ---
+function loadNewsletters() {
+    if (!window.fbDb.hub) return;
+    window.fbDb.hub.collection("hub_newsletters").orderBy("timestamp", "desc").onSnapshot(snap => {
+        const list = document.getElementById('newsletter-lista-bozze');
+        if(!list) return;
+        
+        list.innerHTML = '';
+        if(snap.empty) {
+            list.innerHTML = '<p style="color:#888; text-align:center;">Nessuna bozza salvata.</p>';
+            return;
+        }
+        
+        snap.forEach(doc => {
+            const data = doc.data();
+            const dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('it-IT') : 'N/A';
+            const div = document.createElement('div');
+            div.style.padding = "10px";
+            div.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
+            div.style.cursor = "pointer";
+            div.innerHTML = `
+                <div style="font-weight:bold; color:var(--gold);">${data.oggetto || 'Senza Oggetto'}</div>
+                <div style="font-size:0.8rem; color:#aaa;">Modificato: ${dateStr}</div>
+            `;
+            div.onclick = () => {
+                document.getElementById('news-oggetto').value = data.oggetto;
+                document.getElementById('news-corpo').value = data.corpo;
+            };
+            
+            // Bottone elimina
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+            delBtn.style = "float:right; background:transparent; border:none; color:#e74c3c; cursor:pointer;";
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                if(confirm("Eliminare questa bozza?")) window.fbDb.hub.collection("hub_newsletters").doc(doc.id).delete();
+            };
+            div.prepend(delBtn);
+            
+            list.appendChild(div);
+        });
+    });
+}
+
+async function salvaBozzaNewsletter() {
+    if (!window.fbDb.hub) return;
+    const oggetto = document.getElementById('news-oggetto').value;
+    const corpo = document.getElementById('news-corpo').value;
+    
+    if(!oggetto && !corpo) return alert("Inserisci qualcosa da salvare!");
+    
+    try {
+        await window.fbDb.hub.collection("hub_newsletters").add({
+            oggetto,
+            corpo,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("Bozza salvata con successo!");
+        document.getElementById('news-oggetto').value = '';
+        document.getElementById('news-corpo').value = '';
+    } catch(e) {
+        alert("Errore salvataggio: " + e.message);
+    }
+}
+
+function preparaInvioGmail() {
+    const oggetto = encodeURIComponent(document.getElementById('news-oggetto').value);
+    const corpo = encodeURIComponent(document.getElementById('news-corpo').value);
+    window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${oggetto}&body=${corpo}&bcc=`, '_blank');
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     HubApp.init();

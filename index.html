@@ -45,6 +45,35 @@
       margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    /* Calendario Social CSS */
+    .cal-day {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 5px;
+      min-height: 100px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .cal-day:hover { background: rgba(255,255,255,0.1); border-color: var(--gold); }
+    .cal-day.empty { background: transparent; border: none; cursor: default; }
+    .cal-day .date-num { font-weight: bold; color: #888; font-size: 0.9rem; margin-bottom: 5px; display: block; }
+    .cal-day.today .date-num { color: var(--gold); }
+    .cal-event {
+      background: rgba(212, 175, 55, 0.2);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      font-size: 0.75rem;
+      padding: 3px 5px;
+      border-radius: 3px;
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cal-header-day { text-align: center; font-weight: bold; color: var(--gold); margin-bottom: 10px; }
   </style>
 
   <!-- Icone per Safari e Dispositivi Mobili -->
@@ -68,7 +97,10 @@
       <h3 style="color:var(--gold); margin:10px 0 0 0; font-family:var(--font-heading);">Hub Centrale</h3>
     </div>
     
-    <div class="nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
+    <div class="nav-item active" data-target="view-calendario" onclick="switchView('view-calendario')">
+      <i class="fa-solid fa-calendar-days"></i> Calendario Social
+    </div>
+    <div class="nav-item" data-target="view-dashboard" onclick="switchView('view-dashboard')">
       <i class="fa-solid fa-chart-pie"></i> Panoramica
     </div>
     <div class="nav-item" data-target="view-iscritti" onclick="switchView('view-iscritti')">
@@ -84,6 +116,14 @@
       <i class="fa-solid fa-envelope"></i> Casella Postale
     </div>
     
+    <div style="margin-top: 20px; padding: 0 20px; font-size: 0.8rem; color: #666; text-transform: uppercase;">Marketing & AI</div>
+    <div class="nav-item" data-target="view-ai" onclick="switchView('view-ai')">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> Generatore AI
+    </div>
+    <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
+      <i class="fa-solid fa-paper-plane"></i> Newsletter Manager
+    </div>
+    
     <div style="flex-grow: 1;"></div>
     <div class="nav-item" style="color:#e74c3c; border-top:1px solid rgba(255,255,255,0.1);" onclick="HubApp.logout()">
       <i class="fa-solid fa-power-off"></i> Disconnetti
@@ -93,8 +133,26 @@
   <!-- Main Content -->
   <div class="hub-main">
     
+    <!-- View: Calendario Social (Home) -->
+    <div id="view-calendario" class="hub-view active">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-calendar-days" style="color:var(--gold);"></i> Calendario Editoriale Social</h2>
+        <button class="btn" onclick="openCalendarModal()" style="font-size: 0.9rem;"><i class="fa-solid fa-plus"></i> Nuovo Post</button>
+      </div>
+      <div class="glass-panel" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <button class="btn-icon" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+          <h3 id="calendar-month-title" style="margin: 0; color: #fff;">Mese Anno</h3>
+          <button class="btn-icon" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div id="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">
+          <!-- Generato via JS -->
+        </div>
+      </div>
+    </div>
+
     <!-- View: Dashboard / Panoramica -->
-    <div id="view-dashboard" class="hub-view active">
+    <div id="view-dashboard" class="hub-view">
       <div class="hub-header">
         <h2><i class="fa-solid fa-chart-pie" style="color:var(--gold);"></i> Panoramica Generale</h2>
       </div>
@@ -216,6 +274,110 @@
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Generatore AI & Social -->
+    <div id="view-ai" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--gold);"></i> Generatore AI & Social Manager</h2>
+        <button class="btn" onclick="window.open('https://business.facebook.com/', '_blank')" style="background: #E1306C;"><i class="fa-brands fa-instagram"></i> Apri Meta Business Suite</button>
+      </div>
+      
+      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <!-- Generatore Prompt -->
+        <div class="glass-panel" style="flex: 2; min-width: 300px; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+          <h3 style="color:var(--gold); margin-top:0;">Crea un Prompt Perfetto</h3>
+          
+          <label style="display:block; margin-bottom:5px; color:#aaa;">Obiettivo / Tipo di Post:</label>
+          <select id="ai-tipo-post" class="input-field" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px;">
+            <option value="reel">Testo per Reel Educativo (Instagram/TikTok)</option>
+            <option value="carosello">Testo per Carosello Immagini (Instagram)</option>
+            <option value="adv">Copy per Pubblicità (Facebook Ads / Instagram Ads)</option>
+            <option value="canva">Prompt per Generazione Immagine (Canva/Midjourney)</option>
+          </select>
+
+          <label style="display:block; margin-bottom:5px; color:#aaa;">Riferimento (Gioco/Argomento):</label>
+          <select id="ai-gioco" class="input-field" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px;">
+            <option value="eroi">La Rotta degli Eroi</option>
+            <option value="commedia">La Corte della Commedia</option>
+            <option value="fanta">Fantaletteratura</option>
+            <option value="palestra">Palestra di Riflessione</option>
+            <option value="generico">Generico (Metodo di Studio / Gamification)</option>
+          </select>
+          
+          <label style="display:block; margin-bottom:5px; color:#aaa;">Argomento Specifico (Opzionale):</label>
+          <input type="text" id="ai-argomento" class="input-field" placeholder="Es. Dante Alighieri e l'inferno" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; box-sizing: border-box;">
+
+          <button class="btn" onclick="generaPrompt()" style="width: 100%;"><i class="fa-solid fa-bolt"></i> Genera Istruzione per IA</button>
+          
+          <div style="margin-top: 20px;">
+            <label style="display:block; margin-bottom:5px; color:#aaa;">Prompt Generato (Copia e Incolla nell'IA):</label>
+            <textarea id="ai-risultato" rows="6" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.8); color: #00ff00; border: 1px solid var(--gold); border-radius: 5px; box-sizing: border-box; font-family: monospace;" readonly>Seleziona le opzioni in alto e clicca Genera.</textarea>
+            <button class="btn" onclick="copiaPrompt()" style="margin-top: 10px; background: transparent; border: 1px solid var(--gold); color: var(--gold);"><i class="fa-regular fa-copy"></i> Copia Testo</button>
+          </div>
+        </div>
+
+        <!-- Strumenti Rapidi -->
+        <div class="glass-panel" style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+          <h3 style="color:var(--gold); margin-top:0;">Lancio Strumenti</h3>
+          <p style="color:#aaa; font-size:0.9rem;">Copia il prompt generato e avvia uno di questi strumenti per completare il lavoro.</p>
+          
+          <button class="btn" onclick="window.open('https://chat.openai.com/', '_blank')" style="width: 100%; margin-bottom: 10px; background: #10a37f;"><i class="fa-solid fa-robot"></i> Apri ChatGPT</button>
+          <button class="btn" onclick="window.open('https://gemini.google.com/', '_blank')" style="width: 100%; margin-bottom: 10px; background: #4285f4;"><i class="fa-solid fa-sparkles"></i> Apri Google Gemini</button>
+          <button class="btn" onclick="window.open('https://www.canva.com/', '_blank')" style="width: 100%; margin-bottom: 10px; background: #00c4cc;"><i class="fa-solid fa-pen-nib"></i> Apri Canva</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Newsletter Manager -->
+    <div id="view-newsletter" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-paper-plane" style="color:var(--gold);"></i> Newsletter Manager</h2>
+      </div>
+      
+      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <!-- Editor -->
+        <div class="glass-panel" style="flex: 2; min-width: 300px; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+          <h3 style="color:var(--gold); margin-top:0;">Nuova Newsletter</h3>
+          
+          <input type="text" id="news-oggetto" class="input-field" placeholder="Oggetto dell'email" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; box-sizing: border-box;">
+          
+          <textarea id="news-corpo" rows="12" placeholder="Scrivi qui il corpo dell'email... (supporta il testo che poi incollerai in Gmail o Mailchimp)" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; box-sizing: border-box;"></textarea>
+          
+          <div style="margin-top: 15px; display: flex; gap: 10px;">
+            <button class="btn" onclick="salvaBozzaNewsletter()"><i class="fa-solid fa-floppy-disk"></i> Salva Bozza</button>
+            <button class="btn" onclick="preparaInvioGmail()" style="background: transparent; border: 1px solid #ea4335; color: #ea4335;"><i class="fa-brands fa-google"></i> Prepara per Gmail (BCC)</button>
+          </div>
+        </div>
+
+        <!-- Bozze Salvate -->
+        <div class="glass-panel" style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+          <h3 style="color:var(--gold); margin-top:0;">Bozze Salvate</h3>
+          <div id="newsletter-lista-bozze" style="max-height: 400px; overflow-y: auto;">
+            <p style="color:#888; font-size:0.9rem; text-align:center;">Caricamento bozze...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modale Calendario Social -->
+    <div id="calendar-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+      <div class="glass-panel" style="background: #1f2833; padding: 30px; border-radius: 10px; border: 2px solid var(--gold); width: 400px; max-width: 90%;">
+        <h3 id="calendar-modal-title" style="color:var(--gold); margin-top:0;">Programma Post</h3>
+        <input type="hidden" id="cal-id">
+        <input type="date" id="cal-date" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; box-sizing: border-box;">
+        <input type="text" id="cal-title" placeholder="Titolo o argomento del post" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; box-sizing: border-box;">
+        <select id="cal-platform" style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px;">
+          <option value="instagram">Instagram</option>
+          <option value="facebook">Facebook</option>
+          <option value="tiktok">TikTok</option>
+        </select>
+        <div style="display: flex; gap: 10px; justify-content: space-between;">
+          <button class="btn" onclick="saveCalendarEvent()" style="flex:1;">Salva</button>
+          <button class="btn" id="btn-delete-cal" onclick="deleteCalendarEvent()" style="flex:1; background: #e74c3c; display:none;">Elimina</button>
+          <button class="btn" onclick="closeCalendarModal()" style="flex:1; background: transparent; border: 1px solid #aaa; color: #aaa;">Annulla</button>
         </div>
       </div>
     </div>
