@@ -163,7 +163,23 @@ const HubApp = {
                 });
             } catch(e) { console.warn("Palestra REST error:", e); }
 
-            const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers];
+            // Fetch da Hub Centrale (per includere gli iscritti tester)
+            let hubUsers = [];
+            if (window.fbDb.hub) {
+                try {
+                    const snapHub = await window.fbDb.hub.collection("users").get();
+                    snapHub.forEach(doc => {
+                        const data = doc.data();
+                        hubUsers.push({
+                            id: doc.id, nome: data.nome || data.name || data.displayName || data.username || ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || 'Anonimo', email: data.email || '',
+                            ruolo: data.role || 'tester', classe: data.classId || data.class || 'N/A',
+                            gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe'
+                        });
+                    });
+                } catch(e) { console.warn("Hub auth error:", e); }
+            }
+
+            const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers, ...hubUsers];
             
             // Deduplicazione per email (fonde i giochi se l'utente è in più piattaforme)
             const uniqueUsersMap = new Map();
