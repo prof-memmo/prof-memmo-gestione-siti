@@ -18,21 +18,6 @@ const HubApp = {
             return;
         }
 
-        // Cattura eventuali errori dal redirect (es. dominio non autorizzato)
-        window.fbAuth.getRedirectResult().then(result => {
-            if (result && result.credential && result.credential.accessToken) {
-                sessionStorage.setItem('gcalToken', result.credential.accessToken);
-            }
-        }).catch(err => {
-            console.error("Redirect Auth Error:", err);
-            const overlay = document.getElementById('login-overlay');
-            const errorMsg = document.createElement('p');
-            errorMsg.style.color = "red";
-            errorMsg.style.fontWeight = "bold";
-            errorMsg.innerText = "Errore Accesso: " + err.message + " (Codice: " + err.code + ")";
-            overlay.appendChild(errorMsg);
-        });
-
         window.fbAuth.onAuthStateChanged(user => {
             if (user) {
                 this.user = user;
@@ -898,9 +883,17 @@ function eseguiLoginGoogle() {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.addScope('https://www.googleapis.com/auth/calendar.events');
         
-        window.fbAuth.signInWithRedirect(provider);
-        // Il risultato del redirect viene gestito automaticamente da onAuthStateChanged
-        // Non serve il blocco .then() qui perché la pagina verrà ricaricata da Google.
+        window.fbAuth.signInWithPopup(provider).then((result) => {
+            const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+            if (credential && credential.accessToken) {
+                sessionStorage.setItem('gcalToken', credential.accessToken);
+            }
+            // onAuthStateChanged si occuperà del resto
+        }).catch(err => {
+            console.error("Login failed:", err);
+            alert("Errore durante l'accesso: " + err.message);
+            if(btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
+        });
 
     } catch (error) {
         alert("Errore nello script di login: " + error.message);
