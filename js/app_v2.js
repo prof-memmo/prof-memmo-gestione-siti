@@ -67,7 +67,7 @@ const HubApp = {
                 const getReq = store.get(`firebase:authUser:${apiKey}:[DEFAULT]`);
                 getReq.onsuccess = (e2) => {
                     if (e2.target.result && e2.target.result.value.stsTokenManager) {
-                        resolve(e2.target.result.value.stsTokenManager.accessToken);
+                        resolve(e2.target.result.value.stsTokenManager);
                     } else {
                         resolve(null);
                     }
@@ -80,10 +80,20 @@ const HubApp = {
 
     fetchUsersREST: async function(projectId, apiKey) {
         try {
-            const token = await this.getAuthTokenFromDB(apiKey);
-            if (!token) return [];
+            const tokenManager = await this.getAuthTokenFromDB(apiKey);
+            if (!tokenManager || !tokenManager.refreshToken) return [];
+            
+            // Forza il refresh del token per evitare errori 401/403 (token scaduto dopo 1h)
+            const refreshRes = await fetch(`https://securetoken.googleapis.com/v1/token?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `grant_type=refresh_token&refresh_token=${tokenManager.refreshToken}`
+            });
+            const refreshData = await refreshRes.json();
+            const validToken = refreshData.id_token || tokenManager.accessToken;
+
             const res = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users?pageSize=1000`, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${validToken}` }
             });
             const data = await res.json();
             if (!data.documents) return [];
@@ -113,20 +123,15 @@ const HubApp = {
             let fantaUsers = [];
             let palestraUsers = [];
 
-            // Fetch da La Rotta degli Eroi
-            if (window.fbDb.eroi) {
-                try {
-                    const snapEroi = await window.fbDb.eroi.collection("users").get();
-                    snapEroi.forEach(doc => {
-                        const data = doc.data();
-                        eroiUsers.push({
-                            id: doc.id, nome: data.nome || data.name || data.displayName || data.username || ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || 'Anonimo', email: data.email || '',
-                            ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
-                            gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship'
-                        });
+            // Fetch da La Rotta degli Eroi (via REST forzato con refresh token)
+            try {
+                const eroiRestUsers = await this.fetchUsersREST("la-rotta-degli-eroi", "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A");
+                eroiRestUsers.forEach(u => {
+                    eroiUsers.push({
+                        ...u, gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship'
                     });
-                } catch(e) { console.warn("Eroi auth error:", e); }
-            }
+                });
+            } catch(e) { console.warn("Eroi REST error:", e); }
 
             // Fetch da La Corte della Commedia (via REST per bypassare mismatch SDK v8/v10)
             try {
@@ -138,20 +143,15 @@ const HubApp = {
                 });
             } catch(e) { console.warn("Commedia REST error:", e); }
 
-            // Fetch da Fantaletteratura
-            if (window.fbDb.fanta) {
-                try {
-                    const snapFanta = await window.fbDb.fanta.collection("users").get();
-                    snapFanta.forEach(doc => {
-                        const data = doc.data();
-                        fantaUsers.push({
-                            id: doc.id, nome: data.nome || data.name || data.displayName || data.username || ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || 'Anonimo', email: data.email || '',
-                            ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
-                            gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon'
-                        });
+            // Fetch da Fantaletteratura (via REST forzato con refresh token)
+            try {
+                const fantaRestUsers = await this.fetchUsersREST("fantaletteratura-a7ff1", "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ");
+                fantaRestUsers.forEach(u => {
+                    fantaUsers.push({
+                        ...u, gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon'
                     });
-                } catch(e) { console.warn("Fanta auth error:", e); }
-            }
+                });
+            } catch(e) { console.warn("Fanta REST error:", e); }
 
             // Fetch da Palestra di Riflessione (via REST per bypassare mismatch SDK v8/v10)
             try {
