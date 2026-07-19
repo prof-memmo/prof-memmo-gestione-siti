@@ -602,7 +602,56 @@
       const iframe = document.getElementById(iframeId);
       if (iframe && iframe.src !== url) {
         iframe.src = url;
+        
+        // Intercetta il caricamento per silenziare i giochi
+        iframe.onload = function() {
+          try {
+            const win = iframe.contentWindow;
+            if (!win) return;
+            
+            // Forza il mute globale su tutti i tag audio/video
+            const mediaEls = win.document.querySelectorAll('audio, video');
+            mediaEls.forEach(el => {
+              el.muted = true;
+              el.volume = 0;
+              el.pause();
+            });
+            
+            // Neutralizza le funzioni di riproduzione dei vari Player Musicali (Eroi, Fanta, Palestra, Commedia)
+            if (win.MusicPlayer) {
+              if (win.MusicPlayer.audioElement) {
+                win.MusicPlayer.audioElement.pause();
+                win.MusicPlayer.audioElement.muted = true;
+              }
+              win.MusicPlayer.isPlaying = false;
+              win.MusicPlayer._doPlay = function(){};
+              win.MusicPlayer.togglePlay = function(){};
+              win.MusicPlayer.nextTrack = function(){};
+              win.MusicPlayer.prevTrack = function(){};
+            }
+            if (win.MusicDB) {
+              win.MusicDB.stopBackgroundMusic = function(){};
+              win.MusicDB.playBackgroundMusic = function(){};
+              win.MusicDB.toggleMusic = function(){};
+            }
+            
+            // Sovrascrivi il costruttore Audio per impedire la creazione di nuovi suoni attivi
+            const OriginalAudio = win.Audio;
+            win.Audio = function(...args) {
+              const a = new OriginalAudio(...args);
+              a.muted = true;
+              a.volume = 0;
+              return a;
+            };
+            
+          } catch(e) {
+            console.warn("Impossibile silenziare iframe (cors o caricamento incompleto):", e);
+          }
+        };
       }
+      
+      // Hide all iframes
+      document.querySelectorAll('.iframe-container').forEach(el => el.classList.remove('active'));
     }
   </script>
 </body>
