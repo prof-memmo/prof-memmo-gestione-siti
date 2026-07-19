@@ -1,5 +1,6 @@
 const HubApp = {
     user: null,
+    allUsers: [], // Array globale per i filtri di ricerca
 
     init: function() {
         this.bindEvents();
@@ -129,6 +130,7 @@ const HubApp = {
 
             const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers];
             allUsers.sort((a, b) => a.nome.localeCompare(b.nome));
+            this.allUsers = allUsers; // Salva per i filtri
 
             // Aggiorna Contatori
             document.getElementById('counter-total').innerText = allUsers.length;
@@ -137,28 +139,45 @@ const HubApp = {
             document.getElementById('counter-fanta').innerText = fantaUsers.length;
             document.getElementById('counter-palestra').innerText = palestraUsers.length;
 
-            // Render Tabella
-            tbody.innerHTML = '';
-            if (allUsers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Nessun iscritto trovato. Fai il login nelle Console Giochi per abilitare la lettura!</td></tr>';
-                return;
-            }
-
-            allUsers.forEach(user => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
-                    <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
-                    <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
-                    <td style="padding: 10px;">${user.classe}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+            this.renderIscrittiTable(this.allUsers);
 
         } catch(e) {
             console.error("Errore aggregazione iscritti:", e);
             document.querySelector('#hub-iscritti-table tbody').innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:red;">Errore caricamento iscritti</td></tr>';
         }
+    },
+
+    renderIscrittiTable: function(usersArray) {
+        const tbody = document.querySelector('#hub-iscritti-table tbody');
+        tbody.innerHTML = '';
+        if (usersArray.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Nessun iscritto trovato con questi criteri.</td></tr>';
+            return;
+        }
+
+        usersArray.forEach(user => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
+                <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
+                <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
+                <td style="padding: 10px;">${user.classe}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    },
+
+    filterIscritti: function() {
+        const searchInput = document.getElementById('search-iscritti').value.toLowerCase();
+        const filterGioco = document.getElementById('filter-gioco').value;
+
+        const filtered = this.allUsers.filter(user => {
+            const matchName = user.nome.toLowerCase().includes(searchInput) || user.email.toLowerCase().includes(searchInput);
+            const matchGioco = filterGioco === 'all' || user.gioco === filterGioco;
+            return matchName && matchGioco;
+        });
+
+        this.renderIscrittiTable(filtered);
     },
 
     loadArchivi: async function() {

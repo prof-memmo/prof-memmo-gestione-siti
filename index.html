@@ -262,7 +262,19 @@
       </div>
 
       <div class="glass-panel">
-        <h3 style="color:var(--text-main); margin-top:0; margin-bottom:20px;">Tabella Iscritti Multi-Sito</h3>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+          <h3 style="color:var(--text-main); margin:0;">Tabella Iscritti Multi-Sito</h3>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; flex: 1; max-width: 500px; justify-content: flex-end;">
+            <input type="text" id="search-iscritti" class="input-field" placeholder="Cerca nome o email..." style="flex: 2; margin: 0; min-width: 150px;" onkeyup="HubApp.filterIscritti()">
+            <select id="filter-gioco" class="input-field" style="flex: 1; margin: 0; min-width: 120px;" onchange="HubApp.filterIscritti()">
+              <option value="all">Tutti i Giochi</option>
+              <option value="La Rotta degli Eroi">Eroi</option>
+              <option value="La Corte della Commedia">Commedia</option>
+              <option value="Fantaletteratura">Fanta</option>
+              <option value="Palestra di Riflessione">Palestra</option>
+            </select>
+          </div>
+        </div>
         <div class="table-responsive" style="overflow-x:auto;">
           <table class="game-table" id="hub-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>
