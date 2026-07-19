@@ -8,22 +8,7 @@ const HubApp = {
     },
 
     bindEvents: function() {
-        document.getElementById('btn-google-login').addEventListener('click', () => {
-            alert("Hai cliccato il pulsante! Provo ad avviare l'accesso...");
-            const provider = new firebase.auth.GoogleAuthProvider();
-            provider.addScope('https://www.googleapis.com/auth/calendar.events');
-            
-            window.fbAuth.signInWithPopup(provider).then((result) => {
-                const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-                if (credential && credential.accessToken) {
-                    sessionStorage.setItem('gcalToken', credential.accessToken);
-                    console.log("Token Google Calendar acquisito con successo.");
-                }
-            }).catch(err => {
-                console.error("Login failed:", err);
-                alert("Errore durante l'accesso: " + err.message);
-            });
-        });
+        // Eventi spostati in handlers inline
     },
 
     checkAuth: function() {
@@ -66,6 +51,7 @@ const HubApp = {
         initCalendar();
         loadNewsletters();
     },
+
 
     getAuthTokenFromDB: async function(apiKey) {
         return new Promise((resolve) => {
@@ -879,6 +865,38 @@ function preparaInvioGmail() {
     
     const bccString = encodeURIComponent(emails.join(', '));
     window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${oggetto}&body=${corpo}&bcc=${bccString}`, '_blank');
+}
+
+});
+
+// --- LOGICA DI LOGIN GLOBALE ---
+function eseguiLoginGoogle() {
+    const btn = document.getElementById('btn-google-login');
+    if(btn) btn.innerHTML = "Accesso in corso...";
+    
+    if (!window.fbAuth) {
+        alert("Errore critico: Firebase non è inizializzato. Controlla la console.");
+        return;
+    }
+    
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.addScope('https://www.googleapis.com/auth/calendar.events');
+        
+        window.fbAuth.signInWithPopup(provider).then((result) => {
+            const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+            if (credential && credential.accessToken) {
+                sessionStorage.setItem('gcalToken', credential.accessToken);
+            }
+        }).catch(err => {
+            console.error("Login failed:", err);
+            alert("Errore durante l'accesso: " + err.message);
+            if(btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
+        });
+    } catch (error) {
+        alert("Errore nello script di login: " + error.message);
+        if(btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
