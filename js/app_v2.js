@@ -91,7 +91,7 @@ const HubApp = {
                 const fields = doc.fields || {};
                 return {
                     id: doc.name.split('/').pop(),
-                    nome: (fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || 'Anonimo',
+                    nome: (fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || (fields.username && fields.username.stringValue) || ((fields.firstName && fields.firstName.stringValue) + ' ' + (fields.lastName ? fields.lastName.stringValue : '')).trim() || 'Anonimo',
                     email: (fields.email && fields.email.stringValue) || '',
                     ruolo: (fields.role && fields.role.stringValue) || 'studente',
                     classe: (fields.classId && fields.classId.stringValue) || (fields.class && fields.class.stringValue) || 'N/A'
@@ -120,7 +120,7 @@ const HubApp = {
                     snapEroi.forEach(doc => {
                         const data = doc.data();
                         eroiUsers.push({
-                            id: doc.id, nome: data.nome || data.name || data.displayName || 'Anonimo', email: data.email || '',
+                            id: doc.id, nome: data.nome || data.name || data.displayName || data.username || ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || 'Anonimo', email: data.email || '',
                             ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
                             gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship'
                         });
@@ -145,7 +145,7 @@ const HubApp = {
                     snapFanta.forEach(doc => {
                         const data = doc.data();
                         fantaUsers.push({
-                            id: doc.id, nome: data.nome || data.name || data.displayName || 'Anonimo', email: data.email || '',
+                            id: doc.id, nome: data.nome || data.name || data.displayName || data.username || ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || 'Anonimo', email: data.email || '',
                             ruolo: data.role || 'studente', classe: data.classId || data.class || 'N/A',
                             gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon'
                         });
@@ -164,8 +164,33 @@ const HubApp = {
             } catch(e) { console.warn("Palestra REST error:", e); }
 
             const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers];
-            allUsers.sort((a, b) => a.nome.localeCompare(b.nome));
-            this.allUsers = allUsers; // Salva per i filtri
+            
+            // Deduplicazione per email (fonde i giochi se l'utente è in più piattaforme)
+            const uniqueUsersMap = new Map();
+            allUsers.forEach(u => {
+                if (u.email && u.email.trim() !== '') {
+                    const emailKey = u.email.trim().toLowerCase();
+                    if (uniqueUsersMap.has(emailKey)) {
+                        let existing = uniqueUsersMap.get(emailKey);
+                        if (!existing.gioco.includes(u.gioco)) {
+                            existing.gioco += " / " + u.gioco;
+                        }
+                        // Se aveva 'Anonimo' o stringhe vuote, e ora abbiamo un nome, aggiorniamo
+                        if ((existing.nome === 'Anonimo' || existing.nome === '') && u.nome !== 'Anonimo' && u.nome !== '') {
+                            existing.nome = u.nome;
+                        }
+                    } else {
+                        uniqueUsersMap.set(emailKey, {...u});
+                    }
+                } else {
+                    // Senza email, usiamo ID come chiave
+                    uniqueUsersMap.set(u.id, {...u});
+                }
+            });
+            
+            const deduplicatedUsers = Array.from(uniqueUsersMap.values());
+            deduplicatedUsers.sort((a, b) => a.nome.localeCompare(b.nome));
+            this.allUsers = deduplicatedUsers; // Salva per i filtri
 
             // Aggiorna Contatori
             document.getElementById('counter-total').innerText = allUsers.length;
