@@ -868,7 +868,6 @@ function preparaInvioGmail() {
     window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${oggetto}&body=${corpo}&bcc=${bccString}`, '_blank');
 }
 
-});
 
 // --- LOGICA DI LOGIN GLOBALE ---
 function eseguiLoginGoogle() {
