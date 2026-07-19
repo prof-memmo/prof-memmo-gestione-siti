@@ -10,7 +10,15 @@ const HubApp = {
     bindEvents: function() {
         document.getElementById('btn-google-login').addEventListener('click', () => {
             const provider = new firebase.auth.GoogleAuthProvider();
-            window.fbAuth.signInWithPopup(provider).catch(err => {
+            provider.addScope('https://www.googleapis.com/auth/calendar.events');
+            
+            window.fbAuth.signInWithPopup(provider).then((result) => {
+                const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+                if (credential && credential.accessToken) {
+                    sessionStorage.setItem('gcalToken', credential.accessToken);
+                    console.log("Token Google Calendar acquisito con successo.");
+                }
+            }).catch(err => {
                 console.error("Login failed:", err);
                 alert("Errore durante l'accesso: " + err.message);
             });
@@ -176,8 +184,9 @@ const HubApp = {
             document.getElementById('counter-fanta').innerText = fantaUsers.length;
             document.getElementById('counter-palestra').innerText = palestraUsers.length;
 
+            this.initNewsUsers();
             this.renderIscrittiTable(this.allUsers);
-            if(window.renderNewsletterDestinatari) window.renderNewsletterDestinatari();
+            this.renderNewsTable(this.allUsers);
 
         } catch(e) {
             console.error("Errore aggregazione iscritti:", e);
@@ -224,23 +233,132 @@ const HubApp = {
             if (valA < valB) return this.currentSortAsc ? -1 : 1;
             if (valA > valB) return this.currentSortAsc ? 1 : -1;
             return 0;
-        });
-
-        this.filterIscritti(); // Ridisegna con i filtri attivi
+        });        this.filterIscritti(); // Ridisegna con i filtri attivi
     },
 
     filterIscritti: function() {
         const searchInput = document.getElementById('search-iscritti').value.toLowerCase();
         const filterGioco = document.getElementById('filter-gioco').value;
 
+        if (!this.allUsers) return;
+
         const filtered = this.allUsers.filter(user => {
-            const matchName = user.nome.toLowerCase().includes(searchInput) || user.email.toLowerCase().includes(searchInput);
-            const matchGioco = filterGioco === 'all' || user.gioco === filterGioco;
-            return matchName && matchGioco;
+            const matchesSearch = user.nome.toLowerCase().includes(searchInput) || (user.email && user.email.toLowerCase().includes(searchInput));
+            const matchesGioco = filterGioco === 'all' || user.gioco === filterGioco;
+            return matchesSearch && matchesGioco;
         });
 
         this.renderIscrittiTable(filtered);
     },
+    
+    // --- NEWSLETTER MANAGER TABLE ---
+    newsSortCol: 'nome',
+    newsSortAsc: true,
+
+    initNewsUsers: function() {
+        if (!this.allUsers) return;
+        this.allUsers.forEach(u => {
+            if (u.newsSelected === undefined) u.newsSelected = true;
+        });
+    },
+
+    renderNewsTable: function(usersArray) {
+        const tbody = document.querySelector('#newsletter-iscritti-table tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        
+        if (!usersArray || usersArray.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">Nessun utente trovato con i filtri attuali.</td></tr>';
+            return;
+        }
+
+        usersArray.forEach(user => {
+            if (!user.email) return;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding: 10px; text-align:center;">
+                    <input type="checkbox" style="cursor:pointer;" class="news-dest-checkbox" value="${user.email}" ${user.newsSelected ? 'checked' : ''} onchange="window.HubApp.toggleUserSelection('${user.email}', this.checked)">
+                </td>
+                <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
+                <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
+                <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+        this.updateNewsCount();
+    },
+
+    sortNews: function(column) {
+        if (!this.allUsers || this.allUsers.length === 0) return;
+
+        if (this.newsSortCol === column) {
+            this.newsSortAsc = !this.newsSortAsc;
+        } else {
+            this.newsSortCol = column;
+            this.newsSortAsc = true;
+        }
+
+        this.allUsers.sort((a, b) => {
+            let valA = (a[column] || '').toString().toLowerCase();
+            let valB = (b[column] || '').toString().toLowerCase();
+            
+            if (valA < valB) return this.newsSortAsc ? -1 : 1;
+            if (valA > valB) return this.newsSortAsc ? 1 : -1;
+            return 0;
+        });
+
+        this.filterNews();
+    },
+
+    filterNews: function() {
+        const searchInput = document.getElementById('search-news-iscritti').value.toLowerCase();
+        const filterGioco = document.getElementById('filter-news-gioco-col').value;
+
+        if (!this.allUsers) return;
+
+        const filtered = this.allUsers.filter(user => {
+            const matchesSearch = user.nome.toLowerCase().includes(searchInput) || (user.email && user.email.toLowerCase().includes(searchInput));
+            const matchesGioco = filterGioco === 'all' || user.gioco === filterGioco;
+            return matchesSearch && matchesGioco;
+        });
+
+        this.renderNewsTable(filtered);
+    },
+
+    toggleAllNews: function(selectAll) {
+        if (!this.allUsers) return;
+        const searchInput = document.getElementById('search-news-iscritti').value.toLowerCase();
+        const filterGioco = document.getElementById('filter-news-gioco-col').value;
+
+        this.allUsers.forEach(user => {
+            if (!user.email) return;
+            const matchesSearch = user.nome.toLowerCase().includes(searchInput) || user.email.toLowerCase().includes(searchInput);
+            const matchesGioco = filterGioco === 'all' || user.gioco === filterGioco;
+            if (matchesSearch && matchesGioco) {
+                user.newsSelected = selectAll;
+            }
+        });
+        this.filterNews();
+    },
+    
+    toggleUserSelection: function(email, isChecked) {
+        if (!this.allUsers) return;
+        const user = this.allUsers.find(u => u.email === email);
+        if (user) user.newsSelected = isChecked;
+        this.updateNewsCount();
+    },
+    
+    updateNewsCount: function() {
+        const countSpan = document.getElementById('news-dest-count');
+        if (countSpan && this.allUsers) {
+            const selected = this.allUsers.filter(u => u.newsSelected && u.email).length;
+            countSpan.textContent = selected > 0 ? `(${selected})` : '';
+        }
+    }
+};
+
+window.HubApp = HubApp; },
 
     loadArchivi: async function() {
         try {
@@ -468,12 +586,22 @@ function renderCalendar() {
         if (currentEvents[dateStr]) {
             currentEvents[dateStr].forEach(ev => {
                 let color = "var(--gold)";
+                let iconClass = `fa-brands fa-${ev.platform}`;
+                
                 if(ev.platform === 'instagram') color = "#E1306C";
                 if(ev.platform === 'facebook') color = "#1877F2";
                 if(ev.platform === 'tiktok') color = "#00f2fe";
+                if(ev.platform === 'youtube') color = "#FF0000";
+                if(ev.platform === 'linkedin') color = "#0A66C2";
+                if(ev.platform === 'x-twitter') color = "#000000";
+                
+                if(ev.platform === 'altro') {
+                    color = "#9ca3af";
+                    iconClass = "fa-solid fa-bullhorn";
+                }
                 
                 html += `<div class="cal-event" style="color:white; background:${color}; border-color:${color};" onclick="event.stopPropagation(); editCalendarEvent('${dateStr}', '${ev.id}', '${ev.title.replace(/'/g, "\\'")}', '${ev.platform}')">
-                    <i class="fa-brands fa-${ev.platform}"></i> ${ev.title}
+                    <i class="${iconClass}"></i> ${ev.title}
                 </div>`;
             });
         }
@@ -544,14 +672,59 @@ async function saveCalendarEvent() {
     
     if(!date || !title) return alert("Inserisci data e titolo");
     
+    // Recupera l'ID Google Calendar se esiste
+    let gcalEventId = null;
+    if (id && currentEvents[date]) {
+        const ev = currentEvents[date].find(e => e.id === id);
+        if (ev && ev.gcalEventId) gcalEventId = ev.gcalEventId;
+    }
+    
     const data = { date, title, platform, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
     
     try {
+        let docRefId = id;
         if(id) {
             await window.fbDb.hub.collection("hub_social_calendar").doc(id).update(data);
         } else {
-            await window.fbDb.hub.collection("hub_social_calendar").add(data);
+            const docRef = await window.fbDb.hub.collection("hub_social_calendar").add(data);
+            docRefId = docRef.id;
         }
+        
+        // --- GOOGLE CALENDAR SYNC ---
+        const token = sessionStorage.getItem('gcalToken');
+        if (token) {
+            const gcalData = {
+                summary: `[${platform.toUpperCase()}] ${title}`,
+                start: { date: date },
+                end: { date: date }
+            };
+            
+            let url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
+            let method = 'POST';
+            if (id && gcalEventId) {
+                url += '/' + gcalEventId;
+                method = 'PUT';
+            }
+            
+            const res = await fetch(url, {
+                method: method,
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(gcalData)
+            });
+            
+            if (res.ok) {
+                const result = await res.json();
+                if (!id || !gcalEventId) {
+                    await window.fbDb.hub.collection("hub_social_calendar").doc(docRefId).update({ gcalEventId: result.id });
+                }
+            } else {
+                console.warn("Sincronizzazione Google Calendar fallita. Token scaduto o permessi non validi.");
+            }
+        }
+        
         closeCalendarModal();
     } catch(e) {
         alert("Errore salvataggio: " + e.message);
@@ -561,11 +734,29 @@ async function saveCalendarEvent() {
 async function deleteCalendarEvent() {
     if (!window.fbDb.hub) return;
     const id = document.getElementById('cal-id').value;
+    const date = document.getElementById('cal-date').value;
     if(!id) return;
     
     if(confirm("Eliminare questo post?")) {
         try {
+            // Recupera l'ID Google Calendar se esiste
+            let gcalEventId = null;
+            if (currentEvents[date]) {
+                const ev = currentEvents[date].find(e => e.id === id);
+                if (ev && ev.gcalEventId) gcalEventId = ev.gcalEventId;
+            }
+
             await window.fbDb.hub.collection("hub_social_calendar").doc(id).delete();
+            
+            // --- GOOGLE CALENDAR SYNC ---
+            const token = sessionStorage.getItem('gcalToken');
+            if (token && gcalEventId) {
+                await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${gcalEventId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+            }
+            
             closeCalendarModal();
         } catch(e) {
             alert("Errore: " + e.message);
@@ -676,11 +867,10 @@ function preparaInvioGmail() {
     const oggetto = encodeURIComponent(document.getElementById('news-oggetto').value);
     const corpo = encodeURIComponent(document.getElementById('news-corpo').value);
     
-    const checkboxes = document.querySelectorAll('.news-dest-checkbox:checked');
     let emails = [];
-    checkboxes.forEach(cb => {
-        if(cb.value && cb.value.includes('@')) emails.push(cb.value);
-    });
+    if (window.HubApp.allUsers) {
+        emails = window.HubApp.allUsers.filter(u => u.newsSelected && u.email && u.email.includes('@')).map(u => u.email);
+    }
     
     if(emails.length === 0 && (document.getElementById('news-oggetto').value || document.getElementById('news-corpo').value)) {
         if(!confirm("Non hai selezionato nessun destinatario valido. Vuoi preparare l'email vuota su Gmail?")) return;
@@ -688,44 +878,6 @@ function preparaInvioGmail() {
     
     const bccString = encodeURIComponent(emails.join(', '));
     window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${oggetto}&body=${corpo}&bcc=${bccString}`, '_blank');
-}
-
-window.renderNewsletterDestinatari = function() {
-    const list = document.getElementById('newsletter-lista-destinatari');
-    if (!HubApp.allUsers || HubApp.allUsers.length === 0) {
-        list.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Iscritti non ancora caricati. Vai in Panoramica Globale e clicca "Aggiorna Dati Ora".</p>';
-        return;
-    }
-
-    const filterGioco = document.getElementById('filter-news-gioco').value;
-    const isChecked = document.getElementById('check-all-news').checked;
-    
-    let html = '';
-    HubApp.allUsers.forEach((user, index) => {
-        if (filterGioco !== 'all' && user.gioco !== filterGioco) return;
-        if (!user.email) return; // Salta chi non ha email
-        
-        html += `
-        <div style="display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid #eee;">
-            <input type="checkbox" class="news-dest-checkbox" value="${user.email}" ${isChecked ? 'checked' : ''} id="dest-${index}">
-            <label for="dest-${index}" style="font-size: 0.9rem; cursor: pointer; flex: 1; margin:0;">
-                <strong style="color:var(--text-main);">${user.nome}</strong> <span style="color:var(--text-muted); font-size:0.8rem;">(${user.email})</span><br>
-                <span style="font-size:0.75rem; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</span>
-            </label>
-        </div>
-        `;
-    });
-    
-    if(html === '') {
-        list.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Nessun iscritto trovato con email per questo filtro.</p>';
-    } else {
-        list.innerHTML = html;
-    }
-}
-
-window.toggleAllDestinatari = function(checkbox) {
-    const checkboxes = document.querySelectorAll('.news-dest-checkbox');
-    checkboxes.forEach(cb => cb.checked = checkbox.checked);
 }
 
 document.addEventListener("DOMContentLoaded", () => {

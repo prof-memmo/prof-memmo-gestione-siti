@@ -16,6 +16,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&display=swap');
     /* Admin Hub Specific Overrides - SaaS Light Theme */
     :root {
       --bg-color: #f3f4f6;
@@ -28,7 +29,7 @@
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
     
-    body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; }
+    body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Cinzel', serif; margin: 0; }
     
     .hub-sidebar {
       position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
@@ -457,33 +458,56 @@
           </div>
         </div>
 
-        <!-- Destinatari -->
-        <div class="glass-panel" style="flex: 1; min-width: 250px;">
-          <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 15px;">Seleziona Destinatari</h3>
-          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:10px;"><i class="fa-solid fa-circle-info"></i> Assicurati di aver aggiornato i dati nella Panoramica Globale prima di inviare.</p>
-          <select id="filter-news-gioco" class="input-field" style="margin-bottom: 10px; padding: 6px;" onchange="renderNewsletterDestinatari()">
-            <option value="all">Tutti i Giochi</option>
-            <option value="La Rotta degli Eroi">Eroi</option>
-            <option value="La Corte della Commedia">Commedia</option>
-            <option value="Fantaletteratura">Fanta</option>
-            <option value="Palestra di Riflessione">Palestra</option>
-          </select>
-          <div style="margin-bottom: 10px;">
-            <label style="font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-              <input type="checkbox" id="check-all-news" onchange="toggleAllDestinatari(this)" checked> <strong>Seleziona / Deseleziona Tutti</strong>
-            </label>
-          </div>
-          <div id="newsletter-lista-destinatari" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; background: #f9fafb;">
-            <p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Iscritti non ancora caricati. Vai in Panoramica Globale e clicca "Aggiorna Dati Ora".</p>
-          </div>
-        </div>
-
         <!-- Bozze Salvate -->
         <div class="glass-panel" style="flex: 1; min-width: 250px;">
           <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 15px;">Bozze Salvate</h3>
           <div id="newsletter-lista-bozze" style="max-height: 400px; overflow-y: auto;">
             <p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Caricamento bozze...</p>
           </div>
+        </div>
+      </div>
+
+      <!-- Tabella Destinatari Full-Width -->
+      <div class="glass-panel" style="margin-top: 20px;">
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+            <div>
+              <h3 style="color:var(--text-main); margin:0;">Destinatari Selezionati</h3>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;"><i class="fa-solid fa-circle-info"></i> Usa i filtri sulle colonne per cercare gli utenti. Le spunte rimarranno memorizzate.</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px;" onclick="window.HubApp.toggleAllNews(true)">Seleziona Tutti</button>
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:var(--text-muted); color:var(--text-muted);" onclick="window.HubApp.toggleAllNews(false)">Deseleziona Tutti</button>
+            </div>
+        </div>
+        
+        <div class="table-responsive" style="overflow-x:auto; max-height: 400px; margin-top: 15px;">
+          <table class="game-table" id="newsletter-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="width: 50px; text-align:center;">Invia</th>
+                <th style="cursor:pointer;" onclick="window.HubApp.sortNews('nome')">
+                  Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i><br>
+                  <input type="text" id="search-news-iscritti" class="input-field" placeholder="Cerca..." style="margin-top: 8px; padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="window.HubApp.filterNews()">
+                </th>
+                <th style="cursor:pointer; vertical-align: top;" onclick="window.HubApp.sortNews('ruolo')">
+                  Ruolo <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i>
+                </th>
+                <th style="cursor:pointer;" onclick="window.HubApp.sortNews('gioco')">
+                  Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i><br>
+                  <select id="filter-news-gioco-col" class="input-field" style="margin-top: 8px; padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="window.HubApp.filterNews()">
+                    <option value="all">Tutti</option>
+                    <option value="La Rotta degli Eroi">Eroi</option>
+                    <option value="La Corte della Commedia">Commedia</option>
+                    <option value="Fantaletteratura">Fanta</option>
+                    <option value="Palestra di Riflessione">Palestra</option>
+                  </select>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">Carica gli iscritti cliccando su "Aggiorna Dati Ora" nella Panoramica.</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -499,6 +523,10 @@
           <option value="instagram">Instagram</option>
           <option value="facebook">Facebook</option>
           <option value="tiktok">TikTok</option>
+          <option value="youtube">YouTube</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="x-twitter">X (Twitter)</option>
+          <option value="altro">Altro</option>
         </select>
         <div style="display: flex; gap: 10px; justify-content: space-between;">
           <button class="btn" onclick="saveCalendarEvent()" style="flex:1;">Salva</button>

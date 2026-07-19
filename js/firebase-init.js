@@ -56,18 +56,18 @@ try {
     window.fbApps.eroi = appEroi;
     window.fbDb.eroi = appEroi.firestore();
     
-    // Auth principale (useremo Eroi come sistema centrale per loggare il Prof. Memmo)
-    window.fbAuth = appEroi.auth();
+    // Inizializza l'app centrale (Hub per posta, calendario ed esperienze)
+    const appHub = firebase.initializeApp(configHub, "Hub");
+    window.fbApps.hub = appHub;
+    window.fbDb.hub = appHub.firestore();
+    
+    // Auth principale (useremo il progetto Hub dedicato per loggare il Prof. Memmo)
+    window.fbAuth = appHub.auth();
     
     // Inizializza l'app secondaria (Commedia)
     const appCommedia = firebase.initializeApp(configCommedia, "Commedia");
     window.fbApps.commedia = appCommedia;
     window.fbDb.commedia = appCommedia.firestore();
-
-    // Inizializza l'app centrale (Hub per posta e esperienze)
-    const appHub = firebase.initializeApp(configHub, "Hub");
-    window.fbApps.hub = appHub;
-    window.fbDb.hub = appHub.firestore();
 
     // Inizializza Fantaletteratura
     const appFanta = firebase.initializeApp(configFanta, "Fanta");
