@@ -582,6 +582,9 @@ function renderCalendar() {
                 if(ev.platform === 'youtube') color = "#FF0000";
                 if(ev.platform === 'linkedin') color = "#0A66C2";
                 if(ev.platform === 'x-twitter') color = "#000000";
+                if(ev.platform === 'antigravity') { color = "#4f46e5"; iconClass = "fa-solid fa-rocket"; }
+                if(ev.platform === 'chatgpt') { color = "#10a37f"; iconClass = "fa-solid fa-robot"; }
+                if(ev.platform === 'gestionesito') { color = "#f59e0b"; iconClass = "fa-solid fa-screwdriver-wrench"; }
                 
                 if(ev.platform === 'altro') {
                     color = "#9ca3af";
@@ -719,10 +722,9 @@ async function saveCalendarEvent() {
                 gcalData.start = { date: date };
                 gcalData.end = { date: nextDayStr };
             } else {
-                const startDateTime = new Date(`${date}T${startTime}:00`).toISOString();
-                const endDateTime = new Date(`${date}T${endTime}:00`).toISOString();
-                gcalData.start = { dateTime: startDateTime };
-                gcalData.end = { dateTime: endDateTime };
+                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                gcalData.start = { dateTime: `${date}T${startTime}:00`, timeZone: tz };
+                gcalData.end = { dateTime: `${date}T${endTime}:00`, timeZone: tz };
             }
             
             if (recurrenceVal && recurrenceVal !== 'none') {
