@@ -238,7 +238,10 @@
     <div id="view-calendario" class="hub-view active">
       <div class="hub-header">
         <h2><i class="fa-solid fa-calendar-days"></i> Calendario Editoriale Social</h2>
-        <button class="btn" onclick="openCalendarModal()" style="font-size: 0.9rem;"><i class="fa-solid fa-plus"></i> Nuovo Post</button>
+        <div style="display:flex; gap:10px;">
+          <button class="btn outline" onclick="eseguiLoginGoogle()" style="font-size: 0.9rem; border-color: #4285F4; color: #4285F4;" title="Clicca qui per riconnettere l'account Google Calendar e permettere il salvataggio automatico"><i class="fa-brands fa-google"></i> Riconnetti Google Calendar</button>
+          <button class="btn" onclick="openCalendarModal()" style="font-size: 0.9rem;"><i class="fa-solid fa-plus"></i> Nuovo Post</button>
+        </div>
       </div>
       <div class="glass-panel">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
