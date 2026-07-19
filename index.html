@@ -151,7 +151,13 @@
         margin-left: 0; padding: 70px 15px 20px 15px;
       }
       .hamburger-menu { display: block; }
-      #calendar-grid { grid-template-columns: repeat(7, minmax(45px, 1fr)) !important; gap: 5px !important; }
+      #calendar-grid { 
+        display: grid !important; 
+        grid-template-columns: repeat(7, minmax(60px, 1fr)) !important; 
+        gap: 5px !important; 
+        min-width: 500px !important; 
+      }
+      .glass-panel { overflow-x: auto; overflow-y: hidden; }
       .cal-day { min-height: 80px; padding: 5px; }
       .cal-header-day { font-size: 0.7rem; overflow: hidden; text-overflow: ellipsis; }
       .cal-event { font-size: 0.65rem; padding: 2px 4px; }
@@ -241,7 +247,7 @@
           <h3 id="calendar-month-title" style="margin: 0; color: var(--text-main); font-weight: 700;">Mese Anno</h3>
           <button class="btn outline" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
-        <div id="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">
+        <div id="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; min-width: 600px;">
           <!-- Generato via JS -->
         </div>
       </div>
@@ -567,8 +573,8 @@
 
   </div>
 
-  <script src="js/firebase-init.js?v=17"></script>
-  <script src="js/app_v2.js?v=17"></script>
+  <script src="js/firebase-init.js?v=18"></script>
+  <script src="js/app_v2.js?v=18"></script>
   <script>
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');
