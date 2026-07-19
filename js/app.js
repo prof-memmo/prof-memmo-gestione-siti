@@ -9,6 +9,7 @@ const HubApp = {
 
     bindEvents: function() {
         document.getElementById('btn-google-login').addEventListener('click', () => {
+            alert("Hai cliccato il pulsante! Provo ad avviare l'accesso...");
             const provider = new firebase.auth.GoogleAuthProvider();
             provider.addScope('https://www.googleapis.com/auth/calendar.events');
             
