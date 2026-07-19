@@ -672,6 +672,11 @@ function fetchCalendarEvents() {
         });
 }
 
+function toggleTimeFields() {
+    const isAllDay = document.getElementById('cal-allday').checked;
+    document.getElementById('cal-time-container').style.display = isAllDay ? 'none' : 'flex';
+}
+
 function openCalendarModal(dateStr = "") {
     document.getElementById('cal-id').value = "";
     document.getElementById('cal-date').value = dateStr || new Date().toISOString().split('T')[0];
@@ -713,32 +718,32 @@ function closeCalendarModal() {
 }
 
 async function saveCalendarEvent() {
-    if (!window.fbDb.hub) return;
-    const id = document.getElementById('cal-id').value;
-    const date = document.getElementById('cal-date').value;
-    const title = document.getElementById('cal-title').value;
-    const platform = document.getElementById('cal-platform').value;
-    
-    const allDay = document.getElementById('cal-allday').checked;
-    const startTime = document.getElementById('cal-start-time').value;
-    const endTime = document.getElementById('cal-end-time').value;
-    const recurrenceVal = document.getElementById('cal-recurrence').value;
-    
-    if(!date || !title) return alert("Inserisci data e titolo");
-    
-    // Recupera l'ID Google Calendar se esiste
-    let gcalEventId = null;
-    if (id && currentEvents[date]) {
-        const ev = currentEvents[date].find(e => e.id === id);
-        if (ev && ev.gcalEventId) gcalEventId = ev.gcalEventId;
-    }
-    
-    const data = { 
-        date, title, platform, allDay, startTime, endTime, recurrence: recurrenceVal,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-    };
-    
     try {
+        if (!window.fbDb.hub) return;
+        const id = document.getElementById('cal-id').value;
+        const date = document.getElementById('cal-date').value;
+        const title = document.getElementById('cal-title').value;
+        const platform = document.getElementById('cal-platform').value;
+        
+        const allDay = document.getElementById('cal-allday').checked;
+        const startTime = document.getElementById('cal-start-time').value;
+        const endTime = document.getElementById('cal-end-time').value;
+        const recurrenceVal = document.getElementById('cal-recurrence').value;
+        
+        if(!date || !title) return alert("Inserisci data e titolo");
+        
+        // Recupera l'ID Google Calendar se esiste
+        let gcalEventId = null;
+        if (id && currentEvents[date]) {
+            const ev = currentEvents[date].find(e => e.id === id);
+            if (ev && ev.gcalEventId) gcalEventId = ev.gcalEventId;
+        }
+        
+        const data = { 
+            date, title, platform, allDay, startTime, endTime, recurrence: recurrenceVal,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+        };
+        
         let docRefId = id;
         if(id) {
             await window.fbDb.hub.collection("hub_social_calendar").doc(id).update(data);
@@ -801,6 +806,7 @@ async function saveCalendarEvent() {
         
         closeCalendarModal();
     } catch(e) {
+        console.error("Calendar save error:", e);
         alert("Errore salvataggio: " + e.message);
     }
 }
