@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Prof. Memmo - Hub di Gestione Generale</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#f3f4f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <!-- FontAwesome Icons CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Stylesheet di Progetto (recuperati dai giochi) -->
@@ -164,13 +168,13 @@
   </style>
 
   <!-- Icone per Safari e Dispositivi Mobili -->
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=5">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=2">
 </head>
 <body>
 
   <!-- Login Overlay -->
-  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-color); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column;">
+  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#f3f4f6; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column;">
     <img src="assets/avatar.png" style="width:150px; margin-bottom:20px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); border-radius: 50%;">
     <h2 style="color:var(--text-main); font-weight: 700; font-family: 'Outfit', sans-serif;">Hub Centrale - Accesso</h2>
     <p style="color:var(--text-muted); font-family: 'Outfit', sans-serif;">Autenticazione richiesta per accedere al cruscotto.</p>
