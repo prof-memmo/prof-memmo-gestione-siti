@@ -236,7 +236,7 @@ const HubApp = {
         usersArray.forEach(user => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
+                <td style="padding: 10px;"><strong>${user.nome}</strong> <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); margin-left:6px; font-size:1.1rem; text-decoration:none;"><i class="fa-solid fa-envelope"></i></a><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
                 <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
                 <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
             `;
@@ -310,7 +310,7 @@ const HubApp = {
                 <td style="padding: 10px; text-align:center;">
                     <input type="checkbox" style="cursor:pointer;" class="news-dest-checkbox" value="${user.email}" ${user.newsSelected ? 'checked' : ''} onchange="window.HubApp.toggleUserSelection('${user.email}', this.checked)">
                 </td>
-                <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
+                <td style="padding: 10px;"><strong>${user.nome}</strong> <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); margin-left:6px; font-size:1.1rem; text-decoration:none;"><i class="fa-solid fa-envelope"></i></a><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
                 <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
                 <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
             `;
