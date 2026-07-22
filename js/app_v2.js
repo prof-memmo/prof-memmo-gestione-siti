@@ -721,27 +721,9 @@ function eseguiLoginGoogle() {
     // IMPORTANTE: Nessuna modifica del DOM (es. cambiare il testo del bottone) 
     // prima di aprire il popup, altrimenti Safari blocca la finestra!
     
-    window.fbAuth.signInWithPopup(googleProvider).then((result) => {
-        alert("Successo popup! Email: " + result.user.email);
-        const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-        if (credential && credential.accessToken) {
-            sessionStorage.setItem('gcalToken', credential.accessToken);
-        }
-        
-        // Forza l'aggiornamento manuale se onAuthStateChanged dovesse fallire
-        if (window.HubApp && result.user && result.user.email.toLowerCase() === 'prof.memmo@gmail.com') {
-            document.getElementById('login-overlay').style.display = 'none';
-            window.HubApp.user = result.user;
-            window.HubApp.loadData();
-        }
-        
-    }).catch(err => {
-        console.error("Login failed:", err);
-        if (err.code === 'auth/popup-blocked') {
-            alert("Safari (o il tuo browser) ha bloccato il popup di login! 🛑\n\nPER RISOLVERE:\nGuarda nella barra degli indirizzi in alto, clicca sull'iconcina dei popup bloccati e consenti i popup per questo sito, poi riprova.");
-        } else if (err.code !== 'auth/cancelled-popup-request') {
-            alert("Errore durante l'accesso: " + err.message);
-        }
+    window.fbAuth.signInWithRedirect(googleProvider).catch(err => {
+        console.error("Login redirect failed:", err);
+        alert("Errore durante il reindirizzamento per l'accesso: " + err.message);
     });
 }
 
