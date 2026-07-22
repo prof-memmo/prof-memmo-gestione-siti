@@ -57,6 +57,9 @@ body {
     radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
     radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
   background-attachment: fixed;
+  overscroll-behavior-y: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Scrollbar */
@@ -4684,5 +4687,22 @@ table.game-table tr:hover td {
         justify-content: center;
         font-size: 0.78rem !important;
         padding: 7px 10px !important;
+    }
+    
+    /* Layout piatto per app-friendly view */
+    .glass-panel, .dark-panel, .parchment-panel, .card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        padding: 10px 5px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .bottom-nav-item span, .bottom-nav a span {
+        text-transform: lowercase !important;
+        white-space: nowrap !important;
+        font-size: 0.58rem !important;
     }
 }
