@@ -281,15 +281,18 @@
             <thead>
               <tr>
                 <th style="cursor:pointer;" onclick="HubApp.sortIscritti('nome')">
-                  Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i><br>
-                  <input type="text" id="search-iscritti" class="input-field" placeholder="Cerca..." style="margin-top: 8px; padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="HubApp.filterIscritti()">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <input type="text" id="search-iscritti" class="input-field" placeholder="Cerca..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="HubApp.filterIscritti()">
                 </th>
                 <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortIscritti('ruolo')">
-                  Ruolo <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i>
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Ruolo <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortIscritti('data')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Data Iscrizione <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
                 <th style="cursor:pointer;" onclick="HubApp.sortIscritti('gioco')">
-                  Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i><br>
-                  <select id="filter-gioco" class="input-field" style="margin-top: 8px; padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <select id="filter-gioco" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
                     <option value="all">Tutti</option>
                     <option value="La Rotta degli Eroi">Eroi</option>
                     <option value="La Corte della Commedia">Commedia</option>
@@ -297,10 +300,13 @@
                     <option value="Palestra di Riflessione">Palestra</option>
                   </select>
                 </th>
+                <th style="vertical-align: top;">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Contatta</div>
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">Clicca "Aggiorna Dati Ora" per caricare.</td></tr>
+              <tr><td colspan="5" style="text-align:center; padding: 20px; color:var(--text-muted);">Clicca "Aggiorna Dati Ora" per caricare.</td></tr>
             </tbody>
           </table>
         </div>
@@ -490,15 +496,18 @@
               <tr>
                 <th style="width: 50px; text-align:center;">Invia</th>
                 <th style="cursor:pointer;" onclick="window.HubApp.sortNews('nome')">
-                  Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i><br>
-                  <input type="text" id="search-news-iscritti" class="input-field" placeholder="Cerca..." style="margin-top: 8px; padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="window.HubApp.filterNews()">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <input type="text" id="search-news-iscritti" class="input-field" placeholder="Cerca..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="window.HubApp.filterNews()">
                 </th>
                 <th style="cursor:pointer; vertical-align: top;" onclick="window.HubApp.sortNews('ruolo')">
-                  Ruolo <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i>
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Ruolo <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer; vertical-align: top;" onclick="window.HubApp.sortNews('data')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Data Iscrizione <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
                 <th style="cursor:pointer;" onclick="window.HubApp.sortNews('gioco')">
-                  Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i><br>
-                  <select id="filter-news-gioco-col" class="input-field" style="margin-top: 8px; padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="window.HubApp.filterNews()">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <select id="filter-news-gioco-col" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="window.HubApp.filterNews()">
                     <option value="all">Tutti</option>
                     <option value="La Rotta degli Eroi">Eroi</option>
                     <option value="La Corte della Commedia">Commedia</option>
@@ -506,10 +515,13 @@
                     <option value="Palestra di Riflessione">Palestra</option>
                   </select>
                 </th>
+                <th style="vertical-align: top;">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Contatta</div>
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">Carica gli iscritti cliccando su "Aggiorna Dati Ora" nella Panoramica.</td></tr>
+              <tr><td colspan="6" style="text-align:center; padding: 20px; color:var(--text-muted);">Carica gli iscritti cliccando su "Aggiorna Dati Ora" nella Panoramica.</td></tr>
             </tbody>
           </table>
         </div>

@@ -99,12 +99,19 @@ const HubApp = {
             if (!data.documents) return [];
             return data.documents.map(doc => {
                 const fields = doc.fields || {};
+                let dataVal = 0;
+                if (fields.createdAt && fields.createdAt.integerValue) dataVal = parseInt(fields.createdAt.integerValue);
+                else if (fields.joinedAt && fields.joinedAt.integerValue) dataVal = parseInt(fields.joinedAt.integerValue);
+                else if (fields.createdAt && fields.createdAt.timestampValue) dataVal = new Date(fields.createdAt.timestampValue).getTime();
+                else if (fields.joinedAt && fields.joinedAt.timestampValue) dataVal = new Date(fields.joinedAt.timestampValue).getTime();
+                
                 return {
                     id: doc.name.split('/').pop(),
                     nome: (fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || (fields.username && fields.username.stringValue) || ((fields.firstName && fields.firstName.stringValue) + ' ' + (fields.lastName ? fields.lastName.stringValue : '')).trim() || 'Anonimo',
                     email: (fields.email && fields.email.stringValue) || '',
                     ruolo: (fields.role && fields.role.stringValue) || 'studente',
-                    classe: (fields.classId && fields.classId.stringValue) || (fields.class && fields.class.stringValue) || 'N/A'
+                    classe: (fields.classId && fields.classId.stringValue) || (fields.class && fields.class.stringValue) || 'N/A',
+                    dataValue: dataVal
                 };
             });
         } catch(e) {
@@ -173,6 +180,7 @@ const HubApp = {
                         hubUsers.push({
                             id: doc.id, nome: data.nome || data.name || data.displayName || data.username || ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || 'Anonimo', email: data.email || '',
                             ruolo: data.role || 'tester', classe: data.classId || data.class || 'N/A',
+                            dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
                             gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe'
                         });
                     });
@@ -205,7 +213,10 @@ const HubApp = {
             });
             
             const deduplicatedUsers = Array.from(uniqueUsersMap.values());
-            deduplicatedUsers.sort((a, b) => a.nome.localeCompare(b.nome));
+            // Default sort: Data Iscrizione decrescente
+            this.currentSortCol = 'data';
+            this.currentSortAsc = false;
+            deduplicatedUsers.sort((a, b) => b.dataValue - a.dataValue);
             this.allUsers = deduplicatedUsers; // Salva per i filtri
 
             // Aggiorna Contatori
@@ -235,10 +246,13 @@ const HubApp = {
 
         usersArray.forEach(user => {
             const tr = document.createElement('tr');
+            const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
             tr.innerHTML = `
-                <td style="padding: 10px;"><strong>${user.nome}</strong> <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); margin-left:6px; font-size:1.1rem; text-decoration:none;"><i class="fa-solid fa-envelope"></i></a><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
+                <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
                 <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
+                <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
                 <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
+                <td style="padding: 10px; text-align:center;"><a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); font-size:1.1rem; text-decoration:none;"><i class="fa-solid fa-envelope"></i></a></td>
             `;
             tbody.appendChild(tr);
         });
@@ -258,13 +272,23 @@ const HubApp = {
         }
 
         this.allUsers.sort((a, b) => {
+            if (column === 'data') {
+                let valA = a.dataValue || 0;
+                let valB = b.dataValue || 0;
+                if (valA < valB) return this.currentSortAsc ? -1 : 1;
+                if (valA > valB) return this.currentSortAsc ? 1 : -1;
+                return 0;
+            }
+
             let valA = (a[column] || '').toString().toLowerCase();
             let valB = (b[column] || '').toString().toLowerCase();
             
             if (valA < valB) return this.currentSortAsc ? -1 : 1;
             if (valA > valB) return this.currentSortAsc ? 1 : -1;
             return 0;
-        });        this.filterIscritti(); // Ridisegna con i filtri attivi
+        });
+        
+        this.filterIscritti(); // Ridisegna con i filtri attivi
     },
 
     filterIscritti: function() {
@@ -283,8 +307,8 @@ const HubApp = {
     },
     
     // --- NEWSLETTER MANAGER TABLE ---
-    newsSortCol: 'nome',
-    newsSortAsc: true,
+    newsSortCol: 'data',
+    newsSortAsc: false,
 
     initNewsUsers: function() {
         if (!this.allUsers) return;
@@ -306,13 +330,16 @@ const HubApp = {
         usersArray.forEach(user => {
             if (!user.email) return;
             const tr = document.createElement('tr');
+            const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
             tr.innerHTML = `
                 <td style="padding: 10px; text-align:center;">
                     <input type="checkbox" style="cursor:pointer;" class="news-dest-checkbox" value="${user.email}" ${user.newsSelected ? 'checked' : ''} onchange="window.HubApp.toggleUserSelection('${user.email}', this.checked)">
                 </td>
-                <td style="padding: 10px;"><strong>${user.nome}</strong> <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); margin-left:6px; font-size:1.1rem; text-decoration:none;"><i class="fa-solid fa-envelope"></i></a><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
+                <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
                 <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
+                <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
                 <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
+                <td style="padding: 10px; text-align:center;"><a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); font-size:1.1rem; text-decoration:none;"><i class="fa-solid fa-envelope"></i></a></td>
             `;
             tbody.appendChild(tr);
         });
@@ -331,6 +358,14 @@ const HubApp = {
         }
 
         this.allUsers.sort((a, b) => {
+            if (column === 'data') {
+                let valA = a.dataValue || 0;
+                let valB = b.dataValue || 0;
+                if (valA < valB) return this.newsSortAsc ? -1 : 1;
+                if (valA > valB) return this.newsSortAsc ? 1 : -1;
+                return 0;
+            }
+
             let valA = (a[column] || '').toString().toLowerCase();
             let valB = (b[column] || '').toString().toLowerCase();
             
