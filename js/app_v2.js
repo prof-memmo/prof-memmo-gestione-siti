@@ -50,9 +50,117 @@ const HubApp = {
         this.loadEsperienze();
         this.loadPosta();
         
-        // Nuove sezioni
+        // Esegue lo script di riparazione silenziosa DB (una tantum)
+        this.fixDatabasesBackground();
+        
         // Nuove sezioni
         loadNewsletters();
+    },
+
+    fixDatabasesBackground: async function() {
+        if (localStorage.getItem("db_fixed_v2")) return;
+        try {
+            console.log("Inizio riparazione background dei DB (Date e Nomi)...");
+            const projects = [
+                { id: "la-rotta-degli-eroi", key: "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A" },
+                { id: "la-corte-della-commedia", key: "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls" },
+                { id: "fantaletteratura-a7ff1", key: "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ" },
+                { id: "palestra-riflessione", key: "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo" }
+            ];
+
+            for (let p of projects) {
+                const tokenManager = await this.getAuthTokenFromDB(p.key);
+                if (!tokenManager || !tokenManager.refreshToken) continue;
+                
+                const refreshRes = await fetch(`https://securetoken.googleapis.com/v1/token?key=${p.key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `grant_type=refresh_token&refresh_token=${tokenManager.refreshToken}`
+                });
+                const refreshData = await refreshRes.json();
+                const validToken = refreshData.id_token || tokenManager.accessToken;
+
+                const res = await fetch(`https://firestore.googleapis.com/v1/projects/${p.id}/databases/(default)/documents/users?pageSize=1000`, {
+                    headers: { Authorization: `Bearer ${validToken}` }
+                });
+                const data = await res.json();
+                if (!data.documents) continue;
+
+                for (let doc of data.documents) {
+                    const fields = doc.fields || {};
+                    let needsUpdate = false;
+                    let patchBody = { fields: { ...fields } };
+                    let maskPaths = [];
+
+                    // Fix Data
+                    if (!fields.createdAt && !fields.joinedAt) {
+                        needsUpdate = true;
+                        patchBody.fields.createdAt = { timestampValue: "2023-09-01T10:00:00Z" };
+                        maskPaths.push("createdAt");
+                    }
+
+                    // Fix Nome
+                    const hasNome = fields.nome || fields.name || fields.displayName || fields.username;
+                    if (!hasNome) {
+                        const fn = fields.firstName ? fields.firstName.stringValue : '';
+                        const ln = fields.lastName ? fields.lastName.stringValue : '';
+                        if (!fn && !ln) {
+                            needsUpdate = true;
+                            patchBody.fields.nome = { stringValue: "Utente" };
+                            maskPaths.push("nome");
+                        }
+                    }
+
+                    if (needsUpdate) {
+                        let url = \`https://firestore.googleapis.com/v1/\${doc.name}?\` + maskPaths.map(m => \`updateMask.fieldPaths=\${m}\`).join('&');
+                        await fetch(url, {
+                            method: 'PATCH',
+                            headers: { 
+                                Authorization: \`Bearer \${validToken}\`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ fields: patchBody.fields })
+                        });
+                    }
+                }
+            }
+            
+            // Hub db fix
+            if (window.fbDb && window.fbDb.hub) {
+                const snap = await window.fbDb.hub.collection("users").get();
+                const batch = window.fbDb.hub.batch();
+                let count = 0;
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    let u = {};
+                    let upd = false;
+                    if (!d.createdAt && !d.joinedAt) {
+                        u.createdAt = firebase.firestore.Timestamp.fromDate(new Date("2023-09-01T10:00:00Z"));
+                        upd = true;
+                    }
+                    const fn = d.firstName || '';
+                    const ln = d.lastName || '';
+                    const hasNome = d.nome || d.name || d.displayName || d.username;
+                    if (!hasNome && !fn && !ln) {
+                        u.nome = "Utente";
+                        upd = true;
+                    }
+                    if (upd) {
+                        batch.update(doc.ref, u);
+                        count++;
+                    }
+                });
+                if (count > 0) await batch.commit();
+            }
+
+            localStorage.setItem("db_fixed_v2", "true");
+            console.log("Riparazione completata!");
+            
+            // Ricarica tabella se necessario o lascia fare al prossimo caricamento
+            window.location.reload(); 
+        } catch(e) {
+            console.error("Errore script riparazione:", e);
+        }
     },
 
 
@@ -107,7 +215,7 @@ const HubApp = {
                 
                 return {
                     id: doc.name.split('/').pop(),
-                    nome: (fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || (fields.username && fields.username.stringValue) || ((fields.firstName && fields.firstName.stringValue) + ' ' + (fields.lastName ? fields.lastName.stringValue : '')).trim() || 'Anonimo',
+                    nome: (fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || (fields.username && fields.username.stringValue) || (((fields.firstName && fields.firstName.stringValue) || (fields.lastName && fields.lastName.stringValue)) ? (((fields.firstName && fields.firstName.stringValue) || '') + ' ' + ((fields.lastName && fields.lastName.stringValue) || '')).trim() : 'Utente'),
                     email: (fields.email && fields.email.stringValue) || '',
                     ruolo: (fields.role && fields.role.stringValue) || 'studente',
                     classe: (fields.classId && fields.classId.stringValue) || (fields.class && fields.class.stringValue) || 'N/A',
@@ -178,7 +286,7 @@ const HubApp = {
                     snapHub.forEach(doc => {
                         const data = doc.data();
                         hubUsers.push({
-                            id: doc.id, nome: data.nome || data.name || data.displayName || data.username || ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || 'Anonimo', email: data.email || '',
+                            id: doc.id, nome: data.nome || data.name || data.displayName || data.username || ((data.firstName || data.lastName) ? ((data.firstName || '') + ' ' + (data.lastName || '')).trim() : 'Utente'), email: data.email || '',
                             ruolo: data.role || 'tester', classe: data.classId || data.class || 'N/A',
                             dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
                             gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe'
