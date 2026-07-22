@@ -156,8 +156,7 @@ const HubApp = {
             localStorage.setItem("db_fixed_v2", "true");
             console.log("Riparazione completata!");
             
-            // Ricarica tabella se necessario o lascia fare al prossimo caricamento
-            window.location.reload(); 
+            // Rimossa window.location.reload() per evitare loop di login e perdita di sessione
         } catch(e) {
             console.error("Errore script riparazione:", e);
         }
