@@ -819,7 +819,7 @@ const googleProvider = new firebase.auth.GoogleAuthProvider();
 googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
 
 // --- LOGICA DI LOGIN GLOBALE ---
-function eseguiLoginGoogle() {
+async function eseguiLoginGoogle() {
     if (!window.fbAuth) {
         alert("Errore critico: Firebase non è inizializzato. Controlla la console.");
         return;
@@ -828,10 +828,18 @@ function eseguiLoginGoogle() {
     // IMPORTANTE: Nessuna modifica del DOM (es. cambiare il testo del bottone) 
     // prima di aprire il popup, altrimenti Safari blocca la finestra!
     
-    window.fbAuth.signInWithRedirect(googleProvider).catch(err => {
-        console.error("Login redirect failed:", err);
-        alert("Errore durante il reindirizzamento per l'accesso: " + err.message);
-    });
+    try {
+        await window.fbAuth.signInWithPopup(googleProvider);
+    } catch (err) {
+        console.error("Popup login failed, trying redirect:", err);
+        if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+            window.fbAuth.signInWithRedirect(googleProvider).catch(e => {
+                alert("Errore durante il reindirizzamento per l'accesso: " + e.message);
+            });
+        } else {
+            alert("Errore di accesso: " + err.message);
+        }
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
