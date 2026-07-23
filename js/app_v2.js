@@ -8,8 +8,7 @@ const HubApp = {
     },
 
     bindEvents: function() {
-        const btn = document.getElementById('btn-google-login');
-        if (btn) btn.addEventListener('click', eseguiLoginGoogle);
+        // Il listener per il login Google è gestito direttamente nell'HTML con onclick="eseguiLoginGoogle()"
     },
 
     checkAuth: function() {
@@ -1138,19 +1137,19 @@ function preparaInvioGmail() {
 }
 
 
+const globalGoogleProvider = new firebase.auth.GoogleAuthProvider();
+globalGoogleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
+globalGoogleProvider.setCustomParameters({ prompt: 'select_account' });
+
 function eseguiLoginGoogle() {
     if (!window.fbAuth) {
         alert("Errore critico: Firebase non è inizializzato. Controlla la console.");
         return;
     }
     
-    const provider = new firebase.auth.GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/calendar.events');
-    provider.setCustomParameters({ prompt: 'select_account' });
-    
-    // Per risolvere i blocchi su Safari (specialmente iOS) e in modalità PWA,
-    // usiamo direttamente signInWithRedirect in modo sincrono rispetto al click.
-    window.fbAuth.signInWithRedirect(provider).catch(e => {
+    // IMPORTANTE: Nessuna instanziazione o modifica del DOM qui dentro
+    // per evitare che Safari (iOS) blocchi il redirect scartando l'azione dell'utente.
+    window.fbAuth.signInWithRedirect(globalGoogleProvider).catch(e => {
         console.error("Errore avvio redirect:", e);
         alert("Si è verificato un errore durante l'avvio del login: " + e.message);
     });
