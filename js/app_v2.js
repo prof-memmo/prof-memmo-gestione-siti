@@ -1148,18 +1148,12 @@ async function eseguiLoginGoogle() {
     provider.addScope('https://www.googleapis.com/auth/calendar.events');
     provider.setCustomParameters({ prompt: 'select_account' });
     
-    try {
-        const result = await window.fbAuth.signInWithPopup(provider);
-        // l'evento onAuthStateChanged in HubApp gestirà l'interfaccia dopo il login
-    } catch (e) {
-        console.error("Errore Google Login:", e);
-        if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
-            console.warn("Popup bloccato dal browser o chiuso dall'utente, fallback su redirect...");
-            window.fbAuth.signInWithRedirect(provider);
-        } else {
-            alert("Si è verificato un errore durante l'accesso con Google: " + e.code + " - " + e.message);
-        }
-    }
+    // Per risolvere i blocchi su Safari (specialmente iOS) e in modalità PWA,
+    // usiamo direttamente signInWithRedirect in modo sincrono rispetto al click.
+    window.fbAuth.signInWithRedirect(provider).catch(e => {
+        console.error("Errore avvio redirect:", e);
+        alert("Si è verificato un errore durante l'avvio del login: " + e.message);
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
