@@ -1603,15 +1603,26 @@ table.game-table tr:hover td {
   border-radius: 0;
   z-index: 99;
   box-shadow: 0 -3px 15px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-  padding: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 15px;
+  gap: 15px;
+  scrollbar-width: none;
+}
+
+.mobile-bottom-nav::-webkit-scrollbar {
+  display: none;
 }
 
 /* Bottom nav visibile su TUTTI gli schermi (desktop e mobile)
    Il JS controlla la visibilità con style.display */
 
 .mobile-nav-item {
-  flex: 1;
+  flex: 0 0 auto;
+  min-width: 85px;
   display: flex;
   flex-direction: column;
   align-items: center;
