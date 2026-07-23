@@ -998,9 +998,63 @@ const HubApp = {
             'Palestra di Riflessione': 'https://prof-memmo.github.io/palestra-di-riflessione/'
         };
         const loginUrl = urlToLogin[gioco] || '';
-        const subject = `Approvazione Registrazione Docente - ${gioco}`;
-        const body = `Caro/a ${nome},%0D%0A%0D%0ALa tua registrazione come docente al progetto '${gioco}' è stata approvata con successo.%0D%0A%0D%0APuoi ora accedere al pannello docente e iniziare a creare classi e fascicoli per i tuoi studenti.%0D%0A%0D%0AAccedi qui: ${loginUrl}%0D%0A%0D%0ABuon lavoro!%0D%0AIl Team di Prof. Memmo`;
-        
+        let subject = `Approvazione Registrazione Docente - ${gioco}`;
+        let body = '';
+
+        if (gioco === 'Fantaletteratura') {
+            body = `Ciao ${nome}!\n\n` +
+            `La tua richiesta di iscrizione a Fantaletteratura è stata APPROVATA. 🎉\n` +
+            `Da adesso puoi accedere alla piattaforma con la tua email: ${email}\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `📚 CHE COS'È FANTALETTERATURA?\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `Fantaletteratura è un gioco didattico ispirato al Fantasanremo che trasforma lo studio della letteratura in una sfida a squadre creativa, cooperativa e coinvolgente.\n\n` +
+            `Ogni classe forma una o più SQUADRE. Ogni squadra sceglie 5 AUTORI letterari rispettando un budget iniziale di 20.000 lire (unità di misura del gioco). ` +
+            `Gli autori accumulano punti in base alle loro schede segrete — bonus e malus legati alla loro vita e alle loro opere.\n\n` +
+            `Le squadre possono guadagnare punti extra completando MISSIONI DIDATTICHE: attività di classe, letture, performance, approfondimenti e scoperte letterarie ` +
+            `(ogni missione vale 5 punti).\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `🏆 LE CLASSIFICHE\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `Esistono tre classifiche:\n` +
+            `• Classifica Autori — basata sui punti accumulati dagli autori scelti\n` +
+            `• Classifica Missioni — basata sui bonus dinamici delle attività svolte\n` +
+            `• Classifica Globale — la somma di entrambe\n\n` +
+            `I punteggi vengono aggiornati periodicamente dal Game Master (il prof referente).\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `🎯 COSA PUOI FARE COME DOCENTE\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `• Creare e gestire le squadre della tua classe\n` +
+            `• Caricare le missioni completate dagli studenti\n` +
+            `• Consultare le classifiche in tempo reale\n` +
+            `• Invitare colleghi a partecipare con le loro classi\n` +
+            `• Creare tornei privati tra classi o scuole diverse\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `🔗 ACCEDI ORA\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `Puoi effettuare il login da qui:\n${loginUrl}\n\n` +
+            `Buon divertimento e che la letteratura sia con te!\n` +
+            `Il team di Prof. Memmo`;
+        } else if (gioco === 'La Rotta degli Eroi') {
+            body = `Ciao ${nome}!\n\n` +
+            `La tua richiesta di iscrizione a La Rotta degli Eroi è stata APPROVATA. 🎉\n` +
+            `Da adesso puoi accedere alla piattaforma con la tua email: ${email}\n\n` +
+            `Potrai creare le tue squadre, consultare le missioni e gestire i tuoi studenti.\n\n` +
+            `Aiutaci a far crescere la community condividendo la tua esperienza:\n` +
+            `https://prof-memmo.github.io/games/condividi-esperienza.html\n\n` +
+            `Che l'epica sia con te!\n` +
+            `Il Team de La Rotta degli Eroi`;
+        } else {
+            body = `Caro/a ${nome},\n\n` +
+            `La tua registrazione come docente al progetto '${gioco}' è stata approvata con successo.\n\n` +
+            `Puoi ora accedere al pannello docente e iniziare a creare classi e fascicoli per i tuoi studenti.\n\n` +
+            `Accedi qui: ${loginUrl}\n\n` +
+            `Buon lavoro!\n` +
+            `Il Team di Prof. Memmo`;
+        }
+
+        // Codifichiamo l'URI dopo aver preparato il testo per evitare problemi di formattazione
+        body = encodeURIComponent(body);
         // Registra in Firestore (Hub)
         if (window.fbDb.hub) {
             try {
