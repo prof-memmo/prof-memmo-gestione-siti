@@ -1148,31 +1148,16 @@ async function eseguiLoginGoogle() {
         return;
     }
     
-    // IMPORTANTE: Su iOS/Safari, signInWithRedirect DEVE essere chiamato 
-    // in modo sincrono direttamente dal click dell'utente. Se viene chiamato 
-    // dentro un catch() asincrono, Safari lo blocca silenziosamente.
+    // Per evitare qualsiasi problema con i blocchi dei popup (sia su smartphone 
+    // che su PC a causa di estensioni o configurazioni di sicurezza),
+    // usiamo sempre signInWithRedirect in modo sincrono e diretto.
     
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-        // Su smartphone usiamo direttamente il redirect
+    try {
         window.fbAuth.signInWithRedirect(googleProvider).catch(e => {
             alert("Errore durante il reindirizzamento: " + e.message);
         });
-    } else {
-        // Su desktop proviamo prima il popup
-        try {
-            await window.fbAuth.signInWithPopup(googleProvider);
-        } catch (err) {
-            console.error("Popup login failed:", err);
-            if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-                window.fbAuth.signInWithRedirect(googleProvider).catch(e => {
-                    alert("Errore durante il reindirizzamento: " + e.message);
-                });
-            } else {
-                alert("Errore di accesso: " + err.message);
-            }
-        }
+    } catch(err) {
+        alert("Errore generico di accesso: " + err.message);
     }
 }
 
