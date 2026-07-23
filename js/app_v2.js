@@ -111,11 +111,11 @@ const HubApp = {
                     }
 
                     if (needsUpdate) {
-                        let url = \`https://firestore.googleapis.com/v1/\${doc.name}?\` + maskPaths.map(m => \`updateMask.fieldPaths=\${m}\`).join('&');
+                        let url = `https://firestore.googleapis.com/v1/${doc.name}?` + maskPaths.map(m => `updateMask.fieldPaths=${m}`).join('&');
                         await fetch(url, {
                             method: 'PATCH',
                             headers: { 
-                                Authorization: \`Bearer \${validToken}\`,
+                                Authorization: `Bearer ${validToken}`,
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({ fields: patchBody.fields })
@@ -916,7 +916,7 @@ const HubApp = {
     },
 
     approvaRichiestaHub: async function(gioco, docId, email, nome) {
-        if (!confirm(\`Sei sicuro di voler approvare l'iscrizione per \${nome} su \${gioco}?\`)) return;
+        if (!confirm(`Sei sicuro di voler approvare l'iscrizione per ${nome} su ${gioco}?`)) return;
         
         try {
             if (gioco === 'Fantaletteratura') {
@@ -969,7 +969,7 @@ const HubApp = {
     },
 
     rifiutaRichiestaHub: async function(gioco, docId) {
-        if (!confirm(\`Sei sicuro di voler rifiutare ed eliminare la richiesta di \${docId} su \${gioco}?\`)) return;
+        if (!confirm(`Sei sicuro di voler rifiutare ed eliminare la richiesta di ${docId} su ${gioco}?`)) return;
         
         try {
             if (gioco === 'Fantaletteratura') {
@@ -998,8 +998,8 @@ const HubApp = {
             'Palestra di Riflessione': 'https://prof-memmo.github.io/palestra-di-riflessione/'
         };
         const loginUrl = urlToLogin[gioco] || '';
-        const subject = \`Approvazione Registrazione Docente - \${gioco}\`;
-        const body = \`Caro/a \${nome},%0D%0A%0D%0ALa tua registrazione come docente al progetto '\${gioco}' è stata approvata con successo.%0D%0A%0D%0APuoi ora accedere al pannello docente e iniziare a creare classi e fascicoli per i tuoi studenti.%0D%0A%0D%0AAccedi qui: \${loginUrl}%0D%0A%0D%0ABuon lavoro!%0D%0AIl Team di Prof. Memmo\`;
+        const subject = `Approvazione Registrazione Docente - ${gioco}`;
+        const body = `Caro/a ${nome},%0D%0A%0D%0ALa tua registrazione come docente al progetto '${gioco}' è stata approvata con successo.%0D%0A%0D%0APuoi ora accedere al pannello docente e iniziare a creare classi e fascicoli per i tuoi studenti.%0D%0A%0D%0AAccedi qui: ${loginUrl}%0D%0A%0D%0ABuon lavoro!%0D%0AIl Team di Prof. Memmo`;
         
         // Registra in Firestore (Hub)
         if (window.fbDb.hub) {
@@ -1015,7 +1015,7 @@ const HubApp = {
         }
 
         // Lancia il client di posta
-        window.location.href = \`mailto:\${email}?subject=\${subject}&body=\${body}\`;
+        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
     }
 
 };
