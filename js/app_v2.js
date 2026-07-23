@@ -1138,26 +1138,27 @@ function preparaInvioGmail() {
 }
 
 
-const googleProvider = new firebase.auth.GoogleAuthProvider();
-googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
-
-// --- LOGICA DI LOGIN GLOBALE ---
 async function eseguiLoginGoogle() {
     if (!window.fbAuth) {
         alert("Errore critico: Firebase non è inizializzato. Controlla la console.");
         return;
     }
     
-    // Per evitare qualsiasi problema con i blocchi dei popup (sia su smartphone 
-    // che su PC a causa di estensioni o configurazioni di sicurezza),
-    // usiamo sempre signInWithRedirect in modo sincrono e diretto.
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/calendar.events');
+    provider.setCustomParameters({ prompt: 'select_account' });
     
     try {
-        window.fbAuth.signInWithRedirect(googleProvider).catch(e => {
-            alert("Errore durante il reindirizzamento: " + e.message);
-        });
-    } catch(err) {
-        alert("Errore generico di accesso: " + err.message);
+        const result = await window.fbAuth.signInWithPopup(provider);
+        // l'evento onAuthStateChanged in HubApp gestirà l'interfaccia dopo il login
+    } catch (e) {
+        console.error("Errore Google Login:", e);
+        if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
+            console.warn("Popup bloccato dal browser o chiuso dall'utente, fallback su redirect...");
+            window.fbAuth.signInWithRedirect(provider);
+        } else {
+            alert("Si è verificato un errore durante l'accesso con Google: " + e.code + " - " + e.message);
+        }
     }
 }
 
