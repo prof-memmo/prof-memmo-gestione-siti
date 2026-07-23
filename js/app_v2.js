@@ -1167,3 +1167,5 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.HubApp = HubApp;
+
+window.eseguiLoginGoogle = eseguiLoginGoogle;
