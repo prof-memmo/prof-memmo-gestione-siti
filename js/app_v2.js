@@ -1044,10 +1044,55 @@ const HubApp = {
             `https://prof-memmo.github.io/games/condividi-esperienza.html\n\n` +
             `Che l'epica sia con te!\n` +
             `Il Team de La Rotta degli Eroi`;
+        } else if (gioco === 'La Corte della Commedia') {
+            body = `Ciao ${nome}!\n\n` +
+            `La tua richiesta di iscrizione alla Loggia dei Magistrati de La Corte della Commedia è stata APPROVATA. 🎉\n` +
+            `Da adesso puoi accedere alla piattaforma con la tua email: ${email}\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `📜 CHE COS'È LA CORTE DELLA COMMEDIA?\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `La Corte della Commedia è un'avventura didattica immersiva dedicata all'opera somma di Dante Alighieri.\n\n` +
+            `I tuoi studenti vestiranno i panni di anime in viaggio, sfidandosi nella comprensione, nell'analisi e nell'interpretazione dei canti dell'Inferno, del Purgatorio e del Paradiso.\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `⚖️ IL TUO RUOLO COME MAGISTRATO\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `In qualità di Docente (Magistrato della Corte) potrai:\n` +
+            `• Creare e gestire le classi (Fascicoli)\n` +
+            `• Valutare le sentenze e i dibattiti dei tuoi studenti\n` +
+            `• Assegnare Punti Esperienza (XP) e Titoli di Merito (Badge)\n` +
+            `• Monitorare i progressi attraverso i regni dell'oltretomba\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `🔗 ACCEDI ORA\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `Puoi varcare la soglia del Supremo Tribunale da qui:\n${loginUrl}\n\n` +
+            `Buon lavoro e che le stelle ti guidino!\n` +
+            `Il team di Prof. Memmo`;
+        } else if (gioco === 'Palestra di Riflessione') {
+            body = `Ciao ${nome}!\n\n` +
+            `La tua richiesta di iscrizione alla Palestra di Riflessione è stata APPROVATA. 🎉\n` +
+            `Da adesso puoi accedere alla piattaforma come Allenatore con la tua email: ${email}\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `🏋️‍♂️ CHE COS'È LA PALESTRA DI RIFLESSIONE?\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `La Palestra è un ambiente digitale dinamico pensato per la scuola secondaria di primo grado, dove gli studenti possono allenare le loro competenze linguistiche attraverso sfide interattive.\n\n` +
+            `Si affronteranno esercizi di punteggiatura, lettura, analisi grammaticale, logica e del periodo, trasformando lo studio della lingua in un allenamento coinvolgente.\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `📋 COSA PUOI FARE COME DOCENTE (ALLENATORE)\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `• Gestire le tue classi e i tuoi atleti (studenti)\n` +
+            `• Assegnare schede di allenamento specifiche\n` +
+            `• Monitorare i progressi, gli errori frequenti e i tempi di esecuzione\n` +
+            `• Stimolare il ragionamento e la riflessione metalinguistica\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `🔗 ENTRA IN CAMPO\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `Puoi accedere al pannello di controllo da qui:\n${loginUrl}\n\n` +
+            `Buon allenamento!\n` +
+            `Il team di Prof. Memmo`;
         } else {
             body = `Caro/a ${nome},\n\n` +
             `La tua registrazione come docente al progetto '${gioco}' è stata approvata con successo.\n\n` +
-            `Puoi ora accedere al pannello docente e iniziare a creare classi e fascicoli per i tuoi studenti.\n\n` +
+            `Puoi ora accedere al pannello docente e iniziare a gestire le tue classi per i tuoi studenti.\n\n` +
             `Accedi qui: ${loginUrl}\n\n` +
             `Buon lavoro!\n` +
             `Il Team di Prof. Memmo`;
