@@ -1138,7 +1138,7 @@ function preparaInvioGmail() {
 }
 
 
-async function eseguiLoginGoogle() {
+function eseguiLoginGoogle() {
     if (!window.fbAuth) {
         alert("Errore critico: Firebase non è inizializzato. Controlla la console.");
         return;
