@@ -225,6 +225,9 @@
     <div class="nav-item" data-target="view-posta" onclick="switchView('view-posta')">
       <i class="fa-solid fa-envelope" style="color:#64748b;"></i> Casella Postale
     </div>
+    <div class="nav-item" data-target="view-richieste" onclick="switchView('view-richieste')">
+      <i class="fa-solid fa-envelope-open-text" style="color:#10b981;"></i> Richieste Iscrizione
+    </div>
     
     <div style="flex-grow: 1;"></div>
     <div class="nav-item" style="color:#ef4444; border-top:1px solid var(--border-color);" onclick="HubApp.logout()">
@@ -360,21 +363,92 @@
       <div class="hub-header">
         <h2><i class="fa-solid fa-envelope"></i> Casella Postale (Tutti i Siti)</h2>
       </div>
+      
+      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <!-- Posta in Arrivo -->
+        <div class="glass-panel" style="flex: 1; min-width: 300px;">
+          <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 15px;"><i class="fa-solid fa-inbox"></i> Posta in Arrivo</h3>
+          <div class="table-responsive" style="overflow-x:auto;">
+            <table class="game-table" id="hub-posta-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Mittente</th>
+                  <th>Oggetto</th>
+                  <th>Stato</th>
+                  <th>Azione</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="5" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento posta...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Posta Inviata -->
+        <div class="glass-panel" style="flex: 1; min-width: 300px;">
+          <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 15px;"><i class="fa-solid fa-paper-plane"></i> Posta Inviata</h3>
+          <div class="table-responsive" style="overflow-x:auto;">
+            <table class="game-table" id="hub-posta-inviata-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Destinatario</th>
+                  <th>Oggetto / Azione</th>
+                  <th>Sito</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento posta inviata...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Richieste Iscrizione -->
+    <div id="view-richieste" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-envelope-open-text" style="color:#10b981;"></i> Richieste Iscrizione in Sospeso</h2>
+      </div>
       <div class="glass-panel">
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+          <h3 style="color:var(--text-main); margin:0;">Tabella Richieste Multi-Sito</h3>
+          <button class="btn" onclick="HubApp.loadRichiesteIscrizione()"><i class="fa-solid fa-arrows-rotate"></i> Aggiorna Dati Ora</button>
+        </div>
         <div class="table-responsive" style="overflow-x:auto;">
-          <table class="game-table" id="hub-posta-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+          <table class="game-table" id="hub-richieste-table" style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>
               <tr>
-                <th>Data</th>
-                <th>Sito</th>
-                <th>Mittente</th>
-                <th>Oggetto</th>
-                <th>Stato</th>
-                <th>Azione</th>
+                <th style="cursor:pointer;" onclick="HubApp.sortRichieste('nome')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <input type="text" id="search-richieste" class="input-field" placeholder="Cerca..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="HubApp.filterRichieste()">
+                </th>
+                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortRichieste('ruolo')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Ruolo Richiesto <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortRichieste('data')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Data Richiesta <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer;" onclick="HubApp.sortRichieste('gioco')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <select id="filter-richieste-gioco" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterRichieste()">
+                    <option value="all">Tutti</option>
+                    <option value="La Rotta degli Eroi">Eroi</option>
+                    <option value="La Corte della Commedia">Commedia</option>
+                    <option value="Fantaletteratura">Fanta</option>
+                    <option value="Palestra di Riflessione">Palestra</option>
+                  </select>
+                </th>
+                <th style="vertical-align: top;">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Azione</div>
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr><td colspan="6" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento posta...</td></tr>
+              <tr><td colspan="5" style="text-align:center; padding: 20px; color:var(--text-muted);">Clicca "Aggiorna Dati Ora" per caricare.</td></tr>
             </tbody>
           </table>
         </div>
