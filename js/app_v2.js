@@ -8,7 +8,10 @@ const HubApp = {
     },
 
     bindEvents: function() {
-        // Il listener per il login Google è gestito direttamente nell'HTML con onclick="eseguiLoginGoogle()"
+        const btn = document.getElementById('btn-google-login');
+        if (btn) {
+            btn.addEventListener('click', eseguiLoginGoogle);
+        }
     },
 
     checkAuth: function() {
@@ -1137,22 +1140,28 @@ function preparaInvioGmail() {
 }
 
 
-const globalGoogleProvider = new firebase.auth.GoogleAuthProvider();
-globalGoogleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
-globalGoogleProvider.setCustomParameters({ prompt: 'select_account' });
-
-function eseguiLoginGoogle() {
+async function eseguiLoginGoogle() {
     if (!window.fbAuth) {
         alert("Errore critico: Firebase non è inizializzato. Controlla la console.");
         return;
     }
     
-    // IMPORTANTE: Nessuna instanziazione o modifica del DOM qui dentro
-    // per evitare che Safari (iOS) blocchi il redirect scartando l'azione dell'utente.
-    window.fbAuth.signInWithRedirect(globalGoogleProvider).catch(e => {
-        console.error("Errore avvio redirect:", e);
-        alert("Si è verificato un errore durante l'avvio del login: " + e.message);
-    });
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/calendar.events');
+    provider.setCustomParameters({ prompt: 'select_account' });
+    
+    try {
+        const result = await window.fbAuth.signInWithPopup(provider);
+        // Il login è andato a buon fine, onAuthStateChanged in checkAuth si occuperà del resto
+    } catch (e) {
+        console.error("Errore Google Login:", e);
+        if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
+            console.warn("Popup bloccato, fallback su redirect...");
+            window.fbAuth.signInWithRedirect(provider);
+        } else {
+            alert("Si è verificato un errore durante l'accesso con Google: " + e.code + " - " + e.message);
+        }
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
