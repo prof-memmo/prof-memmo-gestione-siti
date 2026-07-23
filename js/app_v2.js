@@ -1148,19 +1148,30 @@ async function eseguiLoginGoogle() {
         return;
     }
     
-    // IMPORTANTE: Nessuna modifica del DOM (es. cambiare il testo del bottone) 
-    // prima di aprire il popup, altrimenti Safari blocca la finestra!
+    // IMPORTANTE: Su iOS/Safari, signInWithRedirect DEVE essere chiamato 
+    // in modo sincrono direttamente dal click dell'utente. Se viene chiamato 
+    // dentro un catch() asincrono, Safari lo blocca silenziosamente.
     
-    try {
-        await window.fbAuth.signInWithPopup(googleProvider);
-    } catch (err) {
-        console.error("Popup login failed, trying redirect:", err);
-        if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-            window.fbAuth.signInWithRedirect(googleProvider).catch(e => {
-                alert("Errore durante il reindirizzamento per l'accesso: " + e.message);
-            });
-        } else {
-            alert("Errore di accesso: " + err.message);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        // Su smartphone usiamo direttamente il redirect
+        window.fbAuth.signInWithRedirect(googleProvider).catch(e => {
+            alert("Errore durante il reindirizzamento: " + e.message);
+        });
+    } else {
+        // Su desktop proviamo prima il popup
+        try {
+            await window.fbAuth.signInWithPopup(googleProvider);
+        } catch (err) {
+            console.error("Popup login failed:", err);
+            if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+                window.fbAuth.signInWithRedirect(googleProvider).catch(e => {
+                    alert("Errore durante il reindirizzamento: " + e.message);
+                });
+            } else {
+                alert("Errore di accesso: " + err.message);
+            }
         }
     }
 }
