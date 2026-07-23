@@ -8,10 +8,7 @@ const HubApp = {
     },
 
     bindEvents: function() {
-        const btn = document.getElementById('btn-google-login');
-        if (btn) {
-            btn.addEventListener('click', eseguiLoginGoogle);
-        }
+        // Il listener per il login Google è gestito direttamente nell'HTML con onclick="eseguiLoginGoogle()"
     },
 
     checkAuth: function() {
@@ -1141,6 +1138,9 @@ function preparaInvioGmail() {
 
 
 async function eseguiLoginGoogle() {
+    alert("Avvio login Google in corso... (test di connessione)");
+    console.log("Login button clicked!");
+    
     if (!window.fbAuth) {
         alert("Errore critico: Firebase non è inizializzato. Controlla la console.");
         return;
