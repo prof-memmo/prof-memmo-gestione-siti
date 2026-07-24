@@ -54,6 +54,7 @@ const HubApp = {
         
         // Nuove sezioni
         loadNewsletters();
+        this.loadEmailTemplates();
     },
 
     fixDatabasesBackground: async function() {
@@ -990,116 +991,80 @@ const HubApp = {
         }
     },
 
-    inviaMailApprovazione: async function(gioco, email, nome) {
-        const urlToLogin = {
-            'Fantaletteratura': 'https://prof-memmo.github.io/fantaletteratura/',
-            'La Rotta degli Eroi': 'https://prof-memmo.github.io/la-rotta-degli-eroi/',
-            'La Corte della Commedia': 'https://prof-memmo.github.io/la-corte-della-commedia/',
-            'Palestra di Riflessione': 'https://prof-memmo.github.io/palestra-di-riflessione/'
+    loadEmailTemplates: async function() {
+        window.HubEmailTemplates = {};
+        const defaultTemplates = {
+            'Fantaletteratura': `Gent.le docente,\n\nla tua richiesta di iscrizione a Fantaletteratura è stata APPROVATA. 🎉\nPuoi ora accedere alla piattaforma utilizzando l'account scelto in fase di registrazione.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📚 CHE COS'È FANTALETTERATURA?\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nFantaletteratura è un gioco didattico che trasforma lo studio della letteratura in una sfida a squadre creativa, cooperativa e coinvolgente.\n\nOgni classe forma una o più SQUADRE. Ogni squadra sceglie 5 AUTORI letterari rispettando un budget iniziale di 20.000 lire (unità di misura del gioco). Gli autori accumulano punti in base alle loro schede segrete — bonus e malus legati alla loro vita e alle loro opere.\n\nLe squadre possono guadagnare punti extra completando MISSIONI DIDATTICHE, svolgendo giochi in classe e in autonomia, oppure attraverso letture, performance, approfondimenti e scoperte letterarie (ogni missione vale 5 punti).\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏆 LE CLASSIFICHE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nEsistono tre classifiche:\n• Classifica Autori — basata sui punti accumulati dagli autori scelti\n• Classifica Missioni — basata sui bonus dinamici delle attività svolte\n• Classifica Globale — la somma di entrambe\n\nI punteggi vengono aggiornati periodicamente dal Game Master (il prof referente).\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 COSA PUOI FARE COME DOCENTE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n• Creare e gestire le squadre della tua classe\n• Caricare le missioni e gestire i giochi\n• Consultare le classifiche in tempo reale\n• Invitare colleghi a partecipare con le loro classi\n• Creare tornei privati tra classi o scuole diverse\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔗 ACCEDI ORA\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nPuoi effettuare il login da qui:\nhttps://prof-memmo.github.io/fantaletteratura/\n\nBuon divertimento e che la letteratura sia con te!\nIl team di Prof. Memmo`,
+            'La Rotta degli Eroi': `Gent.le docente,\n\nla tua richiesta di iscrizione a La Rotta degli Eroi è stata APPROVATA. 🎉\nPuoi ora accedere alla piattaforma utilizzando l'account scelto in fase di registrazione.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n⚓️ IL TUO RUOLO NEL VIAGGIO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nIn qualità di Docente, avrai il pieno controllo del viaggio epico della tua classe. All'interno della piattaforma potrai:\n\n• Creare e gestire le squadre dei tuoi studenti\n• Sbloccare progressivamente i Nodi della Mappa, abilitando il Diario di Bordo e le riflessioni guidate\n• Gestire l'Inventario, sbloccando e assegnando Aiutanti e potenti Artefatti\n• Valutare le riflessioni e assegnare Punti Esperienza (XP) e Dracme\n• Monitorare la progressione dell'intero equipaggio lungo le rotte del mito\n\nAiutaci a far crescere la community condividendo la tua esperienza:\nhttps://prof-memmo.github.io/games/condividi-esperienza.html\n\nChe l'epica sia con te!\nIl Team de La Rotta degli Eroi`,
+            'La Corte della Commedia': `Gent.le docente,\n\nla tua richiesta di iscrizione alla Loggia dei Magistrati de La Corte della Commedia è stata APPROVATA. 🎉\nPuoi ora accedere alla piattaforma utilizzando l'account scelto in fase di registrazione.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📜 CHE COS'È LA CORTE DELLA COMMEDIA?\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nLa Corte della Commedia è un'avventura didattica immersiva in cui la classe si trasforma in un vero e proprio Tribunale Dantesco. \n\nI tuoi studenti non si limitano a leggere la Divina Commedia, ma studiano i Fascicoli Processuali dei personaggi incrociati da Dante, esaminano le fonti e argomentano le loro posizioni in veri e propri dibattiti (Sentenze). Dovranno dimostrare non solo la conoscenza dell'opera, ma anche capacità logiche ed espositive.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n⚖️ IL TUO RUOLO COME MAGISTRATO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nIn qualità di Docente (Magistrato della Corte) potrai:\n• Creare e gestire i Fascicoli di Classe\n• Ascoltare e valutare i dibattiti e le Sentenze pronunciate dai tuoi studenti\n• Assegnare Punti Esperienza (XP) e Titoli di Merito (Badge)\n• Guidare il percorso di analisi e riflessione critica sui versi di Dante\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔗 ACCEDI ORA\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nPuoi varcare la soglia del Supremo Tribunale da qui:\nhttps://prof-memmo.github.io/la-corte-della-commedia/\n\nBuon lavoro e che le stelle ti guidino!\nIl team di Prof. Memmo`,
+            'Palestra di Riflessione': `Gent.le docente,\n\nla tua richiesta di iscrizione alla Palestra di Riflessione è stata APPROVATA. 🎉\nPuoi ora accedere alla piattaforma utilizzando l'account scelto in fase di registrazione.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏋️‍♂️ CHE COS'È LA PALESTRA DI RIFLESSIONE?\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nLa Palestra è un ambiente digitale dinamico pensato per la scuola secondaria di primo grado, dove gli studenti possono allenare le loro competenze linguistiche attraverso sfide interattive.\n\nSi affronteranno esercizi di punteggiatura, lettura, analisi grammaticale, logica e del periodo, trasformando lo studio della lingua in un allenamento coinvolgente.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📋 COSA PUOI FARE COME DOCENTE (ALLENATORE)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n• Gestire le tue classi e i tuoi atleti (studenti)\n• Assegnare schede di allenamento specifiche\n• Monitorare i progressi, gli errori frequenti e i tempi di esecuzione\n• Stimolare il ragionamento e la riflessione metalinguistica\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔗 ENTRA IN CAMPO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nPuoi accedere al pannello di controllo da qui:\nhttps://prof-memmo.github.io/palestra-di-riflessione/\n\nBuon allenamento!\nIl team di Prof. Memmo`
         };
-        const loginUrl = urlToLogin[gioco] || '';
+
+        if (window.fbDb.hub) {
+            try {
+                const docRef = window.fbDb.hub.collection("hub_settings").doc("email_templates");
+                const docSnap = await docRef.get();
+                if (docSnap.exists) {
+                    window.HubEmailTemplates = docSnap.data();
+                } else {
+                    window.HubEmailTemplates = defaultTemplates;
+                    await docRef.set(defaultTemplates);
+                }
+            } catch(e) {
+                console.warn("Errore caricamento template email:", e);
+                window.HubEmailTemplates = defaultTemplates;
+            }
+        } else {
+            window.HubEmailTemplates = defaultTemplates;
+        }
+
+        this.loadEmailTemplateForSelected();
+    },
+
+    loadEmailTemplateForSelected: function() {
+        const select = document.getElementById('email-template-select');
+        const textarea = document.getElementById('email-template-text');
+        if (!select || !textarea || !window.HubEmailTemplates) return;
+
+        const gioco = select.value;
+        textarea.value = window.HubEmailTemplates[gioco] || '';
+    },
+
+    saveEmailTemplate: async function() {
+        const select = document.getElementById('email-template-select');
+        const textarea = document.getElementById('email-template-text');
+        if (!select || !textarea || !window.HubEmailTemplates) return;
+
+        const gioco = select.value;
+        const text = textarea.value;
+
+        window.HubEmailTemplates[gioco] = text;
+
+        if (window.fbDb.hub) {
+            try {
+                const docRef = window.fbDb.hub.collection("hub_settings").doc("email_templates");
+                await docRef.set(window.HubEmailTemplates, {merge: true});
+                alert("Modello email salvato con successo per " + gioco + "!");
+            } catch(e) {
+                console.error("Errore salvataggio template:", e);
+                alert("Errore nel salvataggio del modello.");
+            }
+        }
+    },
+
+    inviaMailApprovazione: async function(gioco, email, nome) {
         let subject = `Approvazione Registrazione Docente - ${gioco}`;
         let body = '';
 
-        if (gioco === 'Fantaletteratura') {
-            body = `Ciao ${nome}!\n\n` +
-            `La tua richiesta di iscrizione a Fantaletteratura è stata APPROVATA. 🎉\n` +
-            `Da adesso puoi accedere alla piattaforma con la tua email: ${email}\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `📚 CHE COS'È FANTALETTERATURA?\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `Fantaletteratura è un gioco didattico ispirato al Fantasanremo che trasforma lo studio della letteratura in una sfida a squadre creativa, cooperativa e coinvolgente.\n\n` +
-            `Ogni classe forma una o più SQUADRE. Ogni squadra sceglie 5 AUTORI letterari rispettando un budget iniziale di 20.000 lire (unità di misura del gioco). ` +
-            `Gli autori accumulano punti in base alle loro schede segrete — bonus e malus legati alla loro vita e alle loro opere.\n\n` +
-            `Le squadre possono guadagnare punti extra completando MISSIONI DIDATTICHE: attività di classe, letture, performance, approfondimenti e scoperte letterarie ` +
-            `(ogni missione vale 5 punti).\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `🏆 LE CLASSIFICHE\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `Esistono tre classifiche:\n` +
-            `• Classifica Autori — basata sui punti accumulati dagli autori scelti\n` +
-            `• Classifica Missioni — basata sui bonus dinamici delle attività svolte\n` +
-            `• Classifica Globale — la somma di entrambe\n\n` +
-            `I punteggi vengono aggiornati periodicamente dal Game Master (il prof referente).\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `🎯 COSA PUOI FARE COME DOCENTE\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `• Creare e gestire le squadre della tua classe\n` +
-            `• Caricare le missioni completate dagli studenti\n` +
-            `• Consultare le classifiche in tempo reale\n` +
-            `• Invitare colleghi a partecipare con le loro classi\n` +
-            `• Creare tornei privati tra classi o scuole diverse\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `🔗 ACCEDI ORA\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `Puoi effettuare il login da qui:\n${loginUrl}\n\n` +
-            `Buon divertimento e che la letteratura sia con te!\n` +
-            `Il team di Prof. Memmo`;
-        } else if (gioco === 'La Rotta degli Eroi') {
-            body = `Ciao ${nome}!\n\n` +
-            `La tua richiesta di iscrizione a La Rotta degli Eroi è stata APPROVATA. 🎉\n` +
-            `Da adesso puoi accedere alla piattaforma con la tua email: ${email}\n\n` +
-            `Potrai creare le tue squadre, consultare le missioni e gestire i tuoi studenti.\n\n` +
-            `Aiutaci a far crescere la community condividendo la tua esperienza:\n` +
-            `https://prof-memmo.github.io/games/condividi-esperienza.html\n\n` +
-            `Che l'epica sia con te!\n` +
-            `Il Team de La Rotta degli Eroi`;
-        } else if (gioco === 'La Corte della Commedia') {
-            body = `Ciao ${nome}!\n\n` +
-            `La tua richiesta di iscrizione alla Loggia dei Magistrati de La Corte della Commedia è stata APPROVATA. 🎉\n` +
-            `Da adesso puoi accedere alla piattaforma con la tua email: ${email}\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `📜 CHE COS'È LA CORTE DELLA COMMEDIA?\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `La Corte della Commedia è un'avventura didattica immersiva dedicata all'opera somma di Dante Alighieri.\n\n` +
-            `I tuoi studenti vestiranno i panni di anime in viaggio, sfidandosi nella comprensione, nell'analisi e nell'interpretazione dei canti dell'Inferno, del Purgatorio e del Paradiso.\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `⚖️ IL TUO RUOLO COME MAGISTRATO\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `In qualità di Docente (Magistrato della Corte) potrai:\n` +
-            `• Creare e gestire le classi (Fascicoli)\n` +
-            `• Valutare le sentenze e i dibattiti dei tuoi studenti\n` +
-            `• Assegnare Punti Esperienza (XP) e Titoli di Merito (Badge)\n` +
-            `• Monitorare i progressi attraverso i regni dell'oltretomba\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `🔗 ACCEDI ORA\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `Puoi varcare la soglia del Supremo Tribunale da qui:\n${loginUrl}\n\n` +
-            `Buon lavoro e che le stelle ti guidino!\n` +
-            `Il team di Prof. Memmo`;
-        } else if (gioco === 'Palestra di Riflessione') {
-            body = `Ciao ${nome}!\n\n` +
-            `La tua richiesta di iscrizione alla Palestra di Riflessione è stata APPROVATA. 🎉\n` +
-            `Da adesso puoi accedere alla piattaforma come Allenatore con la tua email: ${email}\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `🏋️‍♂️ CHE COS'È LA PALESTRA DI RIFLESSIONE?\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `La Palestra è un ambiente digitale dinamico pensato per la scuola secondaria di primo grado, dove gli studenti possono allenare le loro competenze linguistiche attraverso sfide interattive.\n\n` +
-            `Si affronteranno esercizi di punteggiatura, lettura, analisi grammaticale, logica e del periodo, trasformando lo studio della lingua in un allenamento coinvolgente.\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `📋 COSA PUOI FARE COME DOCENTE (ALLENATORE)\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `• Gestire le tue classi e i tuoi atleti (studenti)\n` +
-            `• Assegnare schede di allenamento specifiche\n` +
-            `• Monitorare i progressi, gli errori frequenti e i tempi di esecuzione\n` +
-            `• Stimolare il ragionamento e la riflessione metalinguistica\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `🔗 ENTRA IN CAMPO\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `Puoi accedere al pannello di controllo da qui:\n${loginUrl}\n\n` +
-            `Buon allenamento!\n` +
-            `Il team di Prof. Memmo`;
+        if (window.HubEmailTemplates && window.HubEmailTemplates[gioco]) {
+            body = window.HubEmailTemplates[gioco];
         } else {
-            body = `Caro/a ${nome},\n\n` +
-            `La tua registrazione come docente al progetto '${gioco}' è stata approvata con successo.\n\n` +
-            `Puoi ora accedere al pannello docente e iniziare a gestire le tue classi per i tuoi studenti.\n\n` +
-            `Accedi qui: ${loginUrl}\n\n` +
-            `Buon lavoro!\n` +
-            `Il Team di Prof. Memmo`;
+            body = `Gent.le docente,\n\nLa tua registrazione al progetto '${gioco}' è stata approvata con successo.\n\nPuoi ora accedere al pannello docente e iniziare a gestire le tue classi per i tuoi studenti.\n\nBuon lavoro!\nIl Team di Prof. Memmo`;
         }
 
-        // Codifichiamo l'URI dopo aver preparato il testo per evitare problemi di formattazione
+        // Codifichiamo l'URI
         body = encodeURIComponent(body);
+        
         // Registra in Firestore (Hub)
         if (window.fbDb.hub) {
             try {
