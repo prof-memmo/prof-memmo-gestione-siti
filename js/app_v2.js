@@ -429,7 +429,6 @@ const HubApp = {
     activeRoleFilter: 'tutti',
 
     filterIscrittiByCard: function(roleType) {
-        if (roleType === 'scuole') return; // Do not filter for Scuole
         this.activeRoleFilter = roleType;
         
         // Update UI
@@ -453,12 +452,16 @@ const HubApp = {
             let matchesRole = true;
             if (this.activeRoleFilter !== 'tutti') {
                 const r = (user.ruolo || '').toLowerCase();
+                const c = (user.classe || '').toUpperCase().trim();
+                
                 if (this.activeRoleFilter === 'studenti') {
                     matchesRole = r.includes('student');
                 } else if (this.activeRoleFilter === 'docenti') {
                     matchesRole = r.includes('teacher') || r.includes('admin') || r.includes('docente');
                 } else if (this.activeRoleFilter === 'viandanti') {
                     matchesRole = !r.includes('student') && !r.includes('teacher') && !r.includes('admin') && !r.includes('docente');
+                } else if (this.activeRoleFilter === 'scuole') {
+                    matchesRole = (c && c !== 'N/A' && c !== '' && c !== 'TEST' && c !== 'N/D');
                 }
             }
 
