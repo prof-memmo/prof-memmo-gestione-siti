@@ -165,6 +165,39 @@
       .cal-header-day { font-size: 0.7rem; overflow: hidden; text-overflow: ellipsis; }
       .cal-event { font-size: 0.65rem; padding: 2px 4px; }
     }
+    /* Hub Card (stile Palestra di Riflessione) */
+    .hub-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 25px;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        border: 2px solid transparent;
+        flex: 1;
+        min-width: 150px;
+    }
+    .hub-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border-color: var(--accent);
+    }
+    .hub-card .materia-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .hub-card .materia-label {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+    .hub-card .materia-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--accent);
+        margin-top: 5px;
+    }
   </style>
 
   <!-- Icone per Safari e Dispositivi Mobili -->
@@ -262,6 +295,30 @@
             <i class="fa-solid fa-dragon" style="color:#a855f7;"></i> Fanta: <span id="counter-fanta">--</span> |
             <i class="fa-solid fa-brain" style="color:#22c55e;"></i> Palestra: <span id="counter-palestra">--</span>
           </p>
+        </div>
+      </div>
+
+      <!-- NEW CARDS ROW -->
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; justify-content: center;">
+        <div class="hub-card">
+            <i class="fa-solid fa-user-graduate materia-icon" style="color: #6366f1;"></i>
+            <div class="materia-label">Studenti</div>
+            <div class="materia-value" id="counter-studenti">--</div>
+        </div>
+        <div class="hub-card">
+            <i class="fa-solid fa-chalkboard-user materia-icon" style="color: #f59e0b;"></i>
+            <div class="materia-label">Docenti</div>
+            <div class="materia-value" id="counter-docenti">--</div>
+        </div>
+        <div class="hub-card">
+            <i class="fa-solid fa-person-hiking materia-icon" style="color: #10b981;"></i>
+            <div class="materia-label">Viandanti</div>
+            <div class="materia-value" id="counter-viandanti">--</div>
+        </div>
+        <div class="hub-card">
+            <i class="fa-solid fa-school materia-icon" style="color: #ec4899;"></i>
+            <div class="materia-label">Scuole Attive</div>
+            <div class="materia-value" id="counter-scuole">--</div>
         </div>
       </div>
 

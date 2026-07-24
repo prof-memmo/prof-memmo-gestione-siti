@@ -335,6 +335,30 @@ const HubApp = {
             document.getElementById('counter-fanta').innerText = fantaUsers.length;
             document.getElementById('counter-palestra').innerText = palestraUsers.length;
 
+            let cStudenti = 0, cDocenti = 0, cViandanti = 0;
+            const scuoleSet = new Set();
+
+            deduplicatedUsers.forEach(u => {
+                const r = (u.ruolo || '').toLowerCase();
+                if (r.includes('student')) cStudenti++;
+                else if (r.includes('teacher') || r.includes('admin') || r.includes('docente')) cDocenti++;
+                else cViandanti++;
+
+                let c = (u.classe || '').toUpperCase().trim();
+                if (c && c !== 'N/A' && c !== '' && c !== 'TEST' && c !== 'N/D') {
+                    scuoleSet.add(c);
+                }
+            });
+
+            const elStudenti = document.getElementById('counter-studenti');
+            if (elStudenti) elStudenti.innerText = cStudenti;
+            const elDocenti = document.getElementById('counter-docenti');
+            if (elDocenti) elDocenti.innerText = cDocenti;
+            const elViandanti = document.getElementById('counter-viandanti');
+            if (elViandanti) elViandanti.innerText = cViandanti;
+            const elScuole = document.getElementById('counter-scuole');
+            if (elScuole) elScuole.innerText = scuoleSet.size;
+
             this.initNewsUsers();
             this.renderIscrittiTable(this.allUsers);
             this.renderNewsTable(this.allUsers);
