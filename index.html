@@ -176,11 +176,18 @@
         border: 2px solid transparent;
         flex: 1;
         min-width: 150px;
+        cursor: pointer;
     }
     .hub-card:hover {
         transform: translateY(-10px);
         box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         border-color: var(--accent);
+    }
+    .hub-card.active {
+        border-color: var(--accent);
+        background: #f8fafc;
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08);
     }
     .hub-card .materia-icon {
         font-size: 2.5rem;
@@ -300,22 +307,27 @@
 
       <!-- NEW CARDS ROW -->
       <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; justify-content: center;">
-        <div class="hub-card">
+        <div class="hub-card active" id="card-stats-tutti" onclick="HubApp.filterIscrittiByCard('tutti')">
+            <i class="fa-solid fa-users materia-icon" style="color: #94a3b8;"></i>
+            <div class="materia-label">Tutti</div>
+            <div class="materia-value" id="counter-tutti">--</div>
+        </div>
+        <div class="hub-card" id="card-stats-studenti" onclick="HubApp.filterIscrittiByCard('studenti')">
             <i class="fa-solid fa-user-graduate materia-icon" style="color: #6366f1;"></i>
             <div class="materia-label">Studenti</div>
             <div class="materia-value" id="counter-studenti">--</div>
         </div>
-        <div class="hub-card">
+        <div class="hub-card" id="card-stats-docenti" onclick="HubApp.filterIscrittiByCard('docenti')">
             <i class="fa-solid fa-chalkboard-user materia-icon" style="color: #f59e0b;"></i>
             <div class="materia-label">Docenti</div>
             <div class="materia-value" id="counter-docenti">--</div>
         </div>
-        <div class="hub-card">
+        <div class="hub-card" id="card-stats-viandanti" onclick="HubApp.filterIscrittiByCard('viandanti')">
             <i class="fa-solid fa-person-hiking materia-icon" style="color: #10b981;"></i>
             <div class="materia-label">Viandanti</div>
             <div class="materia-value" id="counter-viandanti">--</div>
         </div>
-        <div class="hub-card">
+        <div class="hub-card" style="cursor: default;" title="Il numero di Scuole Uniche non filtra la tabella">
             <i class="fa-solid fa-school materia-icon" style="color: #ec4899;"></i>
             <div class="materia-label">Scuole Attive</div>
             <div class="materia-value" id="counter-scuole">--</div>

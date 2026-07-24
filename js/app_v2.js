@@ -358,6 +358,8 @@ const HubApp = {
             if (elViandanti) elViandanti.innerText = cViandanti;
             const elScuole = document.getElementById('counter-scuole');
             if (elScuole) elScuole.innerText = scuoleSet.size;
+            const elTutti = document.getElementById('counter-tutti');
+            if (elTutti) elTutti.innerText = deduplicatedUsers.length;
 
             this.initNewsUsers();
             this.renderIscrittiTable(this.allUsers);
@@ -424,6 +426,20 @@ const HubApp = {
         this.filterIscritti(); // Ridisegna con i filtri attivi
     },
 
+    activeRoleFilter: 'tutti',
+
+    filterIscrittiByCard: function(roleType) {
+        if (roleType === 'scuole') return; // Do not filter for Scuole
+        this.activeRoleFilter = roleType;
+        
+        // Update UI
+        document.querySelectorAll('.hub-card').forEach(card => card.classList.remove('active'));
+        const activeCard = document.getElementById(`card-stats-${roleType}`);
+        if (activeCard) activeCard.classList.add('active');
+
+        this.filterIscritti();
+    },
+
     filterIscritti: function() {
         const searchInput = document.getElementById('search-iscritti').value.toLowerCase();
         const filterGioco = document.getElementById('filter-gioco').value;
@@ -433,7 +449,20 @@ const HubApp = {
         const filtered = this.allUsers.filter(user => {
             const matchesSearch = user.nome.toLowerCase().includes(searchInput) || (user.email && user.email.toLowerCase().includes(searchInput));
             const matchesGioco = filterGioco === 'all' || user.gioco === filterGioco;
-            return matchesSearch && matchesGioco;
+            
+            let matchesRole = true;
+            if (this.activeRoleFilter !== 'tutti') {
+                const r = (user.ruolo || '').toLowerCase();
+                if (this.activeRoleFilter === 'studenti') {
+                    matchesRole = r.includes('student');
+                } else if (this.activeRoleFilter === 'docenti') {
+                    matchesRole = r.includes('teacher') || r.includes('admin') || r.includes('docente');
+                } else if (this.activeRoleFilter === 'viandanti') {
+                    matchesRole = !r.includes('student') && !r.includes('teacher') && !r.includes('admin') && !r.includes('docente');
+                }
+            }
+
+            return matchesSearch && matchesGioco && matchesRole;
         });
 
         this.renderIscrittiTable(filtered);
