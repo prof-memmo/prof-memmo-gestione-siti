@@ -177,22 +177,45 @@
       margin-bottom: 4px;
     }
     
-    /* Su PC: nascondi testo e mostra all'hover */
+    /* Su PC: nascondi testo e mostra all'hover (come tooltip) */
     @media (min-width: 901px) {
+        .mobile-nav-item {
+            position: relative;
+        }
         .mobile-nav-item span {
+            position: absolute;
+            bottom: 100%; /* Mostrato sopra l'icona */
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--text-main);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 600;
-            max-height: 0;
             opacity: 0;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            margin-top: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             white-space: nowrap;
+            pointer-events: none; /* Evita conflitti col mouse */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+        }
+        /* Triangolino sotto il tooltip */
+        .mobile-nav-item span::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--text-main) transparent transparent transparent;
         }
         .mobile-nav-item:hover span {
-            max-height: 20px;
             opacity: 1;
-            margin-top: 4px;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
         }
     }
     
