@@ -329,7 +329,7 @@ const HubApp = {
             this.allUsers = deduplicatedUsers; // Salva per i filtri
 
             // Aggiorna Contatori
-            document.getElementById('counter-total').innerText = allUsers.length;
+            // Il totale viene ora aggiornato più in basso (deduplicatedUsers.length)
             document.getElementById('counter-eroi').innerText = eroiUsers.length;
             document.getElementById('counter-commedia').innerText = commediaUsers.length;
             document.getElementById('counter-fanta').innerText = fantaUsers.length;
@@ -360,6 +360,10 @@ const HubApp = {
             if (elScuole) elScuole.innerText = scuoleSet.size;
             const elTutti = document.getElementById('counter-tutti');
             if (elTutti) elTutti.innerText = deduplicatedUsers.length;
+            
+            // Aggiorna anche il contatore gigante al numero di utenti unici
+            const elTotal = document.getElementById('counter-total');
+            if (elTotal) elTotal.innerText = deduplicatedUsers.length;
 
             this.initNewsUsers();
             this.renderIscrittiTable(this.allUsers);

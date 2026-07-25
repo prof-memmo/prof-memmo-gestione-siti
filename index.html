@@ -135,25 +135,75 @@
       box-shadow: var(--shadow); background: white;
     }
 
-    /* Responsive Sidebar & Navbar */
+    /* Hamburger Menu non più utilizzato (sostituito da bottom nav) */
     .hamburger-menu {
-      display: none; font-size: 1.5rem; color: var(--text-main); cursor: pointer;
-      position: absolute; top: 20px; left: 20px; z-index: 200; background: white;
-      padding: 8px 12px; border-radius: 8px; box-shadow: var(--shadow); border: 1px solid var(--border-color);
+      display: none !important;
+    }
+
+    /* Mobile Bottom Navigation */
+    .mobile-bottom-nav {
+      display: none;
     }
 
     @media (max-width: 900px) {
       .hub-sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-      }
-      .hub-sidebar.open {
-        transform: translateX(0);
+        display: none !important;
       }
       .hub-main {
-        margin-left: 0; padding: 70px 15px 20px 15px;
+        margin-left: 0;
+        padding: 20px 15px 80px 15px; /* Spazio per la bottom nav */
       }
-      .hamburger-menu { display: block; }
+      
+      .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background: var(--surface-color);
+        border-top: 1px solid var(--border-color);
+        z-index: 1000;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        padding: 5px 10px;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        gap: 8px;
+        /* Scroll fluido su iOS */
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Nasconde la scrollbar orizzontale */
+      .mobile-bottom-nav::-webkit-scrollbar {
+        display: none;
+      }
+      
+      .mobile-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 70px;
+        color: var(--text-muted);
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        padding: 5px;
+        border-radius: 8px;
+      }
+      .mobile-nav-item i {
+        font-size: 1.3rem;
+        margin-bottom: 4px;
+      }
+      .mobile-nav-item span {
+        font-size: 0.65rem;
+        font-weight: 600;
+      }
+      .mobile-nav-item.active {
+        color: var(--accent);
+        background: #eef2ff;
+      }
       #calendar-grid { 
         display: grid !important; 
         grid-template-columns: repeat(7, minmax(60px, 1fr)) !important; 
@@ -278,6 +328,47 @@
     </div>
   </div>
 
+  <!-- Mobile Bottom Navigation (Solo Smartphone) -->
+  <div class="mobile-bottom-nav" id="mobile-nav">
+    <div class="mobile-nav-item" data-target="view-ai" onclick="switchView('view-ai')">
+      <i class="fa-solid fa-wand-magic-sparkles"></i><span>AI</span>
+    </div>
+    <div class="mobile-nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
+      <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i><span>Dashboard</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-eroi" onclick="loadIframe('view-eroi', 'https://prof-memmo.github.io/la-rotta-degli-eroi/')">
+      <i class="fa-solid fa-ship" style="color:#3b82f6;"></i><span>Rotta</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-commedia" onclick="loadIframe('view-commedia', 'https://prof-memmo.github.io/la-corte-della-commedia/')">
+      <i class="fa-solid fa-book-open" style="color:#ef4444;"></i><span>Commedia</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-fanta" onclick="loadIframe('view-fanta', 'https://prof-memmo.github.io/fantaletteratura/')">
+      <i class="fa-solid fa-dragon" style="color:#a855f7;"></i><span>Fanta</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-palestra" onclick="loadIframe('view-palestra', 'https://prof-memmo.github.io/palestra-di-riflessione/')">
+      <i class="fa-solid fa-brain" style="color:#22c55e;"></i><span>Palestra</span>
+    </div>
+    
+    <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
+      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i><span>News</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-esperienze" onclick="switchView('view-esperienze')">
+      <i class="fa-solid fa-star" style="color:#f59e0b;"></i><span>Esperienze</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-posta" onclick="switchView('view-posta')">
+      <i class="fa-solid fa-envelope" style="color:#64748b;"></i><span>Posta</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-richieste" onclick="switchView('view-richieste')">
+      <i class="fa-solid fa-envelope-open-text" style="color:#10b981;"></i><span>Richieste</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')">
+      <i class="fa-solid fa-file-signature" style="color:#f43f5e;"></i><span>Modelli</span>
+    </div>
+    <div class="mobile-nav-item" style="color:#ef4444;" onclick="HubApp.logout()">
+      <i class="fa-solid fa-power-off"></i><span>Esci</span>
+    </div>
+  </div>
+
   <!-- Main Content -->
   <div class="hub-main">
     
@@ -293,7 +384,7 @@
 
       <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
         <div class="glass-panel" style="flex: 1; min-width: 250px; text-align: center;">
-          <h3 style="color:var(--text-muted); margin-top:0;">Totale Iscritti Globale</h3>
+          <h3 style="color:var(--text-muted); margin-top:0;">Utenti Unici Globali</h3>
           <h1 id="counter-total" style="font-size: 4rem; color:var(--text-main); margin: 10px 0;">--</h1>
           <p style="color:var(--text-muted); font-size: 0.9rem;">
             <i class="fa-solid fa-ship" style="color:#3b82f6;"></i> Eroi: <span id="counter-eroi">--</span> | 
@@ -698,10 +789,14 @@
     function switchView(targetId) {
       document.querySelectorAll('.hub-view').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
       
       document.getElementById(targetId).classList.add('active');
       const navItem = document.querySelector(`.nav-item[data-target="${targetId}"]`);
       if (navItem) navItem.classList.add('active');
+      
+      const mobileNavItem = document.querySelector(`.mobile-nav-item[data-target="${targetId}"]`);
+      if (mobileNavItem) mobileNavItem.classList.add('active');
       
       // Chiude la sidebar se siamo su mobile
       if (window.innerWidth <= 900) {
