@@ -344,6 +344,9 @@
     <div class="nav-item" data-target="view-palestra" onclick="loadIframe('view-palestra', 'https://prof-memmo.github.io/palestra-di-riflessione/')">
       <i class="fa-solid fa-brain" style="color:#22c55e;"></i> Palestra di Riflessione
     </div>
+    <div class="nav-item" data-target="view-ops" onclick="loadIframe('view-ops', 'https://prof-memmo.github.io/ops-storia/')">
+      <i class="fa-solid fa-hourglass-half" style="color:#f43f5e;"></i> Ops! Operazione Storia
+    </div>
     
     <div class="sidebar-section-title">Comunicazioni</div>
     <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
@@ -387,6 +390,9 @@
     </div>
     <div class="mobile-nav-item" data-target="view-palestra" onclick="loadIframe('view-palestra', 'https://prof-memmo.github.io/palestra-di-riflessione/')">
       <i class="fa-solid fa-brain" style="color:#22c55e;"></i><span>Palestra</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-ops" onclick="loadIframe('view-ops', 'https://prof-memmo.github.io/ops-storia/')">
+      <i class="fa-solid fa-hourglass-half" style="color:#f43f5e;"></i><span>Ops!</span>
     </div>
     
     <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
@@ -559,6 +565,14 @@
         <h2><i class="fa-solid fa-brain" style="color:#22c55e;"></i> Console: Palestra di Riflessione</h2>
       </div>
       <iframe class="iframe-container" id="iframe-palestra" allow="popups popups-to-escape-sandbox allow-top-navigation allow-scripts allow-same-origin" src=""></iframe>
+    </div>
+
+    <!-- View: Ops -->
+    <div id="view-ops" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-hourglass-half" style="color:#f43f5e;"></i> Console: Ops! Operazione Storia</h2>
+      </div>
+      <iframe class="iframe-container" id="iframe-ops" allow="popups popups-to-escape-sandbox allow-top-navigation allow-scripts allow-same-origin" src=""></iframe>
     </div>
 
     <!-- View: Esperienze -->
