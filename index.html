@@ -432,13 +432,33 @@
         <div class="glass-panel" style="flex: 1; min-width: 250px; text-align: center;">
           <h3 style="color:var(--text-muted); margin-top:0;">Utenti Unici Globali</h3>
           <h1 id="counter-total" style="font-size: 4rem; color:var(--text-main); margin: 10px 0;">--</h1>
-          <p style="color:var(--text-muted); font-size: 0.9rem;">
-            <i class="fa-solid fa-ship" style="color:#3b82f6;"></i> Eroi: <span id="counter-eroi">--</span> | 
-            <i class="fa-solid fa-book-open" style="color:#ef4444;"></i> Commedia: <span id="counter-commedia">--</span> |
-            <br>
-            <i class="fa-solid fa-dragon" style="color:#a855f7;"></i> Fanta: <span id="counter-fanta">--</span> |
-            <i class="fa-solid fa-brain" style="color:#22c55e;"></i> Palestra: <span id="counter-palestra">--</span>
-          </p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: default;">
+                <img src="assets/la-rotta-degli-eroi-logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Eroi</div>
+                <div class="materia-value" id="counter-eroi" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: default;">
+                <img src="assets/commedia_logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Commedia</div>
+                <div class="materia-value" id="counter-commedia" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: default;">
+                <img src="assets/fanta_logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Fanta</div>
+                <div class="materia-value" id="counter-fanta" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: default;">
+                <img src="assets/palestra-logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Palestra</div>
+                <div class="materia-value" id="counter-palestra" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: default;">
+                <img src="assets/opslogo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Ops!</div>
+                <div class="materia-value" id="counter-ops" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -680,6 +700,7 @@
             <option value="La Rotta degli Eroi">La Rotta degli Eroi</option>
             <option value="La Corte della Commedia">La Corte della Commedia</option>
             <option value="Palestra di Riflessione">Palestra di Riflessione</option>
+            <option value="Ops! Operazione Storia">Ops! Operazione Storia</option>
           </select>
         </div>
         <div style="margin-bottom: 15px;">
@@ -715,6 +736,7 @@
             <option value="commedia">La Corte della Commedia</option>
             <option value="fanta">Fantaletteratura</option>
             <option value="palestra">Palestra di Riflessione</option>
+            <option value="ops">Ops! Operazione Storia</option>
             <option value="generico">Generico (Metodo di Studio / Gamification)</option>
           </select>
           

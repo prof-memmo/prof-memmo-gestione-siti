@@ -238,6 +238,7 @@ const HubApp = {
             let commediaUsers = [];
             let fantaUsers = [];
             let palestraUsers = [];
+            let opsUsers = [];
 
             // Fetch da La Rotta degli Eroi (via REST forzato con refresh token)
             try {
@@ -279,6 +280,16 @@ const HubApp = {
                 });
             } catch(e) { console.warn("Palestra REST error:", e); }
 
+            // Fetch da Ops! Operazione Storia
+            try {
+                const opsRestUsers = await this.fetchUsersREST("ops-storia", "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY");
+                opsRestUsers.forEach(u => {
+                    opsUsers.push({
+                        ...u, gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left'
+                    });
+                });
+            } catch(e) { console.warn("Ops REST error:", e); }
+
             // Fetch da Hub Centrale (per includere gli iscritti tester)
             let hubUsers = [];
             if (window.fbDb.hub) {
@@ -296,7 +307,7 @@ const HubApp = {
                 } catch(e) { console.warn("Hub auth error:", e); }
             }
 
-            const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers, ...hubUsers];
+            const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers, ...opsUsers, ...hubUsers];
             
             // Deduplicazione per email (fonde i giochi se l'utente è in più piattaforme)
             const uniqueUsersMap = new Map();
@@ -334,6 +345,7 @@ const HubApp = {
             document.getElementById('counter-commedia').innerText = commediaUsers.length;
             document.getElementById('counter-fanta').innerText = fantaUsers.length;
             document.getElementById('counter-palestra').innerText = palestraUsers.length;
+            document.getElementById('counter-ops').innerText = opsUsers.length;
 
             let cStudenti = 0, cDocenti = 0, cViandanti = 0;
             const scuoleSet = new Set();
