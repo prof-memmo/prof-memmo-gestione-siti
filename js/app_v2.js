@@ -48,9 +48,6 @@ const HubApp = {
     loadData: function() {
         this.loadEsperienze();
         this.loadPosta();
-        this.loadUtentiDashboard();
-        this.loadNewsletterSubs();
-        this.loadRichiesteAiuto();
         this.loadGamesStatus();
         
         // Esegue lo script di riparazione silenziosa DB (una tantum)
