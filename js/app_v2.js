@@ -48,6 +48,10 @@ const HubApp = {
     loadData: function() {
         this.loadEsperienze();
         this.loadPosta();
+        this.loadUtentiDashboard();
+        this.loadNewsletterSubs();
+        this.loadRichiesteAiuto();
+        this.loadGamesStatus();
         
         // Esegue lo script di riparazione silenziosa DB (una tantum)
         this.fixDatabasesBackground();
@@ -1155,8 +1159,71 @@ const HubApp = {
 
         // Lancia il client di posta
         window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-    }
+    },
 
+    loadGamesStatus: function() {
+        if (!window.fbDb || !window.fbDb.hub) return;
+        const db = window.fbDb.hub;
+        
+        const defaultGames = [
+            { id: 'fantaletteratura', name: 'Fantaletteratura' },
+            { id: 'la-rotta-degli-eroi', name: 'La Rotta degli Eroi' },
+            { id: 'palestra-di-riflessione', name: 'Palestra di Riflessione' },
+            { id: 'ops', name: 'Ops!' },
+            { id: 'la-corte-della-commedia', name: 'La Corte della Commedia' },
+            { id: 'travel-agency', name: 'Travel Agency' },
+            { id: 'il-mio-quaderno-alternativo', name: 'Il mio quaderno alternativo' },
+            { id: 'la-roulette', name: 'La Roulette' }
+        ];
+
+        db.collection('games_status').onSnapshot(snapshot => {
+            const statusMap = {};
+            snapshot.forEach(doc => {
+                statusMap[doc.id] = doc.data();
+            });
+
+            const tbody = document.getElementById('games-list-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            defaultGames.forEach(game => {
+                const data = statusMap[game.id] || { isActive: true, popupType: 'wip_text' };
+                
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid #e5e7eb';
+                
+                tr.innerHTML = `
+                    <td style="padding:15px 10px; font-weight: 500;">${game.name}</td>
+                    <td style="padding:15px 10px;">
+                        <span style="padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:bold; 
+                            background: ${data.isActive ? '#dcfce7' : '#fee2e2'}; 
+                            color: ${data.isActive ? '#166534' : '#991b1b'};">
+                            ${data.isActive ? 'ATTIVO' : 'DISATTIVATO'}
+                        </span>
+                    </td>
+                    <td style="padding:15px 10px;">
+                        <button class="btn btn-sm" onclick="HubApp.toggleGameStatus('${game.id}', ${!data.isActive})" 
+                            style="background:${data.isActive ? '#ef4444' : '#10b981'}; color:white; padding:5px 10px; border:none; border-radius:4px; cursor:pointer;">
+                            ${data.isActive ? 'Disattiva' : 'Attiva'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    },
+
+    toggleGameStatus: function(gameId, targetStatus) {
+        if (!window.fbDb || !window.fbDb.hub) return;
+        const db = window.fbDb.hub;
+        
+        db.collection('games_status').doc(gameId).set({
+            isActive: targetStatus,
+            popupType: 'wip_text'
+        }, { merge: true }).then(() => {
+            console.log("Game status updated");
+        });
+    }
 };
 
 // --- LOGICA GENERATORE AI ---

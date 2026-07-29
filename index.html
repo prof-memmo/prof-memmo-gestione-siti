@@ -329,6 +329,9 @@
     </div>
     
     <div class="sidebar-section-title">Console Giochi</div>
+    <div class="nav-item" data-target="view-gestione-giochi" onclick="switchView('view-gestione-giochi')">
+      <i class="fa-solid fa-gamepad" style="color:#10b981;"></i> Gestione Giochi & Pop-up
+    </div>
     <div class="nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
       <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i> Panoramica Globale
     </div>
@@ -424,6 +427,30 @@
       <h1 style="margin: 0; color: var(--text-main); font-weight: 700; font-size: 2.2rem; letter-spacing: -0.5px;">Hub Centrale</h1>
     </div>
     
+    <!-- VISTA GESTIONE GIOCHI -->
+    <div id="view-gestione-giochi" class="hub-view">
+      <div class="dashboard-header">
+        <h2>Gestione Giochi & Pop-up</h2>
+      </div>
+      <div class="card" style="margin-bottom: 20px;">
+        <p style="margin-bottom: 20px;">Qui puoi controllare quali giochi sono attualmente accessibili. Se un gioco è disattivato, il link nell'archivio verrà bloccato e i tentativi di accesso diretto mostreranno il pop-up predefinito ("Lavori in corso").</p>
+        <div class="table-responsive">
+          <table class="table" style="width:100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="border-bottom:1px solid #e5e7eb;">
+                <th style="padding:15px 10px; color: var(--text-muted);">Nome Gioco</th>
+                <th style="padding:15px 10px; color: var(--text-muted);">Stato</th>
+                <th style="padding:15px 10px; color: var(--text-muted);">Azione</th>
+              </tr>
+            </thead>
+            <tbody id="games-list-body">
+              <tr><td colspan="3" style="text-align:center; padding:20px;">Caricamento in corso...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- View: Dashboard / Panoramica (Ripristinata) -->
     <div id="view-dashboard" class="hub-view active">
       <div class="hub-header">
