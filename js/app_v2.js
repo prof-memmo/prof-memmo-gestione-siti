@@ -1184,7 +1184,11 @@ const HubApp = {
             tbody.innerHTML = '';
 
             defaultGames.forEach(game => {
-                const data = statusMap[game.id] || { isActive: true, popupType: 'wip_text' };
+                let defaultActive = true;
+                if (['ops', 'la-corte-della-commedia', 'la-roulette'].includes(game.id)) {
+                    defaultActive = false;
+                }
+                const data = statusMap[game.id] || { isActive: defaultActive, popupType: 'wip_text' };
                 
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = '1px solid #e5e7eb';
@@ -1341,7 +1345,6 @@ function preparaInvioGmail() {
 
 
 async function eseguiLoginGoogle() {
-    alert("Avvio login Google in corso... (test di connessione)");
     console.log("Login button clicked!");
     
     if (!window.fbAuth) {
