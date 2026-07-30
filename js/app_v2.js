@@ -1223,6 +1223,10 @@ const HubApp = {
             popupType: 'wip_text'
         }, { merge: true }).then(() => {
             console.log("Game status updated");
+            alert("Stato aggiornato con successo!");
+        }).catch((err) => {
+            console.error("Firebase write error:", err);
+            alert("Errore di salvataggio su Firebase! Probabilmente mancano i permessi nel database (Regole di sicurezza). Dettagli: " + err.message);
         });
     }
 };
