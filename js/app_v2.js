@@ -1215,6 +1215,7 @@ const HubApp = {
     },
 
     toggleGameStatus: function(gameId, targetStatus) {
+        alert("Test cache: Sto tentando di cambiare stato!");
         if (!window.fbDb || !window.fbDb.hub) return;
         const db = window.fbDb.hub;
         
