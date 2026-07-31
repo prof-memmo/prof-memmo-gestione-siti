@@ -1204,8 +1204,12 @@ const HubApp = {
                     </td>
                     <td style="padding:15px 10px;">
                         <button class="btn btn-sm" onclick="HubApp.toggleGameStatus('${game.id}', ${!data.isActive})" 
-                            style="background:${data.isActive ? '#ef4444' : '#10b981'}; color:white; padding:5px 10px; border:none; border-radius:4px; cursor:pointer;">
+                            style="background:${data.isActive ? '#ef4444' : '#10b981'}; color:white; padding:5px 10px; border:none; border-radius:4px; cursor:pointer; margin-right: 5px;">
                             ${data.isActive ? 'Disattiva' : 'Attiva'}
+                        </button>
+                        <button class="btn btn-sm" onclick="HubApp.editGame('${game.id}', '${game.name}')" 
+                            style="background:#3b82f6; color:white; padding:5px 10px; border:none; border-radius:4px; cursor:pointer;">
+                            Modifica Card
                         </button>
                     </td>
                 `;
@@ -1228,6 +1232,55 @@ const HubApp = {
         }).catch((err) => {
             console.error("Firebase write error:", err);
             alert("Errore di salvataggio su Firebase! Probabilmente mancano i permessi nel database (Regole di sicurezza). Dettagli: " + err.message);
+        });
+    },
+
+    editGame: function(gameId, gameName) {
+        if (!window.fbDb || !window.fbDb.hub) return;
+        
+        document.getElementById('edit-game-name').innerText = gameName;
+        document.getElementById('edit-game-id').value = gameId;
+        
+        // Fetch current data from Firebase
+        window.fbDb.hub.collection('games_status').doc(gameId).get().then(doc => {
+            const data = doc.exists ? doc.data() : {};
+            document.getElementById('edit-game-shortdesc').value = data.shortDescription || '';
+            document.getElementById('edit-game-longdesc').value = data.longDescription || '';
+            document.getElementById('edit-game-materia').value = data.materia || '';
+            document.getElementById('edit-game-giocatori').value = data.giocatori || '';
+            document.getElementById('edit-game-durata').value = data.durata || '';
+            document.getElementById('edit-game-obiettivi').value = data.obiettivi || '';
+            document.getElementById('edit-game-classe').value = data.classe || '';
+            document.getElementById('edit-game-uso').value = data.uso || '';
+            
+            document.getElementById('modal-edit-game').style.display = 'flex';
+        }).catch(err => {
+            console.error("Error fetching game details", err);
+            alert("Errore nel recupero dei dettagli: " + err.message);
+        });
+    },
+    
+    saveGameInfo: function() {
+        if (!window.fbDb || !window.fbDb.hub) return;
+        const gameId = document.getElementById('edit-game-id').value;
+        
+        const dataToSave = {
+            shortDescription: document.getElementById('edit-game-shortdesc').value,
+            longDescription: document.getElementById('edit-game-longdesc').value,
+            materia: document.getElementById('edit-game-materia').value,
+            giocatori: document.getElementById('edit-game-giocatori').value,
+            durata: document.getElementById('edit-game-durata').value,
+            obiettivi: document.getElementById('edit-game-obiettivi').value,
+            classe: document.getElementById('edit-game-classe').value,
+            uso: document.getElementById('edit-game-uso').value,
+        };
+        
+        window.fbDb.hub.collection('games_status').doc(gameId).set(dataToSave, { merge: true }).then(() => {
+            document.getElementById('modal-edit-game').style.display = 'none';
+            alert("Card gioco aggiornata con successo!");
+        }).catch(err => {
+            console.error("Firebase write error:", err);
+            alert("Errore di salvataggio. Controlla le regole Firebase. Dettagli: " + err.message);
         });
     }
 };

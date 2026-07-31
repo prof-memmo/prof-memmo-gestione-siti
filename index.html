@@ -421,6 +421,39 @@
     </div>
   </div>
 
+  <!-- Modal Modifica Card Gioco -->
+  <div id="modal-edit-game" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
+    <div class="glass-panel" style="background: white; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 25px; border-radius: 12px; position: relative;">
+      <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--color-primary); border-bottom: 1px solid #eee; padding-bottom: 10px;">Modifica Dati Gioco: <span id="edit-game-name" style="color: var(--text-main);"></span></h3>
+      <form id="edit-game-form" onsubmit="event.preventDefault(); window.HubApp.saveGameInfo();">
+        <input type="hidden" id="edit-game-id">
+        <div style="margin-bottom: 15px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Descrizione breve (Home):</label>
+          <textarea id="edit-game-shortdesc" rows="3" class="input-field" style="width: 100%; resize: vertical;" placeholder="Testo visibile nella card principale"></textarea>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Descrizione estesa (Dettagli):</label>
+          <textarea id="edit-game-longdesc" rows="5" class="input-field" style="width: 100%; resize: vertical;" placeholder="Testo lungo visibile nella pagina dedicata"></textarea>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+          <div><label style="font-size: 0.9rem; font-weight: 600;">📚 Materia:</label><input type="text" id="edit-game-materia" class="input-field" style="width: 100%;"></div>
+          <div><label style="font-size: 0.9rem; font-weight: 600;">👥 Giocatori:</label><input type="text" id="edit-game-giocatori" class="input-field" style="width: 100%;"></div>
+          <div><label style="font-size: 0.9rem; font-weight: 600;">⏱️ Durata:</label><input type="text" id="edit-game-durata" class="input-field" style="width: 100%;"></div>
+          <div><label style="font-size: 0.9rem; font-weight: 600;">🎯 Obiettivi:</label><input type="text" id="edit-game-obiettivi" class="input-field" style="width: 100%;"></div>
+          <div><label style="font-size: 0.9rem; font-weight: 600;">👶 Classe/Età:</label><input type="text" id="edit-game-classe" class="input-field" style="width: 100%;"></div>
+          <div><label style="font-size: 0.9rem; font-weight: 600;">🏫 Uso:</label><input type="text" id="edit-game-uso" class="input-field" style="width: 100%;"></div>
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn outline" onclick="document.getElementById('modal-edit-game').style.display='none'">Annulla</button>
+          <button type="submit" class="btn" style="background: var(--color-primary); color: white;">Salva Modifiche</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Main Content -->
   <div class="hub-main">
     
@@ -892,7 +925,7 @@
   </div>
 
   <script src="js/firebase-init.js?v=29"></script>
-  <script src="js/app_v2.js?v=31"></script>
+  <script src="js/app_v2.js?v=32"></script>
   <script>
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');
