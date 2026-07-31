@@ -1244,14 +1244,27 @@ const HubApp = {
         // Fetch current data from Firebase
         window.fbDb.hub.collection('games_status').doc(gameId).get().then(doc => {
             const data = doc.exists ? doc.data() : {};
-            document.getElementById('edit-game-shortdesc').value = data.shortDescription || '';
-            document.getElementById('edit-game-longdesc').value = data.longDescription || '';
-            document.getElementById('edit-game-materia').value = data.materia || '';
-            document.getElementById('edit-game-giocatori').value = data.giocatori || '';
-            document.getElementById('edit-game-durata').value = data.durata || '';
-            document.getElementById('edit-game-obiettivi').value = data.obiettivi || '';
-            document.getElementById('edit-game-classe').value = data.classe || '';
-            document.getElementById('edit-game-uso').value = data.uso || '';
+            
+            const defaultGamesData = {
+                'fantaletteratura': { shortDesc: "Costruisci la tua squadra di autori e generi letterari sfidandoti in un fanta-campionato culturale.", longDesc: "Fantaletteratura è un fanta-campionato culturale dove studenti e appassionati creano la propria squadra di autori e competono a suon di sfide letterarie.", materia: "Letteratura", giocatori: "Squadre / Singoli", durata: "Intero anno scolastico", obiettivi: "Gamification, conoscenza autori", classe: "Sec. di 1° grado", uso: "Classe, Casa" },
+                'la-rotta-degli-eroi': { shortDesc: "Affronta le missioni, accumula dracme e costruisci la tua base nel mondo epico e mitologico.", longDesc: "La rotta degli eroi è un'avventura epica a tappe in cui si affrontano le missioni, si accumulano dracme e si costruisce la propria base nel mondo mitologico.", materia: "Epica e Mito", giocatori: "Singolo / Squadre", durata: "Intero anno scolastico", obiettivi: "Gamification, conoscenza miti", classe: "Classi prime (11-12 anni)", uso: "Classe, Casa" },
+                'palestra-di-riflessione': { shortDesc: "Un allenamento completo per la lingua: percorsi personalizzati per studenti, docenti e amici della palestra.", longDesc: "Un allenamento completo per la lingua: percorsi personalizzati per studenti, docenti e amici della palestra con esercizi mirati di analisi logica e grammaticale.", materia: "Grammatica / Italiano", giocatori: "Singolo", durata: "Flessibile", obiettivi: "Analisi logica e grammaticale", classe: "Sec. di 1° grado", uso: "Recupero, Laboratorio, Casa" },
+                'travel-agency': { shortDesc: "I giocatori diventano agenzie di viaggio e creano pacchetti turistici per clienti esigenti gestendo un budget.", longDesc: "I giocatori diventano agenzie di viaggio e creano pacchetti turistici per clienti esigenti gestendo un budget.", materia: "Geografia", giocatori: "2-4 (a squadre)", durata: "60-120 min", obiettivi: "Ricerca, gestione budget", classe: "Sec. di 1° grado", uso: "Classe, Laboratorio" },
+                'il-mio-quaderno-alternativo': { shortDesc: "Percorsi alternativi all'IRC per esplorare temi etici, filosofici e civici in modo attivo e creativo, classe per classe.", longDesc: "Percorsi alternativi all'IRC per esplorare temi etici, filosofici e civici in modo attivo e creativo, classe per classe.", materia: "Alternativa alla Religione", giocatori: "Singolo", durata: "Intero anno scolastico", obiettivi: "Etica, cittadinanza, valori", classe: "Sec. di 1° grado", uso: "Classe" },
+                'la-corte-della-commedia': { shortDesc: "Trasforma la classe in un Tribunale Dantesco, dove gli studenti analizzano fascicoli processuali e dibattono per giudicare i personaggi.", longDesc: "Trasforma la classe in un Tribunale Dantesco, dove gli studenti analizzano fascicoli processuali e dibattono per giudicare i personaggi.", materia: "Letteratura", giocatori: "Squadre / Singoli", durata: "Intero anno scolastico", obiettivi: "Gamification, analisi testo", classe: "Sec. di 1° grado", uso: "Classe" },
+                'ops': { shortDesc: "Riscopri gli imprevisti storici e gli \"errori\" che hanno cambiato i destini del nostro passato.", longDesc: "Riscopri gli imprevisti storici e gli \"errori\" che hanno cambiato i destini del nostro passato.", materia: "Storia", giocatori: "2-4", durata: "45 min", obiettivi: "Causa-effetto, eventi storici", classe: "Sec. di 1° grado", uso: "Classe" },
+                'la-roulette': { shortDesc: "Sfida a squadre per esplorare in modo casuale e interattivo diverse destinazioni del mondo.", longDesc: "Sfida a squadre per esplorare in modo casuale e interattivo diverse destinazioni del mondo.", materia: "Geografia", giocatori: "Classe intera (squadre)", durata: "30-45 min", obiettivi: "Ripasso, esplorazione rapida", classe: "Sec. di 1° grado", uso: "Classe, Ripasso" }
+            };
+            const defs = defaultGamesData[gameId] || {};
+
+            document.getElementById('edit-game-shortdesc').value = data.shortDescription || defs.shortDesc || '';
+            document.getElementById('edit-game-longdesc').value = data.longDescription || defs.longDesc || '';
+            document.getElementById('edit-game-materia').value = data.materia || defs.materia || '';
+            document.getElementById('edit-game-giocatori').value = data.giocatori || defs.giocatori || '';
+            document.getElementById('edit-game-durata').value = data.durata || defs.durata || '';
+            document.getElementById('edit-game-obiettivi').value = data.obiettivi || defs.obiettivi || '';
+            document.getElementById('edit-game-classe').value = data.classe || defs.classe || '';
+            document.getElementById('edit-game-uso').value = data.uso || defs.uso || '';
             
             document.getElementById('modal-edit-game').style.display = 'flex';
         }).catch(err => {
