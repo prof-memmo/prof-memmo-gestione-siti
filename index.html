@@ -335,22 +335,6 @@
     <div class="nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
       <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i> Panoramica Globale
     </div>
-    <div class="nav-item" onclick="window.open('https://prof-memmo.github.io/la-rotta-degli-eroi/', '_blank')">
-      <i class="fa-solid fa-ship" style="color:#3b82f6;"></i> La Rotta degli Eroi
-    </div>
-    <div class="nav-item" onclick="window.open('https://prof-memmo.github.io/la-corte-della-commedia/', '_blank')">
-      <i class="fa-solid fa-book-open" style="color:#ef4444;"></i> La Corte della Commedia
-    </div>
-    <div class="nav-item" onclick="window.open('https://prof-memmo.github.io/fantaletteratura/', '_blank')">
-      <i class="fa-solid fa-dragon" style="color:#a855f7;"></i> Fantaletteratura
-    </div>
-    <div class="nav-item" onclick="window.open('https://prof-memmo.github.io/palestra-di-riflessione/', '_blank')">
-      <i class="fa-solid fa-brain" style="color:#22c55e;"></i> Palestra di Riflessione
-    </div>
-    <div class="nav-item" onclick="window.open('https://prof-memmo.github.io/ops-storia/', '_blank')">
-      <i class="fa-solid fa-hourglass-half" style="color:#f43f5e;"></i> Ops! Operazione Storia
-    </div>
-    
     <div class="sidebar-section-title">Comunicazioni</div>
     <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
       <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter Manager
@@ -382,25 +366,6 @@
     <div class="mobile-nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
       <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i><span>Dashboard</span>
     </div>
-    <div class="mobile-nav-item" data-target="view-gestione-giochi" onclick="switchView('view-gestione-giochi')">
-      <i class="fa-solid fa-gamepad" style="color:#10b981;"></i><span>Giochi</span>
-    </div>
-    <div class="mobile-nav-item" onclick="window.open('https://prof-memmo.github.io/la-rotta-degli-eroi/', '_blank')">
-      <i class="fa-solid fa-ship" style="color:#3b82f6;"></i><span>Rotta</span>
-    </div>
-    <div class="mobile-nav-item" onclick="window.open('https://prof-memmo.github.io/la-corte-della-commedia/', '_blank')">
-      <i class="fa-solid fa-book-open" style="color:#ef4444;"></i><span>Commedia</span>
-    </div>
-    <div class="mobile-nav-item" onclick="window.open('https://prof-memmo.github.io/fantaletteratura/', '_blank')">
-      <i class="fa-solid fa-dragon" style="color:#a855f7;"></i><span>Fanta</span>
-    </div>
-    <div class="mobile-nav-item" onclick="window.open('https://prof-memmo.github.io/palestra-di-riflessione/', '_blank')">
-      <i class="fa-solid fa-brain" style="color:#22c55e;"></i><span>Palestra</span>
-    </div>
-    <div class="mobile-nav-item" onclick="window.open('https://prof-memmo.github.io/ops-storia/', '_blank')">
-      <i class="fa-solid fa-hourglass-half" style="color:#f43f5e;"></i><span>Ops!</span>
-    </div>
-    
     <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
       <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i><span>News</span>
     </div>
@@ -502,27 +467,27 @@
           <h3 style="color:var(--text-muted); margin-top:0;">Utenti Unici Globali</h3>
           <h1 id="counter-total" style="font-size: 4rem; color:var(--text-main); margin: 10px 0;">--</h1>
           <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
-            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: default;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="window.open('https://prof-memmo.github.io/la-rotta-degli-eroi/', '_blank')" title="Apri La Rotta degli Eroi">
                 <img src="assets/la-rotta-degli-eroi-logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
                 <div class="materia-label" style="font-size: 0.75rem;">Eroi</div>
                 <div class="materia-value" id="counter-eroi" style="font-size: 1.2rem; margin-top: 2px;">--</div>
             </div>
-            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: default;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="window.open('https://prof-memmo.github.io/la-corte-della-commedia/', '_blank')" title="Apri La Corte della Commedia">
                 <img src="assets/commedia_logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
                 <div class="materia-label" style="font-size: 0.75rem;">Commedia</div>
                 <div class="materia-value" id="counter-commedia" style="font-size: 1.2rem; margin-top: 2px;">--</div>
             </div>
-            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: default;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="window.open('https://prof-memmo.github.io/fantaletteratura/', '_blank')" title="Apri Fantaletteratura">
                 <img src="assets/fanta_logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
                 <div class="materia-label" style="font-size: 0.75rem;">Fanta</div>
                 <div class="materia-value" id="counter-fanta" style="font-size: 1.2rem; margin-top: 2px;">--</div>
             </div>
-            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: default;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="window.open('https://prof-memmo.github.io/palestra-di-riflessione/', '_blank')" title="Apri Palestra di Riflessione">
                 <img src="assets/palestra-logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
                 <div class="materia-label" style="font-size: 0.75rem;">Palestra</div>
                 <div class="materia-value" id="counter-palestra" style="font-size: 1.2rem; margin-top: 2px;">--</div>
             </div>
-            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: default;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="window.open('https://prof-memmo.github.io/ops-storia/', '_blank')" title="Apri Ops! Operazione Storia">
                 <img src="assets/ops-logo-scritte.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
                 <div class="materia-label" style="font-size: 0.75rem;">Ops!</div>
                 <div class="materia-value" id="counter-ops" style="font-size: 1.2rem; margin-top: 2px;">--</div>
