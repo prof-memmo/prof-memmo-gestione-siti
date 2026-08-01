@@ -335,19 +335,19 @@
     <div class="nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
       <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i> Panoramica Globale
     </div>
-    <div class="nav-item" data-target="view-eroi" onclick="loadIframe('view-eroi', 'https://prof-memmo.github.io/la-rotta-degli-eroi/')">
+    <div class="nav-item" onclick="window.open('https://prof-memmo.github.io/la-rotta-degli-eroi/', '_blank')">
       <i class="fa-solid fa-ship" style="color:#3b82f6;"></i> La Rotta degli Eroi
     </div>
-    <div class="nav-item" data-target="view-commedia" onclick="loadIframe('view-commedia', 'https://prof-memmo.github.io/la-corte-della-commedia/')">
+    <div class="nav-item" onclick="window.open('https://prof-memmo.github.io/la-corte-della-commedia/', '_blank')">
       <i class="fa-solid fa-book-open" style="color:#ef4444;"></i> La Corte della Commedia
     </div>
-    <div class="nav-item" data-target="view-fanta" onclick="loadIframe('view-fanta', 'https://prof-memmo.github.io/fantaletteratura/')">
+    <div class="nav-item" onclick="window.open('https://prof-memmo.github.io/fantaletteratura/', '_blank')">
       <i class="fa-solid fa-dragon" style="color:#a855f7;"></i> Fantaletteratura
     </div>
-    <div class="nav-item" data-target="view-palestra" onclick="loadIframe('view-palestra', 'https://prof-memmo.github.io/palestra-di-riflessione/')">
+    <div class="nav-item" onclick="window.open('https://prof-memmo.github.io/palestra-di-riflessione/', '_blank')">
       <i class="fa-solid fa-brain" style="color:#22c55e;"></i> Palestra di Riflessione
     </div>
-    <div class="nav-item" data-target="view-ops" onclick="loadIframe('view-ops', 'https://prof-memmo.github.io/ops-storia/')">
+    <div class="nav-item" onclick="window.open('https://prof-memmo.github.io/ops-storia/', '_blank')">
       <i class="fa-solid fa-hourglass-half" style="color:#f43f5e;"></i> Ops! Operazione Storia
     </div>
     
@@ -385,19 +385,19 @@
     <div class="mobile-nav-item" data-target="view-gestione-giochi" onclick="switchView('view-gestione-giochi')">
       <i class="fa-solid fa-gamepad" style="color:#10b981;"></i><span>Giochi</span>
     </div>
-    <div class="mobile-nav-item" data-target="view-eroi" onclick="loadIframe('view-eroi', 'https://prof-memmo.github.io/la-rotta-degli-eroi/')">
+    <div class="mobile-nav-item" onclick="window.open('https://prof-memmo.github.io/la-rotta-degli-eroi/', '_blank')">
       <i class="fa-solid fa-ship" style="color:#3b82f6;"></i><span>Rotta</span>
     </div>
-    <div class="mobile-nav-item" data-target="view-commedia" onclick="loadIframe('view-commedia', 'https://prof-memmo.github.io/la-corte-della-commedia/')">
+    <div class="mobile-nav-item" onclick="window.open('https://prof-memmo.github.io/la-corte-della-commedia/', '_blank')">
       <i class="fa-solid fa-book-open" style="color:#ef4444;"></i><span>Commedia</span>
     </div>
-    <div class="mobile-nav-item" data-target="view-fanta" onclick="loadIframe('view-fanta', 'https://prof-memmo.github.io/fantaletteratura/')">
+    <div class="mobile-nav-item" onclick="window.open('https://prof-memmo.github.io/fantaletteratura/', '_blank')">
       <i class="fa-solid fa-dragon" style="color:#a855f7;"></i><span>Fanta</span>
     </div>
-    <div class="mobile-nav-item" data-target="view-palestra" onclick="loadIframe('view-palestra', 'https://prof-memmo.github.io/palestra-di-riflessione/')">
+    <div class="mobile-nav-item" onclick="window.open('https://prof-memmo.github.io/palestra-di-riflessione/', '_blank')">
       <i class="fa-solid fa-brain" style="color:#22c55e;"></i><span>Palestra</span>
     </div>
-    <div class="mobile-nav-item" data-target="view-ops" onclick="loadIframe('view-ops', 'https://prof-memmo.github.io/ops-storia/')">
+    <div class="mobile-nav-item" onclick="window.open('https://prof-memmo.github.io/ops-storia/', '_blank')">
       <i class="fa-solid fa-hourglass-half" style="color:#f43f5e;"></i><span>Ops!</span>
     </div>
     
@@ -601,42 +601,7 @@
       </div>
     </div>
 
-    <!-- Views: Iframes dei Giochi -->
-    <div id="view-eroi" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-ship" style="color:#3b82f6;"></i> Console: La Rotta degli Eroi</h2>
-      </div>
-      <iframe class="iframe-container" id="iframe-eroi" allow="popups popups-to-escape-sandbox allow-top-navigation allow-scripts allow-same-origin" src=""></iframe>
-    </div>
-    
-    <div id="view-commedia" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-book-open" style="color:#ef4444;"></i> Console: La Corte della Commedia</h2>
-      </div>
-      <iframe class="iframe-container" id="iframe-commedia" allow="popups popups-to-escape-sandbox allow-top-navigation allow-scripts allow-same-origin" src=""></iframe>
-    </div>
-
-    <div id="view-fanta" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-dragon" style="color:#a855f7;"></i> Console: Fantaletteratura</h2>
-      </div>
-      <iframe class="iframe-container" id="iframe-fanta" allow="popups popups-to-escape-sandbox allow-top-navigation allow-scripts allow-same-origin" src=""></iframe>
-    </div>
-
-    <div id="view-palestra" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-brain" style="color:#22c55e;"></i> Console: Palestra di Riflessione</h2>
-      </div>
-      <iframe class="iframe-container" id="iframe-palestra" allow="popups popups-to-escape-sandbox allow-top-navigation allow-scripts allow-same-origin" src=""></iframe>
-    </div>
-
-    <!-- View: Ops -->
-    <div id="view-ops" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-hourglass-half" style="color:#f43f5e;"></i> Console: Ops! Operazione Storia</h2>
-      </div>
-      <iframe class="iframe-container" id="iframe-ops" allow="popups popups-to-escape-sandbox allow-top-navigation allow-scripts allow-same-origin" src=""></iframe>
-    </div>
+    <!-- Viste Iframe Rimosse a favore dell'apertura in nuova scheda -->
 
     <!-- View: Esperienze -->
     <div id="view-esperienze" class="hub-view">
@@ -947,64 +912,6 @@
       if (window.innerWidth <= 900) {
         document.getElementById('main-sidebar').classList.remove('open');
       }
-    }
-
-    function loadIframe(targetId, url) {
-      switchView(targetId);
-      const iframeId = 'iframe-' + targetId.replace('view-', '');
-      const iframe = document.getElementById(iframeId);
-      if (iframe && iframe.src !== url) {
-        iframe.src = url;
-        
-        // Intercetta il caricamento per silenziare i giochi
-        iframe.onload = function() {
-          try {
-            const win = iframe.contentWindow;
-            if (!win) return;
-            
-            // Forza il mute globale su tutti i tag audio/video
-            const mediaEls = win.document.querySelectorAll('audio, video');
-            mediaEls.forEach(el => {
-              el.muted = true;
-              el.volume = 0;
-              el.pause();
-            });
-            
-            // Neutralizza le funzioni di riproduzione dei vari Player Musicali (Eroi, Fanta, Palestra, Commedia)
-            if (win.MusicPlayer) {
-              if (win.MusicPlayer.audioElement) {
-                win.MusicPlayer.audioElement.pause();
-                win.MusicPlayer.audioElement.muted = true;
-              }
-              win.MusicPlayer.isPlaying = false;
-              win.MusicPlayer._doPlay = function(){};
-              win.MusicPlayer.togglePlay = function(){};
-              win.MusicPlayer.nextTrack = function(){};
-              win.MusicPlayer.prevTrack = function(){};
-            }
-            if (win.MusicDB) {
-              win.MusicDB.stopBackgroundMusic = function(){};
-              win.MusicDB.playBackgroundMusic = function(){};
-              win.MusicDB.toggleMusic = function(){};
-            }
-            
-            // Sovrascrivi il costruttore Audio per impedire la creazione di nuovi suoni attivi
-            const OriginalAudio = win.Audio;
-            win.Audio = function(...args) {
-              const a = new OriginalAudio(...args);
-              a.muted = true;
-              a.volume = 0;
-              return a;
-            };
-            
-          } catch(e) {
-            console.warn("Impossibile silenziare iframe (cors o caricamento incompleto):", e);
-          }
-        };
-      }
-      
-      // Hide all iframes
-      document.querySelectorAll('.iframe-container').forEach(el => el.classList.remove('active'));
     }
   </script>
 </body>
