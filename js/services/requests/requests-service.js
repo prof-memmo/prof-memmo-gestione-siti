@@ -1,5 +1,5 @@
-// --- REQUESTS DB Service ---
-const RequestsDbService = {
+// --- REQUESTS Service ---
+const RequestsService = {
     fetchAllRequests: async function() {
         let richiesteDati = [];
         
@@ -144,4 +144,4 @@ const RequestsDbService = {
         }
     }
 };
-window.RequestsDbService = RequestsDbService;
+window.RequestsService = RequestsService;

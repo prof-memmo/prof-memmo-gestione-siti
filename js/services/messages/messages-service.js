@@ -1,5 +1,5 @@
-// --- HUB DB Service (Posta ed Esperienze) ---
-const HubDbService = {
+// --- Messages Service (Posta ed Esperienze) ---
+const MessagesService = {
     listenToEsperienze: function(callback) {
         if (!window.fbDb || !window.fbDb.hub) return;
         return window.fbDb.hub.collection("hub_esperienze").orderBy("timestamp", "desc").onSnapshot(snap => {
@@ -45,4 +45,4 @@ const HubDbService = {
         return window.fbDb.hub.collection(col).doc(docId).delete();
     }
 };
-window.HubDbService = HubDbService;
+window.MessagesService = MessagesService;

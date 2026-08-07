@@ -104,69 +104,39 @@ const HubApp = {
 
 
     loadArchivi: async function() {
+        if (!window.ArchiveService) {
+            console.error("ArchiveService non caricato.");
+            return;
+        }
+
         try {
             const tbody = document.querySelector('#hub-archivi-table tbody');
             tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Caricamento...</td></tr>';
             
-            let allArchives = [];
-
-            // Fetch da La Rotta degli Eroi
-            if (window.fbDb.eroi) {
-                const snapEroi = await window.fbDb.eroi.collection("archives").orderBy("timestamp", "desc").get();
-                snapEroi.forEach(doc => {
-                    const data = doc.data();
-                    allArchives.push({
-                        id: doc.id,
-                        nomeAnno: data.yearName || 'N/A',
-                        timestamp: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('it-IT') : 'N/A',
-                        gioco: 'La Rotta degli Eroi',
-                        giocoColor: '#3498db',
-                        giocoIcon: 'fa-ship'
-                    });
-                });
-            }
-
-            // Fetch da Fantaletteratura
-            if (window.fbDb.fanta) {
-                const snapFanta = await window.fbDb.fanta.collection("archives").orderBy("timestamp", "desc").get();
-                snapFanta.forEach(doc => {
-                    const data = doc.data();
-                    allArchives.push({
-                        id: doc.id,
-                        nomeAnno: data.yearName || 'N/A',
-                        timestamp: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('it-IT') : 'N/A',
-                        gioco: 'Fantaletteratura',
-                        giocoColor: '#9b59b6',
-                        giocoIcon: 'fa-dragon'
-                    });
-                });
-            }
-
+            const allArchives = await window.ArchiveService.fetchArchives();
+            
+            // Render Table
             tbody.innerHTML = '';
             if (allArchives.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;">Nessun archivio storico trovato.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px; color:var(--text-muted);">Nessun archivio trovato.</td></tr>';
                 return;
             }
 
             allArchives.forEach(arch => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="padding: 10px; font-size:0.9rem; color:#aaa;">${arch.timestamp}</td>
-                    <td style="padding: 10px;"><strong>${arch.nomeAnno}</strong></td>
+                    <td style="padding: 10px; font-weight:bold;">${arch.nomeAnno}</td>
+                    <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${arch.timestamp}</td>
                     <td style="padding: 10px; color:${arch.giocoColor};"><i class="fa-solid ${arch.giocoIcon}"></i> ${arch.gioco}</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-        } catch(e) {
+        } catch (e) {
             console.error("Errore caricamento archivi:", e);
             document.querySelector('#hub-archivi-table tbody').innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px; color:red;">Errore caricamento archivi</td></tr>';
         }
     },
-
-
-
-
 
 
 

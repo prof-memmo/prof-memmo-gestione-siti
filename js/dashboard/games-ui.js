@@ -7,8 +7,7 @@ const GamesUI = {
     },
 
     loadGamesStatus: function() {
-        if (!window.fbDb || !window.fbDb.hub) return;
-        const db = window.fbDb.hub;
+        if (!window.GamesService) return;
         
         const defaultGames = [
             { id: 'fantaletteratura', name: 'Fantaletteratura' },
@@ -21,11 +20,7 @@ const GamesUI = {
             { id: 'la-roulette', name: 'La Roulette' }
         ];
 
-        db.collection('games_status').onSnapshot(snapshot => {
-            const statusMap = {};
-            snapshot.forEach(doc => {
-                statusMap[doc.id] = doc.data();
-            });
+        window.GamesService.listenToGamesStatus(statusMap => {
 
             const tbody = document.getElementById('games-list-body');
             if(!tbody) return;
@@ -67,13 +62,9 @@ const GamesUI = {
     },
 
     toggleGameStatus: function(gameId, targetStatus) {
-        if (!window.fbDb || !window.fbDb.hub) return;
-        const db = window.fbDb.hub;
+        if (!window.GamesService) return;
         
-        db.collection('games_status').doc(gameId).set({
-            isActive: targetStatus,
-            popupType: 'wip_text'
-        }, { merge: true }).then(() => {
+        window.GamesService.updateGameStatus(gameId, targetStatus).then(() => {
             console.log("Game status updated");
             alert("Stato aggiornato con successo!");
         }).catch((err) => {
@@ -83,13 +74,12 @@ const GamesUI = {
     },
 
     editGame: function(gameId, gameName) {
-        if (!window.fbDb || !window.fbDb.hub) return;
+        if (!window.GamesService) return;
         
         document.getElementById('edit-game-name').innerText = gameName;
         document.getElementById('edit-game-id').value = gameId;
         
-        window.fbDb.hub.collection('games_status').doc(gameId).get().then(doc => {
-            const data = doc.exists ? doc.data() : {};
+        window.GamesService.getGameDetails(gameId).then(data => {
             
             const defaultGamesData = {
                 'fantaletteratura': { shortDesc: "Costruisci la tua squadra di autori e generi letterari sfidandoti in un fanta-campionato culturale.", longDesc: "Costruisci la tua squadra di autori e generi letterari sfidandoti in un fanta-campionato culturale.", materia: "Letteratura", giocatori: "Squadre / Singoli", durata: "Intero anno scolastico", obiettivi: "Gamification, conoscenza autori", classe: "Sec. di 1° grado", uso: "Classe, Casa" },
@@ -120,7 +110,7 @@ const GamesUI = {
     },
     
     saveGameInfo: function() {
-        if (!window.fbDb || !window.fbDb.hub) return;
+        if (!window.GamesService) return;
         const gameId = document.getElementById('edit-game-id').value;
         
         const dataToSave = {
@@ -134,7 +124,7 @@ const GamesUI = {
             uso: document.getElementById('edit-game-uso').value,
         };
         
-        window.fbDb.hub.collection('games_status').doc(gameId).set(dataToSave, { merge: true }).then(() => {
+        window.GamesService.saveGameDetails(gameId, dataToSave).then(() => {
             document.getElementById('modal-edit-game').style.display = 'none';
             alert("Card gioco aggiornata con successo!");
         }).catch(err => {

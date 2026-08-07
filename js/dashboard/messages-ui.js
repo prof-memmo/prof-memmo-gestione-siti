@@ -1,10 +1,10 @@
 // --- MESSAGES UI (Dashboard Rendering) ---
 const MessagesUI = {
     init: function() {
-        if(window.HubDbService) {
-            window.HubDbService.listenToEsperienze(this.renderEsperienzeTable.bind(this));
-            window.HubDbService.listenToPostaArrivo(this.renderPostaTable.bind(this));
-            window.HubDbService.listenToPostaInviata(this.renderPostaInviataTable.bind(this));
+        if(window.MessagesService) {
+            window.MessagesService.listenToEsperienze(this.renderEsperienzeTable.bind(this));
+            window.MessagesService.listenToPostaArrivo(this.renderPostaTable.bind(this));
+            window.MessagesService.listenToPostaInviata(this.renderPostaInviataTable.bind(this));
         }
         this.setupBridges();
     },
@@ -15,7 +15,7 @@ const MessagesUI = {
         
         window.HubApp.approveEsperienza = async function(docId) {
             try {
-                await window.HubDbService.approveEsperienza(docId);
+                await window.MessagesService.approveEsperienza(docId);
             } catch(e) {
                 console.error(e);
                 alert("Errore durante l'approvazione");
@@ -25,7 +25,7 @@ const MessagesUI = {
         window.HubApp.deleteEsperienza = async function(docId) {
             if (confirm("Sei sicuro di voler eliminare questa esperienza? L'azione è irreversibile.")) {
                 try {
-                    await window.HubDbService.deleteEsperienza(docId);
+                    await window.MessagesService.deleteEsperienza(docId);
                 } catch(e) {
                     console.error(e);
                     alert("Errore eliminazione");
@@ -36,7 +36,7 @@ const MessagesUI = {
         window.HubApp.deletePosta = async function(docId, inArrivo = true) {
             if (confirm("Sicuro di voler eliminare questo messaggio?")) {
                 try {
-                    await window.HubDbService.deletePosta(docId, inArrivo);
+                    await window.MessagesService.deletePosta(docId, inArrivo);
                 } catch(e) {
                     console.error(e);
                     alert("Errore eliminazione");

@@ -2,79 +2,63 @@
 // Gestisce gli interruttori globali per l'ecosistema Hub
 
 const EcosistemaUI = {
-    docRef: null,
-    unsubscribe: null,
+    settingsData: {},
     
     init: function() {
-        if (!window.fbDb || !window.fbDb.hub) {
-            console.error("Firebase Hub DB not initialized for EcosistemaUI");
-            return;
-        }
-
-        // Referenza al documento globale
-        this.docRef = window.fbDb.hub.collection("hub_settings").doc("ecosistema");
-
-        // Ascolta in tempo reale le modifiche
-        this.unsubscribe = this.docRef.onSnapshot(doc => {
-            if (doc.exists) {
-                const data = doc.data();
-                
-                // Aggiorna la UI in base al database
-                const toggleAnalytics = document.getElementById('toggle-analytics');
-                if (toggleAnalytics) toggleAnalytics.checked = !!data.analytics;
-                
-                const toggleSostieni = document.getElementById('toggle-sostieni');
-                if (toggleSostieni) toggleSostieni.checked = !!data.sostieni_il_progetto;
-                
-                const toggleMonetizzazione = document.getElementById('toggle-monetizzazione');
-                if (toggleMonetizzazione) toggleMonetizzazione.checked = !!data.monetizzazione;
-            } else {
-                // Il documento non esiste, creiamo i valori di default
-                this.docRef.set({
-                    analytics: false,
-                    sostieni_il_progetto: false,
-                    monetizzazione: false,
-                    newsletter: true
-                }, { merge: true });
-            }
-        }, err => {
-            console.error("Errore lettura hub_settings/ecosistema:", err);
-        });
-    },
-
-    toggleSetting: async function(settingId, isChecked) {
-        if (!this.docRef) {
-            alert("Database non connesso");
+        if (!window.EcosystemService) {
+            console.error("EcosystemService non caricato.");
             return;
         }
         
-        let updateData = {};
-        if (settingId === 'analytics') updateData.analytics = isChecked;
-        if (settingId === 'sostieni') updateData.sostieni_il_progetto = isChecked;
-        if (settingId === 'monetizzazione') updateData.monetizzazione = isChecked;
+        window.EcosystemService.listenToEcosystemSettings(data => {
+            if (data) {
+                this.settingsData = data;
+                this.renderUI();
+            }
+        });
+    },
 
+    renderUI: function() {
+        const data = this.settingsData;
+        const toggleAnalytics = document.getElementById('toggle-analytics');
+        if (toggleAnalytics) toggleAnalytics.checked = !!data.analytics;
+        
+        const toggleSostieni = document.getElementById('toggle-sostieni');
+        if (toggleSostieni) toggleSostieni.checked = !!data.sostieni_il_progetto;
+        
+        const toggleMonetizzazione = document.getElementById('toggle-monetizzazione');
+        if (toggleMonetizzazione) toggleMonetizzazione.checked = !!data.monetizzazione;
+    },
+
+    toggleSetting: async function(settingId, isChecked) {
+        if (!window.EcosystemService) return;
+        
+        let dbKey = settingId;
+        if (settingId === 'sostieni') dbKey = 'sostieni_il_progetto';
+        
+        const currentVal = this.settingsData[dbKey] || false;
+        const newVal = isChecked !== undefined ? isChecked : !currentVal;
+        
+        // Optimistic UI update
+        this.settingsData[dbKey] = newVal;
+        this.renderUI();
+        
         try {
-            await this.docRef.set(updateData, { merge: true });
-            console.log(`Impostazione ${settingId} aggiornata a ${isChecked}`);
+            await window.EcosystemService.saveEcosystemSettings({ [dbKey]: newVal });
+            console.log(`Setting ${dbKey} aggiornato a ${newVal}`);
         } catch (error) {
-            console.error(`Errore aggiornamento impostazione ${settingId}:`, error);
-            alert("Errore durante l'aggiornamento. Riprova.");
+            console.error("Errore aggiornamento toggle ecosistema:", error);
+            // Revert on error
+            this.settingsData[dbKey] = currentVal;
+            this.renderUI();
+            alert("Errore durante il salvataggio. Riprova.");
         }
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        if(window.fbDb && window.fbDb.hub) {
-            EcosistemaUI.init();
-        } else {
-            console.warn("fbDb.hub non trovato in tempo per EcosistemaUI");
-            // Retry
-            setTimeout(() => {
-                if(window.fbDb && window.fbDb.hub) EcosistemaUI.init();
-            }, 2000);
-        }
-    }, 1500);
+document.addEventListener("DOMContentLoaded", () => {
+    // Il caricamento è gestito dall'orchestratore HubApp che chiama EcosistemaUI.init()
+    // per assicurarsi che l'EcosystemService sia pronto.
 });
 
 window.EcosistemaUI = EcosistemaUI;

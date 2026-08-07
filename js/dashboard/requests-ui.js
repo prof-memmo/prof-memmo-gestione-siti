@@ -25,7 +25,7 @@ const RequestsUI = {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">Lettura richieste in corso...</td></tr>';
         
         try {
-            this.richiesteDati = await window.RequestsDbService.fetchAllRequests();
+            this.richiesteDati = await window.RequestsService.fetchAllRequests();
             this.renderRichieste();
         } catch(error) {
             console.error("Errore generale loadRichiesteIscrizione:", error);
@@ -100,7 +100,7 @@ const RequestsUI = {
         if (!confirm(`Sei sicuro di voler approvare l'iscrizione per ${nome} su ${gioco}?`)) return;
         
         try {
-            await window.RequestsDbService.approvaRichiesta(gioco, docId, email, nome);
+            await window.RequestsService.approvaRichiesta(gioco, docId, email, nome);
             alert("Approvazione eseguita con successo su Firestore!");
             this.inviaMailApprovazione(gioco, email, nome);
             this.loadRichiesteIscrizione(); 
@@ -113,7 +113,7 @@ const RequestsUI = {
     rifiutaRichiestaHub: async function(gioco, docId) {
         if (!confirm(`Sei sicuro di voler rifiutare ed eliminare la richiesta di ${docId} su ${gioco}?`)) return;
         try {
-            await window.RequestsDbService.rifiutaRichiesta(gioco, docId);
+            await window.RequestsService.rifiutaRichiesta(gioco, docId);
             alert("Richiesta eliminata.");
             this.loadRichiesteIscrizione();
         } catch(err) {
@@ -134,12 +134,12 @@ const RequestsUI = {
         };
 
         try {
-            const dbData = await window.RequestsDbService.getTemplatesFromDb();
+            const dbData = await window.RequestsService.getTemplatesFromDb();
             if (dbData) {
                 window.HubEmailTemplates = dbData;
             } else {
                 window.HubEmailTemplates = defaultTemplates;
-                await window.RequestsDbService.saveTemplatesToDb(defaultTemplates);
+                await window.RequestsService.saveTemplatesToDb(defaultTemplates);
             }
         } catch(e) {
             window.HubEmailTemplates = defaultTemplates;
@@ -162,7 +162,7 @@ const RequestsUI = {
 
         window.HubEmailTemplates[select.value] = textarea.value;
         try {
-            await window.RequestsDbService.saveTemplatesToDb(window.HubEmailTemplates);
+            await window.RequestsService.saveTemplatesToDb(window.HubEmailTemplates);
             alert("Modello email salvato con successo per " + select.value + "!");
         } catch(e) {
             alert("Errore nel salvataggio del modello.");
@@ -176,7 +176,7 @@ const RequestsUI = {
         body = encodeURIComponent(body);
         
         try {
-            await window.RequestsDbService.salvaPostaInviata(email, nome, gioco, subject);
+            await window.RequestsService.salvaPostaInviata(email, nome, gioco, subject);
         } catch(e) { console.warn("Errore salvataggio posta inviata:", e); }
 
         window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;

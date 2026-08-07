@@ -130,19 +130,18 @@ const NewsletterUI = {
     },
 
     loadNewsletters: function() {
-        if (!window.fbDb || !window.fbDb.hub) return;
-        window.fbDb.hub.collection("hub_newsletters").orderBy("timestamp", "desc").onSnapshot(snap => {
+        if (!window.NewsletterService) return;
+        window.NewsletterService.listenToNewsletters(dataArray => {
             const list = document.getElementById('newsletter-lista-bozze');
             if(!list) return;
             
             list.innerHTML = '';
-            if(snap.empty) {
+            if(dataArray.length === 0) {
                 list.innerHTML = '<p style="color:#888; text-align:center;">Nessuna bozza salvata.</p>';
                 return;
             }
             
-            snap.forEach(doc => {
-                const data = doc.data();
+            dataArray.forEach(data => {
                 const dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('it-IT') : 'N/A';
                 const div = document.createElement('div');
                 div.style.padding = "10px";
@@ -163,7 +162,7 @@ const NewsletterUI = {
                 delBtn.style = "float:right; background:transparent; border:none; color:#e74c3c; cursor:pointer;";
                 delBtn.onclick = (e) => {
                     e.stopPropagation();
-                    if(confirm("Eliminare questa bozza?")) window.fbDb.hub.collection("hub_newsletters").doc(doc.id).delete();
+                    if(confirm("Eliminare questa bozza?")) window.NewsletterService.deleteNewsletterDraft(data.id);
                 };
                 div.prepend(delBtn);
                 
@@ -173,18 +172,14 @@ const NewsletterUI = {
     },
 
     salvaBozzaNewsletter: async function() {
-        if (!window.fbDb || !window.fbDb.hub) return;
+        if (!window.NewsletterService) return;
         const oggetto = document.getElementById('news-oggetto').value;
         const corpo = document.getElementById('news-corpo').value;
         
         if(!oggetto && !corpo) return alert("Inserisci qualcosa da salvare!");
         
         try {
-            await window.fbDb.hub.collection("hub_newsletters").add({
-                oggetto,
-                corpo,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await window.NewsletterService.saveNewsletterDraft(oggetto, corpo);
             alert("Bozza salvata con successo!");
             document.getElementById('news-oggetto').value = '';
             document.getElementById('news-corpo').value = '';
