@@ -4,20 +4,27 @@ const HubApp = {
 
     init: function() {
         this.bindEvents();
+        if (window.fbAuth && window.AuthService) {
+            window.AuthService.init(window.fbAuth);
+        }
         this.checkAuth();
     },
 
     bindEvents: function() {
-        // Il listener per il login Google è gestito direttamente nell'HTML con onclick="eseguiLoginGoogle()"
+        // Eventuali altri listener
     },
 
     checkAuth: function() {
-        if (!window.fbAuth) {
-            document.getElementById('login-overlay').innerHTML = "<h2 style='color:red;'>Errore Inizializzazione Firebase</h2><p>Controlla la console.</p>";
+        if (!window.fbAuth || !window.AuthService) {
+            document.getElementById('login-overlay').innerHTML = "<h2 style='color:red;'>Errore Inizializzazione Firebase/AuthService</h2><p>Controlla la console.</p>";
             return;
         }
 
-        window.fbAuth.onAuthStateChanged(user => {
+        window.AuthService.onAuthStateChanged((user, error) => {
+            if (error) {
+                console.error(error);
+                return;
+            }
             if (user) {
                 this.user = user;
                 // Controlla se l'utente è l'admin (Prof Memmo)
@@ -38,8 +45,8 @@ const HubApp = {
     },
 
     logout: function() {
-        if (window.fbAuth) {
-            window.fbAuth.signOut().then(() => {
+        if (window.AuthService) {
+            window.AuthService.logout().then(() => {
                 window.location.reload();
             });
         }
@@ -660,28 +667,16 @@ function preparaInvioGmail() {
 
 
 async function eseguiLoginGoogle() {
-    console.log("Login button clicked!");
-    
-    if (!window.fbAuth) {
-        alert("Errore critico: Firebase non è inizializzato. Controlla la console.");
+    console.log("Login button clicked! Deleghiamo ad AuthService...");
+    if (!window.AuthService) {
+        alert("Errore critico: AuthService non caricato.");
         return;
     }
     
-    const provider = new firebase.auth.GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/calendar.events');
-    provider.setCustomParameters({ prompt: 'select_account' });
-    
     try {
-        const result = await window.fbAuth.signInWithPopup(provider);
-        // Il login è andato a buon fine, onAuthStateChanged in checkAuth si occuperà del resto
+        await window.AuthService.login(['https://www.googleapis.com/auth/calendar.events']);
     } catch (e) {
-        console.error("Errore Google Login:", e);
-        if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
-            console.warn("Popup bloccato, fallback su redirect...");
-            window.fbAuth.signInWithRedirect(provider);
-        } else {
-            alert("Si è verificato un errore durante l'accesso con Google: " + e.code + " - " + e.message);
-        }
+        alert("Si è verificato un errore durante l'accesso con Google: " + (e.code || "Sconosciuto") + " - " + e.message);
     }
 }
 
