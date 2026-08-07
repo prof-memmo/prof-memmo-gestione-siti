@@ -51,332 +51,46 @@ const HubApp = {
         this.loadGamesStatus();
         
         // Esegue lo script di riparazione silenziosa DB (una tantum)
-        this.fixDatabasesBackground();
+        if(window.DBFixer) window.DBFixer.fixDatabasesBackground();
         
         // Nuove sezioni
         loadNewsletters();
         this.loadEmailTemplates();
     },
 
-    fixDatabasesBackground: async function() {
-        if (localStorage.getItem("db_fixed_v2")) return;
-        try {
-            console.log("Inizio riparazione background dei DB (Date e Nomi)...");
-            const projects = [
-                { id: "la-rotta-degli-eroi", key: "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A" },
-                { id: "la-corte-della-commedia", key: "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls" },
-                { id: "fantaletteratura-a7ff1", key: "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ" },
-                { id: "palestra-riflessione", key: "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo" }
-            ];
 
-            for (let p of projects) {
-                const tokenManager = await this.getAuthTokenFromDB(p.key);
-                if (!tokenManager || !tokenManager.refreshToken) continue;
-                
-                const refreshRes = await fetch(`https://securetoken.googleapis.com/v1/token?key=${p.key}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `grant_type=refresh_token&refresh_token=${tokenManager.refreshToken}`
-                });
-                const refreshData = await refreshRes.json();
-                const validToken = refreshData.id_token || tokenManager.accessToken;
-
-                const res = await fetch(`https://firestore.googleapis.com/v1/projects/${p.id}/databases/(default)/documents/users?pageSize=1000`, {
-                    headers: { Authorization: `Bearer ${validToken}` }
-                });
-                const data = await res.json();
-                if (!data.documents) continue;
-
-                for (let doc of data.documents) {
-                    const fields = doc.fields || {};
-                    let needsUpdate = false;
-                    let patchBody = { fields: { ...fields } };
-                    let maskPaths = [];
-
-                    // Fix Data
-                    if (!fields.createdAt && !fields.joinedAt) {
-                        needsUpdate = true;
-                        patchBody.fields.createdAt = { timestampValue: "2023-09-01T10:00:00Z" };
-                        maskPaths.push("createdAt");
-                    }
-
-                    // Fix Nome
-                    const hasNome = fields.nome || fields.name || fields.displayName || fields.username;
-                    if (!hasNome) {
-                        const fn = fields.firstName ? fields.firstName.stringValue : '';
-                        const ln = fields.lastName ? fields.lastName.stringValue : '';
-                        if (!fn && !ln) {
-                            needsUpdate = true;
-                            patchBody.fields.nome = { stringValue: "Utente" };
-                            maskPaths.push("nome");
-                        }
-                    }
-
-                    if (needsUpdate) {
-                        let url = `https://firestore.googleapis.com/v1/${doc.name}?` + maskPaths.map(m => `updateMask.fieldPaths=${m}`).join('&');
-                        await fetch(url, {
-                            method: 'PATCH',
-                            headers: { 
-                                Authorization: `Bearer ${validToken}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ fields: patchBody.fields })
-                        });
-                    }
-                }
-            }
-            
-            // Hub db fix
-            if (window.fbDb && window.fbDb.hub) {
-                const snap = await window.fbDb.hub.collection("users").get();
-                const batch = window.fbDb.hub.batch();
-                let count = 0;
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    let u = {};
-                    let upd = false;
-                    if (!d.createdAt && !d.joinedAt) {
-                        u.createdAt = firebase.firestore.Timestamp.fromDate(new Date("2023-09-01T10:00:00Z"));
-                        upd = true;
-                    }
-                    const fn = d.firstName || '';
-                    const ln = d.lastName || '';
-                    const hasNome = d.nome || d.name || d.displayName || d.username;
-                    if (!hasNome && !fn && !ln) {
-                        u.nome = "Utente";
-                        upd = true;
-                    }
-                    if (upd) {
-                        batch.update(doc.ref, u);
-                        count++;
-                    }
-                });
-                if (count > 0) await batch.commit();
-            }
-
-            localStorage.setItem("db_fixed_v2", "true");
-            console.log("Riparazione completata!");
-            
-            // Rimossa window.location.reload() per evitare loop di login e perdita di sessione
-        } catch(e) {
-            console.error("Errore script riparazione:", e);
-        }
-    },
-
-
-    getAuthTokenFromDB: async function(apiKey) {
-        return new Promise((resolve) => {
-            const req = indexedDB.open('firebaseLocalStorageDb');
-            req.onsuccess = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains('firebaseLocalStorage')) return resolve(null);
-                const tx = db.transaction('firebaseLocalStorage', 'readonly');
-                const store = tx.objectStore('firebaseLocalStorage');
-                const getReq = store.get(`firebase:authUser:${apiKey}:[DEFAULT]`);
-                getReq.onsuccess = (e2) => {
-                    if (e2.target.result && e2.target.result.value.stsTokenManager) {
-                        resolve(e2.target.result.value.stsTokenManager);
-                    } else {
-                        resolve(null);
-                    }
-                };
-                getReq.onerror = () => resolve(null);
-            };
-            req.onerror = () => resolve(null);
-        });
-    },
-
-    fetchUsersREST: async function(projectId, apiKey) {
-        try {
-            const tokenManager = await this.getAuthTokenFromDB(apiKey);
-            if (!tokenManager || !tokenManager.refreshToken) return [];
-            
-            // Forza il refresh del token per evitare errori 401/403 (token scaduto dopo 1h)
-            const refreshRes = await fetch(`https://securetoken.googleapis.com/v1/token?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `grant_type=refresh_token&refresh_token=${tokenManager.refreshToken}`
-            });
-            const refreshData = await refreshRes.json();
-            const validToken = refreshData.id_token || tokenManager.accessToken;
-
-            const res = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users?pageSize=1000`, {
-                headers: { Authorization: `Bearer ${validToken}` }
-            });
-            const data = await res.json();
-            if (!data.documents) return [];
-            return data.documents.map(doc => {
-                const fields = doc.fields || {};
-                let dataVal = 0;
-                if (fields.createdAt && fields.createdAt.integerValue) dataVal = parseInt(fields.createdAt.integerValue);
-                else if (fields.joinedAt && fields.joinedAt.integerValue) dataVal = parseInt(fields.joinedAt.integerValue);
-                else if (fields.createdAt && fields.createdAt.timestampValue) dataVal = new Date(fields.createdAt.timestampValue).getTime();
-                else if (fields.joinedAt && fields.joinedAt.timestampValue) dataVal = new Date(fields.joinedAt.timestampValue).getTime();
-                else if (fields.createdAt && fields.createdAt.stringValue) dataVal = new Date(fields.createdAt.stringValue).getTime();
-                else if (fields.joinedAt && fields.joinedAt.stringValue) dataVal = new Date(fields.joinedAt.stringValue).getTime();
-                
-                return {
-                    id: doc.name.split('/').pop(),
-                    nome: (fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || (fields.username && fields.username.stringValue) || (((fields.firstName && fields.firstName.stringValue) || (fields.lastName && fields.lastName.stringValue)) ? (((fields.firstName && fields.firstName.stringValue) || '') + ' ' + ((fields.lastName && fields.lastName.stringValue) || '')).trim() : 'Utente'),
-                    email: (fields.email && fields.email.stringValue) || '',
-                    ruolo: (fields.role && fields.role.stringValue) || 'studente',
-                    classe: (fields.classId && fields.classId.stringValue) || (fields.class && fields.class.stringValue) || 'N/A',
-                    dataValue: dataVal
-                };
-            });
-        } catch(e) {
-            console.error("REST Fetch error for " + projectId, e);
-            return [];
-        }
-    },
 
     loadIscrittiAggregati: async function() {
         try {
             const tbody = document.querySelector('#hub-iscritti-table tbody');
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Caricamento... se rimane bloccato, apri prima le Console Giochi per accedere ai DB!</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Caricamento iscritti da tutti i server...</td></tr>';
             
-            let eroiUsers = [];
-            let commediaUsers = [];
-            let fantaUsers = [];
-            let palestraUsers = [];
-            let opsUsers = [];
-
-            // Fetch da La Rotta degli Eroi (via REST forzato con refresh token)
-            try {
-                const eroiRestUsers = await this.fetchUsersREST("la-rotta-degli-eroi", "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A");
-                eroiRestUsers.forEach(u => {
-                    eroiUsers.push({
-                        ...u, gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship'
-                    });
-                });
-            } catch(e) { console.warn("Eroi REST error:", e); }
-
-            // Fetch da La Corte della Commedia (via REST per bypassare mismatch SDK v8/v10)
-            try {
-                const commediaRestUsers = await this.fetchUsersREST("la-corte-della-commedia", "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls");
-                commediaRestUsers.forEach(u => {
-                    commediaUsers.push({
-                        ...u, gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open'
-                    });
-                });
-            } catch(e) { console.warn("Commedia REST error:", e); }
-
-            // Fetch da Fantaletteratura (via REST forzato con refresh token)
-            try {
-                const fantaRestUsers = await this.fetchUsersREST("fantaletteratura-a7ff1", "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ");
-                fantaRestUsers.forEach(u => {
-                    fantaUsers.push({
-                        ...u, gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon'
-                    });
-                });
-            } catch(e) { console.warn("Fanta REST error:", e); }
-
-            // Fetch da Palestra di Riflessione (via REST per bypassare mismatch SDK v8/v10)
-            try {
-                const palestraRestUsers = await this.fetchUsersREST("palestra-riflessione", "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo");
-                palestraRestUsers.forEach(u => {
-                    palestraUsers.push({
-                        ...u, gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain'
-                    });
-                });
-            } catch(e) { console.warn("Palestra REST error:", e); }
-
-            // Fetch da Ops! Operazione Storia
-            try {
-                const opsRestUsers = await this.fetchUsersREST("ops-storia", "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY");
-                opsRestUsers.forEach(u => {
-                    opsUsers.push({
-                        ...u, gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left'
-                    });
-                });
-            } catch(e) { console.warn("Ops REST error:", e); }
-
-            // Fetch da Hub Centrale (per includere gli iscritti tester)
-            let hubUsers = [];
-            if (window.fbDb.hub) {
-                try {
-                    const snapHub = await window.fbDb.hub.collection("users").get();
-                    snapHub.forEach(doc => {
-                        const data = doc.data();
-                        hubUsers.push({
-                            id: doc.id, nome: data.nome || data.name || data.displayName || data.username || ((data.firstName || data.lastName) ? ((data.firstName || '') + ' ' + (data.lastName || '')).trim() : 'Utente'), email: data.email || '',
-                            ruolo: data.role || 'tester', classe: data.classId || data.class || 'N/A',
-                            dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
-                            gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe'
-                        });
-                    });
-                } catch(e) { console.warn("Hub auth error:", e); }
-            }
-
-            const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers, ...opsUsers, ...hubUsers];
+            const data = await window.CrossProjectsService.fetchAllUsers();
             
-            // Deduplicazione per email (fonde i giochi se l'utente è in più piattaforme)
-            const uniqueUsersMap = new Map();
-            allUsers.forEach(u => {
-                if (u.email && u.email.trim() !== '') {
-                    const emailKey = u.email.trim().toLowerCase();
-                    if (uniqueUsersMap.has(emailKey)) {
-                        let existing = uniqueUsersMap.get(emailKey);
-                        if (!existing.gioco.includes(u.gioco)) {
-                            existing.gioco += " / " + u.gioco;
-                        }
-                        // Se aveva 'Anonimo' o stringhe vuote, e ora abbiamo un nome, aggiorniamo
-                        if ((existing.nome === 'Anonimo' || existing.nome === '') && u.nome !== 'Anonimo' && u.nome !== '') {
-                            existing.nome = u.nome;
-                        }
-                    } else {
-                        uniqueUsersMap.set(emailKey, {...u});
-                    }
-                } else {
-                    // Senza email, usiamo ID come chiave
-                    uniqueUsersMap.set(u.id, {...u});
-                }
-            });
-            
-            const deduplicatedUsers = Array.from(uniqueUsersMap.values());
-            // Default sort: Data Iscrizione decrescente
             this.currentSortCol = 'data';
             this.currentSortAsc = false;
-            deduplicatedUsers.sort((a, b) => b.dataValue - a.dataValue);
-            this.allUsers = deduplicatedUsers; // Salva per i filtri
+            this.allUsers = data.users; // Salva per i filtri
 
             // Aggiorna Contatori
-            // Il totale viene ora aggiornato più in basso (deduplicatedUsers.length)
-            document.getElementById('counter-eroi').innerText = eroiUsers.length;
-            document.getElementById('counter-commedia').innerText = commediaUsers.length;
-            document.getElementById('counter-fanta').innerText = fantaUsers.length;
-            document.getElementById('counter-palestra').innerText = palestraUsers.length;
-            document.getElementById('counter-ops').innerText = opsUsers.length;
-
-            let cStudenti = 0, cDocenti = 0, cViandanti = 0;
-            const scuoleSet = new Set();
-
-            deduplicatedUsers.forEach(u => {
-                const r = (u.ruolo || '').toLowerCase();
-                if (r.includes('student')) cStudenti++;
-                else if (r.includes('teacher') || r.includes('admin') || r.includes('docente')) cDocenti++;
-                else cViandanti++;
-
-                let c = (u.classe || '').toUpperCase().trim();
-                if (c && c !== 'N/A' && c !== '' && c !== 'TEST' && c !== 'N/D') {
-                    scuoleSet.add(c);
-                }
-            });
+            document.getElementById('counter-eroi').innerText = data.stats.eroi;
+            document.getElementById('counter-commedia').innerText = data.stats.commedia;
+            document.getElementById('counter-fanta').innerText = data.stats.fanta;
+            document.getElementById('counter-palestra').innerText = data.stats.palestra;
+            document.getElementById('counter-ops').innerText = data.stats.ops;
 
             const elStudenti = document.getElementById('counter-studenti');
-            if (elStudenti) elStudenti.innerText = cStudenti;
+            if (elStudenti) elStudenti.innerText = data.stats.studenti;
             const elDocenti = document.getElementById('counter-docenti');
-            if (elDocenti) elDocenti.innerText = cDocenti;
+            if (elDocenti) elDocenti.innerText = data.stats.docenti;
             const elViandanti = document.getElementById('counter-viandanti');
-            if (elViandanti) elViandanti.innerText = cViandanti;
+            if (elViandanti) elViandanti.innerText = data.stats.viandanti;
             const elScuole = document.getElementById('counter-scuole');
-            if (elScuole) elScuole.innerText = scuoleSet.size;
+            if (elScuole) elScuole.innerText = data.stats.scuoleSetSize;
             const elTutti = document.getElementById('counter-tutti');
-            if (elTutti) elTutti.innerText = deduplicatedUsers.length;
+            if (elTutti) elTutti.innerText = data.stats.total;
             
-            // Aggiorna anche il contatore gigante al numero di utenti unici
             const elTotal = document.getElementById('counter-total');
-            if (elTotal) elTotal.innerText = deduplicatedUsers.length;
+            if (elTotal) elTotal.innerText = data.stats.total;
 
             this.initNewsUsers();
             this.renderIscrittiTable(this.allUsers);
@@ -387,6 +101,7 @@ const HubApp = {
             document.querySelector('#hub-iscritti-table tbody').innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:red;">Errore caricamento iscritti</td></tr>';
         }
     },
+
 
     renderIscrittiTable: function(usersArray) {
         const tbody = document.querySelector('#hub-iscritti-table tbody');
@@ -1298,39 +1013,6 @@ const HubApp = {
     }
 };
 
-// --- LOGICA GENERATORE AI ---
-function generaPrompt() {
-    const tipo = document.getElementById('ai-tipo-post').value;
-    const gioco = document.getElementById('ai-gioco').selectedOptions[0].text;
-    const argomento = document.getElementById('ai-argomento').value.trim();
-    
-    let base = `Agisci come un Social Media Manager esperto nel settore educativo (EdTech) e ludico.\nIl progetto è "${gioco}". `;
-    if (argomento) {
-        base += `L'argomento specifico del post di oggi è: "${argomento}".\n`;
-    } else {
-        base += `Devi inventare tu un argomento didattico interessante collegato al gioco.\n`;
-    }
-    
-    let specifico = "";
-    if (tipo === 'reel') {
-        specifico = `Genera uno script per un video Reel/TikTok di 60 secondi.\nStruttura richiesta: HOOK (primi 3 sec per catturare attenzione), CORPO (spiegazione dinamica), CALL TO ACTION finale.\nFornisci sia il testo da dire a voce sia le indicazioni su cosa mostrare a video. Tono entusiasta e professionale.`;
-    } else if (tipo === 'carosello') {
-        specifico = `Genera il testo per un Carosello di Instagram (massimo 8 slide).\nStruttura: Slide 1 (Titolo a effetto), Slide 2-7 (Contenuto didattico spezzettato e facile da leggere), Slide 8 (Call to Action e salvataggio post).\nScrivi per ogni slide il TESTO VISIVO (quello che c'è nell'immagine) e scrivi a parte una breve CAPTION generale per il post con gli hashtag appropriati.`;
-    } else if (tipo === 'adv') {
-        specifico = `Genera 3 varianti di COPY PUBBLICITARIO (Facebook/Instagram Ads) per vendere il prodotto/gioco ai docenti.\nVariante 1: Focalizzata sul risparmio di tempo per il docente.\nVariante 2: Focalizzata sul coinvolgimento (engagement) degli studenti.\nVariante 3: Focalizzata sui risultati didattici.\nIncludi emoji e call to action chiare.`;
-    } else if (tipo === 'canva') {
-        specifico = `Genera un prompt testuale dettagliato da inserire in un'Intelligenza Artificiale Generativa (come Midjourney o il generatore immagini di Canva) per creare l'immagine di copertina perfetta per questo argomento.\nDescrivi lo stile visivo (es. vettoriale, flat design, epico, illustrato), i colori dominanti, i soggetti principali e l'atmosfera.`;
-    }
-    
-    document.getElementById('ai-risultato').value = base + "\n\n" + specifico;
-}
-
-function copiaPrompt() {
-    const text = document.getElementById('ai-risultato');
-    text.select();
-    document.execCommand("copy");
-    alert("Prompt copiato! Ora apri ChatGPT o Canva e incollalo.");
-}
 
 // --- LOGICA NEWSLETTER ---
 function loadNewsletters() {
