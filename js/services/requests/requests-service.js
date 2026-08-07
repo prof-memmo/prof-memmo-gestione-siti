@@ -62,6 +62,21 @@ const RequestsService = {
                 });
             } catch(e) { console.warn("Errore fetch richieste palestra", e); }
         }
+
+        // 5. Hub Centrale (Utenti con statoAccount == 'pending')
+        if (window.fbDb && window.fbDb.hub) {
+            try {
+                const snapHub = await window.fbDb.hub.collection("users").where("statoAccount", "==", "pending").get();
+                snapHub.forEach(doc => {
+                    const d = doc.data();
+                    richiesteDati.push({
+                        id: doc.id, gioco: 'Hub (Identità Centrale)',
+                        nome: d.nome || 'Sconosciuto', email: d.email || '', ruolo: d.ruolo || 'Docente',
+                        dataValue: d.dataCreazione ? (d.dataCreazione.toMillis ? d.dataCreazione.toMillis() : new Date(d.dataCreazione).getTime()) : 0
+                    });
+                });
+            } catch(e) { console.warn("Errore fetch richieste hub", e); }
+        }
         
         // Ordina per default per data decrescente
         richiesteDati.sort((a, b) => b.dataValue - a.dataValue);
@@ -101,6 +116,19 @@ const RequestsService = {
             await dbPalestra.collection('users').doc(docId).update({
                 role: 'docente'
             });
+        } else if (gioco === 'Hub (Identità Centrale)') {
+            const dbHub = window.fbDb.hub;
+            await dbHub.collection('users').doc(docId).update({
+                statoAccount: 'active',
+                ruolo: 'docente'
+            });
+            // Step 6: Invio email automatica usando il sistema esistente (hub_posta_inviata)
+            await this.salvaPostaInviata(
+                email, 
+                nome, 
+                'Ecosistema Prof. Memmo', 
+                'Account Docente Approvato'
+            );
         }
     },
 
@@ -113,6 +141,10 @@ const RequestsService = {
             await window.fbDb.commedia.collection('users').doc(docId).delete();
         } else if (gioco === 'Palestra di Riflessione') {
             await window.fbDb.palestra.collection('users').doc(docId).delete();
+        } else if (gioco === 'Hub (Identità Centrale)') {
+            await window.fbDb.hub.collection('users').doc(docId).update({
+                statoAccount: 'rejected'
+            });
         }
     },
 

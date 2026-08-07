@@ -23,6 +23,10 @@ const UserService = {
             piattaformeAbilitate: [],
             dataCreazione: firebase.firestore.FieldValue.serverTimestamp(),
             ultimaAttivita: firebase.firestore.FieldValue.serverTimestamp(),
+            // Predisposizione Fase 3B: Gestione piattaforme collegate e migrazione
+            piattaforme: {}, // es. { fantaletteratura: { stato: 'attiva', ruolo: 'docente', primoAccesso: ts } }
+            legacyUids: {},  // es. { fantaletteratura: 'vecchio_uid' }
+            
             // Struttura predisposta per Step 5 (Override Amministratore)
             adminOverrides: {
                 piano: 'Versione Base', // in futuro 'Versione Completa'
