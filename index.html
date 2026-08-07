@@ -335,6 +335,19 @@
     <div class="nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
       <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i> Panoramica Globale
     </div>
+    <div class="sidebar-section-title">Ecosistema</div>
+    <div class="nav-item" data-target="view-analytics" onclick="switchView('view-analytics')">
+      <i class="fa-solid fa-chart-line" style="color:#6366f1;"></i> Analytics
+    </div>
+    <div class="nav-item" data-target="view-monetizzazione" onclick="switchView('view-monetizzazione')">
+      <i class="fa-solid fa-euro-sign" style="color:#10b981;"></i> Monetizzazione
+    </div>
+    <div class="nav-item" data-target="view-abbonamenti" onclick="switchView('view-abbonamenti')">
+      <i class="fa-solid fa-user-tag" style="color:#8b5cf6;"></i> Abbonamenti
+    </div>
+    <div class="nav-item" data-target="view-impostazioni" onclick="switchView('view-impostazioni')">
+      <i class="fa-solid fa-sliders" style="color:#f59e0b;"></i> Impostazioni Ecosistema
+    </div>
     <div class="sidebar-section-title">Comunicazioni</div>
     <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
       <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter Manager
@@ -368,6 +381,12 @@
     </div>
     <div class="mobile-nav-item" data-target="view-gestione-giochi" onclick="switchView('view-gestione-giochi')">
       <i class="fa-solid fa-gamepad" style="color:#10b981;"></i><span>Giochi</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-analytics" onclick="switchView('view-analytics')">
+      <i class="fa-solid fa-chart-line" style="color:#6366f1;"></i><span>Analytics</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-impostazioni" onclick="switchView('view-impostazioni')">
+      <i class="fa-solid fa-sliders" style="color:#f59e0b;"></i><span>Ecosistema</span>
     </div>
     <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
       <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i><span>News</span>
@@ -555,6 +574,12 @@
                     <option value="Fantaletteratura">Fanta</option>
                     <option value="Palestra di Riflessione">Palestra</option>
                   </select>
+                </th>
+                <th style="vertical-align: top;">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Stato / Piano</div>
+                </th>
+                <th style="vertical-align: top;">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Scadenza</div>
                 </th>
                 <th style="vertical-align: top;">
                   <div style="display: flex; align-items: center; white-space: nowrap;">Contatta</div>
@@ -855,12 +880,97 @@
       </div>
     </div>
 
+    <!-- View: Analytics -->
+    <div id="view-analytics" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-chart-line"></i> Analytics Ecosistema</h2>
+      </div>
+      <div class="glass-panel" style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <i class="fa-solid fa-chart-pie" style="font-size: 3rem; margin-bottom: 15px; color: #6366f1;"></i>
+        <h3>Dashboard in preparazione</h3>
+        <p>Presto potrai monitorare utenti registrati, accessi, piattaforme e andamento nel tempo tramite grafici.</p>
+      </div>
+    </div>
+
+    <!-- View: Monetizzazione -->
+    <div id="view-monetizzazione" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-euro-sign"></i> Monetizzazione</h2>
+      </div>
+      <div class="glass-panel" style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <i class="fa-solid fa-piggy-bank" style="font-size: 3rem; margin-bottom: 15px; color: #10b981;"></i>
+        <h3>Gestione Monetizzazione in preparazione</h3>
+        <p>In questa pagina potrai gestire link PayPal, testi e prezzi futuri.</p>
+      </div>
+    </div>
+
+    <!-- View: Abbonamenti -->
+    <div id="view-abbonamenti" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-user-tag"></i> Abbonamenti</h2>
+      </div>
+      <div class="glass-panel" style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <i class="fa-solid fa-id-card" style="font-size: 3rem; margin-bottom: 15px; color: #8b5cf6;"></i>
+        <h3>Struttura Abbonamenti in preparazione</h3>
+        <p>Permetterà di gestire piano, stato pagamento, attivazione, scadenza e rinnovi per ciascun utente.</p>
+      </div>
+    </div>
+
+    <!-- View: Impostazioni Ecosistema -->
+    <div id="view-impostazioni" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-sliders"></i> Impostazioni Globali Ecosistema</h2>
+      </div>
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <h3 style="margin-top:0; color:var(--text-main);">Interruttori Generali</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Attiva o disattiva le funzioni in tutto l'ecosistema Prof. Memmo.</p>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
+          <div>
+            <strong>Analytics Ecosistema</strong>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Attiva la raccolta e la visualizzazione delle statistiche utente.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-analytics" onchange="EcosistemaUI.toggleSetting('analytics', this.checked)">
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
+          <div>
+            <strong>Mostra pulsante "Sostieni il progetto"</strong>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">ON: mostra pulsanti e messaggi donazione in tutte le piattaforme.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-sostieni" onchange="EcosistemaUI.toggleSetting('sostieni', this.checked)">
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <strong>Sistema Monetizzazione Attivo</strong>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">ON: attiva controlli piani, limitazioni e abilita accessi Base/Completo.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-monetizzazione" onchange="EcosistemaUI.toggleSetting('monetizzazione', this.checked)">
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script src="js/firebase-init.js?v=29"></script>
   <script src="js/utils/ai-prompts.js?v=1"></script>
   <script src="js/utils/db-fixer.js?v=1"></script>
   <script src="js/services/cross-projects.js?v=1"></script>
+  <script src="js/services/hub-db.js?v=1"></script>
+  <script src="js/dashboard/messages-ui.js?v=1"></script>
+  <script src="js/services/requests-db.js?v=1"></script>
+  <script src="js/dashboard/requests-ui.js?v=1"></script>
+  <script src="js/dashboard/ecosistema-ui.js?v=1"></script>
   <script src="js/app_v2.js?v=32"></script>
   <script>
     function toggleSidebar() {
