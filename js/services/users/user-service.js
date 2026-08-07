@@ -76,6 +76,40 @@ const UserService = {
     },
 
     /**
+     * FASE 3B.0 - BRIDGE RICEZIONE
+     * Collega un UID storico di una piattaforma all'Identità Centrale dell'Hub.
+     * Viene chiamato quando l'utente accede a un gioco con il vecchio Auth per sincronizzare gli account.
+     */
+    linkLegacyPlatformUid: async function(hubUid, gameId, legacyUid, gameRole) {
+        if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
+        
+        // Verifica che l'utente esista prima di collegare
+        const docRef = window.fbDb.hub.collection("users").doc(hubUid);
+        const snap = await docRef.get();
+        if (!snap.exists) throw new Error("Profilo centrale Hub non trovato.");
+
+        const updates = {};
+        // 1. Salva l'UID storico per mantenere la corrispondenza
+        updates[`legacyUids.${gameId}`] = legacyUid;
+        
+        // 2. Registra la piattaforma come collegata e attiva
+        updates[`piattaforme.${gameId}`] = {
+            stato: 'attiva',
+            ruolo: gameRole || 'studente',
+            dataAssociazione: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // 3. Aggiunge l'ID del gioco alla lista semplice delle piattaforme abilitate
+        updates.piattaformeAbilitate = firebase.firestore.FieldValue.arrayUnion(gameId);
+        
+        // 4. Aggiorna l'attività
+        updates.ultimaAttivita = firebase.firestore.FieldValue.serverTimestamp();
+
+        await docRef.update(updates);
+        console.log(`[Bridge Hub] Collegamento effettuato con successo: ${hubUid} <-> ${legacyUid} su ${gameId}`);
+    },
+
+    /**
      * Gestisce l'override da parte dell'amministratore (es. sblocchi manuali)
      */
     adminOverrideUser: async function(targetUid, overridesObj) {
