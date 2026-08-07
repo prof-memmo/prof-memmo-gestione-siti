@@ -60,6 +60,32 @@ const AuthService = {
     },
 
     /**
+     * Registra un nuovo utente tramite Email e Password.
+     */
+    registerWithEmail: async function(email, password) {
+        if (!this.authInstance) throw new Error("Servizio di autenticazione non inizializzato.");
+        const userCredential = await this.authInstance.createUserWithEmailAndPassword(email, password);
+        return userCredential.user;
+    },
+
+    /**
+     * Effettua il login tramite Email e Password.
+     */
+    loginWithEmail: async function(email, password) {
+        if (!this.authInstance) throw new Error("Servizio di autenticazione non inizializzato.");
+        const userCredential = await this.authInstance.signInWithEmailAndPassword(email, password);
+        return userCredential.user;
+    },
+
+    /**
+     * Invia l'email per il ripristino della password.
+     */
+    resetPassword: async function(email) {
+        if (!this.authInstance) throw new Error("Servizio di autenticazione non inizializzato.");
+        await this.authInstance.sendPasswordResetEmail(email);
+    },
+
+    /**
      * Esegue il logout.
      */
     logout: async function() {

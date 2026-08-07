@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Ecosistema Prof. Memmo - Login</title>
+  <meta name="theme-color" content="#f3f4f6">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  
+  <style>
+    :root {
+      --bg-color: #f3f4f6;
+      --surface-color: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --border-color: #e5e7eb;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --font-ui: 'Inter', sans-serif;
+      --font-display: 'Outfit', sans-serif;
+    }
+    
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f3f4f6 0%, #e0e7ff 100%);
+      font-family: var(--font-ui);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .portal-container {
+      background: var(--surface-color);
+      width: 100%;
+      max-width: 440px;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 40px;
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portal-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .portal-header img {
+      width: 90px;
+      border-radius: 50%;
+      margin-bottom: 15px;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    }
+
+    .portal-header h1 {
+      font-family: var(--font-display);
+      margin: 0;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .portal-header p {
+      margin: 5px 0 0 0;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 25px;
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 5px;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: var(--surface-color);
+      color: var(--accent);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .view-section {
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--text-main);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      box-sizing: border-box;
+      font-family: var(--font-ui);
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--font-ui);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      margin-top: 10px;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-primary:disabled {
+      background: #a5b4fc;
+      cursor: not-allowed;
+    }
+
+    .btn-google {
+      background: white;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-google:hover {
+      background: #f9fafb;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 20px 0;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .divider:not(:empty)::before {
+      margin-right: .5em;
+    }
+
+    .divider:not(:empty)::after {
+      margin-left: .5em;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 15px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      margin-top: 3px;
+    }
+
+    .link {
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    
+    .link:hover {
+      text-decoration: underline;
+    }
+
+    .forgot-password {
+      text-align: right;
+      font-size: 0.85rem;
+      margin-top: -5px;
+      margin-bottom: 15px;
+    }
+
+    #error-message {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    /* Dashboard UI */
+    .dashboard-header {
+      background: white;
+      padding: 20px 30px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .dashboard-header h1 {
+      font-family: var(--font-display);
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .platforms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .platform-card {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .platform-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border-color: var(--accent);
+    }
+
+    .platform-card.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      filter: grayscale(100%);
+    }
+    
+    .platform-card.disabled:hover {
+      transform: none;
+      box-shadow: var(--shadow);
+      border-color: var(--border-color);
+    }
+
+    .platform-icon {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+    }
+
+    .platform-title {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+    }
+
+    .platform-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin: 0 0 20px 0;
+      flex-grow: 1;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-active { background: #d1fae5; color: #059669; }
+
+  </style>
+</head>
+<body>
+
+  <!-- PORTAL LOGIN OVERLAY -->
+  <div id="portal-login-overlay" class="portal-container">
+    <div class="portal-header">
+      <img src="assets/avatar.png" alt="Prof. Memmo">
+      <h1>Ecosistema Prof. Memmo</h1>
+      <p>Accedi alle tue piattaforme didattiche</p>
+    </div>
+
+    <div id="error-message"></div>
+
+    <div class="tabs" id="auth-tabs">
+      <div class="tab active" onclick="PortalApp.switchTab('login')">Accedi</div>
+      <div class="tab" onclick="PortalApp.switchTab('register')">Registrati</div>
+    </div>
+
+    <!-- VISTA LOGIN -->
+    <div id="view-login" class="view-section active">
+      <button class="btn btn-google" onclick="PortalApp.loginGoogle()">
+        <i class="fa-brands fa-google" style="color:#DB4437;"></i> Accedi con Google
+      </button>
+      
+      <div class="divider">oppure</div>
+
+      <form id="form-login" onsubmit="event.preventDefault(); PortalApp.loginEmail();">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="login-email" class="form-input" required placeholder="La tua email">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" class="form-input" required placeholder="La tua password">
+        </div>
+        <div class="forgot-password">
+          <a class="link" onclick="PortalApp.switchTab('reset')">Hai dimenticato la password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btn-login-submit">Accedi</button>
+      </form>
+    </div>
+
+    <!-- VISTA REGISTRAZIONE -->
+    <div id="view-register" class="view-section">
+      <form id="form-register" onsubmit="event.preventDefault(); PortalApp.registerEmail();">
+        <div class="form-group">
+          <label>Nome e Cognome</label>
+          <input type="text" id="reg-nome" class="form-input" required placeholder="Es. Mario Rossi">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="reg-email" class="form-input" required placeholder="La tua email">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="reg-password" class="form-input" required placeholder="Scegli una password sicura (min. 6 car.)" minlength="6">
+        </div>
+        
+        <div class="form-group">
+          <label>Ruolo</label>
+          <select id="reg-ruolo" class="form-input" required>
+            <option value="studente">Studente</option>
+            <option value="docente">Docente</option>
+            <option value="amico_del_prof">Amico del Prof / Esterno</option>
+          </select>
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="reg-terms" onchange="PortalApp.checkTerms()">
+          <label for="reg-terms">Ho letto e accetto i <a href="#" class="link">Termini di Servizio</a> e la <a href="#" class="link">Privacy Policy</a>.</label>
+        </div>
+        
+        <div class="checkbox-group">
+          <input type="checkbox" id="reg-newsletter">
+          <label for="reg-newsletter">Acconsento a ricevere comunicazioni, aggiornamenti sui giochi e newsletter didattiche dal Prof. Memmo.</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-reg-email" disabled>Registrati con Email</button>
+        
+        <div class="divider">oppure</div>
+        
+        <button type="button" class="btn btn-google" id="btn-reg-google" disabled onclick="PortalApp.registerGoogle()">
+          <i class="fa-brands fa-google" style="color:#DB4437;"></i> Registrati con Google
+        </button>
+      </form>
+    </div>
+
+    <!-- VISTA RECUPERO PASSWORD -->
+    <div id="view-reset" class="view-section">
+      <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 20px;">Inserisci la tua email per ricevere un link di ripristino della password.</p>
+      <form id="form-reset" onsubmit="event.preventDefault(); PortalApp.resetPassword();">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="reset-email" class="form-input" required placeholder="La tua email">
+        </div>
+        <button type="submit" class="btn btn-primary" id="btn-reset-submit">Invia Link di Ripristino</button>
+      </form>
+      <div style="text-align:center; margin-top:15px;">
+        <a class="link" onclick="PortalApp.switchTab('login')">Torna al Login</a>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- DASHBOARD UTENTE (nascosta di default) -->
+  <div id="portal-dashboard" style="display:none; width: 100%; min-height: 100vh; flex-direction: column;">
+    <div class="dashboard-header">
+      <h1 id="user-greeting">Benvenuto!</h1>
+      <button class="btn btn-google" style="width:auto; padding: 8px 15px;" onclick="PortalApp.logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Esci
+      </button>
+    </div>
+
+    <div id="teacher-pending-banner" style="display:none; background:#fef3c7; color:#92400e; padding:15px 30px; text-align:center; font-weight:500;">
+      <i class="fa-solid fa-clock"></i> Il tuo account Docente è in attesa di approvazione. 
+      Potrai accedere agli strumenti dedicati non appena il Prof. Memmo verificherà la tua richiesta.
+    </div>
+
+    <div class="platforms-grid">
+      <!-- FantaLetteratura -->
+      <div class="platform-card" onclick="PortalApp.openPlatform('fantaletteratura')">
+        <div class="platform-icon" style="color:#a855f7;"><i class="fa-solid fa-dragon"></i></div>
+        <h3 class="platform-title">FantaLetteratura</h3>
+        <p class="platform-desc">Costruisci la tua squadra di autori e generi letterari sfidandoti in un fanta-campionato culturale.</p>
+      </div>
+      
+      <!-- La Rotta degli Eroi (Disabilitata per test) -->
+      <div class="platform-card disabled">
+        <div class="platform-icon" style="color:#3b82f6;"><i class="fa-solid fa-ship"></i></div>
+        <h3 class="platform-title">La Rotta degli Eroi</h3>
+        <p class="platform-desc">In arrivo. Piattaforma attualmente non collegata all'Ecosistema Centrale.</p>
+      </div>
+      
+      <!-- Palestra di Riflessione (Disabilitata per test) -->
+      <div class="platform-card disabled">
+        <div class="platform-icon" style="color:#22c55e;"><i class="fa-solid fa-brain"></i></div>
+        <h3 class="platform-title">Palestra di Riflessione</h3>
+        <p class="platform-desc">In arrivo. Piattaforma attualmente non collegata all'Ecosistema Centrale.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/firebase-init.js"></script>
+  <script src="js/services/auth/auth-service.js"></script>
+  <script src="js/services/users/user-service.js"></script>
+  <script src="js/portal.js"></script>
+</body>
+</html>
