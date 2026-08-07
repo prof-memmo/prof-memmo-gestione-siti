@@ -11,63 +11,79 @@
 
 const UserService = {
     /**
-     * Inizializzazione futura
+     * Struttura base per un nuovo utente centrale dell'Hub
      */
-    init: function() {
-        console.log("UserService predisposto per futura implementazione.");
+    getDefaultProfile: function(nome, email, ruoloIniziale = 'studente', fotoProfilo = '') {
+        return {
+            nome: nome,
+            email: email,
+            fotoProfilo: fotoProfilo,
+            ruolo: ruoloIniziale, // studente, docente, amico_del_prof
+            statoAccount: ruoloIniziale === 'docente' ? 'pending' : 'active',
+            piattaformeAbilitate: [],
+            dataCreazione: firebase.firestore.FieldValue.serverTimestamp(),
+            ultimaAttivita: firebase.firestore.FieldValue.serverTimestamp(),
+            // Struttura predisposta per Step 5 (Override Amministratore)
+            adminOverrides: {
+                piano: 'Versione Base', // in futuro 'Versione Completa'
+                permessiSpeciali: [],
+                override: false,
+                noteAmministratore: ''
+            }
+        };
+    },
+
+    /**
+     * Crea un nuovo profilo utente centrale nell'Hub
+     */
+    createUserProfile: async function(uid, nome, email, ruolo) {
+        if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
+        
+        // I ruoli ammessi sono: studente, docente, amico_del_prof
+        const validRoles = ['studente', 'docente', 'amico_del_prof', 'admin'];
+        if (!validRoles.includes(ruolo)) {
+            ruolo = 'studente'; // fallback
+        }
+
+        const newUser = this.getDefaultProfile(nome, email, ruolo);
+        await window.fbDb.hub.collection("users").doc(uid).set(newUser);
+        return newUser;
     },
 
     /**
      * Recupera il profilo completo dell'utente (Identità, Piattaforme, Piano)
      */
     getUserProfile: async function(uid) {
-        // TODO (Fase 3): Fetch dal database centrale
-        return null;
+        if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
+        const doc = await window.fbDb.hub.collection("users").doc(uid).get();
+        return doc.exists ? doc.data() : null;
     },
 
     /**
-     * Aggiorna ruolo e permessi base dell'utente
+     * Aggiorna ruolo e stato dell'utente
      */
-    updateUserRole: async function(uid, role) {
-        // TODO (Fase 3)
-    },
-
-    /**
-     * Gestisce il processo di verifica e approvazione per gli account 'docente'
-     */
-    approveTeacherStatus: async function(uid, isApproved) {
-        // TODO (Fase 3)
-    },
-
-    /**
-     * Recupera i permessi specifici (es. accesso a funzioni Premium o Admin)
-     */
-    getUserPermissions: async function(uid) {
-        // TODO (Fase 3)
-        return {};
-    },
-
-    /**
-     * Verifica e aggiorna il piano abbonamento (Base/Completo)
-     */
-    getUserPlan: async function(uid) {
-        // TODO (Fase 3)
-        return 'Base';
-    },
-
-    /**
-     * Gestisce il collegamento dell'utente alle varie piattaforme (es. Fanta, Eroi, ecc.)
-     */
-    getConnectedPlatforms: async function(uid) {
-        // TODO (Fase 3)
-        return [];
+    updateUserRoleAndStatus: async function(uid, ruolo, statoAccount) {
+        if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
+        const updates = { ultimaAttivita: firebase.firestore.FieldValue.serverTimestamp() };
+        if (ruolo) updates.ruolo = ruolo;
+        if (statoAccount) updates.statoAccount = statoAccount;
+        
+        await window.fbDb.hub.collection("users").doc(uid).update(updates);
     },
 
     /**
      * Gestisce l'override da parte dell'amministratore (es. sblocchi manuali)
      */
-    adminOverrideUser: async function(adminUid, targetUid, overrides) {
-        // TODO (Fase 3)
+    adminOverrideUser: async function(targetUid, overridesObj) {
+        if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
+        // overridesObj conterrà { piano: '...', permessiSpeciali: [...], noteAmministratore: '...' }
+        const updates = {};
+        for (const [key, value] of Object.entries(overridesObj)) {
+            updates[`adminOverrides.${key}`] = value;
+        }
+        updates['adminOverrides.override'] = true;
+        
+        await window.fbDb.hub.collection("users").doc(targetUid).update(updates);
     }
 };
 
