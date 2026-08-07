@@ -1,0 +1,170 @@
+// --- Users UI Service ---
+// Gestisce esclusivamente l'interfaccia della pagina Utenti.
+// Si occupa di: rendering tabelle, ordinamenti, filtri, ricerca.
+// NON contiene logiche di business o query al DB (delegate a UserService).
+
+const UsersUI = {
+    allUsers: [],
+    currentSortCol: 'nome',
+    currentSortAsc: true,
+    activeRoleFilter: 'tutti',
+
+    init: function() {
+        console.log("UsersUI inizializzato.");
+        // Predisposto per l'aggancio di modali futuri (es. approvazione docenti, cambio piano)
+    },
+
+    /**
+     * Riceve i dati utente dal servizio centrale e avvia il rendering
+     */
+    setUsers: function(usersArray) {
+        this.allUsers = usersArray || [];
+        this.currentSortCol = 'data';
+        this.currentSortAsc = false;
+        this.renderIscrittiTable(this.allUsers);
+    },
+
+    /**
+     * Aggiorna i contatori in cima alla dashboard
+     */
+    updateCounters: function(stats) {
+        if (!stats) return;
+        const setHtml = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = val || 0;
+        };
+
+        setHtml('counter-eroi', stats.eroi);
+        setHtml('counter-commedia', stats.commedia);
+        setHtml('counter-fanta', stats.fanta);
+        setHtml('counter-palestra', stats.palestra);
+        setHtml('counter-ops', stats.ops);
+        setHtml('counter-studenti', stats.studenti);
+        setHtml('counter-docenti', stats.docenti);
+        setHtml('counter-viandanti', stats.viandanti);
+        setHtml('counter-scuole', stats.scuoleSetSize);
+        setHtml('counter-tutti', stats.total);
+        setHtml('counter-total', stats.total);
+    },
+
+    /**
+     * Renderizza la tabella iscritti
+     */
+    renderIscrittiTable: function(usersArray) {
+        const tbody = document.querySelector('#hub-iscritti-table tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        
+        if (!usersArray || usersArray.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">Nessun iscritto trovato con questi criteri.</td></tr>';
+            return;
+        }
+
+        usersArray.forEach(user => {
+            const tr = document.createElement('tr');
+            const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
+            
+            // Predisposizione Fase 3: la colonna "Piano" per ora è statica, in futuro userà user.plan
+            const userPlan = user.plan || 'Base (Gratuito)';
+            
+            tr.innerHTML = `
+                <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
+                <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
+                <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
+                <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
+                <td style="padding: 10px;"><span style="background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">${userPlan}</span></td>
+                <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">-</td>
+                <td style="padding: 10px; text-align:center;">
+                    <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); font-size:1.1rem; text-decoration:none;"><i class="fa-solid fa-envelope"></i></a>
+                    <!-- Placeholder per future azioni amministrative (Sospensione, Approvazione, Override) -->
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    },
+
+    /**
+     * Ordinamento della tabella
+     */
+    sortIscritti: function(column) {
+        if (!this.allUsers || this.allUsers.length === 0) return;
+
+        if (this.currentSortCol === column) {
+            this.currentSortAsc = !this.currentSortAsc; // Inverti
+        } else {
+            this.currentSortCol = column;
+            this.currentSortAsc = true;
+        }
+
+        this.allUsers.sort((a, b) => {
+            if (column === 'data') {
+                let valA = a.dataValue || 0;
+                let valB = b.dataValue || 0;
+                if (valA < valB) return this.currentSortAsc ? -1 : 1;
+                if (valA > valB) return this.currentSortAsc ? 1 : -1;
+                return 0;
+            }
+
+            let valA = (a[column] || '').toString().toLowerCase();
+            let valB = (b[column] || '').toString().toLowerCase();
+            
+            if (valA < valB) return this.currentSortAsc ? -1 : 1;
+            if (valA > valB) return this.currentSortAsc ? 1 : -1;
+            return 0;
+        });
+        
+        this.filterIscritti(); // Ridisegna con i filtri attivi
+    },
+
+    /**
+     * Filtro rapido tramite le "card" superiori (Studenti, Docenti, ecc.)
+     */
+    filterIscrittiByCard: function(roleType) {
+        this.activeRoleFilter = roleType;
+        
+        // Update UI Cards
+        document.querySelectorAll('.hub-card').forEach(card => card.classList.remove('active'));
+        const activeCard = document.getElementById(`card-stats-${roleType}`);
+        if (activeCard) activeCard.classList.add('active');
+
+        this.filterIscritti();
+    },
+
+    /**
+     * Applica tutti i filtri (Testuale, Gioco, Ruolo, e futuri filtri Piano/Piattaforma)
+     */
+    filterIscritti: function() {
+        const searchInput = document.getElementById('search-iscritti') ? document.getElementById('search-iscritti').value.toLowerCase() : '';
+        const filterGioco = document.getElementById('filter-gioco') ? document.getElementById('filter-gioco').value : 'all';
+        // Predisposizione futuri filtri (es. Piano Abbonamento, Stato Sospensione)
+
+        if (!this.allUsers) return;
+
+        const filtered = this.allUsers.filter(user => {
+            const matchesSearch = user.nome.toLowerCase().includes(searchInput) || (user.email && user.email.toLowerCase().includes(searchInput));
+            const matchesGioco = filterGioco === 'all' || user.gioco === filterGioco;
+            
+            let matchesRole = true;
+            if (this.activeRoleFilter !== 'tutti') {
+                const r = (user.ruolo || '').toLowerCase();
+                const c = (user.classe || '').toUpperCase().trim();
+                
+                if (this.activeRoleFilter === 'studenti') {
+                    matchesRole = r.includes('student');
+                } else if (this.activeRoleFilter === 'docenti') {
+                    matchesRole = r.includes('teacher') || r.includes('admin') || r.includes('docente');
+                } else if (this.activeRoleFilter === 'viandanti') {
+                    matchesRole = !r.includes('student') && !r.includes('teacher') && !r.includes('admin') && !r.includes('docente');
+                } else if (this.activeRoleFilter === 'scuole') {
+                    matchesRole = (c && c !== 'N/A' && c !== '' && c !== 'TEST' && c !== 'N/D');
+                }
+            }
+
+            return matchesSearch && matchesGioco && matchesRole;
+        });
+
+        this.renderIscrittiTable(filtered);
+    }
+};
+
+window.UsersUI = UsersUI;

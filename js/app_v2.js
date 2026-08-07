@@ -56,6 +56,7 @@ const HubApp = {
         if(window.MessagesUI) window.MessagesUI.init();
         
         // Inizializza i nuovi sottomoduli UI
+        if(window.UsersUI) window.UsersUI.init();
         if(window.GamesUI) window.GamesUI.init();
         if(window.NewsletterUI) window.NewsletterUI.init();
         
@@ -72,33 +73,14 @@ const HubApp = {
             
             const data = await window.CrossProjectsService.fetchAllUsers();
             
-            this.currentSortCol = 'data';
-            this.currentSortAsc = false;
-            this.allUsers = data.users; // Salva per i filtri
-
-            // Aggiorna Contatori
-            document.getElementById('counter-eroi').innerText = data.stats.eroi;
-            document.getElementById('counter-commedia').innerText = data.stats.commedia;
-            document.getElementById('counter-fanta').innerText = data.stats.fanta;
-            document.getElementById('counter-palestra').innerText = data.stats.palestra;
-            document.getElementById('counter-ops').innerText = data.stats.ops;
-
-            const elStudenti = document.getElementById('counter-studenti');
-            if (elStudenti) elStudenti.innerText = data.stats.studenti;
-            const elDocenti = document.getElementById('counter-docenti');
-            if (elDocenti) elDocenti.innerText = data.stats.docenti;
-            const elViandanti = document.getElementById('counter-viandanti');
-            if (elViandanti) elViandanti.innerText = data.stats.viandanti;
-            const elScuole = document.getElementById('counter-scuole');
-            if (elScuole) elScuole.innerText = data.stats.scuoleSetSize;
-            const elTutti = document.getElementById('counter-tutti');
-            if (elTutti) elTutti.innerText = data.stats.total;
+            this.allUsers = data.users; // Salva per i filtri globali (se serve ad altri moduli)
             
-            const elTotal = document.getElementById('counter-total');
-            if (elTotal) elTotal.innerText = data.stats.total;
+            // Passa i dati al modulo Dashboard Utenti (UI)
+            if (window.UsersUI) {
+                window.UsersUI.updateCounters(data.stats);
+                window.UsersUI.setUsers(data.users);
+            }
 
-            this.renderIscrittiTable(this.allUsers);
-            
             // Passa i dati al modulo Newsletter
             if(window.NewsletterUI) window.NewsletterUI.setUsers(this.allUsers);
 
@@ -109,107 +91,10 @@ const HubApp = {
     },
 
 
-    renderIscrittiTable: function(usersArray) {
-        const tbody = document.querySelector('#hub-iscritti-table tbody');
-        tbody.innerHTML = '';
-        if (usersArray.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">Nessun iscritto trovato con questi criteri.</td></tr>';
-            return;
-        }
-
-        usersArray.forEach(user => {
-            const tr = document.createElement('tr');
-            const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
-            tr.innerHTML = `
-                <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
-                <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
-                <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
-                <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
-                <td style="padding: 10px;"><span style="background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">Base (Gratuito)</span></td>
-                <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">-</td>
-                <td style="padding: 10px; text-align:center;"><a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); font-size:1.1rem; text-decoration:none;"><i class="fa-solid fa-envelope"></i></a></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    },
-
-    currentSortCol: 'nome',
-    currentSortAsc: true,
-
-    sortIscritti: function(column) {
-        if (!this.allUsers || this.allUsers.length === 0) return;
-
-        if (this.currentSortCol === column) {
-            this.currentSortAsc = !this.currentSortAsc; // Inverti
-        } else {
-            this.currentSortCol = column;
-            this.currentSortAsc = true;
-        }
-
-        this.allUsers.sort((a, b) => {
-            if (column === 'data') {
-                let valA = a.dataValue || 0;
-                let valB = b.dataValue || 0;
-                if (valA < valB) return this.currentSortAsc ? -1 : 1;
-                if (valA > valB) return this.currentSortAsc ? 1 : -1;
-                return 0;
-            }
-
-            let valA = (a[column] || '').toString().toLowerCase();
-            let valB = (b[column] || '').toString().toLowerCase();
-            
-            if (valA < valB) return this.currentSortAsc ? -1 : 1;
-            if (valA > valB) return this.currentSortAsc ? 1 : -1;
-            return 0;
-        });
-        
-        this.filterIscritti(); // Ridisegna con i filtri attivi
-    },
-
-    activeRoleFilter: 'tutti',
-
-    filterIscrittiByCard: function(roleType) {
-        this.activeRoleFilter = roleType;
-        
-        // Update UI
-        document.querySelectorAll('.hub-card').forEach(card => card.classList.remove('active'));
-        const activeCard = document.getElementById(`card-stats-${roleType}`);
-        if (activeCard) activeCard.classList.add('active');
-
-        this.filterIscritti();
-    },
-
-    filterIscritti: function() {
-        const searchInput = document.getElementById('search-iscritti').value.toLowerCase();
-        const filterGioco = document.getElementById('filter-gioco').value;
-
-        if (!this.allUsers) return;
-
-        const filtered = this.allUsers.filter(user => {
-            const matchesSearch = user.nome.toLowerCase().includes(searchInput) || (user.email && user.email.toLowerCase().includes(searchInput));
-            const matchesGioco = filterGioco === 'all' || user.gioco === filterGioco;
-            
-            let matchesRole = true;
-            if (this.activeRoleFilter !== 'tutti') {
-                const r = (user.ruolo || '').toLowerCase();
-                const c = (user.classe || '').toUpperCase().trim();
-                
-                if (this.activeRoleFilter === 'studenti') {
-                    matchesRole = r.includes('student');
-                } else if (this.activeRoleFilter === 'docenti') {
-                    matchesRole = r.includes('teacher') || r.includes('admin') || r.includes('docente');
-                } else if (this.activeRoleFilter === 'viandanti') {
-                    matchesRole = !r.includes('student') && !r.includes('teacher') && !r.includes('admin') && !r.includes('docente');
-                } else if (this.activeRoleFilter === 'scuole') {
-                    matchesRole = (c && c !== 'N/A' && c !== '' && c !== 'TEST' && c !== 'N/D');
-                }
-            }
-
-            return matchesSearch && matchesGioco && matchesRole;
-        });
-
-        this.renderIscrittiTable(filtered);
-    },
+    // --- BRIDGE DASHBOARD UTENTI (Richiamati da HTML via HubApp.*) ---
+    sortIscritti: function(column) { if(window.UsersUI) window.UsersUI.sortIscritti(column); },
+    filterIscrittiByCard: function(roleType) { if(window.UsersUI) window.UsersUI.filterIscrittiByCard(roleType); },
+    filterIscritti: function() { if(window.UsersUI) window.UsersUI.filterIscritti(); },
     
     // --- BRIDGE NEWSLETTER (Richiamati da HTML via HubApp.*) ---
     sortNews: function(column) { if(window.NewsletterUI) window.NewsletterUI.sortNews(column); },
