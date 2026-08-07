@@ -337,9 +337,19 @@
       margin-bottom: 15px;
     }
     
-    .status-pending { background: #fef3c7; color: #d97706; }
-    .status-active { background: #d1fae5; color: #059669; }
+    #teacher-pending-banner { display:none; background:#fef3c7; color:#92400e; padding:15px 30px; text-align:center; font-weight:500; }
+    #account-blocked-banner { display:none; background:#fee2e2; color:#991b1b; padding:15px 30px; text-align:center; font-weight:500; }
 
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); display: none;
+      justify-content: center; align-items: center; z-index: 100;
+    }
+    .modal-content {
+      background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px;
+      box-shadow: var(--shadow);
+    }
   </style>
 </head>
 <body>
@@ -454,32 +464,42 @@
       </button>
     </div>
 
-    <div id="teacher-pending-banner" style="display:none; background:#fef3c7; color:#92400e; padding:15px 30px; text-align:center; font-weight:500;">
+    <div id="teacher-pending-banner">
       <i class="fa-solid fa-clock"></i> Il tuo account Docente è in attesa di approvazione. 
       Potrai accedere agli strumenti dedicati non appena il Prof. Memmo verificherà la tua richiesta.
     </div>
 
-    <div class="platforms-grid">
-      <!-- FantaLetteratura -->
-      <div class="platform-card" onclick="PortalApp.openPlatform('fantaletteratura')">
-        <div class="platform-icon" style="color:#a855f7;"><i class="fa-solid fa-dragon"></i></div>
-        <h3 class="platform-title">FantaLetteratura</h3>
-        <p class="platform-desc">Costruisci la tua squadra di autori e generi letterari sfidandoti in un fanta-campionato culturale.</p>
-      </div>
+    <div id="account-blocked-banner">
+      <i class="fa-solid fa-ban"></i> Il tuo account è stato bloccato o rifiutato.
+      Contatta l'amministratore per maggiori informazioni.
+    </div>
+
+    <div class="platforms-grid" id="platforms-container">
+      <!-- Generato dinamicamente via JS -->
+    </div>
+  </div>
+
+  <!-- MODAL SMART ROLE CATCH -->
+  <div class="modal-overlay" id="role-modal">
+    <div class="modal-content">
+      <h2 style="margin-top:0;">Completa la Registrazione</h2>
+      <p style="color:var(--text-muted); font-size:0.9rem;">Per completare l'accesso, scegli il tuo ruolo:</p>
       
-      <!-- La Rotta degli Eroi (Disabilitata per test) -->
-      <div class="platform-card disabled">
-        <div class="platform-icon" style="color:#3b82f6;"><i class="fa-solid fa-ship"></i></div>
-        <h3 class="platform-title">La Rotta degli Eroi</h3>
-        <p class="platform-desc">In arrivo. Piattaforma attualmente non collegata all'Ecosistema Centrale.</p>
+      <div class="form-group">
+        <select id="modal-ruolo" class="form-input">
+          <option value="studente">Studente</option>
+          <option value="docente">Docente</option>
+          <option value="amico_del_prof">Amico del Prof / Esterno</option>
+        </select>
       </div>
-      
-      <!-- Palestra di Riflessione (Disabilitata per test) -->
-      <div class="platform-card disabled">
-        <div class="platform-icon" style="color:#22c55e;"><i class="fa-solid fa-brain"></i></div>
-        <h3 class="platform-title">Palestra di Riflessione</h3>
-        <p class="platform-desc">In arrivo. Piattaforma attualmente non collegata all'Ecosistema Centrale.</p>
+
+      <div class="checkbox-group" style="margin-top:20px;">
+        <input type="checkbox" id="modal-terms" onchange="PortalApp.checkModalTerms()">
+        <label for="modal-terms">Ho letto e accetto i <a href="#" class="link">Termini di Servizio</a> e la <a href="#" class="link">Privacy Policy</a>.</label>
       </div>
+
+      <button class="btn btn-primary" id="btn-modal-submit" disabled onclick="PortalApp.submitSmartRole()">Conferma e Continua</button>
+      <button class="btn btn-google" style="margin-top:10px;" onclick="PortalApp.logout()">Annulla ed Esci</button>
     </div>
   </div>
 
