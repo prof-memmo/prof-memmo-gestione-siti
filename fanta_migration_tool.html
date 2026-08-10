@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>FantaLetteratura Migration Tool</title>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-init.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #log { background: #1e1e1e; color: #00ff00; padding: 10px; font-family: monospace; white-space: pre-wrap; height: 400px; overflow-y: auto; border-radius: 5px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>FantaLetteratura -> Hub Migration Tool</h1>
+  <p>Questo script migrerà i dati dal database originale `fantaletteratura-a7ff1` al nuovo `prof-memmo-hub` (aggiungendo il prefisso `fanta_`).</p>
+  
+  <div>
+    <input type="email" id="adminEmail" placeholder="Email Admin" value="prof.memmo@gmail.com" />
+    <input type="password" id="adminPwd" placeholder="Password Admin" />
+    <button onclick="startMigration()">Avvia Migrazione</button>
+  </div>
+
+  <div id="log">Pronto...</div>
+
+  <script>
+    const logEl = document.getElementById('log');
+    function log(msg) {
+        logEl.innerHTML += msg + '\n';
+        logEl.scrollTop = logEl.scrollHeight;
+        console.log(msg);
+    }
+
+    async function copyCollection(sourceDb, targetDb, sourceColl, targetColl) {
+        log(`Migrazione di ${sourceColl} -> ${targetColl}...`);
+        const snapshot = await sourceDb.collection(sourceColl).get();
+        if (snapshot.empty) {
+            log(`- ${sourceColl} è vuota.`);
+            return;
+        }
+        
+        let count = 0;
+        const batchSize = 100;
+        let batch = targetDb.batch();
+        
+        for (let i = 0; i < snapshot.docs.length; i++) {
+            const doc = snapshot.docs[i];
+            const targetRef = targetDb.collection(targetColl).doc(doc.id);
+            batch.set(targetRef, doc.data());
+            count++;
+            
+            if (count % batchSize === 0) {
+                await batch.commit();
+                log(`- Scritti ${count} documenti...`);
+                batch = targetDb.batch();
+            }
+        }
+        
+        if (count % batchSize !== 0) {
+            await batch.commit();
+        }
+        log(`✓ Completata ${sourceColl}: ${count} documenti migrati.`);
+    }
+
+    async function startMigration() {
+        const email = document.getElementById('adminEmail').value;
+        const pwd = document.getElementById('adminPwd').value;
+        if(!pwd) { alert("Inserisci password admin"); return; }
+        
+        log("Autenticazione come admin sull'Hub in corso...");
+        try {
+            await window.fbAuth.signInWithEmailAndPassword(email, pwd);
+            log("✓ Autenticazione completata. Admin riconosciuto.");
+            
+            // Le istanze Db
+            const oldDb = window.fbDb.fanta;
+            const newDb = window.fbDb.hub;
+            
+            const collectionsToMigrate = [
+                'users', 'teams', 'missions', 'tournaments', 'invites', 
+                'pending_requests', 'archives', 'minigame_logs', 'games_status', 'settings'
+            ];
+            
+            for (let coll of collectionsToMigrate) {
+                await copyCollection(oldDb, newDb, coll, `fanta_${coll}`);
+            }
+            
+            log("-----------------------------------------");
+            log("✅ MIGRAZIONE FANTALETTERATURA COMPLETATA!");
+            log("-----------------------------------------");
+            
+        } catch(e) {
+            log(`❌ Errore: ${e.message}`);
+        }
+    }
+  </script>
+</body>
+</html>

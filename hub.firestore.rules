@@ -8,11 +8,9 @@ service cloud.firestore {
     
     // Verifica se l'utente autenticato è Amministratore (Admin)
     function isAdmin() {
-      // TODO: Il controllo tramite email è un fallback temporaneo per non rompere 
-      // l'attuale accesso. Verrà rimosso quando il ruolo admin sarà completamente centralizzato.
       let isEmailAdmin = request.auth != null && request.auth.token.email == 'prof.memmo@gmail.com';
-      let isRoleAdmin = request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.ruolo == 'admin';
-      return isEmailAdmin || isRoleAdmin;
+      // In futuro leggere il ruolo da hub_users, per ora evitiamo cicli infiniti
+      return isEmailAdmin;
     }
     
     // Verifica se l'utente sta agendo sul proprio documento
@@ -23,34 +21,31 @@ service cloud.firestore {
     // Verifica che l'utente non stia tentando di auto-assegnarsi privilegi
     function noPrivilegeEscalation() {
       let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
-      return !affectedKeys.hasAny(['ruolo', 'statoAccount', 'adminOverrides']);
+      return !affectedKeys.hasAny(['role', 'statusAccount', 'subscription', 'platforms', 'adminOverrides']);
     }
 
-    // Valida la creazione iniziale di un profilo
+    // Valida la creazione iniziale di un profilo hub_users
     function isValidNewUser() {
       let data = request.resource.data;
-      let isAllowedRole = data.ruolo in ['studente', 'docente', 'amico_del_prof'];
+      let isAllowedRole = data.role in ['studente', 'docente', 'esploratore'];
       
       // Controllo di coerenza iniziale
-      let isValidTeacher = (data.ruolo == 'docente' && data.statoAccount == 'pending');
-      let isValidNormalUser = (data.ruolo != 'docente' && data.statoAccount == 'active');
+      let isValidTeacher = (data.role == 'docente' && data.statusAccount == 'pending');
+      let isValidNormalUser = (data.role != 'docente' && data.statusAccount == 'active');
       
-      // Assicura che non si nasca con adminOverrides alterati
-      let hasNoPrivilegedOverrides = data.adminOverrides.override == false 
-                                  && data.adminOverrides.permessiSpeciali.size() == 0;
-                                  
-      return isAllowedRole && (isValidTeacher || isValidNormalUser) && hasNoPrivilegedOverrides;
+      // Assicura che non si nasca con subscription premium o adminOverrides alterati
+      let hasDefaultSub = data.subscription == 'base';
+      
+      return isAllowedRole && (isValidTeacher || isValidNormalUser) && hasDefaultSub;
     }
 
     // ==============================================================
     // PROFILI UTENTE CENTRALI (L'identità dell'Ecosistema)
     // ==============================================================
-    match /users/{userId} {
+    match /hub_users/{userId} {
       
       // Lettura: 
       // L'owner può leggere solo sé stesso. L'Admin può leggere tutti.
-      // TODO (Fase 3B): Predisposizione per consentire ai backend dei giochi 
-      // di accedere al profilo centrale per verificare ruolo e stato.
       allow read: if isOwner(userId) || isAdmin();
       
       // Creazione: 
@@ -58,7 +53,7 @@ service cloud.firestore {
       allow create: if isOwner(userId) && isValidNewUser();
       
       // Aggiornamento: 
-      // L'admin modifica qualsiasi cosa. L'owner aggiorna solo dati non critici.
+      // L'admin modifica qualsiasi cosa. L'owner aggiorna solo dati non critici (es. anagrafica.nome).
       allow update: if isAdmin() || (isOwner(userId) && noPrivilegeEscalation());
       
       // Eliminazione: 
@@ -84,5 +79,114 @@ service cloud.firestore {
     match /hub_esperienze/{docId} {
       allow read, write: if isAdmin();
     }
+    
+    // ==============================================================
+    // REGOLE FANTALETTERATURA (Namespace fanta_*)
+    // ==============================================================
+    
+    function currentUserEmail() {
+      return request.auth.token.email.lower();
+    }
+    
+    // Verifica l'autorizzazione centrale dell'Hub per accedere a FantaLetteratura
+    function isFantaAuthorized() {
+      let hubProfile = get(/databases/$(database)/documents/hub_users/$(request.auth.uid));
+      return request.auth != null 
+          && hubProfile != null 
+          && hubProfile.data.statusAccount == 'active' 
+          && hubProfile.data.platforms.fantaletteratura.enabled == true;
+    }
+    
+    function isAuthorizedTeacherForTeamFanta(teamId) {
+      let team = get(/databases/$(database)/documents/fanta_teams/$(teamId));
+      return team != null && (
+        team.data.ownerEmail.lower() == currentUserEmail() ||
+        ('collaboratori' in team.data && team.data.collaboratori != null && team.data.collaboratori.hasAny([currentUserEmail()]))
+      );
+    }
+    
+    // 1. Collezione: fanta_settings
+    match /fanta_settings/{docId} {
+      allow read: if isAdmin() || isFantaAuthorized();
+      allow write: if isAdmin();
+    }
+
+    // 2. Collezione: fanta_users
+    match /fanta_users/{email} {
+      allow read: if isAdmin() || isFantaAuthorized();
+      allow create, delete: if isAdmin() || (isFantaAuthorized() && currentUserEmail() == email.lower());
+      allow update: if isAdmin() || (isFantaAuthorized() && (
+        currentUserEmail() == email.lower() ||
+        (resource.data.role == 'studente' &&
+         'teamId' in resource.data && resource.data.teamId != null &&
+         isAuthorizedTeacherForTeamFanta(resource.data.teamId) &&
+         'teamId' in request.resource.data && request.resource.data.teamId != null &&
+         isAuthorizedTeacherForTeamFanta(request.resource.data.teamId))
+      ));
+    }
+
+    // 3. Collezione: fanta_pending_requests
+    match /fanta_pending_requests/{reqId} {
+      allow read: if isAdmin() || isFantaAuthorized();
+      allow create: if isFantaAuthorized();
+      allow update, delete: if isAdmin() || (isFantaAuthorized() && resource.data.email.lower() == currentUserEmail());
+    }
+
+    // 4. Collezione: fanta_teams
+    match /fanta_teams/{teamId} {
+      allow read: if isAdmin() || isFantaAuthorized();
+      allow create: if isFantaAuthorized() && request.resource.data.ownerEmail.lower() == currentUserEmail();
+      allow update: if isAdmin() || (isFantaAuthorized() && (
+        resource.data.ownerEmail.lower() == currentUserEmail() ||
+        ('collaboratori' in resource.data && resource.data.collaboratori != null && resource.data.collaboratori.hasAny([currentUserEmail()])) ||
+        (
+          request.resource.data.joinCode == resource.data.joinCode &&
+          request.resource.data.ownerEmail == resource.data.ownerEmail &&
+          request.resource.data.name == resource.data.name &&
+          request.resource.data.collaboratori.hasAll([currentUserEmail()])
+        )
+      ));
+      allow delete: if isAdmin() || (isFantaAuthorized() && (
+        resource.data.ownerEmail.lower() == currentUserEmail() ||
+        ('collaboratori' in resource.data && resource.data.collaboratori != null && resource.data.collaboratori.hasAny([currentUserEmail()]))
+      ));
+    }
+
+    // 5. Collezione: fanta_missions
+    match /fanta_missions/{missionId} {
+      allow read: if isAdmin() || isFantaAuthorized();
+      allow create: if isFantaAuthorized() && request.resource.data.ownerEmail.lower() == currentUserEmail();
+      allow update, delete: if isAdmin() || (isFantaAuthorized() && resource.data.ownerEmail.lower() == currentUserEmail());
+    }
+
+    // 6. Collezione: fanta_tournaments
+    match /fanta_tournaments/{tournamentId} {
+      allow read: if isAdmin() || isFantaAuthorized();
+      allow create: if isFantaAuthorized() && request.resource.data.ownerEmail.lower() == currentUserEmail();
+      allow update, delete: if isAdmin() || (isFantaAuthorized() && resource.data.ownerEmail.lower() == currentUserEmail());
+    }
+
+    // 7. Collezione: fanta_invites
+    match /fanta_invites/{inviteId} {
+      allow read: if isFantaAuthorized() && (resource.data.fromEmail.lower() == currentUserEmail() || resource.data.toEmail.lower() == currentUserEmail());
+      allow create: if isFantaAuthorized() && request.resource.data.fromEmail.lower() == currentUserEmail();
+      allow update, delete: if isAdmin() || (isFantaAuthorized() && (resource.data.fromEmail.lower() == currentUserEmail() || resource.data.toEmail.lower() == currentUserEmail()));
+    }
+    
+    // 8. Collezioni fanta_archives, fanta_minigame_logs, fanta_games_status
+    match /fanta_archives/{docId} {
+      allow read: if isAdmin() || isFantaAuthorized();
+      allow write: if isAdmin();
+    }
+    match /fanta_minigame_logs/{docId} {
+      allow read: if isAdmin() || isFantaAuthorized();
+      allow create: if isFantaAuthorized();
+      allow update, delete: if isAdmin();
+    }
+    match /fanta_games_status/{docId} {
+      allow read: if isAdmin() || isFantaAuthorized();
+      allow write: if isAdmin();
+    }
+
   }
 }

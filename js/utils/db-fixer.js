@@ -72,7 +72,7 @@ const DBFixer = {
             
             // Hub db fix
             if (window.fbDb && window.fbDb.hub) {
-                const snap = await window.fbDb.hub.collection("users").get();
+                const snap = await window.fbDb.hub.collection("hub_users").get();
                 const batch = window.fbDb.hub.batch();
                 let count = 0;
                 snap.forEach(doc => {

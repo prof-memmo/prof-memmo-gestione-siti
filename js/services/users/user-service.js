@@ -13,27 +13,29 @@ const UserService = {
     /**
      * Struttura base per un nuovo utente centrale dell'Hub
      */
-    getDefaultProfile: function(nome, email, ruoloIniziale = 'studente', fotoProfilo = '') {
+    getDefaultProfile: function(uid, nome, email, ruoloIniziale = 'studente', fotoProfilo = '') {
         return {
-            nome: nome,
+            uid: uid,
             email: email,
-            fotoProfilo: fotoProfilo,
-            ruolo: ruoloIniziale, // studente, docente, amico_del_prof
-            statoAccount: ruoloIniziale === 'docente' ? 'pending' : 'active',
-            piattaformeAbilitate: [],
-            dataCreazione: firebase.firestore.FieldValue.serverTimestamp(),
-            ultimaAttivita: firebase.firestore.FieldValue.serverTimestamp(),
-            // Predisposizione Fase 3B: Gestione piattaforme collegate e migrazione
-            piattaforme: {}, // es. { fantaletteratura: { stato: 'attiva', ruolo: 'docente', primoAccesso: ts } }
-            legacyUids: {},  // es. { fantaletteratura: 'vecchio_uid' }
-            
-            // Struttura predisposta per Step 5 (Override Amministratore)
-            adminOverrides: {
-                piano: 'Versione Base', // in futuro 'Versione Completa'
-                permessiSpeciali: [],
-                override: false,
-                noteAmministratore: ''
-            }
+            anagrafica: {
+                nome: nome,
+                cognome: '',
+                avatar: fotoProfilo || '👤'
+            },
+            role: ruoloIniziale,
+            statusAccount: ruoloIniziale === 'docente' ? 'pending' : 'active',
+            subscription: 'base',
+            platforms: {
+                fantaletteratura: { enabled: false, permissions: [] },
+                palestra_riflessione: { enabled: false, permissions: [] },
+                rotta_degli_eroi: { enabled: false, permissions: [] },
+                corte_della_commedia: { enabled: false, permissions: [] },
+                ops_storia: { enabled: false, permissions: [] },
+                supplenze: { enabled: false, permissions: [] }
+            },
+            adminOverrides: {},
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
     },
 
@@ -49,8 +51,8 @@ const UserService = {
             ruolo = 'studente'; // fallback
         }
 
-        const newUser = this.getDefaultProfile(nome, email, ruolo);
-        await window.fbDb.hub.collection("users").doc(uid).set(newUser);
+        const newUser = this.getDefaultProfile(uid, nome, email, ruolo);
+        await window.fbDb.hub.collection("hub_users").doc(uid).set(newUser);
         return newUser;
     },
 
@@ -59,7 +61,7 @@ const UserService = {
      */
     getUserProfile: async function(uid) {
         if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
-        const doc = await window.fbDb.hub.collection("users").doc(uid).get();
+        const doc = await window.fbDb.hub.collection("hub_users").doc(uid).get();
         return doc.exists ? doc.data() : null;
     },
 
@@ -68,11 +70,11 @@ const UserService = {
      */
     updateUserRoleAndStatus: async function(uid, ruolo, statoAccount) {
         if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
-        const updates = { ultimaAttivita: firebase.firestore.FieldValue.serverTimestamp() };
-        if (ruolo) updates.ruolo = ruolo;
-        if (statoAccount) updates.statoAccount = statoAccount;
+        const updates = { updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+        if (ruolo) updates.role = ruolo;
+        if (statoAccount) updates.statusAccount = statoAccount;
         
-        await window.fbDb.hub.collection("users").doc(uid).update(updates);
+        await window.fbDb.hub.collection("hub_users").doc(uid).update(updates);
     },
 
     /**
@@ -84,7 +86,7 @@ const UserService = {
         if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
         
         // Verifica che l'utente esista prima di collegare
-        const docRef = window.fbDb.hub.collection("users").doc(hubUid);
+        const docRef = window.fbDb.hub.collection("hub_users").doc(hubUid);
         const snap = await docRef.get();
         if (!snap.exists) throw new Error("Profilo centrale Hub non trovato.");
 
@@ -121,7 +123,7 @@ const UserService = {
         }
         updates['adminOverrides.override'] = true;
         
-        await window.fbDb.hub.collection("users").doc(targetUid).update(updates);
+        await window.fbDb.hub.collection("hub_users").doc(targetUid).update(updates);
     }
 };
 

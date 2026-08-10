@@ -409,14 +409,7 @@
           <input type="password" id="reg-password" class="form-input" required placeholder="Scegli una password sicura (min. 6 car.)" minlength="6">
         </div>
         
-        <div class="form-group">
-          <label>Ruolo</label>
-          <select id="reg-ruolo" class="form-input" required>
-            <option value="studente">Studente</option>
-            <option value="docente">Docente</option>
-            <option value="amico_del_prof">Amico del Prof / Esterno</option>
-          </select>
-        </div>
+        <!-- Il ruolo verrà scelto nel passaggio successivo tramite le Card -->
 
         <div class="checkbox-group">
           <input type="checkbox" id="reg-terms" onchange="PortalApp.checkTerms()">
@@ -479,27 +472,41 @@
     </div>
   </div>
 
-  <!-- MODAL SMART ROLE CATCH -->
-  <div class="modal-overlay" id="role-modal">
-    <div class="modal-content">
-      <h2 style="margin-top:0;">Completa la Registrazione</h2>
-      <p style="color:var(--text-muted); font-size:0.9rem;">Per completare l'accesso, scegli il tuo ruolo:</p>
-      
-      <div class="form-group">
-        <select id="modal-ruolo" class="form-input">
-          <option value="studente">Studente</option>
-          <option value="docente">Docente</option>
-          <option value="amico_del_prof">Amico del Prof / Esterno</option>
-        </select>
+  <!-- VISTA ONBOARDING A CARD -->
+  <div id="portal-onboarding" style="display:none; width: 100%; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+    <div style="text-align: center; margin-bottom: 3rem; max-width: 600px;">
+      <h1 style="font-size: 2.5rem; font-family: var(--font-display); color: var(--text-main); margin-bottom: 10px;">Benvenuto! Scegli il tuo profilo</h1>
+      <p style="color: var(--text-muted); font-size: 1.1rem;">Questa scelta determinerà il tuo accesso alle piattaforme dell'Ecosistema Prof. Memmo.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; width: 100%; max-width: 900px; margin-bottom: 2rem;">
+      <!-- Card Studente -->
+      <div class="platform-card" style="text-align: center;" onclick="PortalApp.selectRole('studente')">
+        <div style="font-size: 4rem; margin-bottom: 15px;">🎓</div>
+        <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin: 0 0 10px 0;">STUDENTE</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Entra per giocare, imparare e completare le missioni assegnate dal tuo docente.</p>
       </div>
 
-      <div class="checkbox-group" style="margin-top:20px;">
-        <input type="checkbox" id="modal-terms" onchange="PortalApp.checkModalTerms()">
-        <label for="modal-terms">Ho letto e accetto i <a href="#" class="link">Termini di Servizio</a> e la <a href="#" class="link">Privacy Policy</a>.</label>
+      <!-- Card Docente -->
+      <div class="platform-card" style="text-align: center;" onclick="PortalApp.selectRole('docente')">
+        <div style="font-size: 4rem; margin-bottom: 15px;">👨‍🏫</div>
+        <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin: 0 0 10px 0;">DOCENTE</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Crea classi, assegna compiti, monitora i progressi e gestisci i tuoi studenti.</p>
       </div>
 
-      <button class="btn btn-primary" id="btn-modal-submit" disabled onclick="PortalApp.submitSmartRole()">Conferma e Continua</button>
-      <button class="btn btn-google" style="margin-top:10px;" onclick="PortalApp.logout()">Annulla ed Esci</button>
+      <!-- Card Amico -->
+      <div class="platform-card" style="text-align: center;" onclick="PortalApp.selectRole('esploratore')">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🌍</div>
+        <h4 style="margin: 0; color: #1f2937;">Esploratore</h4>
+        <p style="font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem; line-height: 1.3;">Per appassionati e sostenitori che vogliono visitare e provare i giochi didattici.</p>
+      </div>
+    </div>
+
+    <div style="text-align: center; max-width: 500px;">
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Scegliendo un ruolo accetti i <a href="#" class="link">Termini di Servizio</a> e la <a href="#" class="link">Privacy Policy</a>.</p>
+      <button class="btn btn-google" style="margin: 0 auto; width: auto; padding: 10px 20px;" onclick="PortalApp.logout()">
+        <i class="fa-solid fa-arrow-left"></i> Annulla ed esci
+      </button>
     </div>
   </div>
 

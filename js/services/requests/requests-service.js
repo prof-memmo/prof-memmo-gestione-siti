@@ -66,7 +66,7 @@ const RequestsService = {
         // 5. Hub Centrale (Utenti con statoAccount == 'pending')
         if (window.fbDb && window.fbDb.hub) {
             try {
-                const snapHub = await window.fbDb.hub.collection("users").where("statoAccount", "==", "pending").get();
+                const snapHub = await window.fbDb.hub.collection("hub_users").where("statoAccount", "==", "pending").get();
                 snapHub.forEach(doc => {
                     const d = doc.data();
                     richiesteDati.push({

@@ -114,7 +114,7 @@ getAuthTokenFromDB: async function(apiKey) {
         let hubUsers = [];
         if (window.fbDb && window.fbDb.hub) {
             try {
-                const snapHub = await window.fbDb.hub.collection("users").get();
+                const snapHub = await window.fbDb.hub.collection("hub_users").get();
                 snapHub.forEach(doc => {
                     const data = doc.data();
                     hubUsers.push({

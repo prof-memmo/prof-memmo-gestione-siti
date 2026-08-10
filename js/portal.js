@@ -25,6 +25,7 @@ const PortalApp = {
                 this.user = null;
                 this.profile = null;
                 document.getElementById('portal-login-overlay').style.display = 'block';
+                document.getElementById('portal-onboarding').style.display = 'none';
                 document.getElementById('portal-dashboard').style.display = 'none';
             }
         });
@@ -55,11 +56,6 @@ const PortalApp = {
         const isChecked = document.getElementById('reg-terms').checked;
         document.getElementById('btn-reg-email').disabled = !isChecked;
         document.getElementById('btn-reg-google').disabled = !isChecked;
-    },
-
-    checkModalTerms: function() {
-        const isChecked = document.getElementById('modal-terms').checked;
-        document.getElementById('btn-modal-submit').disabled = !isChecked;
     },
 
     showError: function(msg) {
@@ -122,7 +118,6 @@ const PortalApp = {
         const nome = document.getElementById('reg-nome').value;
         const email = document.getElementById('reg-email').value;
         const pwd = document.getElementById('reg-password').value;
-        const ruolo = document.getElementById('reg-ruolo').value;
         
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registrazione...';
@@ -134,10 +129,7 @@ const PortalApp = {
             // 2. Forza l'aggiornamento del displayName sul profilo Firebase Auth
             await newUser.updateProfile({ displayName: nome });
             
-            // 3. Crea il Profilo Centrale in Firestore
-            await window.UserService.createUserProfile(newUser.uid, nome, email, ruolo);
-            
-            // La callback onAuthStateChanged gestirà il passaggio alla dashboard
+            // La callback onAuthStateChanged gestirà il passaggio all'onboarding
         } catch(e) {
             this.showError(this.translateError(e));
             btn.disabled = false;
@@ -177,39 +169,28 @@ const PortalApp = {
 
     loadUserProfile: async function() {
         try {
-            // Controlla se il profilo esiste già (nel caso di Google Register che lancia onAuthStateChanged)
-            let snap = await window.fbDb.hub.collection("users").doc(this.user.uid).get();
+            // Controlla se il profilo esiste già
+            let snap = await window.fbDb.hub.collection("hub_users").doc(this.user.uid).get();
             
             if (!snap.exists) {
-                // L'utente è loggato con Google ma non ha un profilo.
-                // Se arriviamo dal form registrazione con campi pronti, possiamo usare quelli.
-                const isRegisterTab = document.getElementById('view-register').classList.contains('active');
-                if (isRegisterTab) {
-                    const ruolo = document.getElementById('reg-ruolo').value;
-                    const nome = this.user.displayName || "Nuovo Utente";
-                    await window.UserService.createUserProfile(this.user.uid, nome, this.user.email || "", ruolo);
-                    snap = await window.fbDb.hub.collection("users").doc(this.user.uid).get();
-                } else {
-                    // SMART ROLE CATCH: L'utente ha usato "Accedi con Google" dal tab Login ma è nuovo.
-                    // Blocchiamo la dashboard e mostriamo il modale.
-                    document.getElementById('portal-login-overlay').style.display = 'block';
-                    document.getElementById('portal-dashboard').style.display = 'none';
-                    document.getElementById('role-modal').style.display = 'flex';
-                    return; // Fermiamo qui l'esecuzione.
-                }
+                // Mostra la UI di onboarding a Card
+                document.getElementById('portal-login-overlay').style.display = 'none';
+                document.getElementById('portal-dashboard').style.display = 'none';
+                document.getElementById('portal-onboarding').style.display = 'flex';
+                return; // Fermiamo qui l'esecuzione.
             }
 
             this.profile = snap.data();
             
             // Mostra Dashboard UI
             document.getElementById('portal-login-overlay').style.display = 'none';
-            document.getElementById('role-modal').style.display = 'none';
+            document.getElementById('portal-onboarding').style.display = 'none';
             document.getElementById('portal-dashboard').style.display = 'flex';
             
-            document.getElementById('user-greeting').textContent = `Ciao, ${this.profile.nome.split(' ')[0]}!`;
+            document.getElementById('user-greeting').textContent = `Ciao, ${this.profile.anagrafica.nome.split(' ')[0]}!`;
             
             // Gestione blocchi account
-            const isRejected = (this.profile.statoAccount === 'rejected' || this.profile.statoAccount === 'suspended');
+            const isRejected = (this.profile.statusAccount === 'rejected' || this.profile.statusAccount === 'suspended');
             
             if (isRejected) {
                 document.getElementById('account-blocked-banner').style.display = 'block';
@@ -222,7 +203,7 @@ const PortalApp = {
             }
 
             // Handle Teacher Pending state
-            if (this.profile.ruolo === 'docente' && this.profile.statoAccount === 'pending') {
+            if (this.profile.role === 'docente' && this.profile.statusAccount === 'pending') {
                 document.getElementById('teacher-pending-banner').style.display = 'block';
             } else {
                 document.getElementById('teacher-pending-banner').style.display = 'none';
@@ -236,23 +217,22 @@ const PortalApp = {
         }
     },
 
-    submitSmartRole: async function() {
-        const ruolo = document.getElementById('modal-ruolo').value;
-        const btn = document.getElementById('btn-modal-submit');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione...';
-
+    selectRole: async function(ruolo) {
         try {
+            // Recupera o usa un nome di default
             const nome = this.user.displayName || "Nuovo Utente";
-            await window.UserService.createUserProfile(this.user.uid, nome, this.user.email || "", ruolo);
+            const email = this.user.email || "";
+            
+            // Mostra indicatore caricamento bloccando l'interfaccia se necessario
+            // ... (potremmo aggiungere un overlay di loading)
+            
+            await window.UserService.createUserProfile(this.user.uid, nome, email, ruolo);
             
             // Ricarica il profilo adesso che esiste
             await this.loadUserProfile();
         } catch(e) {
             console.error(e);
             alert("Errore durante la creazione del profilo.");
-            btn.disabled = false;
-            btn.innerHTML = 'Conferma e Continua';
         }
     },
 
@@ -262,36 +242,31 @@ const PortalApp = {
         const container = document.getElementById('platforms-container');
         container.innerHTML = '';
         
-        const enabledPlatforms = this.profile.piattaformeAbilitate || [];
+        const userPlatforms = this.profile.platforms || {};
         
-        // Elenco delle piattaforme previste (per ora hardcoded per layout)
+        // Elenco delle piattaforme previste
         const allPlatforms = [
             { id: 'fantaletteratura', title: 'FantaLetteratura', icon: 'fa-dragon', color: '#a855f7', desc: 'Costruisci la tua squadra di autori e generi letterari sfidandoti in un fanta-campionato culturale.' },
-            { id: 'rotta_eroi', title: 'La Rotta degli Eroi', icon: 'fa-ship', color: '#3b82f6', desc: 'In arrivo. Piattaforma attualmente non collegata all\'Ecosistema Centrale.' },
-            { id: 'palestra', title: 'Palestra di Riflessione', icon: 'fa-brain', color: '#22c55e', desc: 'In arrivo. Piattaforma attualmente non collegata all\'Ecosistema Centrale.' }
+            { id: 'palestra_riflessione', title: 'Palestra di Riflessione', icon: 'fa-brain', color: '#22c55e', desc: 'Esercita il pensiero logico e critico.' },
+            { id: 'rotta_degli_eroi', title: 'La Rotta degli Eroi', icon: 'fa-ship', color: '#3b82f6', desc: 'Scegli la tua avventura e il tuo eroe.' },
+            { id: 'corte_della_commedia', title: 'Corte della Commedia', icon: 'fa-gavel', color: '#ef4444', desc: 'Processa i personaggi storici.' },
+            { id: 'ops_storia', title: 'OPS Storia', icon: 'fa-hourglass', color: '#eab308', desc: 'Missioni storiche a tempo.' }
         ];
 
         allPlatforms.forEach(p => {
-            const isEnabled = enabledPlatforms.includes(p.id);
-            // Per ora simuliamo che FantaLetteratura sia sempre visibile per i test, oppure leggiamo dal DB.
-            // Il vincolo dice: "Le piattaforme non ancora abilitate devono risultare chiaramente non disponibili."
-            
-            // Se la piattaforma è abilitata, è cliccabile. Altrimenti è disabilitata visivamente.
-            // (Nota: per questa fase pre-3B, FantaLetteratura potrebbe non essere in abilitate per i nuovi utenti, 
-            // ma permettiamo il click simulato se l'id è fantaletteratura, come da placeholder).
+            const platformData = userPlatforms[p.id] || { enabled: false };
+            const isEnabled = platformData.enabled;
             
             let cardClass = "platform-card";
             let onClickAttr = "";
             let statusBadge = "";
 
-            if (p.id === 'fantaletteratura' || isEnabled) {
-                // Simula sempre attiva FantaLetteratura per il mock
+            if (isEnabled) {
                 onClickAttr = `onclick="PortalApp.openPlatform('${p.id}')"`;
-                if (!isEnabled) {
-                    statusBadge = `<div style="font-size:0.75rem; color:var(--accent); margin-bottom:10px; font-weight:700;">PROGETTO PILOTA 3B</div>`;
-                }
+                statusBadge = `<div style="font-size:0.75rem; color:var(--accent); margin-bottom:10px; font-weight:700;">ACCESSO CONSENTITO</div>`;
             } else {
                 cardClass += " disabled";
+                statusBadge = `<div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px; font-weight:700;">NON ABILITATA</div>`;
             }
 
             const html = `
