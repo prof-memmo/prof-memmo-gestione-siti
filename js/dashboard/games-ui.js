@@ -38,21 +38,16 @@ const GamesUI = {
                 
                 tr.innerHTML = `
                     <td style="padding:15px 10px; font-weight: 500;">${game.name}</td>
-                    <td style="padding:15px 10px;">
-                        <span style="padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:bold; 
-                            background: ${data.isActive ? '#dcfce7' : '#fee2e2'}; 
-                            color: ${data.isActive ? '#166534' : '#991b1b'};">
-                            ${data.isActive ? 'ATTIVO' : 'DISATTIVATO'}
-                        </span>
+                    <td style="padding:15px 10px; text-align: center;">
+                        <label class="switch" style="margin:0;">
+                            <input type="checkbox" onchange="HubApp.toggleGameStatus('${game.id}', this.checked)" ${data.isActive ? 'checked' : ''}>
+                            <span class="slider round"></span>
+                        </label>
                     </td>
-                    <td style="padding:15px 10px;">
-                        <button class="btn btn-sm" onclick="HubApp.toggleGameStatus('${game.id}', ${!data.isActive})" 
-                            style="background:${data.isActive ? '#ef4444' : '#10b981'}; color:white; padding:5px 10px; border:none; border-radius:4px; cursor:pointer; margin-right: 5px;">
-                            ${data.isActive ? 'Disattiva' : 'Attiva'}
-                        </button>
+                    <td style="padding:15px 10px; text-align: right;">
                         <button class="btn btn-sm" onclick="HubApp.editGame('${game.id}', '${game.name}')" 
-                            style="background:#3b82f6; color:white; padding:5px 10px; border:none; border-radius:4px; cursor:pointer;">
-                            Modifica Card
+                            style="background:#3b82f6; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:500;">
+                            <i class="fa-solid fa-pen-to-square"></i> Modifica Card
                         </button>
                     </td>
                 `;

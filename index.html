@@ -339,14 +339,14 @@
     <div class="nav-item" data-target="view-analytics" onclick="switchView('view-analytics')">
       <i class="fa-solid fa-chart-line" style="color:#6366f1;"></i> Analytics
     </div>
+    <div class="nav-item" data-target="view-sostieni" onclick="switchView('view-sostieni')">
+      <i class="fa-solid fa-hand-holding-dollar" style="color:#f59e0b;"></i> Sostieni il Progetto
+    </div>
     <div class="nav-item" data-target="view-monetizzazione" onclick="switchView('view-monetizzazione')">
-      <i class="fa-solid fa-euro-sign" style="color:#10b981;"></i> Monetizzazione
+      <i class="fa-solid fa-euro-sign" style="color:#10b981;"></i> Monetizzazione e Piani
     </div>
     <div class="nav-item" data-target="view-abbonamenti" onclick="switchView('view-abbonamenti')">
       <i class="fa-solid fa-user-tag" style="color:#8b5cf6;"></i> Abbonamenti
-    </div>
-    <div class="nav-item" data-target="view-impostazioni" onclick="switchView('view-impostazioni')">
-      <i class="fa-solid fa-sliders" style="color:#f59e0b;"></i> Impostazioni Ecosistema
     </div>
     <div class="sidebar-section-title">Comunicazioni</div>
     <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
@@ -433,15 +433,18 @@
           <div><label style="font-size: 0.9rem; font-weight: 600;">🏫 Uso:</label><input type="text" id="edit-game-uso" class="input-field" style="width: 100%;"></div>
         </div>
         
-        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-          <div>
-            <strong style="display:block; color:var(--text-main);"><i class="fa-solid fa-gift" style="color:#10b981;"></i> Disponibile nella Versione Base gratuita</strong>
-            <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">ON: il gioco/materiale è accessibile senza abbonamento.<br>OFF: richiede una Versione Completa.</p>
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <strong style="color:var(--text-main); font-size: 1.05rem;"><i class="fa-solid fa-gift" style="color:#10b981;"></i> Versione Base Gratuita</strong>
+            <label class="switch" style="margin:0;">
+              <input type="checkbox" id="edit-game-is-free-base">
+              <span class="slider round"></span>
+            </label>
           </div>
-          <label class="switch">
-            <input type="checkbox" id="edit-game-is-free-base">
-            <span class="slider round"></span>
-          </label>
+          <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+            Se attivato (ON), il gioco sarà disponibile a tutti gli utenti.<br>
+            Se disattivato (OFF), il gioco richiederà l'abbonamento alla Versione Completa.
+          </p>
         </div>
         
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
@@ -472,9 +475,9 @@
           <table class="game-table" style="width:100%; border-collapse: collapse; text-align: left;">
             <thead>
               <tr style="border-bottom:1px solid #e5e7eb;">
-                <th style="padding:15px 10px; color: var(--text-muted);">Nome Gioco</th>
-                <th style="padding:15px 10px; color: var(--text-muted);">Stato</th>
-                <th style="padding:15px 10px; color: var(--text-muted);">Azione</th>
+                <th style="padding:15px 10px; color: var(--text-muted);">Nome Gioco / Materiale</th>
+                <th style="padding:15px 10px; color: var(--text-muted); text-align: center;">Visibilità Hub</th>
+                <th style="padding:15px 10px; color: var(--text-muted); text-align: right;">Azioni</th>
               </tr>
             </thead>
             <tbody id="games-list-body">
@@ -757,55 +760,21 @@
     </div>
 
     <!-- View: Generatore AI & Social -->
-    <div id="view-ai" class="hub-view">
+    <!-- View: Generatore AI & Strumenti -->
+    <div id="view-ai" class="hub-view" style="display: none;">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Generatore AI & Social Manager</h2>
-        <button class="btn" onclick="window.open('https://business.facebook.com/', '_blank')" style="background: #E1306C;"><i class="fa-brands fa-instagram"></i> Apri Meta Business Suite</button>
+        <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Strumenti AI & Social</h2>
       </div>
       
-      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-        <!-- Generatore Prompt -->
-        <div class="glass-panel" style="flex: 2; min-width: 300px;">
-          <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 20px;">Crea un Prompt Perfetto</h3>
-          
-          <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-weight:600; font-size:0.9rem;">Obiettivo / Tipo di Post:</label>
-          <select id="ai-tipo-post" class="input-field" style="margin-bottom: 20px;">
-            <option value="reel">Testo per Reel Educativo (Instagram/TikTok)</option>
-            <option value="carosello">Testo per Carosello Immagini (Instagram)</option>
-            <option value="adv">Copy per Pubblicità (Facebook Ads / Instagram Ads)</option>
-            <option value="canva">Prompt per Generazione Immagine (Canva/Midjourney)</option>
-          </select>
-
-          <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-weight:600; font-size:0.9rem;">Riferimento (Gioco/Argomento):</label>
-          <select id="ai-gioco" class="input-field" style="margin-bottom: 20px;">
-            <option value="eroi">La Rotta degli Eroi</option>
-            <option value="commedia">La Corte della Commedia</option>
-            <option value="fanta">Fantaletteratura</option>
-            <option value="palestra">Palestra di Riflessione</option>
-            <option value="ops">Ops! Operazione Storia</option>
-            <option value="generico">Generico (Metodo di Studio / Gamification)</option>
-          </select>
-          
-          <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-weight:600; font-size:0.9rem;">Argomento Specifico (Opzionale):</label>
-          <input type="text" id="ai-argomento" class="input-field" placeholder="Es. Dante Alighieri e l'inferno" style="margin-bottom: 20px;">
-
-          <button class="btn" onclick="generaPrompt()" style="width: 100%;"><i class="fa-solid fa-bolt"></i> Genera Istruzione per IA</button>
-          
-          <div style="margin-top: 25px;">
-            <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-weight:600; font-size:0.9rem;">Prompt Generato (Copia e Incolla nell'IA):</label>
-            <textarea id="ai-risultato" rows="6" style="width: 100%; padding: 15px; background: #f8fafc; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-family: monospace;" readonly>Seleziona le opzioni in alto e clicca Genera.</textarea>
-            <button class="btn outline" onclick="copiaPrompt()" style="margin-top: 10px; width: 100%;"><i class="fa-regular fa-copy"></i> Copia Testo</button>
-          </div>
-        </div>
-
-        <!-- Strumenti Rapidi -->
-        <div class="glass-panel" style="flex: 1; min-width: 250px;">
-          <h3 style="color:var(--text-main); margin-top:0; margin-bottom:15px;">Lancio Strumenti</h3>
-          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px; line-height: 1.5;">Copia il prompt generato e avvia uno di questi strumenti per completare il lavoro.</p>
-          
-          <button class="btn" onclick="window.open('https://chat.openai.com/', '_blank')" style="width: 100%; margin-bottom: 15px; background: #10a37f;"><i class="fa-solid fa-robot"></i> Apri ChatGPT</button>
-          <button class="btn" onclick="window.open('https://gemini.google.com/', '_blank')" style="width: 100%; margin-bottom: 15px; background: #4285f4;"><i class="fa-solid fa-sparkles"></i> Apri Google Gemini</button>
-          <button class="btn" onclick="window.open('https://www.canva.com/', '_blank')" style="width: 100%; margin-bottom: 15px; background: #00c4cc;"><i class="fa-solid fa-pen-nib"></i> Apri Canva</button>
+      <div class="glass-panel" style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 20px;">Lancio Rapido Strumenti</h3>
+        <p style="color:var(--text-muted); font-size:1rem; margin-bottom: 30px;">Clicca sui pulsanti per aprire le relative piattaforme in una nuova scheda.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <button class="btn" onclick="window.open('https://business.facebook.com/', '_blank')" style="background: #E1306C; padding: 20px; font-size: 1.1rem;"><i class="fa-brands fa-instagram" style="margin-right: 10px;"></i> Meta Business</button>
+          <button class="btn" onclick="window.open('https://chat.openai.com/', '_blank')" style="background: #10a37f; padding: 20px; font-size: 1.1rem;"><i class="fa-solid fa-robot" style="margin-right: 10px;"></i> ChatGPT</button>
+          <button class="btn" onclick="window.open('https://www.canva.com/', '_blank')" style="background: #00c4cc; padding: 20px; font-size: 1.1rem;"><i class="fa-solid fa-pen-nib" style="margin-right: 10px;"></i> Canva</button>
+          <button class="btn" onclick="window.open('https://gemini.google.com/', '_blank')" style="background: #4285f4; padding: 20px; font-size: 1.1rem;"><i class="fa-solid fa-sparkles" style="margin-right: 10px;"></i> Gemini</button>
         </div>
       </div>
     </div>
@@ -903,28 +872,98 @@
       </div>
     </div>
 
-    <!-- View: Monetizzazione -->
-    <div id="view-monetizzazione" class="hub-view">
+    <!-- View: Sostieni il Progetto -->
+    <div id="view-sostieni" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-euro-sign"></i> Monetizzazione e Prezzi</h2>
+        <h2><i class="fa-solid fa-hand-holding-dollar"></i> Sostieni il Progetto</h2>
+      </div>
+      
+      <style>
+        .switch-board {
+          display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;
+        }
+        .light-switch-btn {
+          flex: 1; min-width: 200px;
+          background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 12px;
+          padding: 20px; text-align: center; cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative; overflow: hidden;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 -4px 0 rgba(0,0,0,0.05);
+        }
+        .light-switch-btn:active {
+          transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.1), inset 0 -1px 0 rgba(0,0,0,0.05);
+        }
+        .light-switch-btn.on {
+          background: #10b981; border-color: #059669; color: white;
+          box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4), inset 0 -4px 0 rgba(0,0,0,0.1);
+        }
+        .light-switch-btn i { font-size: 2rem; margin-bottom: 10px; display: block; }
+        .light-switch-btn .status-text { font-weight: bold; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
+        .light-switch-btn .label-text { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
+      </style>
+
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <h3 style="margin-top:0; color:var(--text-main);">Visibilità Pagina e Pulsanti</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Accendi l'interruttore per mostrare la pagina "Sostieni Prof. Memmo" e i relativi pulsanti in tutto l'ecosistema.</p>
+        
+        <div class="switch-board" style="margin-bottom: 30px;">
+          <!-- Toggle Sostieni il progetto -->
+          <div class="light-switch-btn" id="btn-toggle-sostieni" onclick="EcosistemaUI.toggleSwitchBtn('sostieni')">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+            <div class="status-text" id="status-text-sostieni">OFF</div>
+            <div class="label-text">Visibilità "Sostieni il Progetto"</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top:0; color:var(--text-main); border-top: 1px solid var(--border-color); padding-top: 20px;">Configurazione Testi e Link</h3>
+        
+        <div class="form-group" style="margin-top: 15px;">
+          <label>Link PayPal (o piattaforma donazioni)</label>
+          <input type="url" id="sostieni-paypal-link" class="form-input" placeholder="https://paypal.me/tuolink">
+        </div>
+        
+        <div class="form-group">
+          <label>Testo iniziale periodo gratuito (Fino ad agosto 2027)</label>
+          <textarea id="sostieni-testo-gratuito" class="form-input" rows="3" placeholder="Es. Quest'anno scolastico le piattaforme sono gratuite..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Testo futuro (Dopo attivazione abbonamenti)</label>
+          <textarea id="sostieni-testo-futuro" class="form-input" rows="4" placeholder="Es. Gli abbonamenti permettono di mantenere attive le piattaforme... Se vuoi contribuire ulteriormente..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Messaggio di ringraziamento (Opzionale)</label>
+          <input type="text" id="sostieni-ringraziamento" class="form-input" placeholder="Es. Grazie di cuore per il tuo prezioso contributo!">
+        </div>
+        
+        <button class="btn btn-primary" onclick="EcosistemaUI.saveSostieniSettings()">Salva Configurazione Sostieni</button>
+      </div>
+    </div>
+
+    <!-- View: Monetizzazione -->
+    <div id="view-monetizzazione" class="hub-view" style="display: none;">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-euro-sign"></i> Monetizzazione e Piani</h2>
       </div>
       
       <div class="glass-panel" style="margin-bottom: 20px;">
-        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-hand-holding-heart"></i> Configurazione "Sostieni il Progetto"</h3>
-        <div class="form-group" style="margin-top: 15px;">
-          <label>Testo dell'appello</label>
-          <textarea id="monet-sostieni-testo" class="form-input" rows="3" placeholder="Es. Questo progetto è gratuito, se ti va offrici un caffè..."></textarea>
+        <h3 style="margin-top:0; color:var(--text-main);">Attivazione Sistema Monetizzazione</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">L'attivazione è prevista per Settembre 2027. Questo interruttore abiliterà i controlli sui piani e sbloccherà gli accessi alle Versioni Complete.</p>
+        
+        <div class="switch-board" style="margin-bottom: 20px;">
+          <!-- Toggle Monetizzazione -->
+          <div class="light-switch-btn" id="btn-toggle-monetizzazione" onclick="EcosistemaUI.toggleSwitchBtn('monetizzazione')">
+            <i class="fa-solid fa-lock"></i>
+            <div class="status-text" id="status-text-monetizzazione">OFF</div>
+            <div class="label-text">Sistema Monetizzazione (Abbonamenti)</div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Link PayPal (o Piattaforma donazioni)</label>
-          <input type="url" id="monet-paypal-link" class="form-input" placeholder="https://paypal.me/tuolink">
-        </div>
-        <button class="btn btn-primary" onclick="EcosistemaUI.saveMonetizationSettings()">Salva Configurazione Sostegno</button>
       </div>
 
       <div class="glass-panel">
-        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-tags"></i> Piani e Prezzi (Attivazione prevista: Sett. 2027)</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">I prezzi impostati qui verranno mostrati nella vetrina quando il sistema di monetizzazione sarà attivato.</p>
+        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-tags"></i> Prezzi Versioni Complete</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Questi prezzi verranno mostrati nella pagina "Prezzi e accessi" quando il sistema sarà attivato.</p>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
           <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
@@ -956,88 +995,6 @@
         </div>
         
         <button class="btn btn-primary" onclick="EcosistemaUI.saveMonetizationSettings()">Salva Prezzi</button>
-      </div>
-    </div>
-
-    <!-- View: Abbonamenti -->
-    <div id="view-abbonamenti" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-user-tag"></i> Abbonamenti e Piani</h2>
-      </div>
-      <div class="glass-panel">
-        <h3 style="margin-top:0; color:var(--text-main);">Gestione Abbonamenti Utenti</h3>
-        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Monitora e modifica lo stato di pagamento, i rinnovi e le scadenze degli iscritti.</p>
-        
-        <div class="table-responsive" style="overflow-x:auto;">
-          <table class="game-table" style="width: 100%; text-align: left; border-collapse: collapse;">
-            <thead>
-              <tr>
-                <th>Utente</th>
-                <th>Piano (Versione Base / Completa)</th>
-                <th>Stato Pagamento</th>
-                <th>Attivazione</th>
-                <th>Scadenza</th>
-                <th>Rinnovo Auto</th>
-                <th>Azioni</th>
-              </tr>
-            </thead>
-            <tbody id="abbonamenti-list-body">
-              <tr><td colspan="7" style="text-align:center; padding: 20px; color:var(--text-muted);">Elenco abbonamenti in preparazione...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- View: Impostazioni Ecosistema -->
-    <div id="view-impostazioni" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-sliders"></i> Impostazioni Globali Ecosistema</h2>
-      </div>
-      
-      <style>
-        .switch-board {
-          display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;
-        }
-        .light-switch-btn {
-          flex: 1; min-width: 200px;
-          background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 12px;
-          padding: 20px; text-align: center; cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative; overflow: hidden;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 -4px 0 rgba(0,0,0,0.05);
-        }
-        .light-switch-btn:active {
-          transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.1), inset 0 -1px 0 rgba(0,0,0,0.05);
-        }
-        .light-switch-btn.on {
-          background: #10b981; border-color: #059669; color: white;
-          box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4), inset 0 -4px 0 rgba(0,0,0,0.1);
-        }
-        .light-switch-btn i { font-size: 2rem; margin-bottom: 10px; display: block; }
-        .light-switch-btn .status-text { font-weight: bold; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
-        .light-switch-btn .label-text { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
-      </style>
-
-      <div class="glass-panel" style="margin-bottom: 20px; text-align: center;">
-        <h3 style="margin-top:0; color:var(--text-main); font-size: 1.5rem;">Quadro Interruttori Generali</h3>
-        <p style="color:var(--text-muted); font-size:1rem; margin-bottom: 30px;">Attiva o disattiva le funzioni dell'intero Ecosistema Prof. Memmo con un click.</p>
-        
-        <div class="switch-board">
-          <!-- Toggle Sostieni il progetto -->
-          <div class="light-switch-btn" id="btn-toggle-sostieni" onclick="EcosistemaUI.toggleSwitchBtn('sostieni')">
-            <i class="fa-solid fa-hand-holding-dollar"></i>
-            <div class="status-text" id="status-text-sostieni">OFF</div>
-            <div class="label-text">Pulsante "Sostieni il Progetto"</div>
-          </div>
-
-          <!-- Toggle Monetizzazione -->
-          <div class="light-switch-btn" id="btn-toggle-monetizzazione" onclick="EcosistemaUI.toggleSwitchBtn('monetizzazione')">
-            <i class="fa-solid fa-lock"></i>
-            <div class="status-text" id="status-text-monetizzazione">OFF</div>
-            <div class="label-text">Sistema Monetizzazione (Piani)</div>
-          </div>
-        </div>
       </div>
     </div>
 

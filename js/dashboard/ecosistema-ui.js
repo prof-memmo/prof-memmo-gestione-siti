@@ -25,16 +25,24 @@ const EcosistemaUI = {
         this.updateSwitchVisuals('sostieni', !!data.sostieni_il_progetto);
         this.updateSwitchVisuals('monetizzazione', !!data.monetizzazione);
 
-        // Aggiornamento Campi Monetizzazione
+        // Aggiornamento Campi Sostieni il Progetto
+        const sostieni = data.sostieni_config || {};
+        const elPaypal = document.getElementById('sostieni-paypal-link');
+        const elTestoGratuito = document.getElementById('sostieni-testo-gratuito');
+        const elTestoFuturo = document.getElementById('sostieni-testo-futuro');
+        const elRingraziamento = document.getElementById('sostieni-ringraziamento');
+        
+        if (elPaypal) elPaypal.value = sostieni.paypal_link || '';
+        if (elTestoGratuito) elTestoGratuito.value = sostieni.testo_gratuito || '';
+        if (elTestoFuturo) elTestoFuturo.value = sostieni.testo_futuro || '';
+        if (elRingraziamento) elRingraziamento.value = sostieni.ringraziamento || '';
+
+        // Aggiornamento Campi Monetizzazione (Prezzi)
         const monet = data.monetizzazione_config || {};
-        const elTesto = document.getElementById('monet-sostieni-testo');
-        const elLink = document.getElementById('monet-paypal-link');
         const elPriceViandante = document.getElementById('price-viandante');
         const elPriceDidattico = document.getElementById('price-docente-didattico');
         const elPriceEcosistema = document.getElementById('price-docente-ecosistema');
         
-        if (elTesto) elTesto.value = monet.sostieni_testo || '';
-        if (elLink) elLink.value = monet.paypal_link || '';
         if (elPriceViandante) elPriceViandante.value = monet.price_viandante || '9.99';
         if (elPriceDidattico) elPriceDidattico.value = monet.price_docente_didattico || '19.99';
         if (elPriceEcosistema) elPriceEcosistema.value = monet.price_docente_ecosistema || '24.99';
@@ -79,12 +87,30 @@ const EcosistemaUI = {
         }
     },
 
+    saveSostieniSettings: async function() {
+        if (!window.EcosystemService) return;
+        
+        const configToSave = {
+            paypal_link: document.getElementById('sostieni-paypal-link').value,
+            testo_gratuito: document.getElementById('sostieni-testo-gratuito').value,
+            testo_futuro: document.getElementById('sostieni-testo-futuro').value,
+            ringraziamento: document.getElementById('sostieni-ringraziamento').value,
+        };
+
+        try {
+            await window.EcosystemService.saveEcosystemSettings({ sostieni_config: configToSave });
+            alert("Configurazioni Sostieni salvate con successo!");
+            this.settingsData.sostieni_config = configToSave;
+        } catch (error) {
+            console.error("Errore salvataggio sostieni:", error);
+            alert("Errore durante il salvataggio: " + error.message);
+        }
+    },
+
     saveMonetizationSettings: async function() {
         if (!window.EcosystemService) return;
         
         const configToSave = {
-            sostieni_testo: document.getElementById('monet-sostieni-testo').value,
-            paypal_link: document.getElementById('monet-paypal-link').value,
             price_viandante: document.getElementById('price-viandante').value,
             price_docente_didattico: document.getElementById('price-docente-didattico').value,
             price_docente_ecosistema: document.getElementById('price-docente-ecosistema').value,
@@ -92,7 +118,7 @@ const EcosistemaUI = {
 
         try {
             await window.EcosystemService.saveEcosystemSettings({ monetizzazione_config: configToSave });
-            alert("Configurazioni salvate con successo!");
+            alert("Prezzi salvati con successo!");
             this.settingsData.monetizzazione_config = configToSave;
         } catch (error) {
             console.error("Errore salvataggio monetizzazione:", error);
