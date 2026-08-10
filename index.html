@@ -766,7 +766,7 @@
 
     <!-- View: Generatore AI & Social -->
     <!-- View: Generatore AI & Strumenti -->
-    <div id="view-ai" class="hub-view" style="display: none;">
+    <div id="view-ai" class="hub-view">
       <div class="hub-header">
         <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Strumenti AI & Social</h2>
       </div>
@@ -937,32 +937,32 @@
 
         <h3 style="margin-top:0; color:var(--text-main); border-top: 1px solid var(--border-color); padding-top: 20px;">Configurazione Testi e Link</h3>
         
-        <div class="form-group" style="margin-top: 15px;">
-          <label>Link PayPal (o piattaforma donazioni)</label>
-          <input type="url" id="sostieni-paypal-link" class="form-input" placeholder="https://paypal.me/tuolink">
+        <div style="margin-bottom: 15px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Link PayPal (o piattaforma donazioni)</label>
+          <input type="url" id="sostieni-paypal-link" class="input-field" placeholder="https://paypal.me/tuolink">
         </div>
         
-        <div class="form-group">
-          <label>Testo iniziale periodo gratuito (Fino ad agosto 2027)</label>
-          <textarea id="sostieni-testo-gratuito" class="form-input" rows="3" placeholder="Es. Quest'anno scolastico le piattaforme sono gratuite..."></textarea>
+        <div style="margin-bottom: 15px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Testo iniziale periodo gratuito (Fino ad agosto 2027)</label>
+          <textarea id="sostieni-testo-gratuito" class="input-field" rows="3" placeholder="Es. Quest'anno scolastico le piattaforme sono gratuite..." style="resize: vertical;"></textarea>
         </div>
         
-        <div class="form-group">
-          <label>Testo futuro (Dopo attivazione abbonamenti)</label>
-          <textarea id="sostieni-testo-futuro" class="form-input" rows="4" placeholder="Es. Gli abbonamenti permettono di mantenere attive le piattaforme... Se vuoi contribuire ulteriormente..."></textarea>
+        <div style="margin-bottom: 15px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Testo futuro (Dopo attivazione abbonamenti)</label>
+          <textarea id="sostieni-testo-futuro" class="input-field" rows="4" placeholder="Es. Gli abbonamenti permettono di mantenere attive le piattaforme..." style="resize: vertical;"></textarea>
         </div>
         
-        <div class="form-group">
-          <label>Messaggio di ringraziamento (Opzionale)</label>
-          <input type="text" id="sostieni-ringraziamento" class="form-input" placeholder="Es. Grazie di cuore per il tuo prezioso contributo!">
+        <div style="margin-bottom: 20px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Messaggio di ringraziamento (Opzionale)</label>
+          <input type="text" id="sostieni-ringraziamento" class="input-field" placeholder="Es. Grazie di cuore per il tuo prezioso contributo!">
         </div>
         
-        <button class="btn btn-primary" onclick="EcosistemaUI.saveSostieniSettings()">Salva Configurazione Sostieni</button>
+        <button class="btn" onclick="EcosistemaUI.saveSostieniSettings()"><i class="fa-solid fa-floppy-disk"></i> Salva Configurazione Sostieni</button>
       </div>
     </div>
 
     <!-- View: Monetizzazione -->
-    <div id="view-monetizzazione" class="hub-view" style="display: none;">
+    <div id="view-monetizzazione" class="hub-view">
       <div class="hub-header">
         <h2><i class="fa-solid fa-euro-sign"></i> Monetizzazione e Piani</h2>
       </div>

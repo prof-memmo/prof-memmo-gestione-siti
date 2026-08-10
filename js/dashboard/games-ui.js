@@ -39,10 +39,10 @@ const GamesUI = {
                 tr.innerHTML = `
                     <td style="padding:15px 10px; font-weight: 500;">${game.name}</td>
                     <td style="padding:15px 10px; text-align: center;">
-                        <label class="switch" style="margin:0;">
-                            <input type="checkbox" onchange="HubApp.toggleGameStatus('${game.id}', this.checked)" ${data.isActive ? 'checked' : ''}>
-                            <span class="slider round"></span>
-                        </label>
+                        <button class="btn btn-sm" onclick="HubApp.toggleGameStatus('${game.id}', ${!data.isActive})" 
+                            style="background:${data.isActive ? '#10b981' : '#ef4444'}; color:white; padding:6px 12px; border:none; border-radius:20px; cursor:pointer; font-weight:600; width: 120px;">
+                            ${data.isActive ? '<i class="fa-solid fa-check"></i> Attivo' : '<i class="fa-solid fa-xmark"></i> Nascosto'}
+                        </button>
                     </td>
                     <td style="padding:15px 10px; text-align: right;">
                         <button class="btn btn-sm" onclick="HubApp.editGame('${game.id}', '${game.name}')" 
