@@ -59,6 +59,7 @@ const HubApp = {
         if(window.UsersUI) window.UsersUI.init();
         if(window.GamesUI) window.GamesUI.init();
         if(window.NewsletterUI) window.NewsletterUI.init();
+        if(window.EcosistemaUI) window.EcosistemaUI.init();
         
         // Esegue lo script di riparazione silenziosa DB (una tantum)
         if(window.DBFixer) window.DBFixer.fixDatabasesBackground();

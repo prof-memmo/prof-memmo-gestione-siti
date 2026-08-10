@@ -22,7 +22,6 @@ const EcosistemaUI = {
         const data = this.settingsData;
         
         // Aggiornamento Light Switches
-        this.updateSwitchVisuals('analytics', !!data.analytics);
         this.updateSwitchVisuals('sostieni', !!data.sostieni_il_progetto);
         this.updateSwitchVisuals('monetizzazione', !!data.monetizzazione);
 

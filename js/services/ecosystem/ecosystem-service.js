@@ -10,6 +10,10 @@ const EcosystemService = {
             } else {
                 callback(null);
             }
+        }, error => {
+            console.error("Errore listenToEcosystemSettings (Controlla Regole DB):", error);
+            alert("ATTENZIONE: Le Regole di Sicurezza Firebase non sono aggiornate. I dati dell'Ecosistema non possono essere caricati.");
+            callback(null);
         });
     },
 

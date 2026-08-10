@@ -10,6 +10,9 @@ const GamesService = {
                 statusMap[doc.id] = doc.data();
             });
             callback(statusMap);
+        }, error => {
+            console.error("Errore listenToGamesStatus (Controlla Regole DB):", error);
+            callback({}); // Restituisce oggetto vuoto per sbloccare il caricamento
         });
     },
 
