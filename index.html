@@ -433,6 +433,17 @@
           <div><label style="font-size: 0.9rem; font-weight: 600;">🏫 Uso:</label><input type="text" id="edit-game-uso" class="input-field" style="width: 100%;"></div>
         </div>
         
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+          <div>
+            <strong style="display:block; color:var(--text-main);"><i class="fa-solid fa-gift" style="color:#10b981;"></i> Disponibile nella Versione Base gratuita</strong>
+            <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">ON: il gioco/materiale è accessibile senza abbonamento.<br>OFF: richiede una Versione Completa.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="edit-game-is-free-base">
+            <span class="slider round"></span>
+          </label>
+        </div>
+        
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
           <button type="button" class="btn outline" onclick="document.getElementById('modal-edit-game').style.display='none'">Annulla</button>
           <button type="submit" class="btn" style="background: #3b82f6; color: white;">Salva Modifiche</button>

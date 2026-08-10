@@ -102,6 +102,12 @@ const GamesUI = {
             document.getElementById('edit-game-classe').value = data.classe || defs.classe || '';
             document.getElementById('edit-game-uso').value = data.uso || defs.uso || '';
             
+            const isFreeToggle = document.getElementById('edit-game-is-free-base');
+            if(isFreeToggle) {
+                // If not set in DB, default to true for existing games (optional) or false. Let's just use data.isFreeBaseVersion
+                isFreeToggle.checked = data.isFreeBaseVersion === true;
+            }
+            
             document.getElementById('modal-edit-game').style.display = 'flex';
         }).catch(err => {
             console.error("Error fetching game details", err);
@@ -122,6 +128,7 @@ const GamesUI = {
             obiettivi: document.getElementById('edit-game-obiettivi').value,
             classe: document.getElementById('edit-game-classe').value,
             uso: document.getElementById('edit-game-uso').value,
+            isFreeBaseVersion: document.getElementById('edit-game-is-free-base') ? document.getElementById('edit-game-is-free-base').checked : false
         };
         
         window.GamesService.saveGameDetails(gameId, dataToSave).then(() => {
