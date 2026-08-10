@@ -27,7 +27,7 @@ service cloud.firestore {
     // Valida la creazione iniziale di un profilo hub_users
     function isValidNewUser() {
       let data = request.resource.data;
-      let isAllowedRole = data.role in ['studente', 'docente', 'esploratore'];
+      let isAllowedRole = data.role in ['studente', 'docente', 'viandante'];
       
       // Controllo di coerenza iniziale
       let isValidTeacher = (data.role == 'docente' && data.statusAccount == 'pending');
