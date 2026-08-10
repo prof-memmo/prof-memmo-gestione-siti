@@ -84,6 +84,9 @@ const HubApp = {
 
             // Passa i dati al modulo Newsletter
             if(window.NewsletterUI) window.NewsletterUI.setUsers(this.allUsers);
+            
+            // Passa i dati al modulo Analytics
+            if(window.AnalyticsUI) window.AnalyticsUI.render(this.allUsers);
 
         } catch(e) {
             console.error("Errore aggregazione iscritti:", e);

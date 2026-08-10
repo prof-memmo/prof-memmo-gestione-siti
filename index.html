@@ -19,6 +19,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* Admin Hub Specific Overrides - SaaS Light Theme */
     :root {
@@ -868,10 +870,25 @@
       <div class="hub-header">
         <h2><i class="fa-solid fa-chart-line"></i> Analytics Ecosistema</h2>
       </div>
-      <div class="glass-panel" style="text-align: center; padding: 40px; color: var(--text-muted);">
-        <i class="fa-solid fa-chart-pie" style="font-size: 3rem; margin-bottom: 15px; color: #6366f1;"></i>
-        <h3>Dashboard in preparazione</h3>
-        <p>Presto potrai monitorare utenti registrati, accessi, piattaforme e andamento nel tempo tramite grafici.</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;">
+        <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center;">
+          <h3 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.1rem;">Distribuzione Ruoli</h3>
+          <div style="position: relative; width: 100%; height: 250px;">
+            <canvas id="chart-ruoli"></canvas>
+          </div>
+        </div>
+        <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center;">
+          <h3 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.1rem;">Distribuzione Piani</h3>
+          <div style="position: relative; width: 100%; height: 250px;">
+            <canvas id="chart-piani"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;">
+        <h3 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.1rem;">Utenti per Gioco/Piattaforma</h3>
+        <div style="position: relative; width: 100%; height: 300px;">
+          <canvas id="chart-giochi"></canvas>
+        </div>
       </div>
     </div>
 
@@ -1025,6 +1042,7 @@
   <script src="js/dashboard/users-ui.js?v=1"></script>
   <script src="js/dashboard/games-ui.js?v=1"></script>
   <script src="js/dashboard/newsletter-ui.js?v=1"></script>
+  <script src="js/dashboard/analytics-ui.js?v=1"></script>
   
   <script src="js/app_v2.js?v=34"></script>
   <script>
