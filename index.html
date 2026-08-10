@@ -944,12 +944,12 @@
         
         <div style="margin-bottom: 15px;">
           <label style="font-weight: 600; display: block; margin-bottom: 5px;">Testo iniziale periodo gratuito (Fino ad agosto 2027)</label>
-          <textarea id="sostieni-testo-gratuito" class="input-field" rows="3" placeholder="Es. Quest'anno scolastico le piattaforme sono gratuite..." style="resize: vertical;"></textarea>
+          <textarea id="sostieni-testo-gratuito" class="input-field" rows="3" placeholder="❤️ Sostieni Prof. Memmo.&#10;Quest'anno scolastico le piattaforme sono gratuite. Le donazioni aiutano a creare nuovi giochi didattici per la scuola secondaria." style="resize: vertical;"></textarea>
         </div>
         
         <div style="margin-bottom: 15px;">
           <label style="font-weight: 600; display: block; margin-bottom: 5px;">Testo futuro (Dopo attivazione abbonamenti)</label>
-          <textarea id="sostieni-testo-futuro" class="input-field" rows="4" placeholder="Es. Gli abbonamenti permettono di mantenere attive le piattaforme..." style="resize: vertical;"></textarea>
+          <textarea id="sostieni-testo-futuro" class="input-field" rows="4" placeholder="❤️ Sostieni Prof. Memmo.&#10;Gli abbonamenti permettono di mantenere attive le piattaforme e sviluppare nuove funzionalità.&#10;Se vuoi contribuire ulteriormente alla crescita del progetto educativo, puoi sostenere liberamente Prof. Memmo con una donazione." style="resize: vertical;"></textarea>
         </div>
         
         <div style="margin-bottom: 20px;">
@@ -985,36 +985,51 @@
         <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-tags"></i> Prezzi Versioni Complete</h3>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Questi prezzi verranno mostrati nella pagina "Prezzi e accessi" quando il sistema sarà attivato.</p>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
-          <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <strong>Piano Viandante</strong>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 5px 0;">Include: FantaLetteratura, Palestra, Rotta degli Eroi, Corte dei Dannati.</p>
-            <div style="display:flex; align-items:center; gap:10px; margin-top: 10px;">
-              <input type="number" id="price-viandante" class="form-input" style="width: 80px; margin:0;" value="9.99" step="0.01">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 20px;">
+          
+          <div style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <strong style="font-size: 1.1rem; color: var(--text-main);">Versione Base (Gratuita)</strong>
+            <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);">
+              <strong>FantaLetteratura:</strong> gioco disp., max 4 squadre, una classe.<br>
+              <em>Non disp:</em> tornei interni, missioni personalizzate.<br><br>
+              <strong>Palestra di Riflessione:</strong> attività fondamentali.<br>
+              <em>Non disp:</em> analisi logica, periodo, testi B1/B2, test cultura gen.
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+              <span style="font-weight:bold; font-size: 1.2rem;">0,00 €</span>
+              <span>/ anno</span>
+            </div>
+          </div>
+
+          <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <strong style="font-size: 1.1rem; color: var(--text-main);">Piano Viandante</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 10px 0;">Include: FantaLetteratura (Base), Palestra (Base), Rotta degli Eroi, Corte dei Dannati, futuri giochi.<br><br><em>Non include:</em> creazione classi, gestione studenti, codici classe, dashboard docente, tornei.</p>
+            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+              <input type="number" id="price-viandante" class="input-field" style="width: 90px; margin:0;" value="9.99" step="0.01">
               <span>€ / anno</span>
             </div>
           </div>
           
-          <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
-            <strong>Docente Completo Didattico</strong>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 5px 0;">Include: Fanta (Completo), Palestra (Completo), Strumenti e Gestione Classi.</p>
-            <div style="display:flex; align-items:center; gap:10px; margin-top: 10px;">
-              <input type="number" id="price-docente-didattico" class="form-input" style="width: 80px; margin:0;" value="19.99" step="0.01">
+          <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <strong style="font-size: 1.1rem; color: var(--text-main);">Docente Completo Didattico</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 10px 0;">Include: FantaLetteratura (Completo), Palestra (Completo), Strumenti docente, Gestione classi, Gestione studenti.</p>
+            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+              <input type="number" id="price-docente" class="input-field" style="width: 90px; margin:0;" value="19.99" step="0.01">
               <span>€ / anno</span>
             </div>
           </div>
           
-          <div style="background: #eff6ff; padding: 15px; border-radius: 8px; border: 1px solid #bfdbfe;">
-            <strong>Docente Ecosistema Completo</strong>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 5px 0;">Include: Tutto il piano didattico + Tutti i giochi dell'Ecosistema.</p>
-            <div style="display:flex; align-items:center; gap:10px; margin-top: 10px;">
-              <input type="number" id="price-docente-ecosistema" class="form-input" style="width: 80px; margin:0;" value="24.99" step="0.01">
+          <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border: 1px solid #bfdbfe; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <strong style="font-size: 1.1rem; color: var(--text-main);">Docente Ecosistema Completo</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 10px 0;">Include: Tutto il piano Docente Completo Didattico + La Rotta degli Eroi + Travel Agency C. (e futuri giochi completi).</p>
+            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+              <input type="number" id="price-ecosistema" class="input-field" style="width: 90px; margin:0;" value="24.99" step="0.01">
               <span>€ / anno</span>
             </div>
           </div>
         </div>
         
-        <button class="btn btn-primary" onclick="EcosistemaUI.saveMonetizationSettings()">Salva Prezzi</button>
+        <button class="btn" onclick="EcosistemaUI.savePrices()"><i class="fa-solid fa-floppy-disk"></i> Salva Prezzi</button>
       </div>
     </div>
 
