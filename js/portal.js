@@ -53,9 +53,7 @@ const PortalApp = {
     },
 
     checkTerms: function() {
-        const isChecked = document.getElementById('reg-terms').checked;
-        document.getElementById('btn-reg-email').disabled = !isChecked;
-        document.getElementById('btn-reg-google').disabled = !isChecked;
+        // La validazione avviene al momento del submit (solo per le registrazioni email)
     },
 
     showError: function(msg) {
@@ -79,61 +77,54 @@ const PortalApp = {
         }
     },
 
-    loginEmail: async function() {
-        this.hideError();
-        const btn = document.getElementById('btn-login-submit');
-        const email = document.getElementById('login-email').value;
-        const pwd = document.getElementById('login-password').value;
-        
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Accesso...';
-        
-        try {
-            await window.AuthService.loginWithEmail(email, pwd);
-        } catch(e) {
-            this.showError(this.translateError(e));
-            btn.disabled = false;
-            btn.innerHTML = 'Accedi';
-        }
-    },
-
-    registerGoogle: async function() {
-        this.hideError();
-        try {
-            // Se si registra con Google, Firebase Auth crea automaticamente l'account se non esiste
-            // ma dobbiamo prima far scegliere il ruolo!
-            // AuthService.login() gestisce il popup di google
-            await window.AuthService.login();
-            
-            // Appena Firebase Auth ha successo, l'onAuthStateChanged intercetterà l'utente.
-            // La creazione del profilo (ruolo) la faremo lì se non esiste ancora.
-        } catch(e) {
-            this.showError(this.translateError(e));
-        }
-    },
-
-    registerEmail: async function() {
+    submitAuth: async function() {
         this.hideError();
         const btn = document.getElementById('btn-reg-email');
-        const nome = document.getElementById('reg-nome').value;
         const email = document.getElementById('reg-email').value;
         const pwd = document.getElementById('reg-password').value;
         
         btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registrazione...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Attendere...';
         
         try {
-            // 1. Crea account su Firebase Auth
-            const newUser = await window.AuthService.registerWithEmail(email, pwd);
-            
-            // 2. Forza l'aggiornamento del displayName sul profilo Firebase Auth
-            await newUser.updateProfile({ displayName: nome });
-            
-            // La callback onAuthStateChanged gestirà il passaggio all'onboarding
+            // Proviamo prima a loggare l'utente
+            await window.AuthService.loginWithEmail(email, pwd);
+            // Se funziona, l'utente esiste e la password è giusta. onAuthStateChanged farà il resto.
         } catch(e) {
-            this.showError(this.translateError(e));
-            btn.disabled = false;
-            btn.innerHTML = 'Registrati con Email';
+            // Se l'errore è credenziali non valide / utente non trovato
+            if (e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') {
+                
+                // Forse è un nuovo utente! Controlliamo se ha compilato i dati obbligatori per registrarsi.
+                const terms = document.getElementById('reg-terms').checked;
+                const age = document.getElementById('reg-age').checked;
+                
+                if (!terms || !age) {
+                    this.showError("Credenziali errate oppure account inesistente. Se sei un nuovo utente, accetta i Termini e conferma l'Età per poterti registrare.");
+                    btn.disabled = false;
+                    btn.innerHTML = 'Entra / Registrati con Email';
+                    return;
+                }
+                
+                // Ha compilato tutto, proviamo a registrarlo!
+                try {
+                    await window.AuthService.registerWithEmail(email, pwd);
+                    // Il nome non è più richiesto alla registrazione via email. Verrà richiesto o gestito altrove se necessario.
+                } catch(regError) {
+                    if (regError.code === 'auth/email-already-in-use') {
+                        // L'utente esiste già, quindi aveva solo sbagliato la password!
+                        this.showError("Password errata. Riprova o clicca su 'Hai dimenticato la password?'.");
+                    } else {
+                        this.showError(this.translateError(regError));
+                    }
+                    btn.disabled = false;
+                    btn.innerHTML = 'Entra / Registrati con Email';
+                }
+            } else {
+                // Altro errore di login
+                this.showError(this.translateError(e));
+                btn.disabled = false;
+                btn.innerHTML = 'Entra / Registrati con Email';
+            }
         }
     },
 
@@ -169,7 +160,25 @@ const PortalApp = {
 
     loadUserProfile: async function() {
         try {
-            // Controlla se il profilo esiste già
+            // Auto-creazione profilo super-admin per il Prof
+            if (this.user.email && this.user.email.toLowerCase() === 'prof.memmo@gmail.com') {
+                const adminProfile = {
+                    anagrafica: { nome: 'Prof. Memmo' },
+                    role: 'admin',
+                    statusAccount: 'active',
+                    email: 'prof.memmo@gmail.com',
+                    platforms: {
+                        fantaletteratura: { enabled: true },
+                        palestra_riflessione: { enabled: true },
+                        rotta_degli_eroi: { enabled: true },
+                        corte_della_commedia: { enabled: true },
+                        ops_storia: { enabled: true }
+                    }
+                };
+                await window.fbDb.hub.collection("hub_users").doc(this.user.uid).set(adminProfile, {merge: true});
+            }
+
+            // Controlla se il profilo esiste
             let snap = await window.fbDb.hub.collection("hub_users").doc(this.user.uid).get();
             
             if (!snap.exists) {

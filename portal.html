@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Ecosistema Prof. Memmo - Login</title>
+  <title>Hub Didattico Prof. Memmo - Login</title>
   <meta name="theme-color" content="#f3f4f6">
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -357,77 +357,48 @@
   <!-- PORTAL LOGIN OVERLAY -->
   <div id="portal-login-overlay" class="portal-container">
     <div class="portal-header">
-      <img src="assets/avatar.png" alt="Prof. Memmo">
-      <h1>Ecosistema Prof. Memmo</h1>
-      <p>Accedi alle tue piattaforme didattiche</p>
+      <img src="assets/avatar.png" alt="Prof. Memmo" style="width: 100px; height: 100px; margin-bottom: 10px;">
     </div>
 
     <div id="error-message"></div>
 
-    <div class="tabs" id="auth-tabs">
-      <div class="tab active" onclick="PortalApp.switchTab('login')">Accedi</div>
-      <div class="tab" onclick="PortalApp.switchTab('register')">Registrati</div>
-    </div>
+    <!-- VISTA UNIFICATA (Login & Registrazione) -->
+    <div id="view-unified" class="view-section active">
+      <form id="form-unified" onsubmit="event.preventDefault(); PortalApp.submitAuth();">
+        <div class="checkbox-group">
+          <input type="checkbox" id="reg-age" onchange="PortalApp.checkTerms()">
+          <label for="reg-age">Ho almeno 16 anni o sono sotto la supervisione di un adulto.</label>
+        </div>
 
-    <!-- VISTA LOGIN -->
-    <div id="view-login" class="view-section active">
-      <button class="btn btn-google" onclick="PortalApp.loginGoogle()">
-        <i class="fa-brands fa-google" style="color:#DB4437;"></i> Accedi con Google
-      </button>
-      
-      <div class="divider">oppure</div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="reg-terms" onchange="PortalApp.checkTerms()">
+          <label for="reg-terms">Ho letto e accetto i <a href="#" onclick="event.preventDefault(); openLegalModal('termini')" class="link">Termini di Servizio</a> e la <a href="#" onclick="event.preventDefault(); openLegalModal('privacy')" class="link">Privacy Policy</a>.</label>
+        </div>
+        
+        <div class="checkbox-group">
+          <input type="checkbox" id="reg-newsletter">
+          <label for="reg-newsletter">Acconsento a ricevere comunicazioni e newsletter didattiche dal Prof. Memmo.</label>
+        </div>
 
-      <form id="form-login" onsubmit="event.preventDefault(); PortalApp.loginEmail();">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="login-email" class="form-input" required placeholder="La tua email">
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="login-password" class="form-input" required placeholder="La tua password">
-        </div>
-        <div class="forgot-password">
-          <a class="link" onclick="PortalApp.switchTab('reset')">Hai dimenticato la password?</a>
-        </div>
-        <button type="submit" class="btn btn-primary" id="btn-login-submit">Accedi</button>
-      </form>
-    </div>
+        <button type="button" class="btn btn-google" id="btn-reg-google" onclick="PortalApp.loginGoogle()" style="margin-bottom: 20px;">
+          <i class="fa-brands fa-google" style="color:#DB4437;"></i> Entra o Registrati con Google
+        </button>
 
-    <!-- VISTA REGISTRAZIONE -->
-    <div id="view-register" class="view-section">
-      <form id="form-register" onsubmit="event.preventDefault(); PortalApp.registerEmail();">
-        <div class="form-group">
-          <label>Nome e Cognome</label>
-          <input type="text" id="reg-nome" class="form-input" required placeholder="Es. Mario Rossi">
-        </div>
+        <div class="divider">oppure</div>
+
         <div class="form-group">
           <label>Email</label>
           <input type="email" id="reg-email" class="form-input" required placeholder="La tua email">
         </div>
         <div class="form-group">
           <label>Password</label>
-          <input type="password" id="reg-password" class="form-input" required placeholder="Scegli una password sicura (min. 6 car.)" minlength="6">
+          <input type="password" id="reg-password" class="form-input" required placeholder="La tua password (min. 6 car.)" minlength="6">
         </div>
-        
-        <!-- Il ruolo verrà scelto nel passaggio successivo tramite le Card -->
-
-        <div class="checkbox-group">
-          <input type="checkbox" id="reg-terms" onchange="PortalApp.checkTerms()">
-          <label for="reg-terms">Ho letto e accetto i <a href="#" class="link">Termini di Servizio</a> e la <a href="#" class="link">Privacy Policy</a>.</label>
-        </div>
-        
-        <div class="checkbox-group">
-          <input type="checkbox" id="reg-newsletter">
-          <label for="reg-newsletter">Acconsento a ricevere comunicazioni, aggiornamenti sui giochi e newsletter didattiche dal Prof. Memmo.</label>
+        <div class="forgot-password" style="margin-top:-10px; margin-bottom:15px; text-align:right;">
+          <a class="link" onclick="PortalApp.switchTab('reset')">Hai dimenticato la password?</a>
         </div>
 
-        <button type="submit" class="btn btn-primary" id="btn-reg-email" disabled>Registrati con Email</button>
-        
-        <div class="divider">oppure</div>
-        
-        <button type="button" class="btn btn-google" id="btn-reg-google" disabled onclick="PortalApp.registerGoogle()">
-          <i class="fa-brands fa-google" style="color:#DB4437;"></i> Registrati con Google
-        </button>
+        <button type="submit" class="btn btn-primary" id="btn-reg-email">Entra / Registrati con Email</button>
       </form>
     </div>
 
@@ -476,7 +447,7 @@
   <div id="portal-onboarding" style="display:none; width: 100%; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
     <div style="text-align: center; margin-bottom: 3rem; max-width: 600px;">
       <h1 style="font-size: 2.5rem; font-family: var(--font-display); color: var(--text-main); margin-bottom: 10px;">Benvenuto! Scegli il tuo profilo</h1>
-      <p style="color: var(--text-muted); font-size: 1.1rem;">Questa scelta determinerà il tuo accesso alle piattaforme dell'Ecosistema Prof. Memmo.</p>
+      <p style="color: var(--text-muted); font-size: 1.1rem;">Questa scelta determinerà il tuo accesso ai mondi di gioco.</p>
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; width: 100%; max-width: 900px; margin-bottom: 2rem;">
@@ -494,21 +465,88 @@
         <p style="color: var(--text-muted); font-size: 0.95rem;">Crea classi, assegna compiti, monitora i progressi e gestisci i tuoi studenti.</p>
       </div>
 
-      <!-- Card Amico -->
+      <!-- Card Viandante -->
       <div class="platform-card" style="text-align: center;" onclick="PortalApp.selectRole('viandante')">
-        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🌍</div>
-        <h4 style="margin: 0; color: #1f2937;">Viandante</h4>
-        <p style="font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem; line-height: 1.3;">Per appassionati e sostenitori che vogliono visitare e provare i giochi didattici.</p>
+        <div style="font-size: 4rem; margin-bottom: 15px;">🌍</div>
+        <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin: 0 0 10px 0;">VIANDANTE</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Per appassionati e sostenitori che vogliono visitare e provare i giochi didattici.</p>
       </div>
     </div>
 
     <div style="text-align: center; max-width: 500px;">
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Scegliendo un ruolo accetti i <a href="#" class="link">Termini di Servizio</a> e la <a href="#" class="link">Privacy Policy</a>.</p>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Scegliendo un ruolo accetti i <a href="#" onclick="event.preventDefault(); openLegalModal('termini')" class="link">Termini di Servizio</a> e la <a href="#" onclick="event.preventDefault(); openLegalModal('privacy')" class="link">Privacy Policy</a>.</p>
       <button class="btn btn-google" style="margin: 0 auto; width: auto; padding: 10px 20px;" onclick="PortalApp.logout()">
         <i class="fa-solid fa-arrow-left"></i> Annulla ed esci
       </button>
     </div>
   </div>
+  <!-- LEGAL MODALS -->
+  <div id="legal-modal" style="display: none; align-items: center; justify-content: center; z-index: 99999; background: rgba(15,23,42,0.8); backdrop-filter: blur(4px); position: fixed; inset: 0; padding: 20px;">
+    <div style="background: white; border-radius: 24px; width: 100%; max-width: 800px; display: flex; flex-direction: column; position: relative; max-height: 90vh; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden;">
+      <div style="padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+        <h2 id="legal-modal-title" style="margin: 0; color: var(--primary-color); font-family: var(--font-display);">Titolo</h2>
+        <button onclick="document.getElementById('legal-modal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">&times;</button>
+      </div>
+      <div id="legal-modal-body" style="padding: 30px; overflow-y: auto; line-height: 1.6; color: #334155;">
+        <!-- Contenuto dinamico -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openLegalModal(type) {
+      const modal = document.getElementById('legal-modal');
+      const title = document.getElementById('legal-modal-title');
+      const body = document.getElementById('legal-modal-body');
+      
+      if (type === 'privacy') {
+        title.innerHTML = '🔒 Privacy Policy';
+        body.innerHTML = `
+          <h3 class="text-primary" style="margin-top:0;">1. Titolare del trattamento</h3>
+          <p>Il titolare del trattamento è Guglielmo Piersanti, contattabile all’indirizzo email: <a href="mailto:prof.memmo@gmail.com" style="color:var(--accent-gold);">prof.memmo@gmail.com</a></p>
+          <h3 class="text-primary">2. Finalità dell’app</h3>
+          <p>L'“Hub Didattico Prof. Memmo” è una piattaforma didattica, utilizzata a scopo educativo e ludico e senza fini di lucro.</p>
+          <h3 class="text-primary">3. Dati raccolti</h3>
+          <p>L'Hub può raccogliere i seguenti dati personali: indirizzo e-mail; informazioni di utilizzo relative ai giochi online (punteggi, attività didattiche ecc.); messaggio inviato tramite modulo di contatto; dati tecnici forniti automaticamente dalla piattaforma.</p>
+          <h3 class="text-primary">4. Finalità del trattamento</h3>
+          <p>I dati vengono trattati esclusivamente per consentire l’accesso all'Hub e alle sue funzionalità, gestire l’esperienza didattica e le classifiche interne, migliorare il funzionamento del servizio, rispondere alle richieste inviate. Non vengono utilizzati per scopi commerciali o pubblicitari.</p>
+          <h3 class="text-primary">5. Base giuridica</h3>
+          <p>Il trattamento dei dati si basa sull’utilizzo dell'Hub e sul consenso dell’utente.</p>
+          <h3 class="text-primary">6. Conservazione dei dati</h3>
+          <p>I dati sono trattati in modo lecito e sicuro. Non vengono venduti né ceduti a terzi. Sono mantenuti solo per il tempo necessario al funzionamento didattico dell'Hub o su richiesta, salvo obblighi di legge. Vengono utilizzati servizi terzi per l’archiviazione dei dati (Firebase).</p>
+          <h3 class="text-primary">8. Diritti dell’utente</h3>
+          <p>L'utente può richiedere in qualsiasi momento: accesso ai propri dati, rettifica o cancellazione, limitazione del trattamento, revoca del consenso.</p>
+          <h3 class="text-primary">9. Cookie</h3>
+          <p>Il sito non utilizza cookie di profilazione.</p>
+          <h3 class="text-primary">10. Utenti minori</h3>
+          <p>L'Hub è destinato a un uso didattico. Per l'utilizzo da parte di minori, è responsabilità di un adulto assicurare le autorizzazioni necessarie.</p>
+        `;
+      } else if (type === 'termini') {
+        title.innerHTML = '📜 Termini e Condizioni';
+        body.innerHTML = `
+          <p><strong>Ultimo aggiornamento: 31/04/26</strong></p>
+          <h3 class="text-primary">1. Titolare del sito</h3>
+          <p>Il presente sito web è gestito da: Guglielmo Piersanti. Email di contatto: <a href="mailto:prof.memmo@gmail.com" style="color:var(--accent-gold);">prof.memmo@gmail.com</a></p>
+          <h3 class="text-primary">2. Accettazione dei termini</h3>
+          <p>L’accesso e l’utilizzo del sito implicano l’accettazione dei presenti Termini e Condizioni. Se non si accettano tali condizioni, si invita a non utilizzare il sito.</p>
+          <h3 class="text-primary">3. Descrizione del servizio</h3>
+          <p>Il sito ha finalità informative ed educative. Gli utenti possono: Consultare i contenuti disponibili e usufruire della piattaforma di gioco.</p>
+          <h3 class="text-primary">4. Utilizzo del sito</h3>
+          <p>L’utente si impegna a utilizzare il sito in modo lecito e corretto, evitando di: Inviare messaggi offensivi, illeciti o spam; Tentare di compromettere la sicurezza del sito; Utilizzare il sito per scopi fraudolenti.</p>
+          <h3 class="text-primary">5. Modulo di contatto</h3>
+          <p>L’utente è responsabile dei dati e dei contenuti inviati tramite il modulo di contatto.</p>
+          <h3 class="text-primary">6. Proprietà intellettuale</h3>
+          <p>Tutti i contenuti del sito sono di proprietà del titolare, salvo diversa indicazione. È vietata la copia, distribuzione o utilizzo senza autorizzazione.</p>
+          <h3 class="text-primary">7. Limitazione di responsabilità</h3>
+          <p>Il sito è fornito “così com’è”. Il titolare non garantisce l’assenza di errori o interruzioni, la completezza o accuratezza dei contenuti. Il titolare non è responsabile per danni derivanti dall’utilizzo del sito.</p>
+          <h3 class="text-primary">8. Legge applicabile</h3>
+          <p>I presenti Termini sono regolati dalla normativa italiana e dal GDPR.</p>
+        `;
+      }
+      
+      modal.style.display = 'flex';
+    }
+  </script>
 
   <script src="js/firebase-init.js"></script>
   <script src="js/services/auth/auth-service.js"></script>

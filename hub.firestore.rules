@@ -188,5 +188,15 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // 9. Impostazioni Globali Ecosistema e Stato Giochi Hub
+    match /hub_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /games_status/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
   }
 }
