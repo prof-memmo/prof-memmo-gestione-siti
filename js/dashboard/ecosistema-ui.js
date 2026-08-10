@@ -33,8 +33,8 @@ const EcosistemaUI = {
         const elRingraziamento = document.getElementById('sostieni-ringraziamento');
         
         if (elPaypal) elPaypal.value = sostieni.paypal_link || '';
-        if (elTestoGratuito) elTestoGratuito.value = sostieni.testo_gratuito || '';
-        if (elTestoFuturo) elTestoFuturo.value = sostieni.testo_futuro || '';
+        if (elTestoGratuito) elTestoGratuito.value = sostieni.testo_gratuito || "❤️ Sostieni Prof. Memmo.\nQuest'anno scolastico le piattaforme sono gratuite. Le donazioni aiutano a creare nuovi giochi didattici per la scuola secondaria.";
+        if (elTestoFuturo) elTestoFuturo.value = sostieni.testo_futuro || "❤️ Sostieni Prof. Memmo.\nGli abbonamenti permettono di mantenere attive le piattaforme e sviluppare nuove funzionalità.\nSe vuoi contribuire ulteriormente alla crescita del progetto educativo, puoi sostenere liberamente Prof. Memmo con una donazione.";
         if (elRingraziamento) elRingraziamento.value = sostieni.ringraziamento || '';
 
         // Aggiornamento Campi Monetizzazione (Prezzi)
