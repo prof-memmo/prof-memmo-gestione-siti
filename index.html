@@ -580,14 +580,20 @@
       <div class="glass-panel">
         <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 20px;">
           <h3 style="color:var(--text-main); margin:0;">Tabella Iscritti Multi-Sito</h3>
+          <div style="display: flex; gap: 10px;" id="bulk-actions-container" class="hidden">
+            <button class="btn btn-secondary" onclick="window.UsersUI.openBulkEditPlanModal()"><i class="fa-solid fa-crown"></i> Modifica Piano Selezionati</button>
+          </div>
         </div>
         <div class="table-responsive" style="overflow-x:auto;">
           <table class="game-table" id="hub-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>
               <tr>
+                <th style="width: 40px; text-align: center;">
+                  <input type="checkbox" id="select-all-users" onchange="window.UsersUI.toggleAllUsers(this.checked)">
+                </th>
                 <th style="cursor:pointer;" onclick="HubApp.sortIscritti('nome')">
                   <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                  <input type="text" id="search-iscritti" class="input-field" placeholder="Cerca..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="HubApp.filterIscritti()">
+                  <input type="text" id="search-iscritti" class="input-field" placeholder="Cerca utente per nome o email..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="HubApp.filterIscritti()">
                 </th>
                 <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortIscritti('ruolo')">
                   <div style="display: flex; align-items: center; white-space: nowrap;">Ruolo <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
@@ -612,7 +618,7 @@
                   <div style="display: flex; align-items: center; white-space: nowrap;">Scadenza</div>
                 </th>
                 <th style="vertical-align: top;">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Contatta</div>
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Azione</div>
                 </th>
               </tr>
             </thead>

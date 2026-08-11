@@ -56,9 +56,12 @@ const UsersUI = {
         tbody.innerHTML = '';
         
         if (!usersArray || usersArray.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">Nessun iscritto trovato con questi criteri.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">Nessun iscritto trovato con questi criteri.</td></tr>';
             return;
         }
+
+        const selectAllCb = document.getElementById('select-all-users');
+        if (selectAllCb) selectAllCb.checked = false;
 
         usersArray.forEach(user => {
             const tr = document.createElement('tr');
@@ -70,7 +73,10 @@ const UsersUI = {
             else if (userPlan === 'docente_didattico') planDisplay = 'Docente Did. (19,99€)';
             else if (userPlan === 'docente_ecosistema') planDisplay = 'Ecosistema (24,99€)';
             
+            const isChecked = window.UsersUI.selectedUsers.has(user.id) ? 'checked' : '';
+            
             tr.innerHTML = `
+                <td style="text-align: center;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
                 <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
                 <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
                 <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
@@ -84,6 +90,45 @@ const UsersUI = {
             `;
             tbody.appendChild(tr);
         });
+    },
+    
+    toggleAllUsers: function(isChecked) {
+        const checkboxes = document.querySelectorAll('.user-select-cb');
+        checkboxes.forEach(cb => {
+            cb.checked = isChecked;
+            this.toggleUserSelection(cb.value, isChecked);
+        });
+    },
+
+    toggleUserSelection: function(userId, isChecked) {
+        if (!this.selectedUsers) this.selectedUsers = new Set();
+        if (isChecked) {
+            this.selectedUsers.add(userId);
+        } else {
+            this.selectedUsers.delete(userId);
+            document.getElementById('select-all-users').checked = false;
+        }
+        
+        const bulkContainer = document.getElementById('bulk-actions-container');
+        if (this.selectedUsers.size > 0) {
+            bulkContainer.style.display = 'flex';
+        } else {
+            bulkContainer.style.display = 'none';
+        }
+    },
+
+    openBulkEditPlanModal: function() {
+        if (!this.selectedUsers || this.selectedUsers.size === 0) return;
+        
+        // Use the same modal but configure it for bulk
+        document.getElementById('edit-user-id').value = 'BULK_EDIT';
+        document.getElementById('edit-user-name').textContent = `${this.selectedUsers.size} utenti selezionati`;
+        document.getElementById('edit-user-email').value = '';
+        document.getElementById('edit-user-plan-select').value = 'base';
+        
+        const modal = document.getElementById('modal-edit-user-plan');
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
     },
     
     openEditPlanModal: function(userId, userEmail, userName, currentPlan) {
@@ -105,20 +150,48 @@ const UsersUI = {
         
         try {
             if (window.fbDb && window.fbDb.hub) {
-                // Se l'utente non è ancora in hub_users verrà creato con set merge:true
-                await window.fbDb.hub.collection('hub_users').doc(userId).set({
-                    abbonamento: newPlan,
-                    lastUpdated: new Date().toISOString()
-                }, { merge: true });
-                
-                alert("Piano utente aggiornato con successo!");
-                document.getElementById('modal-edit-user-plan').style.display = 'none';
-                
-                // Aggiorniamo localmente
-                if (this.allUsers) {
-                    const usr = this.allUsers.find(u => u.id === userId);
-                    if (usr) usr.plan = newPlan;
+                if (userId === 'BULK_EDIT') {
+                    // Bulk update
+                    const promises = [];
+                    this.selectedUsers.forEach(uid => {
+                        promises.push(window.fbDb.hub.collection('hub_users').doc(uid).set({
+                            abbonamento: newPlan,
+                            lastUpdated: new Date().toISOString()
+                        }, { merge: true }));
+                    });
+                    
+                    await Promise.all(promises);
+                    alert(`${this.selectedUsers.size} utenti aggiornati con successo!`);
+                    
+                    // Update locally
+                    if (this.allUsers) {
+                        this.selectedUsers.forEach(uid => {
+                            const usr = this.allUsers.find(u => u.id === uid);
+                            if (usr) usr.plan = newPlan;
+                        });
+                    }
+                    
+                    this.selectedUsers.clear();
+                    document.getElementById('select-all-users').checked = false;
+                    document.getElementById('bulk-actions-container').style.display = 'none';
+                    
+                } else {
+                    // Single update
+                    await window.fbDb.hub.collection('hub_users').doc(userId).set({
+                        abbonamento: newPlan,
+                        lastUpdated: new Date().toISOString()
+                    }, { merge: true });
+                    
+                    alert("Piano utente aggiornato con successo!");
+                    
+                    // Update locally
+                    if (this.allUsers) {
+                        const usr = this.allUsers.find(u => u.id === userId);
+                        if (usr) usr.plan = newPlan;
+                    }
                 }
+                
+                document.getElementById('modal-edit-user-plan').style.display = 'none';
                 this.filterIscritti();
             } else {
                 alert("Impossibile connettersi al database Hub.");
