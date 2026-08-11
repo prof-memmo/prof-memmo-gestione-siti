@@ -2,7 +2,7 @@
 // Gestisce il recupero dati da tutti i database collegati tramite REST API
 
 const CrossProjectsService = {
-getAuthTokenFromDB: async function(apiKey) {
+    getAuthTokenFromDB: async function(apiKey, appName = "[DEFAULT]") {
         return new Promise((resolve) => {
             const req = indexedDB.open('firebaseLocalStorageDb');
             req.onsuccess = (e) => {
@@ -10,12 +10,25 @@ getAuthTokenFromDB: async function(apiKey) {
                 if (!db.objectStoreNames.contains('firebaseLocalStorage')) return resolve(null);
                 const tx = db.transaction('firebaseLocalStorage', 'readonly');
                 const store = tx.objectStore('firebaseLocalStorage');
-                const getReq = store.get(`firebase:authUser:${apiKey}:[DEFAULT]`);
+                const getReq = store.get(`firebase:authUser:${apiKey}:${appName}`);
                 getReq.onsuccess = (e2) => {
                     if (e2.target.result && e2.target.result.value.stsTokenManager) {
                         resolve(e2.target.result.value.stsTokenManager);
                     } else {
-                        resolve(null);
+                        // Fallback: try [DEFAULT] if the appName wasn't found
+                        if (appName !== "[DEFAULT]") {
+                            const fallbackReq = store.get(`firebase:authUser:${apiKey}:[DEFAULT]`);
+                            fallbackReq.onsuccess = (e3) => {
+                                if (e3.target.result && e3.target.result.value.stsTokenManager) {
+                                    resolve(e3.target.result.value.stsTokenManager);
+                                } else {
+                                    resolve(null);
+                                }
+                            };
+                            fallbackReq.onerror = () => resolve(null);
+                        } else {
+                            resolve(null);
+                        }
                     }
                 };
                 getReq.onerror = () => resolve(null);
@@ -24,9 +37,9 @@ getAuthTokenFromDB: async function(apiKey) {
         });
     },
 
-    fetchUsersREST: async function(projectId, apiKey) {
+    fetchUsersREST: async function(projectId, apiKey, appName = "[DEFAULT]") {
         try {
-            const tokenManager = await CrossProjectsService.getAuthTokenFromDB(apiKey);
+            const tokenManager = await CrossProjectsService.getAuthTokenFromDB(apiKey, appName);
             if (!tokenManager || !tokenManager.refreshToken) return [];
             
             // Forza il refresh del token per evitare errori 401/403 (token scaduto dopo 1h)
@@ -82,31 +95,33 @@ getAuthTokenFromDB: async function(apiKey) {
 
         // Fetch da La Rotta degli Eroi
         try {
-            const eroiRestUsers = await this.fetchUsersREST("la-rotta-degli-eroi", "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A");
+            const eroiRestUsers = await this.fetchUsersREST("la-rotta-degli-eroi", "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A", "Eroi");
             eroiRestUsers.forEach(u => { eroiUsers.push({ ...u, gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship' }); });
         } catch(e) { console.warn("Eroi REST error:", e); }
 
         // Fetch da La Corte della Commedia
         try {
-            const commediaRestUsers = await this.fetchUsersREST("la-corte-della-commedia", "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls");
+            const commediaRestUsers = await this.fetchUsersREST("la-corte-della-commedia", "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls", "Commedia");
             commediaRestUsers.forEach(u => { commediaUsers.push({ ...u, gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open' }); });
         } catch(e) { console.warn("Commedia REST error:", e); }
 
         // Fetch da Fantaletteratura
         try {
-            const fantaRestUsers = await this.fetchUsersREST("fantaletteratura-a7ff1", "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ");
+            const fantaRestUsers = await this.fetchUsersREST("fantaletteratura-a7ff1", "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ", "Fanta");
             fantaRestUsers.forEach(u => { fantaUsers.push({ ...u, gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon' }); });
         } catch(e) { console.warn("Fanta REST error:", e); }
 
         // Fetch da Palestra di Riflessione
         try {
-            const palestraRestUsers = await this.fetchUsersREST("palestra-riflessione", "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo");
+            const palestraRestUsers = await this.fetchUsersREST("palestra-riflessione", "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo", "Palestra");
             palestraRestUsers.forEach(u => { palestraUsers.push({ ...u, gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain' }); });
         } catch(e) { console.warn("Palestra REST error:", e); }
 
         // Fetch da Ops! Operazione Storia
         try {
-            const opsRestUsers = await this.fetchUsersREST("ops-storia", "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY");
+            // Ops non ha un'app inizializzata separatamente in firebase-init.js (usa il default o fallisce se non c'è),
+            // ma passiamo "[DEFAULT]" implicitamente omettendolo se non c'è un'app "Ops".
+            const opsRestUsers = await this.fetchUsersREST("ops-storia", "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY", "Ops"); // Aggiungo "Ops" caso mai venga inizializzata
             opsRestUsers.forEach(u => { opsUsers.push({ ...u, gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left' }); });
         } catch(e) { console.warn("Ops REST error:", e); }
 
