@@ -97,11 +97,17 @@ const GamesUI = {
             document.getElementById('edit-game-classe').value = data.classe || defs.classe || '';
             document.getElementById('edit-game-uso').value = data.uso || defs.uso || '';
             
-            const isFreeToggle = document.getElementById('edit-game-is-free-base');
-            if(isFreeToggle) {
-                // If not set in DB, default to true for existing games (optional) or false. Let's just use data.isFreeBaseVersion
-                isFreeToggle.checked = data.isFreeBaseVersion === true;
+            // Gestione Nuova Architettura allowedPlans
+            let allowed = data.allowedPlans || {};
+            // Fallback retrocompatibilità per vecchi dati
+            if (!data.allowedPlans && data.isFreeBaseVersion !== undefined) {
+                allowed.base = data.isFreeBaseVersion === true;
             }
+
+            document.getElementById('edit-game-plan-base').checked = allowed.base === true;
+            document.getElementById('edit-game-plan-viandante').checked = allowed.viandante === true;
+            document.getElementById('edit-game-plan-docente').checked = allowed.docente_didattico === true;
+            document.getElementById('edit-game-plan-ecosistema').checked = allowed.docente_ecosistema === true;
             
             document.getElementById('modal-edit-game').style.display = 'flex';
         }).catch(err => {
@@ -123,7 +129,13 @@ const GamesUI = {
             obiettivi: document.getElementById('edit-game-obiettivi').value,
             classe: document.getElementById('edit-game-classe').value,
             uso: document.getElementById('edit-game-uso').value,
-            isFreeBaseVersion: document.getElementById('edit-game-is-free-base') ? document.getElementById('edit-game-is-free-base').checked : false
+            // Sostituiamo isFreeBaseVersion con allowedPlans per granularità
+            allowedPlans: {
+                base: document.getElementById('edit-game-plan-base').checked,
+                viandante: document.getElementById('edit-game-plan-viandante').checked,
+                docente_didattico: document.getElementById('edit-game-plan-docente').checked,
+                docente_ecosistema: document.getElementById('edit-game-plan-ecosistema').checked
+            }
         };
         
         window.GamesService.saveGameDetails(gameId, dataToSave).then(() => {

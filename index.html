@@ -439,17 +439,28 @@
         </div>
         
         <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-            <strong style="color:var(--text-main); font-size: 1.05rem;"><i class="fa-solid fa-gift" style="color:#10b981;"></i> Versione Base Gratuita</strong>
-            <label class="switch" style="margin:0;">
-              <input type="checkbox" id="edit-game-is-free-base">
-              <span class="slider round"></span>
+          <strong style="color:var(--text-main); font-size: 1.05rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;"><i class="fa-solid fa-key" style="color:#6366f1;"></i> Piani Abilitati all'Accesso</strong>
+          <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+            Seleziona quali abbonamenti hanno il diritto di entrare in questo gioco. Se autorizzati, saranno poi soggetti alle restrizioni interne previste dal loro piano.
+          </p>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+              <input type="checkbox" id="edit-game-plan-base" style="width: 18px; height: 18px;">
+              <div><strong style="color: #10b981;">Piano Base / Gratuito</strong><div style="font-size: 0.75rem; color: #64748b;">(Applicate limitazioni interne: es. max 4 squadre, blocco test)</div></div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+              <input type="checkbox" id="edit-game-plan-viandante" style="width: 18px; height: 18px;">
+              <div><strong style="color: #6366f1;">Piano Viandante</strong><div style="font-size: 0.75rem; color: #64748b;">(Accesso personale, nessuna funzione classe/docente)</div></div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+              <input type="checkbox" id="edit-game-plan-docente" style="width: 18px; height: 18px;">
+              <div><strong style="color: #f59e0b;">Piano Docente Completo Didattico</strong></div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+              <input type="checkbox" id="edit-game-plan-ecosistema" style="width: 18px; height: 18px;">
+              <div><strong style="color: #ec4899;">Piano Docente Ecosistema Completo</strong></div>
             </label>
           </div>
-          <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
-            Se attivato (ON), il gioco sarà disponibile a tutti gli utenti.<br>
-            Se disattivato (OFF), il gioco richiederà l'abbonamento alla Versione Completa.
-          </p>
         </div>
         
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
