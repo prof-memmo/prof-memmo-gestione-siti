@@ -222,7 +222,7 @@ const PortalApp = {
 
         } catch(e) {
             console.error("Errore recupero profilo:", e);
-            this.showError("Impossibile caricare il profilo centrale.");
+            this.showError("Impossibile caricare il profilo centrale. Dettaglio: " + e.message);
         }
     },
 
