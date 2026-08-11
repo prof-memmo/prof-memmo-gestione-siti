@@ -295,11 +295,7 @@ const PortalApp = {
     },
     openPlatform: function(gameId) {
         if (gameId === 'fantaletteratura') {
-            // Esempio fittizio di redirect alla piattaforma passando il token silente
-            // Nella realtà FantaLetteratura sarà su un altro dominio e leggerà l'Auth di sistema se condiviso
-            // o useremo un redirect con custom token / session cookie.
-            alert("Apertura di FantaLetteratura in modalità compatibilità bridge... (Simulazione)");
-            window.location.href = "https://prof-memmo.github.io/fantaletteratura/?bridge=true";
+            window.location.href = "../fantaletteratura_github/index.html";
         }
     },
 

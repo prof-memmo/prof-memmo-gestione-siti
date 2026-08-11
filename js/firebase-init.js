@@ -51,15 +51,15 @@ window.fbApps = {};
 window.fbDb = {};
 
 try {
-    // L'app principale (di default usa Eroi per il login dell'Admin)
-    const appEroi = firebase.initializeApp(configEroi);
-    window.fbApps.eroi = appEroi;
-    window.fbDb.eroi = appEroi.firestore();
-    
-    // Inizializza l'app centrale (Hub per posta, calendario ed esperienze)
-    const appHub = firebase.initializeApp(configHub, "Hub");
+    // Inizializza l'app centrale (Hub per posta, calendario ed esperienze) come DEFAULT
+    const appHub = firebase.initializeApp(configHub);
     window.fbApps.hub = appHub;
     window.fbDb.hub = appHub.firestore();
+    
+    // L'app Eroi (secondaria)
+    const appEroi = firebase.initializeApp(configEroi, "Eroi");
+    window.fbApps.eroi = appEroi;
+    window.fbDb.eroi = appEroi.firestore();
     
     // Auth principale (useremo il progetto Hub dedicato per loggare il Prof. Memmo)
     window.fbAuth = appHub.auth();
