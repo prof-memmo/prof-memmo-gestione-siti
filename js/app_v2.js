@@ -58,9 +58,13 @@ const HubApp = {
         // Inizializza i nuovi sottomoduli UI
         if(window.UsersUI) window.UsersUI.init();
         if(window.GamesUI) window.GamesUI.init();
+        if(window.RequestsUI) window.RequestsUI.init();
         if(window.NewsletterUI) window.NewsletterUI.init();
         if(window.EcosistemaUI) window.EcosistemaUI.init();
         
+        // Carica i dati aggregati (Utenti, Analytics, Newsletter)
+        this.loadIscrittiAggregati();
+
         // Esegue lo script di riparazione silenziosa DB (una tantum)
         if(window.DBFixer) window.DBFixer.fixDatabasesBackground();
     },
