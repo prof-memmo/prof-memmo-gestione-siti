@@ -76,6 +76,10 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
     
+    match /hub_posta/{docId} {
+      allow read, write: if isAdmin();
+    }
+    
     match /hub_esperienze/{docId} {
       allow read, write: if isAdmin();
     }
