@@ -486,7 +486,6 @@
       <div style="padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
         <h2 id="legal-modal-title" style="margin: 0; color: var(--primary-color); font-family: var(--font-display);">Titolo</h2>
         <button onclick="document.getElementById('legal-modal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">&times;</button>
-      </div>
       <div id="legal-modal-body" style="padding: 30px; overflow-y: auto; line-height: 1.6; color: #334155;">
         <!-- Contenuto dinamico -->
       </div>
@@ -502,45 +501,91 @@
       if (type === 'privacy') {
         title.innerHTML = '🔒 Privacy Policy';
         body.innerHTML = `
-          <h3 class="text-primary" style="margin-top:0;">1. Titolare del trattamento</h3>
-          <p>Il titolare del trattamento è Guglielmo Piersanti, contattabile all’indirizzo email: <a href="mailto:prof.memmo@gmail.com" style="color:var(--accent-gold);">prof.memmo@gmail.com</a></p>
-          <h3 class="text-primary">2. Finalità dell’app</h3>
-          <p>L'“Hub Didattico Prof. Memmo” è una piattaforma didattica, utilizzata a scopo educativo e ludico e senza fini di lucro.</p>
-          <h3 class="text-primary">3. Dati raccolti</h3>
-          <p>L'Hub può raccogliere i seguenti dati personali: indirizzo e-mail; informazioni di utilizzo relative ai giochi online (punteggi, attività didattiche ecc.); messaggio inviato tramite modulo di contatto; dati tecnici forniti automaticamente dalla piattaforma.</p>
-          <h3 class="text-primary">4. Finalità del trattamento</h3>
-          <p>I dati vengono trattati esclusivamente per consentire l’accesso all'Hub e alle sue funzionalità, gestire l’esperienza didattica e le classifiche interne, migliorare il funzionamento del servizio, rispondere alle richieste inviate. Non vengono utilizzati per scopi commerciali o pubblicitari.</p>
-          <h3 class="text-primary">5. Base giuridica</h3>
-          <p>Il trattamento dei dati si basa sull’utilizzo dell'Hub e sul consenso dell’utente.</p>
-          <h3 class="text-primary">6. Conservazione dei dati</h3>
-          <p>I dati sono trattati in modo lecito e sicuro. Non vengono venduti né ceduti a terzi. Sono mantenuti solo per il tempo necessario al funzionamento didattico dell'Hub o su richiesta, salvo obblighi di legge. Vengono utilizzati servizi terzi per l’archiviazione dei dati (Firebase).</p>
-          <h3 class="text-primary">8. Diritti dell’utente</h3>
-          <p>L'utente può richiedere in qualsiasi momento: accesso ai propri dati, rettifica o cancellazione, limitazione del trattamento, revoca del consenso.</p>
-          <h3 class="text-primary">9. Cookie</h3>
-          <p>Il sito non utilizza cookie di profilazione.</p>
-          <h3 class="text-primary">10. Utenti minori</h3>
-          <p>L'Hub è destinato a un uso didattico. Per l'utilizzo da parte di minori, è responsabilità di un adulto assicurare le autorizzazioni necessarie.</p>
+          <h3 style="margin-top:0; color:var(--accent);">1. Titolare del trattamento</h3>
+          <p>Il titolare del trattamento è <strong>Guglielmo Piersanti</strong>, contattabile all'indirizzo email: <a href="mailto:prof.memmo@gmail.com" style="color:var(--accent);">prof.memmo@gmail.com</a></p>
+          <h3 style="color:var(--accent);">2. Finalità dell'ecosistema</h3>
+          <p>L'"Ecosistema Didattico Prof. Memmo" è una piattaforma educativa composta da più giochi e strumenti didattici (tra cui FantaLetteratura, La Rotta degli Eroi, La Corte della Commedia, La Palestra di Riflessione e altri), utilizzata a scopo educativo e ludico. La piattaforma può prevedere piani di accesso a pagamento per i docenti.</p>
+          <h3 style="color:var(--accent);">3. Dati raccolti</h3>
+          <p>L'ecosistema può raccogliere i seguenti dati personali:
+            <ul>
+              <li>Indirizzo e-mail e nome utente (tramite accesso Google o registrazione diretta)</li>
+              <li>Informazioni di utilizzo relative ai giochi online (punteggi, attività didattiche, progressi ecc.)</li>
+              <li>Messaggi inviati tramite modulo di contatto o posta interna</li>
+              <li>Dati tecnici forniti automaticamente dalla piattaforma (es. tipo di dispositivo, dati di log)</li>
+              <li>Dati di sottoscrizione (piano scelto, data di registrazione)</li>
+            </ul>
+          </p>
+          <h3 style="color:var(--accent);">4. Finalità del trattamento</h3>
+          <p>I dati vengono trattati esclusivamente per:
+            <ul>
+              <li>Consentire l'accesso all'ecosistema e alle sue funzionalità</li>
+              <li>Gestire l'esperienza didattica, le classi, le classifiche e i tornei interni</li>
+              <li>Migliorare il funzionamento del servizio</li>
+              <li>Rispondere alle richieste inviate tramite modulo di contatto o posta interna</li>
+              <li>Gestire gli abbonamenti e i piani di accesso</li>
+              <li>Fornire assistenza o informazioni richieste dall'utente</li>
+            </ul>
+            Non vengono utilizzati per scopi commerciali o pubblicitari.
+          </p>
+          <h3 style="color:var(--accent);">5. Base giuridica</h3>
+          <p>Il trattamento dei dati si basa sull'utilizzo dell'ecosistema e sul consenso esplicito dell'utente fornito in fase di registrazione.</p>
+          <h3 style="color:var(--accent);">6. Conservazione dei dati</h3>
+          <p>I dati sono trattati in modo lecito e sicuro. Non vengono venduti né ceduti a terzi. Sono mantenuti solo per il tempo necessario al funzionamento didattico dell'ecosistema o su richiesta o in maniera autonoma tramite il profilo utente, salvo obblighi di legge. Vengono utilizzati servizi terzi per l'archiviazione dei dati (<strong>Firebase / Google LLC</strong>).</p>
+          <h3 style="color:var(--accent);">7. Servizi di terze parti</h3>
+          <p>L'ecosistema utilizza i seguenti servizi di terze parti: Firebase (autenticazione e database, Google LLC), Google Sign-In (autenticazione). Questi servizi possono raccogliere dati secondo le proprie privacy policy. Si consiglia di consultarle.</p>
+          <h3 style="color:var(--accent);">8. Diritti dell'utente</h3>
+          <p>L'utente può richiedere in qualsiasi momento:
+            <ul>
+              <li>Accesso ai propri dati</li>
+              <li>Rettifica o cancellazione</li>
+              <li>Limitazione del trattamento</li>
+              <li>Revoca del consenso</li>
+            </ul>
+            Per esercitare questi diritti, è possibile contattare il titolare all'indirizzo email sopra indicato.
+          </p>
+          <h3 style="color:var(--accent);">9. Cookie</h3>
+          <p>Il sito non utilizza cookie di profilazione. Potrebbero essere presenti cookie tecnici necessari al funzionamento del servizio.</p>
+          <h3 style="color:var(--accent);">10. Utenti minori</h3>
+          <p>L'ecosistema è destinato a un uso didattico e può essere utilizzato da minori nell'ambito scolastico, sotto la supervisione e responsabilità del docente. Per l'utilizzo da parte di minori al di fuori del contesto scolastico, è responsabilità di un adulto assicurare le autorizzazioni necessarie. I genitori o tutori possono richiedere la cancellazione dei dati contattando il titolare.</p>
+          <h3 style="color:var(--accent);">11. Modifiche alla Policy</h3>
+          <p>La presente informativa può essere aggiornata. Gli utenti verranno informati in caso di modifiche rilevanti tramite avviso sulla piattaforma.</p>
+          <h3 style="color:var(--accent);">12. Riferimenti normativi</h3>
+          <p>Questa informativa è redatta in conformità al <strong>GDPR (Regolamento UE 2016/679)</strong> e alla normativa italiana in materia di protezione dei dati personali.</p>
         `;
       } else if (type === 'termini') {
         title.innerHTML = '📜 Termini e Condizioni';
         body.innerHTML = `
-          <p><strong>Ultimo aggiornamento: 31/04/26</strong></p>
-          <h3 class="text-primary">1. Titolare del sito</h3>
-          <p>Il presente sito web è gestito da: Guglielmo Piersanti. Email di contatto: <a href="mailto:prof.memmo@gmail.com" style="color:var(--accent-gold);">prof.memmo@gmail.com</a></p>
-          <h3 class="text-primary">2. Accettazione dei termini</h3>
-          <p>L’accesso e l’utilizzo del sito implicano l’accettazione dei presenti Termini e Condizioni. Se non si accettano tali condizioni, si invita a non utilizzare il sito.</p>
-          <h3 class="text-primary">3. Descrizione del servizio</h3>
-          <p>Il sito ha finalità informative ed educative. Gli utenti possono: Consultare i contenuti disponibili e usufruire della piattaforma di gioco.</p>
-          <h3 class="text-primary">4. Utilizzo del sito</h3>
-          <p>L’utente si impegna a utilizzare il sito in modo lecito e corretto, evitando di: Inviare messaggi offensivi, illeciti o spam; Tentare di compromettere la sicurezza del sito; Utilizzare il sito per scopi fraudolenti.</p>
-          <h3 class="text-primary">5. Modulo di contatto</h3>
-          <p>L’utente è responsabile dei dati e dei contenuti inviati tramite il modulo di contatto.</p>
-          <h3 class="text-primary">6. Proprietà intellettuale</h3>
-          <p>Tutti i contenuti del sito sono di proprietà del titolare, salvo diversa indicazione. È vietata la copia, distribuzione o utilizzo senza autorizzazione.</p>
-          <h3 class="text-primary">7. Limitazione di responsabilità</h3>
-          <p>Il sito è fornito “così com’è”. Il titolare non garantisce l’assenza di errori o interruzioni, la completezza o accuratezza dei contenuti. Il titolare non è responsabile per danni derivanti dall’utilizzo del sito.</p>
-          <h3 class="text-primary">8. Legge applicabile</h3>
-          <p>I presenti Termini sono regolati dalla normativa italiana e dal GDPR.</p>
+          <p><strong>Ultimo aggiornamento: 11/08/2026</strong></p>
+          <h3 style="color:var(--accent); margin-top:0;">1. Titolare del sito</h3>
+          <p>Il presente ecosistema di piattaforme didattiche è gestito da: <strong>Guglielmo Piersanti</strong>. Email di contatto: <a href="mailto:prof.memmo@gmail.com" style="color:var(--accent);">prof.memmo@gmail.com</a></p>
+          <h3 style="color:var(--accent);">2. Accettazione dei termini</h3>
+          <p>L'accesso e l'utilizzo dell'ecosistema Prof. Memmo implicano l'accettazione dei presenti Termini e Condizioni. Se non si accettano tali condizioni, si invita a non utilizzare i servizi.</p>
+          <h3 style="color:var(--accent);">3. Descrizione del servizio</h3>
+          <p>L'Ecosistema Prof. Memmo è un insieme di piattaforme didattiche e ludiche (FantaLetteratura, La Rotta degli Eroi, La Palestra di Riflessione, La Corte della Commedia e altri) accessibili tramite un unico account Hub. Il servizio ha finalità informative ed educative. Gli utenti possono: consultare i contenuti disponibili, usufruire delle piattaforme di gioco, contattare il gestore tramite modulo di contatto o posta interna, gestire classi e studenti (per i docenti con piano attivo).</p>
+          <h3 style="color:var(--accent);">4. Utilizzo del servizio</h3>
+          <p>L'utente si impegna a utilizzare l'ecosistema in modo lecito e corretto, evitando di:
+            <ul>
+              <li>Inviare messaggi offensivi, illeciti o spam</li>
+              <li>Tentare di compromettere la sicurezza delle piattaforme</li>
+              <li>Utilizzare il servizio per scopi fraudolenti</li>
+              <li>Condividere credenziali di accesso con terzi</li>
+              <li>Eludere i sistemi di pagamento o accedere a funzionalità non incluse nel proprio piano</li>
+            </ul>
+          </p>
+          <h3 style="color:var(--accent);">5. Modulo di contatto e posta interna</h3>
+          <p>L'utente è responsabile dei dati e dei contenuti inviati tramite il modulo di contatto o la posta interna dell'Hub. È vietato: inserire dati falsi o di terzi senza autorizzazione; inviare contenuti illeciti, offensivi o non pertinenti.</p>
+          <h3 style="color:var(--accent);">6. Proprietà intellettuale</h3>
+          <p>Tutti i contenuti dell'ecosistema (testi, materiali didattici, grafica, giochi, meccaniche ecc.) sono di proprietà del titolare e sono protetti da diritto d'autore, salvo diversa indicazione. I contenuti sono distribuiti con licenza <strong>Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</strong>. È vietata la copia, distribuzione, modifica o utilizzo commerciale senza autorizzazione scritta.</p>
+          <h3 style="color:var(--accent);">7. Abbonamenti e pagamenti</h3>
+          <p>Alcune funzionalità dell'ecosistema sono disponibili esclusivamente con piani a pagamento (Piano Viandante, Piano Docente, Ecosistema Completo). I prezzi sono indicati nella pagina dedicata. Il titolare si riserva il diritto di modificare i piani e i prezzi con adeguato preavviso. Gli studenti inseriti in una classe da un docente non sono soggetti a costi aggiuntivi.</p>
+          <h3 style="color:var(--accent);">8. Limitazione di responsabilità</h3>
+          <p>Il servizio è fornito "così com'è". Il titolare non garantisce l'assenza di errori o interruzioni, la completezza o accuratezza dei contenuti. Il titolare non è responsabile per: danni derivanti dall'utilizzo del servizio; problemi tecnici o interruzioni del servizio; contenuti inviati dagli utenti tramite modulo di contatto o posta interna.</p>
+          <h3 style="color:var(--accent);">9. Link esterni</h3>
+          <p>L'ecosistema può contenere link a siti o servizi esterni. Il titolare non è responsabile del contenuto o delle politiche di tali siti.</p>
+          <h3 style="color:var(--accent);">10. Modifiche ai termini</h3>
+          <p>Il titolare si riserva il diritto di modificare i presenti Termini in qualsiasi momento. Le modifiche saranno pubblicate su questa pagina e, in caso di modifiche rilevanti, gli utenti saranno informati tramite avviso sulla piattaforma.</p>
+          <h3 style="color:var(--accent);">11. Legge applicabile</h3>
+          <p>I presenti Termini sono regolati dalla normativa italiana e dal <strong>GDPR (Regolamento UE 2016/679)</strong>. Per qualsiasi controversia è competente il foro del luogo di residenza del titolare.</p>
         `;
       }
       
