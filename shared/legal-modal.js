@@ -1,0 +1,252 @@
+/**
+ * Prof. Memmo — Shared Ecosystem Modals
+ * =====================================================
+ * Unico file condiviso per tutto l'ecosistema Prof. Memmo.
+ * Include:
+ *  - Privacy Policy (openSharedModal('privacy'))
+ *  - Termini e Condizioni (openSharedModal('termini'))
+ *  - Contatti con form (openSharedModal('contatti'))
+ *
+ * Come usarlo in qualsiasi sito:
+ *  <script src="https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/legal-modal.js"></script>
+ *  <a onclick="openSharedModal('privacy')">Privacy Policy</a>
+ *  <a onclick="openSharedModal('termini')">Termini e Condizioni</a>
+ *  <a onclick="openSharedModal('contatti')">Contattaci</a>
+ */
+
+(function () {
+  'use strict';
+
+  const CSS = `
+    #pmSharedOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 10, 20, 0.82);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 999999;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+    #pmSharedOverlay.pm-open { display: flex; }
+    #pmSharedBox {
+      background: #ffffff;
+      border-radius: 20px;
+      max-width: 680px;
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.45);
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      color: #1e293b;
+      overflow: hidden;
+    }
+    #pmSharedHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.4rem 2rem;
+      border-bottom: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 20px 20px 0 0;
+      flex-shrink: 0;
+    }
+    #pmSharedHeader h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #0f172a; }
+    #pmCloseBtn {
+      background: none; border: none; font-size: 1.6rem; line-height: 1;
+      cursor: pointer; color: #64748b; padding: 0 4px; transition: color 0.2s;
+    }
+    #pmCloseBtn:hover { color: #0f172a; }
+    #pmSharedBody {
+      overflow-y: auto; padding: 1.8rem 2rem; flex: 1;
+      line-height: 1.7; font-size: 0.95rem; color: #334155;
+    }
+    #pmSharedBody h3 {
+      color: #2563eb; font-size: 1rem; font-weight: 700;
+      margin: 1.4rem 0 0.4rem; padding-bottom: 4px;
+      border-bottom: 2px solid #eff6ff;
+    }
+    #pmSharedBody h3:first-child { margin-top: 0; }
+    #pmSharedBody ul { padding-left: 1.4rem; margin: 0.4rem 0; }
+    #pmSharedBody ul li { margin-bottom: 0.3rem; }
+    #pmSharedBody a { color: #2563eb; }
+    #pmSharedBody p { margin: 0.3rem 0 0.6rem; }
+    .pm-form-group { margin-bottom: 1rem; }
+    .pm-form-group label { display: block; font-weight: 600; font-size: 0.88rem; color: #475569; margin-bottom: 5px; }
+    .pm-form-group input, .pm-form-group select, .pm-form-group textarea {
+      width: 100%; padding: 0.7rem 0.9rem; border: 1px solid #cbd5e1;
+      border-radius: 10px; font-size: 0.95rem; font-family: inherit;
+      color: #1e293b; background: #f8fafc; box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+    }
+    .pm-form-group input:focus, .pm-form-group select:focus, .pm-form-group textarea:focus {
+      border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); background: #fff;
+    }
+    .pm-form-group textarea { resize: vertical; min-height: 100px; }
+    .pm-checkbox-row { display: flex; align-items: flex-start; gap: 10px; font-size: 0.85rem; color: #475569; }
+    .pm-checkbox-row input { margin-top: 3px; flex-shrink: 0; }
+    .pm-checkbox-row a { color: #2563eb; cursor: pointer; }
+    #pmSubmitBtn {
+      width: 100%; padding: 0.85rem;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff; border: none; border-radius: 12px;
+      font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 1rem;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    #pmSubmitBtn:hover { opacity: 0.92; transform: translateY(-1px); }
+    #pmSubmitBtn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    #pmSostieniBtn {
+      display: none; width: 100%; padding: 0.85rem;
+      background: linear-gradient(135deg, #ef4444, #f43f5e);
+      color: #fff; border: none; border-radius: 12px;
+      font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 0.6rem;
+      text-align: center; text-decoration: none;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    #pmSostieniBtn:hover { opacity: 0.92; transform: translateY(-1px); }
+    #pmFormMsg { margin-top: 0.8rem; font-size: 0.9rem; text-align: center; min-height: 1.4em; }
+    .pm-discover-box {
+      background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+      border: 1px solid #bfdbfe; border-radius: 12px;
+      padding: 1rem 1.2rem; margin-bottom: 1.4rem;
+      font-size: 0.9rem; color: #1e3a5f; line-height: 1.6;
+    }
+    .pm-discover-box strong { color: #1d4ed8; }
+  `;
+
+  function injectCSS() {
+    if (document.getElementById('pmSharedCSS')) return;
+    const style = document.createElement('style');
+    style.id = 'pmSharedCSS';
+    style.textContent = CSS;
+    document.head.appendChild(style);
+  }
+
+  function buildOverlay() {
+    if (document.getElementById('pmSharedOverlay')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'pmSharedOverlay';
+    overlay.innerHTML =
+      '<div id="pmSharedBox">' +
+        '<div id="pmSharedHeader">' +
+          '<h2 id="pmSharedTitle">Titolo</h2>' +
+          '<button id="pmCloseBtn" aria-label="Chiudi">&times;</button>' +
+        '</div>' +
+        '<div id="pmSharedBody"></div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    document.getElementById('pmCloseBtn').addEventListener('click', closeSharedModal);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) closeSharedModal(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSharedModal(); });
+  }
+
+  function closeSharedModal() {
+    var overlay = document.getElementById('pmSharedOverlay');
+    if (overlay) { overlay.classList.remove('pm-open'); document.body.style.overflow = ''; }
+  }
+
+  var PRIVACY_HTML = '<h3>1. Titolare del trattamento</h3><p>Il titolare del trattamento è <strong>Guglielmo Piersanti</strong>, contattabile all\'indirizzo email: <a href="mailto:prof.memmo@gmail.com">prof.memmo@gmail.com</a></p><h3>2. Finalità dell\'ecosistema</h3><p>L\'"Ecosistema Didattico Prof. Memmo" è una piattaforma educativa composta da più giochi e strumenti didattici (FantaLetteratura, La Rotta degli Eroi, La Corte della Commedia, La Palestra di Riflessione e altri), utilizzata a scopo educativo e ludico. La piattaforma può prevedere piani di accesso a pagamento per i docenti.</p><h3>3. Dati raccolti</h3><ul><li>Indirizzo e-mail e nome utente (tramite accesso Google o registrazione diretta)</li><li>Informazioni di utilizzo dei giochi (punteggi, attività didattiche, progressi)</li><li>Messaggi inviati tramite modulo di contatto o posta interna</li><li>Dati tecnici forniti automaticamente dalla piattaforma (tipo di dispositivo, dati di log)</li><li>Dati di sottoscrizione (piano scelto, data di registrazione)</li></ul><h3>4. Finalità del trattamento</h3><ul><li>Consentire l\'accesso all\'ecosistema e alle sue funzionalità</li><li>Gestire l\'esperienza didattica, le classi, le classifiche e i tornei interni</li><li>Migliorare il funzionamento del servizio</li><li>Rispondere alle richieste inviate tramite modulo di contatto o posta interna</li><li>Gestire gli abbonamenti e i piani di accesso</li></ul><p>Non vengono utilizzati per scopi commerciali o pubblicitari.</p><h3>5. Base giuridica</h3><p>Il trattamento si basa sull\'utilizzo dell\'ecosistema e sul consenso esplicito dell\'utente fornito in fase di registrazione.</p><h3>6. Conservazione dei dati</h3><p>I dati sono trattati in modo lecito e sicuro. Non vengono venduti né ceduti a terzi. Sono mantenuti solo per il tempo necessario al funzionamento didattico o su richiesta, salvo obblighi di legge. Vengono utilizzati servizi terzi per l\'archiviazione (<strong>Firebase / Google LLC</strong>).</p><h3>7. Servizi di terze parti</h3><p>L\'ecosistema utilizza: Firebase (autenticazione e database, Google LLC), Google Sign-In. Questi servizi possono raccogliere dati secondo le proprie privacy policy.</p><h3>8. Diritti dell\'utente</h3><ul><li>Accesso ai propri dati</li><li>Rettifica o cancellazione</li><li>Limitazione del trattamento</li><li>Revoca del consenso</li></ul><p>Per esercitare questi diritti: <a href="mailto:prof.memmo@gmail.com">prof.memmo@gmail.com</a></p><h3>9. Cookie</h3><p>Il sito non utilizza cookie di profilazione. Potrebbero essere presenti cookie tecnici necessari al funzionamento del servizio.</p><h3>10. Utenti minori</h3><p>L\'ecosistema è destinato a uso didattico e può essere utilizzato da minori nell\'ambito scolastico, sotto la supervisione del docente. Per uso al di fuori del contesto scolastico è responsabilità di un adulto assicurare le autorizzazioni necessarie. I genitori o tutori possono richiedere la cancellazione dei dati contattando il titolare.</p><h3>11. Modifiche alla Policy</h3><p>La presente informativa può essere aggiornata. Gli utenti saranno informati in caso di modifiche rilevanti tramite avviso sulla piattaforma.</p><h3>12. Riferimenti normativi</h3><p>Redatta in conformità al <strong>GDPR (Regolamento UE 2016/679)</strong> e alla normativa italiana in materia di protezione dei dati personali.</p>';
+
+  var TERMINI_HTML = '<p><strong>Ultimo aggiornamento: 11/08/2026</strong></p><h3>1. Titolare del sito</h3><p>Ecosistema gestito da <strong>Guglielmo Piersanti</strong> — <a href="mailto:prof.memmo@gmail.com">prof.memmo@gmail.com</a></p><h3>2. Accettazione dei termini</h3><p>L\'accesso e l\'utilizzo dell\'ecosistema Prof. Memmo implicano l\'accettazione dei presenti Termini. Se non si accettano, si invita a non utilizzare i servizi.</p><h3>3. Descrizione del servizio</h3><p>L\'Ecosistema Prof. Memmo è un insieme di piattaforme didattiche e ludiche (FantaLetteratura, La Rotta degli Eroi, La Palestra di Riflessione, La Corte della Commedia e altri) accessibili tramite un unico account Hub. Il servizio ha finalità educative.</p><h3>4. Utilizzo del servizio</h3><p>L\'utente si impegna a evitare di:</p><ul><li>Inviare messaggi offensivi, illeciti o spam</li><li>Tentare di compromettere la sicurezza delle piattaforme</li><li>Utilizzare il servizio per scopi fraudolenti</li><li>Condividere credenziali di accesso con terzi</li><li>Eludere i sistemi di pagamento o accedere a funzionalità non incluse nel proprio piano</li></ul><h3>5. Modulo di contatto e posta interna</h3><p>L\'utente è responsabile dei contenuti inviati. È vietato inserire dati falsi o inviare contenuti illeciti o non pertinenti.</p><h3>6. Proprietà intellettuale</h3><p>Tutti i contenuti (testi, materiali didattici, grafica, giochi, meccaniche) sono di proprietà del titolare e protetti da diritto d\'autore. Distribuiti con licenza <strong>CC BY-NC-ND 4.0</strong>. Vietata la copia, distribuzione, modifica o utilizzo commerciale senza autorizzazione scritta.</p><h3>7. Abbonamenti e pagamenti</h3><p>Alcune funzionalità sono disponibili solo con piani a pagamento (Piano Viandante, Piano Docente, Ecosistema Completo). I prezzi sono indicati nella pagina dedicata. Gli studenti inseriti in una classe da un docente non sono soggetti a costi aggiuntivi.</p><h3>8. Limitazione di responsabilità</h3><p>Il servizio è fornito "così com\'è". Il titolare non garantisce l\'assenza di errori o interruzioni e non è responsabile per danni derivanti dall\'utilizzo.</p><h3>9. Link esterni</h3><p>L\'ecosistema può contenere link a siti esterni. Il titolare non è responsabile del loro contenuto.</p><h3>10. Modifiche ai termini</h3><p>Il titolare si riserva il diritto di modificare i presenti Termini in qualsiasi momento, con avviso sulla piattaforma.</p><h3>11. Legge applicabile</h3><p>Regolati dalla normativa italiana e dal <strong>GDPR (Regolamento UE 2016/679)</strong>. Foro competente: quello del luogo di residenza del titolare.</p>';
+
+  function buildContattiHTML(sostieniUrl) {
+    return '<div class="pm-discover-box"><strong>Scopri il mondo Prof. Memmo.</strong><br>Visita il sito per scoprire i materiali, i giochi e la filosofia, oppure condividi la tua esperienza lasciando commenti e feedback tramite il modulo! &nbsp;<a href="https://prof-memmo.github.io/games/" target="_blank" style="font-weight:600;">Vai al sito →</a></div>' +
+      '<form id="pmContactForm">' +
+        '<div class="pm-form-group"><label for="pmNome">Nome</label><input type="text" id="pmNome" required placeholder="Il tuo nome"></div>' +
+        '<div class="pm-form-group"><label for="pmEmail">Email</label><input type="email" id="pmEmail" required placeholder="La tua email"></div>' +
+        '<div class="pm-form-group"><label for="pmTopic">Tipologia della comunicazione</label><select id="pmTopic" required><option value="" disabled selected>Seleziona un\'opzione...</option><option>Richiesta di informazioni</option><option>Opinioni</option><option>Segnalazione tecnica</option><option>Collaborazione</option><option>Altro</option></select></div>' +
+        '<div class="pm-form-group"><label for="pmMessaggio">Messaggio</label><textarea id="pmMessaggio" required placeholder="Come posso aiutarti?"></textarea></div>' +
+        '<div class="pm-form-group"><div class="pm-checkbox-row"><input type="checkbox" id="pmTermsCheck" required><label for="pmTermsCheck">Ho almeno 16 anni o sono sotto la supervisione di un adulto. Accetto la <a onclick="openSharedModal(\'privacy\')">Privacy Policy</a> e i <a onclick="openSharedModal(\'termini\')">Termini e Condizioni</a>.</label></div></div>' +
+        '<button type="submit" id="pmSubmitBtn">Invia Messaggio</button>' +
+        (sostieniUrl ? '<a id="pmSostieniBtn" href="' + sostieniUrl + '" target="_blank" style="display:block; margin-top:0.6rem; padding:0.85rem; background:linear-gradient(135deg,#ef4444,#f43f5e); color:#fff; border-radius:12px; font-size:1rem; font-weight:700; text-align:center; text-decoration:none;">❤️ Sostieni Prof. Memmo</a>' : '') +
+        '<div id="pmFormMsg"></div>' +
+      '</form>';
+  }
+
+  function attachFormLogic() {
+    var form = document.getElementById('pmContactForm');
+    if (!form) return;
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('pmSubmitBtn');
+      var msg = document.getElementById('pmFormMsg');
+      btn.disabled = true;
+      btn.textContent = 'Invio in corso...';
+      msg.textContent = '';
+      var nome = document.getElementById('pmNome').value.trim();
+      var email = document.getElementById('pmEmail').value.trim();
+      var topic = document.getElementById('pmTopic').value;
+      var messaggio = document.getElementById('pmMessaggio').value.trim();
+      try {
+        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+          var db = firebase.app().firestore();
+          await db.collection('hub_posta').add({
+            nome: nome, email: email, topic: topic, messaggio: messaggio,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            fonte: window.location.hostname
+          });
+          msg.innerHTML = '<span style="color:#16a34a;">Messaggio inviato con successo! Ti risponderò presto.</span>';
+          form.reset();
+        } else { throw new Error('firebase not ready'); }
+      } catch (err) {
+        var subject = encodeURIComponent('[Prof. Memmo] ' + topic);
+        var body = encodeURIComponent('Nome: ' + nome + '\nEmail: ' + email + '\n\n' + messaggio);
+        window.location.href = 'mailto:prof.memmo@gmail.com?subject=' + subject + '&body=' + body;
+      }
+      btn.disabled = false;
+      btn.textContent = 'Invia Messaggio';
+    });
+  }
+
+  async function openSharedModal(type) {
+    injectCSS();
+    buildOverlay();
+    var overlay = document.getElementById('pmSharedOverlay');
+    var title = document.getElementById('pmSharedTitle');
+    var body = document.getElementById('pmSharedBody');
+
+    if (type === 'privacy') {
+      title.textContent = 'Privacy Policy';
+      body.innerHTML = PRIVACY_HTML;
+    } else if (type === 'termini') {
+      title.textContent = 'Termini e Condizioni';
+      body.innerHTML = TERMINI_HTML;
+    } else if (type === 'contatti') {
+      title.textContent = 'Contattaci';
+      var sostieniUrl = null;
+      try {
+        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+          var db = firebase.app().firestore();
+          var snap = await db.collection('ecosistema_settings').doc('config').get();
+          if (snap.exists) {
+            var d = snap.data();
+            if (d.sostieni_il_progetto && d.paypal_link) sostieniUrl = d.paypal_link;
+          }
+        }
+      } catch (e) { /* silently fail */ }
+      body.innerHTML = buildContattiHTML(sostieniUrl);
+      attachFormLogic();
+    }
+
+    overlay.classList.add('pm-open');
+    document.body.style.overflow = 'hidden';
+    body.scrollTop = 0;
+  }
+
+  window.openSharedModal = openSharedModal;
+  window.closeSharedModal = closeSharedModal;
+
+  // Auto-intercept data-legal attributes
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-legal]').forEach(function (el) {
+      var type = el.getAttribute('data-legal');
+      var mapped = type === 'terms' ? 'termini' : type;
+      el.addEventListener('click', function (e) { e.preventDefault(); openSharedModal(mapped); });
+    });
+  });
+
+})();
