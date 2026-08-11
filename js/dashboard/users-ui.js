@@ -8,6 +8,7 @@ const UsersUI = {
     currentSortCol: 'nome',
     currentSortAsc: true,
     activeRoleFilter: 'tutti',
+    selectedUsers: new Set(),
 
     init: function() {
         console.log("UsersUI inizializzato.");

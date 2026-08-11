@@ -519,28 +519,28 @@
           <h3 style="color:var(--text-muted); margin-top:0;">Utenti Unici Globali</h3>
           <h1 id="counter-total" style="font-size: 4rem; color:var(--text-main); margin: 10px 0;">--</h1>
           <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
-            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="window.open('https://prof-memmo.github.io/la-rotta-degli-eroi/', '_blank')" title="Apri La Rotta degli Eroi">
-                <img src="assets/la-rotta-degli-eroi-logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="document.getElementById('filter-gioco').value='La Rotta degli Eroi'; if(window.HubApp && window.HubApp.filterIscritti) window.HubApp.filterIscritti(); document.getElementById('hub-iscritti-table').scrollIntoView({behavior: 'smooth', block: 'start'});" title="Filtra La Rotta degli Eroi">
+                <img src="assets/LOGO 'La rotta degli eroi' - Header.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
                 <div class="materia-label" style="font-size: 0.75rem;">Eroi</div>
                 <div class="materia-value" id="counter-eroi" style="font-size: 1.2rem; margin-top: 2px;">--</div>
             </div>
-            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="window.open('https://prof-memmo.github.io/la-corte-della-commedia/', '_blank')" title="Apri La Corte della Commedia">
-                <img src="assets/commedia_logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="document.getElementById('filter-gioco').value='La Corte della Commedia'; if(window.HubApp && window.HubApp.filterIscritti) window.HubApp.filterIscritti(); document.getElementById('hub-iscritti-table').scrollIntoView({behavior: 'smooth', block: 'start'});" title="Filtra La Corte della Commedia">
+                <img src="assets/commedia_logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
                 <div class="materia-label" style="font-size: 0.75rem;">Commedia</div>
                 <div class="materia-value" id="counter-commedia" style="font-size: 1.2rem; margin-top: 2px;">--</div>
             </div>
-            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="window.open('https://prof-memmo.github.io/fantaletteratura/', '_blank')" title="Apri Fantaletteratura">
-                <img src="assets/fanta_logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="document.getElementById('filter-gioco').value='Fantaletteratura'; if(window.HubApp && window.HubApp.filterIscritti) window.HubApp.filterIscritti(); document.getElementById('hub-iscritti-table').scrollIntoView({behavior: 'smooth', block: 'start'});" title="Filtra Fantaletteratura">
+                <img src="assets/fanta_logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
                 <div class="materia-label" style="font-size: 0.75rem;">Fanta</div>
                 <div class="materia-value" id="counter-fanta" style="font-size: 1.2rem; margin-top: 2px;">--</div>
             </div>
-            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="window.open('https://prof-memmo.github.io/palestra-di-riflessione/', '_blank')" title="Apri Palestra di Riflessione">
-                <img src="assets/palestra-logo.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="document.getElementById('filter-gioco').value='Palestra di Riflessione'; if(window.HubApp && window.HubApp.filterIscritti) window.HubApp.filterIscritti(); document.getElementById('hub-iscritti-table').scrollIntoView({behavior: 'smooth', block: 'start'});" title="Filtra Palestra di Riflessione">
+                <img src="assets/palestra-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
                 <div class="materia-label" style="font-size: 0.75rem;">Palestra</div>
                 <div class="materia-value" id="counter-palestra" style="font-size: 1.2rem; margin-top: 2px;">--</div>
             </div>
-            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="window.open('https://prof-memmo.github.io/ops-storia/', '_blank')" title="Apri Ops! Operazione Storia">
-                <img src="assets/ops-logo-scritte.png" style="height: 40px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="document.getElementById('filter-gioco').value='Ops! Operazione Storia'; if(window.HubApp && window.HubApp.filterIscritti) window.HubApp.filterIscritti(); document.getElementById('hub-iscritti-table').scrollIntoView({behavior: 'smooth', block: 'start'});" title="Filtra Ops! Operazione Storia">
+                <img src="assets/ops-logo-scritte.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
                 <div class="materia-label" style="font-size: 0.75rem;">Ops!</div>
                 <div class="materia-value" id="counter-ops" style="font-size: 1.2rem; margin-top: 2px;">--</div>
             </div>
