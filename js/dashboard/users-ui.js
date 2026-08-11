@@ -69,10 +69,6 @@ const UsersUI = {
             const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
             
             const userPlan = user.plan || 'base';
-            let planDisplay = 'Base (Gratuito)';
-            if (userPlan === 'viandante') planDisplay = 'Viandante (9,99€)';
-            else if (userPlan === 'docente_didattico') planDisplay = 'Docente Did. (19,99€)';
-            else if (userPlan === 'docente_ecosistema') planDisplay = 'Ecosistema (24,99€)';
             
             const isChecked = window.UsersUI.selectedUsers.has(user.id) ? 'checked' : '';
             
@@ -82,11 +78,18 @@ const UsersUI = {
                 <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
                 <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
                 <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
-                <td style="padding: 10px;"><span style="background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">${planDisplay}</span></td>
+                <td style="padding: 10px;">
+                    <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 0.85rem; outline: none; cursor: pointer; background: white;">
+                        <option value="base" ${userPlan === 'base' ? 'selected' : ''}>Base</option>
+                        <option value="viandante" ${userPlan === 'viandante' ? 'selected' : ''}>Viandante</option>
+                        <option value="docente_didattico" ${userPlan === 'docente_didattico' ? 'selected' : ''}>Docente Did.</option>
+                        <option value="docente_ecosistema" ${userPlan === 'docente_ecosistema' ? 'selected' : ''}>Ecosistema</option>
+                    </select>
+                </td>
                 <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">-</td>
                 <td style="padding: 10px; text-align:center;">
                     <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); font-size:1.1rem; text-decoration:none; margin-right: 10px;"><i class="fa-solid fa-envelope"></i></a>
-                    <button class="btn" style="padding: 5px 10px; font-size: 0.8rem;" onclick="window.UsersUI.openEditPlanModal('${user.id}', '${user.email}', '${user.nome.replace(/'/g, "\\'")}', '${userPlan}')" title="Modifica Piano"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="btn" style="padding: 5px 10px; font-size: 0.8rem; color: var(--danger-color); border-color: var(--danger-color);" onclick="window.UsersUI.openDeleteUserModal('${user.id}', '${user.email}', '${user.nome.replace(/'/g, "\\'")}', '${user.gioco}')" title="Elimina Utente"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -119,87 +122,140 @@ const UsersUI = {
     },
 
     openBulkEditPlanModal: function() {
-        if (!this.selectedUsers || this.selectedUsers.size === 0) return;
-        
-        // Use the same modal but configure it for bulk
-        document.getElementById('edit-user-id').value = 'BULK_EDIT';
-        document.getElementById('edit-user-name').textContent = `${this.selectedUsers.size} utenti selezionati`;
-        document.getElementById('edit-user-email').value = '';
-        document.getElementById('edit-user-plan-select').value = 'base';
-        
-        const modal = document.getElementById('modal-edit-user-plan');
-        modal.style.display = 'flex';
-        modal.classList.remove('hidden');
+        alert("La modifica massiva del piano non è più supportata dal menu a tendina.");
     },
     
-    openEditPlanModal: function(userId, userEmail, userName, currentPlan) {
-        document.getElementById('edit-user-id').value = userId;
-        document.getElementById('edit-user-email').value = userEmail;
-        document.getElementById('edit-user-name').textContent = userName;
-        document.getElementById('edit-user-plan-select').value = currentPlan || 'base';
-        
-        const modal = document.getElementById('modal-edit-user-plan');
-        modal.style.display = 'flex';
-        modal.classList.remove('hidden');
-    },
-    
-    saveUserPlan: async function() {
-        const userId = document.getElementById('edit-user-id').value;
-        const newPlan = document.getElementById('edit-user-plan-select').value;
-        
+    updateUserPlan: async function(userId, newPlan) {
         if (!userId) return;
-        
         try {
             if (window.fbDb && window.fbDb.hub) {
-                if (userId === 'BULK_EDIT') {
-                    // Bulk update
-                    const promises = [];
-                    this.selectedUsers.forEach(uid => {
-                        promises.push(window.fbDb.hub.collection('hub_users').doc(uid).set({
-                            abbonamento: newPlan,
-                            lastUpdated: new Date().toISOString()
-                        }, { merge: true }));
-                    });
-                    
-                    await Promise.all(promises);
-                    alert(`${this.selectedUsers.size} utenti aggiornati con successo!`);
-                    
-                    // Update locally
-                    if (this.allUsers) {
-                        this.selectedUsers.forEach(uid => {
-                            const usr = this.allUsers.find(u => u.id === uid);
-                            if (usr) usr.plan = newPlan;
-                        });
-                    }
-                    
-                    this.selectedUsers.clear();
-                    document.getElementById('select-all-users').checked = false;
-                    document.getElementById('bulk-actions-container').style.display = 'none';
-                    
-                } else {
-                    // Single update
-                    await window.fbDb.hub.collection('hub_users').doc(userId).set({
-                        abbonamento: newPlan,
-                        lastUpdated: new Date().toISOString()
-                    }, { merge: true });
-                    
-                    alert("Piano utente aggiornato con successo!");
-                    
-                    // Update locally
-                    if (this.allUsers) {
-                        const usr = this.allUsers.find(u => u.id === userId);
-                        if (usr) usr.plan = newPlan;
-                    }
-                }
+                await window.fbDb.hub.collection('hub_users').doc(userId).set({
+                    abbonamento: newPlan,
+                    lastUpdated: new Date().toISOString()
+                }, { merge: true });
                 
-                document.getElementById('modal-edit-user-plan').style.display = 'none';
-                this.filterIscritti();
+                if (this.allUsers) {
+                    const usr = this.allUsers.find(u => u.id === userId);
+                    if (usr) usr.plan = newPlan;
+                }
             } else {
                 alert("Impossibile connettersi al database Hub.");
             }
         } catch (e) {
             console.error("Errore salvataggio piano:", e);
-            alert("Errore durante il salvataggio: " + e.message);
+            alert("Errore durante l'aggiornamento del piano: " + e.message);
+        }
+    },
+    
+    openDeleteUserModal: function(userId, userEmail, userName, gamesString) {
+        document.getElementById('delete-user-id').value = userId;
+        document.getElementById('delete-user-email').value = userEmail;
+        document.getElementById('delete-user-name').textContent = userName;
+        
+        document.getElementById('delete-everywhere').checked = false;
+        
+        const container = document.getElementById('delete-sites-container');
+        container.innerHTML = '';
+        
+        const games = gamesString ? gamesString.split(',').map(s => s.trim()).filter(s => s) : [];
+        
+        if (games.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Questo utente non è iscritto ad alcun gioco specifico.</p>';
+        } else {
+            games.forEach(game => {
+                const gameId = this.mapGameNameToId(game);
+                if (gameId) {
+                    container.innerHTML += `
+                        <label style="display:flex; align-items:center; gap:10px;">
+                            <input type="checkbox" class="delete-site-cb" value="${gameId}">
+                            Rimuovi da <strong>${game}</strong>
+                        </label>
+                    `;
+                }
+            });
+        }
+        
+        const modal = document.getElementById('modal-delete-user');
+        modal.style.display = 'flex';
+    },
+    
+    mapGameNameToId: function(name) {
+        const lower = name.toLowerCase();
+        if (lower.includes('rotta degli eroi')) return 'eroi';
+        if (lower.includes('fantaletteratura')) return 'fanta';
+        if (lower.includes('palestra')) return 'palestra';
+        if (lower.includes('commedia')) return 'commedia';
+        if (lower.includes('ops')) return 'ops';
+        return null;
+    },
+    
+    toggleDeleteEverywhere: function(isChecked) {
+        const cbs = document.querySelectorAll('.delete-site-cb');
+        cbs.forEach(cb => {
+            cb.checked = isChecked;
+            cb.disabled = isChecked;
+        });
+    },
+    
+    executeDeleteUser: async function() {
+        const userId = document.getElementById('delete-user-id').value;
+        const deleteEverywhere = document.getElementById('delete-everywhere').checked;
+        
+        if (!userId) return;
+        
+        const btn = document.querySelector('#modal-delete-user .btn-primary');
+        const origText = btn.textContent;
+        btn.textContent = 'Eliminazione in corso...';
+        btn.disabled = true;
+        
+        try {
+            const dbMap = {
+                'eroi': { db: window.fbDb.eroi, col: 'users' },
+                'fanta': { db: window.fbDb.fanta, col: 'users' },
+                'palestra': { db: window.fbDb.palestra, col: 'users' },
+                'commedia': { db: window.fbDb.commedia, col: 'users' },
+                'ops': { db: window.fbDb.ops, col: 'users' }
+            };
+            
+            let promises = [];
+            
+            if (deleteEverywhere) {
+                Object.values(dbMap).forEach(info => {
+                    if (info.db) promises.push(info.db.collection(info.col).doc(userId).delete());
+                });
+                if (window.fbDb.hub) {
+                    promises.push(window.fbDb.hub.collection('hub_users').doc(userId).delete());
+                }
+            } else {
+                const cbs = document.querySelectorAll('.delete-site-cb:checked');
+                if (cbs.length === 0) {
+                    alert("Seleziona almeno una piattaforma da cui eliminare l'utente.");
+                    btn.textContent = origText;
+                    btn.disabled = false;
+                    return;
+                }
+                cbs.forEach(cb => {
+                    const info = dbMap[cb.value];
+                    if (info && info.db) promises.push(info.db.collection(info.col).doc(userId).delete());
+                });
+            }
+            
+            await Promise.allSettled(promises);
+            alert("Utente eliminato correttamente dalle piattaforme selezionate.");
+            
+            if (deleteEverywhere) {
+                this.allUsers = this.allUsers.filter(u => u.id !== userId);
+            }
+            
+            document.getElementById('modal-delete-user').style.display = 'none';
+            this.filterIscritti();
+            
+        } catch (e) {
+            console.error("Errore eliminazione utente:", e);
+            alert("Errore durante l'eliminazione: " + e.message);
+        } finally {
+            btn.textContent = origText;
+            btn.disabled = false;
         }
     },
 

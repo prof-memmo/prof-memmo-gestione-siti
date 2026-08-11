@@ -222,6 +222,14 @@ const PortalApp = {
                 document.getElementById('teacher-pending-banner').style.display = 'none';
             }
             
+            // Handle URL auto-redirect (SSO Flow)
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectTarget = urlParams.get('redirect');
+            if (redirectTarget && this.profile.platforms && this.profile.platforms[redirectTarget] && this.profile.platforms[redirectTarget].enabled) {
+                this.openPlatform(redirectTarget);
+                return;
+            }
+            
             this.renderPlatforms();
 
         } catch(e) {
@@ -295,7 +303,9 @@ const PortalApp = {
     },
     openPlatform: function(gameId) {
         if (gameId === 'fantaletteratura') {
-            window.location.href = "../fantaletteratura_github/index.html";
+            window.location.href = "../fantaletteratura/index.html";
+        } else if (gameId === 'palestra_riflessione') {
+            window.location.href = "../palestra-di-riflessione/index.html";
         }
     },
 

@@ -520,7 +520,7 @@
           <h1 id="counter-total" style="font-size: 4rem; color:var(--text-main); margin: 10px 0;">--</h1>
           <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
             <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="document.getElementById('filter-gioco').value='La Rotta degli Eroi'; if(window.HubApp && window.HubApp.filterIscritti) window.HubApp.filterIscritti(); document.getElementById('hub-iscritti-table').scrollIntoView({behavior: 'smooth', block: 'start'});" title="Filtra La Rotta degli Eroi">
-                <img src="assets/LOGO 'La rotta degli eroi' - Header.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <img src="assets/LOGO 'La rotta degli eroi scritta nera'.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
                 <div class="materia-label" style="font-size: 0.75rem;">Eroi</div>
                 <div class="materia-value" id="counter-eroi" style="font-size: 1.2rem; margin-top: 2px;">--</div>
             </div>
@@ -631,31 +631,34 @@
     </div>
     <!-- View: Viste Iframe Rimosse a favore dell'apertura in nuova scheda -->
 
-    <!-- Modale Modifica Piano Utente -->
-    <div id="modal-edit-user-plan" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 400px;">
+    <!-- Modale Eliminazione Utente -->
+    <div id="modal-delete-user" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h2><i class="fa-solid fa-crown"></i> Modifica Piano</h2>
-                <span class="close-modal" onclick="document.getElementById('modal-edit-user-plan').style.display = 'none';">&times;</span>
+                <h2><i class="fa-solid fa-trash" style="color:var(--danger-color);"></i> Elimina Utente</h2>
+                <span class="close-modal" onclick="document.getElementById('modal-delete-user').style.display = 'none';">&times;</span>
             </div>
             <div class="modal-body" style="text-align: left;">
-                <p>Modifica l'abbonamento per: <strong id="edit-user-name"></strong></p>
-                <input type="hidden" id="edit-user-id">
-                <input type="hidden" id="edit-user-email">
+                <p>Vuoi eliminare l'utente <strong id="delete-user-name"></strong>?</p>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Scegli da dove vuoi eliminare l'utente:</p>
                 
-                <div style="margin-top: 15px;">
-                    <label>Seleziona Piano:</label>
-                    <select id="edit-user-plan-select" class="input-field" style="width: 100%; margin-top: 5px;">
-                        <option value="base">Base (Gratuito)</option>
-                        <option value="viandante">Viandante (9,99€)</option>
-                        <option value="docente_didattico">Docente Didattico (19,99€)</option>
-                        <option value="docente_ecosistema">Docente Ecosistema (24,99€)</option>
-                    </select>
+                <input type="hidden" id="delete-user-id">
+                <input type="hidden" id="delete-user-email">
+                
+                <div style="margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <label style="display:flex; align-items:center; gap:10px; margin-bottom: 15px; font-weight: 600; color: var(--danger-color);">
+                        <input type="checkbox" id="delete-everywhere" onchange="window.UsersUI.toggleDeleteEverywhere(this.checked)" style="accent-color: var(--danger-color);">
+                        Cancella Ovunque (Tutti i siti e l'Hub)
+                    </label>
+                    <hr style="border:none; border-top: 1px solid #e2e8f0; margin-bottom: 15px;">
+                    <div id="delete-sites-container" style="display:flex; flex-direction:column; gap:10px;">
+                        <!-- I checkbox dei siti verranno popolati dinamicamente -->
+                    </div>
                 </div>
                 
-                <div style="margin-top: 25px; display: flex; gap: 10px;">
-                    <button class="btn btn-secondary" onclick="document.getElementById('modal-edit-user-plan').style.display = 'none';" style="flex:1;">Annulla</button>
-                    <button class="btn btn-primary" onclick="window.UsersUI.saveUserPlan()" style="flex:1;">Salva</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('modal-delete-user').style.display = 'none';" style="flex:1;">Annulla</button>
+                    <button class="btn btn-primary" onclick="window.UsersUI.executeDeleteUser()" style="flex:1; background: var(--danger-color); border-color: var(--danger-color);">Conferma Eliminazione</button>
                 </div>
             </div>
         </div>
