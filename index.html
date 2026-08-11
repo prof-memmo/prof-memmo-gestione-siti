@@ -38,12 +38,7 @@
     body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Outfit', sans-serif; margin: 0; }
     
     .hub-sidebar {
-      position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
-      background: var(--surface-color);
-      border-right: 1px solid var(--border-color);
-      padding-top: 20px;
-      display: flex; flex-direction: column;
-      z-index: 100;
+      display: none !important;
     }
     .hub-sidebar .logo { text-align: center; margin-bottom: 20px; }
     .hub-sidebar .logo img { width: 100px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
@@ -66,7 +61,7 @@
     }
     
     .hub-main {
-      margin-left: 260px; padding: 30px; min-height: 100vh; box-sizing: border-box;
+      margin-left: 0; padding: 30px 30px 100px 30px; min-height: 100vh; box-sizing: border-box;
     }
     .hub-view { display: none; }
     .hub-view.active { display: block; animation: fadeIn 0.3s ease-out; }
