@@ -303,9 +303,9 @@ const PortalApp = {
     },
     openPlatform: function(gameId) {
         if (gameId === 'fantaletteratura') {
-            window.location.href = "../fantaletteratura/index.html";
+            window.location.href = "https://prof-memmo.github.io/fantaletteratura/index.html";
         } else if (gameId === 'palestra_riflessione') {
-            window.location.href = "../palestra-di-riflessione/index.html";
+            window.location.href = "https://prof-memmo.github.io/palestra-di-riflessione/index.html";
         }
     },
 
