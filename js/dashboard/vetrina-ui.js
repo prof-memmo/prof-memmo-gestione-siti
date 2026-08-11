@@ -30,7 +30,6 @@ const VetrinaApp = {
     },
 
     updateUI: function() {
-        document.getElementById('vetrina-toggle').checked = this.settings.isActive;
         document.getElementById('vetrina-titolo').value = this.settings.titolo;
         document.getElementById('vetrina-descrizione').value = this.settings.descrizione;
         
@@ -40,23 +39,28 @@ const VetrinaApp = {
             preview.style.display = 'block';
         }
         
-        const statusLabel = document.getElementById('vetrina-status-label');
-        if (this.settings.isActive) {
-            statusLabel.textContent = "ATTIVO SUL SITO";
-            statusLabel.style.color = "#10b981"; // Verde
-        } else {
-            statusLabel.textContent = "NASCOSTO SUL SITO";
-            statusLabel.style.color = "var(--text-muted)";
+        const btn = document.getElementById('btn-toggle-vetrina');
+        const text = document.getElementById('vetrina-status-label');
+        if (btn && text) {
+            if (this.settings.isActive) {
+                btn.classList.add('on');
+                text.textContent = 'ON';
+            } else {
+                btn.classList.remove('on');
+                text.textContent = 'OFF';
+            }
         }
     },
 
-    toggleVetrina: function(checked) {
+    toggleSwitchBtn: function() {
+        const checked = !this.settings.isActive;
         this.settings.isActive = checked;
         // Salva direttamente quando si usa lo switch
         window.fbDb.hub.collection('vetrina').doc('settings').update({
             isActive: checked
         }).then(() => {
             console.log("Stato vetrina aggiornato");
+            this.updateUI(); // Aggiunto per aggiornare visivamente
         }).catch(err => console.error("Errore salvataggio toggle:", err));
     },
 

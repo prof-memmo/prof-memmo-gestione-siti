@@ -24,6 +24,7 @@ const EcosistemaUI = {
         // Aggiornamento Light Switches
         this.updateSwitchVisuals('sostieni', !!data.sostieni_il_progetto);
         this.updateSwitchVisuals('monetizzazione', !!data.monetizzazione);
+        this.updateSwitchVisuals('esperienze', !!data.esperienze);
 
         // Aggiornamento Campi Sostieni il Progetto
         const sostieni = data.sostieni_config || {};
@@ -67,6 +68,7 @@ const EcosistemaUI = {
         
         let dbKey = settingId;
         if (settingId === 'sostieni') dbKey = 'sostieni_il_progetto';
+        if (settingId === 'esperienze') dbKey = 'esperienze';
         
         const currentVal = this.settingsData[dbKey] || false;
         const newVal = !currentVal;
