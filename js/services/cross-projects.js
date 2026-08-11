@@ -132,12 +132,17 @@ const CrossProjectsService = {
                 const snapHub = await window.fbDb.hub.collection("hub_users").get();
                 snapHub.forEach(doc => {
                     const data = doc.data();
+                    const nomeStr = data.anagrafica ? (data.anagrafica.nome + " " + (data.anagrafica.cognome || "")) : (data.nome || data.name || data.displayName || 'Utente');
                     hubUsers.push({
-                        id: doc.id, nome: data.nome || data.name || data.displayName || data.username || ((data.firstName || data.lastName) ? ((data.firstName || '') + ' ' + (data.lastName || '')).trim() : 'Utente'), email: data.email || '',
-                        ruolo: data.role || 'tester', classe: data.classId || data.class || 'N/A',
+                        id: doc.id,
+                        nome: nomeStr.trim() || 'Utente',
+                        email: data.email || '',
+                        ruolo: data.role || data.ruolo || 'studente',
+                        statusAccount: data.statusAccount || data.statoAccount || 'active',
+                        classe: data.classId || data.class || 'N/A',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
                         gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe',
-                        plan: data.abbonamento || 'base'
+                        plan: data.subscription || data.abbonamento || (data.role === 'studente' ? 'studente' : 'base')
                     });
                 });
             } catch(e) { console.warn("Hub auth error:", e); }
