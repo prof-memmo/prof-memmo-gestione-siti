@@ -12,6 +12,8 @@ const AnalyticsUI = {
             console.log("Nessun dato iscritto per gli analytics.");
             return;
         }
+        
+        this.iscrittiAggregati = iscrittiAggregati; // Salva per l'esportazione CSV
 
         // 1. Elaborazione dati
         const stats = this.processData(iscrittiAggregati);
@@ -100,6 +102,107 @@ const AnalyticsUI = {
         // Top Gioco
         const elTop = document.getElementById('kpi-top-gioco');
         if (elTop) elTop.textContent = stats.topGiocoName;
+
+        // Guadagni Totali
+        const earnings = this.calculateEarnings(this.iscrittiAggregati, null, null);
+        const elGuadagni = document.getElementById('kpi-guadagni');
+        if (elGuadagni) {
+            elGuadagni.textContent = "€ " + earnings.total.toFixed(2);
+        }
+    },
+
+    getPrices: function() {
+        let prices = { viandante: 9.99, docente_didattico: 19.99, docente_ecosistema: 24.99 };
+        if (window.EcosistemaUI && window.EcosistemaUI.settingsData && window.EcosistemaUI.settingsData.monetizzazione_config) {
+            const c = window.EcosistemaUI.settingsData.monetizzazione_config;
+            prices.viandante = parseFloat(c.price_viandante) || prices.viandante;
+            prices.docente_didattico = parseFloat(c.price_docente_didattico) || prices.docente_didattico;
+            prices.docente_ecosistema = parseFloat(c.price_docente_ecosistema) || prices.docente_ecosistema;
+        }
+        return prices;
+    },
+
+    calculateEarnings: function(users, fromDate, toDate) {
+        const prices = this.getPrices();
+        let total = 0;
+        let detailedList = [];
+        
+        let startTimestamp = fromDate ? new Date(fromDate).getTime() : 0;
+        let endTimestamp = toDate ? new Date(toDate).getTime() : Date.now();
+        // Sposta endTimestamp alla fine del giorno selezionato (23:59:59)
+        if (toDate) endTimestamp += 86400000;
+
+        users.forEach(user => {
+            if (user.dataValue && user.dataValue >= startTimestamp && user.dataValue <= endTimestamp) {
+                let piano = user.abbonamento ? user.abbonamento.toLowerCase() : (user.piano ? user.piano.toLowerCase() : 'base');
+                let userPrice = 0;
+                
+                if (piano.includes('viandante')) userPrice = prices.viandante;
+                else if (piano.includes('docente_didattico')) userPrice = prices.docente_didattico;
+                else if (piano.includes('docente_ecosistema')) userPrice = prices.docente_ecosistema;
+                
+                if (userPrice > 0) {
+                    total += userPrice;
+                    detailedList.push({
+                        nome: user.nome || 'N/A',
+                        cognome: user.cognome || '',
+                        email: user.email || 'N/A',
+                        dataIscrizione: new Date(user.dataValue).toLocaleDateString('it-IT'),
+                        piano: piano,
+                        importo: userPrice
+                    });
+                }
+            }
+        });
+        
+        return { total, detailedList, prices };
+    },
+
+    downloadEarningsCSV: function() {
+        if (!this.iscrittiAggregati) {
+            alert("Dati non ancora caricati.");
+            return;
+        }
+
+        const dateFrom = document.getElementById('analytics-date-from').value;
+        const dateTo = document.getElementById('analytics-date-to').value;
+        
+        const data = this.calculateEarnings(this.iscrittiAggregati, dateFrom, dateTo);
+        
+        let csvContent = "data:text/csv;charset=utf-8,";
+        
+        // Intestazione aggregata
+        csvContent += "REPORT GUADAGNI STIMATI\n";
+        csvContent += `Periodo:,${dateFrom || 'Inizio'} - ${dateTo || 'Oggi'}\n`;
+        csvContent += `Totale Incassato:,€ ${data.total.toFixed(2)}\n`;
+        csvContent += "\n";
+        
+        // Riepilogo per piano
+        const countViandante = data.detailedList.filter(u => u.piano.includes('viandante')).length;
+        const countDidattico = data.detailedList.filter(u => u.piano.includes('docente_didattico')).length;
+        const countEcosistema = data.detailedList.filter(u => u.piano.includes('docente_ecosistema')).length;
+        
+        csvContent += "RIEPILOGO PIANI\n";
+        csvContent += `Viandante (Totale):,${countViandante},Valore: € ${(countViandante * data.prices.viandante).toFixed(2)}\n`;
+        csvContent += `Docente Didattico (Totale):,${countDidattico},Valore: € ${(countDidattico * data.prices.docente_didattico).toFixed(2)}\n`;
+        csvContent += `Docente Ecosistema (Totale):,${countEcosistema},Valore: € ${(countEcosistema * data.prices.docente_ecosistema).toFixed(2)}\n`;
+        csvContent += "\n\n";
+        
+        // Dettaglio utenti
+        csvContent += "ELENCO DETTAGLIATO UTENTI\n";
+        csvContent += "Nome,Cognome,Email,Data Iscrizione,Piano,Importo (€)\n";
+        
+        data.detailedList.forEach(u => {
+            csvContent += `"${u.nome}","${u.cognome}","${u.email}","${u.dataIscrizione}","${u.piano}","${u.importo.toFixed(2)}"\n`;
+        });
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `report_guadagni_${dateFrom || 'all'}_${dateTo || 'all'}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     },
 
     getTooltipWithPercentage: function() {
