@@ -18,6 +18,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
   
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -334,6 +335,9 @@
     <div class="nav-item" data-target="view-gestione-giochi" onclick="switchView('view-gestione-giochi')">
       <i class="fa-solid fa-gamepad" style="color:#10b981;"></i> Gestione Giochi & Pop-up
     </div>
+    <div class="nav-item" data-target="view-vetrina" onclick="switchView('view-vetrina')">
+      <i class="fa-solid fa-store" style="color:#ec4899;"></i> Sito Vetrina
+    </div>
     <div class="nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
       <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i> Panoramica Globale
     </div>
@@ -383,6 +387,9 @@
     </div>
     <div class="mobile-nav-item" data-target="view-gestione-giochi" onclick="switchView('view-gestione-giochi')">
       <i class="fa-solid fa-gamepad" style="color:#10b981;"></i><span>Giochi</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-vetrina" onclick="switchView('view-vetrina')">
+      <i class="fa-solid fa-store" style="color:#ec4899;"></i><span>Vetrina</span>
     </div>
     <div class="mobile-nav-item" data-target="view-analytics" onclick="switchView('view-analytics')">
       <i class="fa-solid fa-chart-line" style="color:#6366f1;"></i><span>Analytics</span>
@@ -472,7 +479,62 @@
   </div>
 
   <!-- Main Content -->
-  <div class="hub-main">
+  <main class="hub-main">
+    
+    <!-- VISTA: VETRINA (NUOVA) -->
+    <div id="view-vetrina" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-store" style="color:#ec4899;"></i> Sito Vetrina</h2>
+      </div>
+      <div class="glass-panel" style="margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
+          <div>
+            <h3 style="margin: 0; color: var(--text-main);">Banner Intestazione</h3>
+            <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.9rem;">Gestisci il blocco di benvenuto sulla homepage di Games&Co.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);" id="vetrina-status-label">Caricamento...</span>
+            <label style="position: relative; display: inline-block; width: 50px; height: 26px;">
+              <input type="checkbox" id="vetrina-toggle" style="opacity: 0; width: 0; height: 0;" onchange="VetrinaApp.toggleVetrina(this.checked)">
+              <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 34px;">
+                <span id="vetrina-toggle-slider" style="position: absolute; content: ''; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%;"></span>
+              </span>
+            </label>
+            <style>
+              input:checked + span { background-color: #10b981; }
+              input:checked + span span { transform: translateX(24px); }
+            </style>
+          </div>
+        </div>
+        
+        <form onsubmit="event.preventDefault(); VetrinaApp.saveVetrinaSettings();">
+          <div style="margin-bottom: 20px;">
+            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Titolo in evidenza (Es: "Prima Edizione 2026.")</label>
+            <input type="text" id="vetrina-titolo" class="input-field" placeholder="Titolo del banner..." required>
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Descrizione / Testo principale</label>
+            <textarea id="vetrina-descrizione" class="input-field" rows="3" placeholder="Testo che accompagna il titolo..." required></textarea>
+          </div>
+          
+          <div style="margin-bottom: 20px; display: flex; gap: 20px; align-items: flex-start;">
+            <div style="flex-grow: 1;">
+              <label style="font-weight: 600; display: block; margin-bottom: 8px;">Immagine Corrente</label>
+              <input type="file" id="vetrina-immagine" class="input-field" accept="image/*" onchange="VetrinaApp.previewImage(this)">
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Carica una nuova immagine (png, jpg, webp) per sostituire quella attuale.</p>
+            </div>
+            <div>
+              <img id="vetrina-immagine-preview" src="" alt="Anteprima" style="width: 100px; height: auto; border-radius: 8px; border: 1px dashed var(--border-color); display: none;">
+            </div>
+          </div>
+          
+          <div style="text-align: right; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <button type="submit" class="btn" id="btn-save-vetrina"><i class="fa-solid fa-save"></i> Salva Modifiche</button>
+          </div>
+        </form>
+      </div>
+    </div>
     
     <!-- Logo Globale -->
     <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 40px; margin-top: 10px;">
@@ -1139,7 +1201,7 @@
             </div>
           </div>
 
-          <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+          <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #border-color; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <strong style="font-size: 1.1rem; color: var(--text-main);">Piano Viandante</strong>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin: 10px 0;">Include: FantaLetteratura (Base), Palestra (Base), Rotta degli Eroi, Corte dei Dannati, futuri giochi.<br><br><em>Non include:</em> creazione classi, gestione studenti, codici classe, dashboard docente, tornei.</p>
             <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
@@ -1171,7 +1233,7 @@
       </div>
     </div>
 
-  </div>
+  </main>
 
   <script src="js/firebase-init.js?v=29"></script>
   <script src="js/services/auth/auth-service.js?v=1"></script>
@@ -1192,8 +1254,10 @@
   <script src="js/dashboard/messages-ui.js?v=1"></script>
   <script src="js/dashboard/requests-ui.js?v=1"></script>
   <script src="js/dashboard/ecosistema-ui.js?v=1"></script>
-  <script src="js/dashboard/users-ui.js?v=1"></script>
-  <script src="js/dashboard/games-ui.js?v=1"></script>
+  <script src="js/dashboard/ui.js?v=2"></script>
+  <script src="js/dashboard/users-ui.js"></script>
+  <script src="js/dashboard/vetrina-ui.js"></script>
+  
   <script src="js/dashboard/newsletter-ui.js?v=1"></script>
   <script src="js/dashboard/analytics-ui.js?v=1"></script>
   
