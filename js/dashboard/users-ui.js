@@ -64,23 +64,69 @@ const UsersUI = {
             const tr = document.createElement('tr');
             const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
             
-            // Predisposizione Fase 3: la colonna "Piano" per ora è statica, in futuro userà user.plan
-            const userPlan = user.plan || 'Base (Gratuito)';
+            const userPlan = user.plan || 'base';
+            let planDisplay = 'Base (Gratuito)';
+            if (userPlan === 'viandante') planDisplay = 'Viandante (9,99€)';
+            else if (userPlan === 'docente_didattico') planDisplay = 'Docente Did. (19,99€)';
+            else if (userPlan === 'docente_ecosistema') planDisplay = 'Ecosistema (24,99€)';
             
             tr.innerHTML = `
                 <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
                 <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
                 <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
                 <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
-                <td style="padding: 10px;"><span style="background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">${userPlan}</span></td>
+                <td style="padding: 10px;"><span style="background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">${planDisplay}</span></td>
                 <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">-</td>
                 <td style="padding: 10px; text-align:center;">
-                    <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); font-size:1.1rem; text-decoration:none;"><i class="fa-solid fa-envelope"></i></a>
-                    <!-- Placeholder per future azioni amministrative (Sospensione, Approvazione, Override) -->
+                    <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); font-size:1.1rem; text-decoration:none; margin-right: 10px;"><i class="fa-solid fa-envelope"></i></a>
+                    <button class="btn" style="padding: 5px 10px; font-size: 0.8rem;" onclick="window.UsersUI.openEditPlanModal('${user.id}', '${user.email}', '${user.nome.replace(/'/g, "\\'")}', '${userPlan}')" title="Modifica Piano"><i class="fa-solid fa-pen-to-square"></i></button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
+    },
+    
+    openEditPlanModal: function(userId, userEmail, userName, currentPlan) {
+        document.getElementById('edit-user-id').value = userId;
+        document.getElementById('edit-user-email').value = userEmail;
+        document.getElementById('edit-user-name').textContent = userName;
+        document.getElementById('edit-user-plan-select').value = currentPlan || 'base';
+        
+        const modal = document.getElementById('modal-edit-user-plan');
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+    },
+    
+    saveUserPlan: async function() {
+        const userId = document.getElementById('edit-user-id').value;
+        const newPlan = document.getElementById('edit-user-plan-select').value;
+        
+        if (!userId) return;
+        
+        try {
+            if (window.fbDb && window.fbDb.hub) {
+                // Se l'utente non è ancora in hub_users verrà creato con set merge:true
+                await window.fbDb.hub.collection('hub_users').doc(userId).set({
+                    abbonamento: newPlan,
+                    lastUpdated: new Date().toISOString()
+                }, { merge: true });
+                
+                alert("Piano utente aggiornato con successo!");
+                document.getElementById('modal-edit-user-plan').style.display = 'none';
+                
+                // Aggiorniamo localmente
+                if (this.allUsers) {
+                    const usr = this.allUsers.find(u => u.id === userId);
+                    if (usr) usr.plan = newPlan;
+                }
+                this.filterIscritti();
+            } else {
+                alert("Impossibile connettersi al database Hub.");
+            }
+        } catch (e) {
+            console.error("Errore salvataggio piano:", e);
+            alert("Errore durante il salvataggio: " + e.message);
+        }
     },
 
     /**

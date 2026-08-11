@@ -121,7 +121,8 @@ getAuthTokenFromDB: async function(apiKey) {
                         id: doc.id, nome: data.nome || data.name || data.displayName || data.username || ((data.firstName || data.lastName) ? ((data.firstName || '') + ' ' + (data.lastName || '')).trim() : 'Utente'), email: data.email || '',
                         ruolo: data.role || 'tester', classe: data.classId || data.class || 'N/A',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
-                        gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe'
+                        gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe',
+                        plan: data.abbonamento || 'base'
                     });
                 });
             } catch(e) { console.warn("Hub auth error:", e); }
@@ -141,6 +142,9 @@ getAuthTokenFromDB: async function(apiKey) {
                     }
                     if ((existing.nome === 'Anonimo' || existing.nome === '') && u.nome !== 'Anonimo' && u.nome !== '') {
                         existing.nome = u.nome;
+                    }
+                    if (u.plan && u.plan !== 'base') {
+                        existing.plan = u.plan;
                     }
                 } else {
                     uniqueUsersMap.set(emailKey, {...u});
