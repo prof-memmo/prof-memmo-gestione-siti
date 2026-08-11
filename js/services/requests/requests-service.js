@@ -63,16 +63,17 @@ const RequestsService = {
             } catch(e) { console.warn("Errore fetch richieste palestra", e); }
         }
 
-        // 5. Hub Centrale (Utenti con statoAccount == 'pending')
+        // 5. Hub Centrale (Utenti con statusAccount == 'pending')
         if (window.fbDb && window.fbDb.hub) {
             try {
-                const snapHub = await window.fbDb.hub.collection("hub_users").where("statoAccount", "==", "pending").get();
+                const snapHub = await window.fbDb.hub.collection("hub_users").where("statusAccount", "==", "pending").get();
                 snapHub.forEach(doc => {
                     const d = doc.data();
+                    const nomeStr = d.anagrafica ? (d.anagrafica.nome + " " + (d.anagrafica.cognome || "")) : (d.nome || 'Sconosciuto');
                     richiesteDati.push({
                         id: doc.id, gioco: 'Hub (Identità Centrale)',
-                        nome: d.nome || 'Sconosciuto', email: d.email || '', ruolo: d.ruolo || 'Docente',
-                        dataValue: d.dataCreazione ? (d.dataCreazione.toMillis ? d.dataCreazione.toMillis() : new Date(d.dataCreazione).getTime()) : 0
+                        nome: nomeStr.trim(), email: d.email || '', ruolo: d.role || 'Docente',
+                        dataValue: d.createdAt ? (d.createdAt.toMillis ? d.createdAt.toMillis() : new Date(d.createdAt).getTime()) : 0
                     });
                 });
             } catch(e) { console.warn("Errore fetch richieste hub", e); }
@@ -118,9 +119,9 @@ const RequestsService = {
             });
         } else if (gioco === 'Hub (Identità Centrale)') {
             const dbHub = window.fbDb.hub;
-            await dbHub.collection('users').doc(docId).update({
-                statoAccount: 'active',
-                ruolo: 'docente'
+            await dbHub.collection('hub_users').doc(docId).update({
+                statusAccount: 'active',
+                role: 'docente'
             });
             // Step 6: Invio email automatica usando il sistema esistente (hub_posta_inviata)
             await this.salvaPostaInviata(
@@ -142,8 +143,8 @@ const RequestsService = {
         } else if (gioco === 'Palestra di Riflessione') {
             await window.fbDb.palestra.collection('users').doc(docId).delete();
         } else if (gioco === 'Hub (Identità Centrale)') {
-            await window.fbDb.hub.collection('users').doc(docId).update({
-                statoAccount: 'rejected'
+            await window.fbDb.hub.collection('hub_users').doc(docId).update({
+                statusAccount: 'rejected'
             });
         }
     },
