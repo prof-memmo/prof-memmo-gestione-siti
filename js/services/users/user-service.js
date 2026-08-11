@@ -24,7 +24,7 @@ const UserService = {
             },
             role: ruoloIniziale,
             statusAccount: ruoloIniziale === 'docente' ? 'pending' : 'active',
-            subscription: 'base',
+            subscription: ruoloIniziale === 'studente' ? 'studente' : 'base',
             platforms: {
                 fantaletteratura: { enabled: false, permissions: [] },
                 palestra_riflessione: { enabled: false, permissions: [] },
