@@ -162,20 +162,24 @@ const PortalApp = {
         try {
             // Auto-creazione profilo super-admin per il Prof
             if (this.user.email && this.user.email.toLowerCase() === 'prof.memmo@gmail.com') {
-                const adminProfile = {
-                    anagrafica: { nome: 'Prof. Memmo' },
-                    role: 'admin',
-                    statusAccount: 'active',
-                    email: 'prof.memmo@gmail.com',
-                    platforms: {
-                        fantaletteratura: { enabled: true },
-                        palestra_riflessione: { enabled: true },
-                        rotta_degli_eroi: { enabled: true },
-                        corte_della_commedia: { enabled: true },
-                        ops_storia: { enabled: true }
-                    }
-                };
-                await window.fbDb.hub.collection("hub_users").doc(this.user.uid).set(adminProfile, {merge: true});
+                try {
+                    const adminProfile = {
+                        anagrafica: { nome: 'Prof. Memmo' },
+                        role: 'admin',
+                        statusAccount: 'active',
+                        email: 'prof.memmo@gmail.com',
+                        platforms: {
+                            fantaletteratura: { enabled: true },
+                            palestra_riflessione: { enabled: true },
+                            rotta_degli_eroi: { enabled: true },
+                            corte_della_commedia: { enabled: true },
+                            ops_storia: { enabled: true }
+                        }
+                    };
+                    await window.fbDb.hub.collection("hub_users").doc(this.user.uid).set(adminProfile, {merge: true});
+                } catch(e) {
+                    console.warn("Auto-creazione profilo Admin fallita (probabilmente già esistente o regole restrittive):", e);
+                }
             }
 
             // Controlla se il profilo esiste

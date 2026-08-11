@@ -50,7 +50,7 @@ service cloud.firestore {
       
       // Creazione: 
       // L'utente loggato inizializza il suo profilo (passando la validazione)
-      allow create: if isOwner(userId) && isValidNewUser();
+      allow create: if (isOwner(userId) && isValidNewUser()) || isAdmin();
       
       // Aggiornamento: 
       // L'admin modifica qualsiasi cosa. L'owner aggiorna solo dati non critici (es. anagrafica.nome).
