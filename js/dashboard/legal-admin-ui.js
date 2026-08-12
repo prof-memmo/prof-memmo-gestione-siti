@@ -25,10 +25,8 @@ const LegalAdminUI = {
             document.getElementById('legal-fiscal-code').value = data.fiscalCode || '';
             document.getElementById('legal-fiscal-email').value = data.fiscalEmail || 'prof.memmo@gmail.com';
             
-            const showSelect = document.getElementById('legal-fiscal-show-select');
-            if (showSelect) {
-                showSelect.value = data.showFiscalInFooter ? 'true' : 'false';
-            }
+            this.fiscalEnabled = !!data.showFiscalInFooter;
+            this.updateFiscalSwitchUI();
 
             document.getElementById('legal-copyright-text').value = data.copyrightText || defaultCopyright;
             document.getElementById('legal-privacy-text').value = data.privacyText || defaultPrivacy;
@@ -39,20 +37,29 @@ const LegalAdminUI = {
         }
     },
 
-    updateToggleUI: function(isChecked) {
-        const sliderBg = document.getElementById('toggle-slider-bg');
-        if (sliderBg) {
-            sliderBg.style.backgroundColor = isChecked ? '#10b981' : '#cbd5e1';
+    updateFiscalSwitchUI: function() {
+        const btn = document.getElementById('btn-toggle-fiscal');
+        const txt = document.getElementById('status-text-fiscal');
+        if (!btn || !txt) return;
+
+        if (this.fiscalEnabled) {
+            btn.classList.add('active');
+            txt.textContent = 'ON';
+        } else {
+            btn.classList.remove('active');
+            txt.textContent = 'OFF';
         }
     },
 
-    toggleFiscalVisibility: async function(isChecked) {
-        this.updateToggleUI(isChecked);
+    toggleFiscalSwitchBtn: async function() {
+        this.fiscalEnabled = !this.fiscalEnabled;
+        this.updateFiscalSwitchUI();
+
         try {
             await window.fbDb.hub.collection('ecosistema_settings').doc('legal').set({
-                showFiscalInFooter: isChecked
+                showFiscalInFooter: this.fiscalEnabled
             }, { merge: true });
-            console.log("Visibilità dati fiscali salvata:", isChecked);
+            console.log("Visibilità dati fiscali salvata:", this.fiscalEnabled);
         } catch(e) {
             console.error("Errore salvataggio visibilità dati fiscali:", e);
         }

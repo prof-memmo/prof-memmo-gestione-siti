@@ -970,12 +970,13 @@
               Inserisci i dati fiscali dell'intestatario dell'Ecosistema.
             </p>
           </div>
-          <div style="display: flex; align-items: center; gap: 12px; background: #f8fafc; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--border-color);">
-            <label style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin: 0;">Mostra Dati Fiscali nei Footer:</label>
-            <select id="legal-fiscal-show-select" class="input-form" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: bold;" onchange="window.LegalAdminUI.toggleFiscalVisibility(this.value === 'true')">
-              <option value="false">❌ NASCOSTI (Disattivato)</option>
-              <option value="true">✅ VISIBILI (Attivato)</option>
-            </select>
+
+          <div class="switch-board">
+            <div class="light-switch-btn" id="btn-toggle-fiscal" onclick="window.LegalAdminUI.toggleFiscalSwitchBtn()">
+              <i class="fa-solid fa-id-card"></i>
+              <div class="status-text" id="status-text-fiscal">OFF</div>
+              <div class="label-text">Visibilità Dati Fiscali nei Footer</div>
+            </div>
           </div>
         </div>
 

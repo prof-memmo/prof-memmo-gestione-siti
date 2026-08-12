@@ -347,13 +347,62 @@
     }
   }
 
-  // Auto-intercept data-legal attributes e avvia controlli al login
+  // Sincronizzazione dinamica di Copyright e Dati Fiscali nel Footer di qualsiasi sito
+  async function syncEcosystemFooterLegalData() {
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
+    try {
+      var db = firebase.app().firestore();
+      var snap = await db.collection('ecosistema_settings').doc('legal').get();
+      if (!snap.exists) return;
+      var data = snap.data();
+
+      // Trova o crea il contenitore dedicato nel footer
+      var footers = document.querySelectorAll('footer');
+      if (!footers.length) return;
+
+      footers.forEach(function(footer) {
+        var copyrightEl = footer.querySelector('.copyright, #copyright-text, p.copyright-text, [data-copyright]');
+        var copyrightContent = data.copyrightText || "© 2026 Guglielmo Piersanti. Tutti i contenuti presenti su questo sito sono di proprietà dell'autore e sono protetti tramite deposito e marcatura temporale presso Patamu. I contenuti sono inoltre distribuiti con licenza Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0).";
+
+        var fiscalStr = '';
+        if (data.showFiscalInFooter) {
+          fiscalStr = '<div class="pm-fiscal-info-footer" style="margin-top: 6px; font-size: 0.85rem; color: rgba(255,255,255,0.7);">' +
+            '<span>' + (data.fiscalName || 'Guglielmo Piersanti') + '</span>' +
+            (data.fiscalCode ? ' | C.F./P.IVA: ' + data.fiscalCode : '') +
+            ' | Email: <a href="mailto:' + (data.fiscalEmail || 'prof.memmo@gmail.com') + '" style="color: inherit; text-decoration: underline;">' + (data.fiscalEmail || 'prof.memmo@gmail.com') + '</a>' +
+          '</div>';
+        }
+
+        if (copyrightEl) {
+          copyrightEl.innerHTML = copyrightContent + fiscalStr;
+        } else {
+          // Se non trova una classe copyright specifica, cerca il primo paragrafo del footer o lo aggiunge
+          var p = footer.querySelector('p');
+          if (p) {
+            p.innerHTML = copyrightContent + fiscalStr;
+          } else {
+            var newP = document.createElement('p');
+            newP.style.fontSize = '0.85rem';
+            newP.style.margin = '10px 0 0 0';
+            newP.innerHTML = copyrightContent + fiscalStr;
+            footer.appendChild(newP);
+          }
+        }
+      });
+    } catch(e) {
+      console.warn("PM Ecosystem footer sync warning:", e);
+    }
+  }
+
+  // Auto-intercept data-legal attributes, avvia controlli al login e sincronizza il footer
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-legal]').forEach(function (el) {
       var type = el.getAttribute('data-legal');
       var mapped = type === 'terms' ? 'termini' : type;
       el.addEventListener('click', function (e) { e.preventDefault(); openSharedModal(mapped); });
     });
+
+    syncEcosystemFooterLegalData();
 
     if (typeof firebase !== 'undefined' && firebase.auth) {
       firebase.auth().onAuthStateChanged(function(user) {
