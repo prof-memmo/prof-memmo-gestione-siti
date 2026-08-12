@@ -53,6 +53,9 @@ const EcosistemaUI = {
         // Diciture piani
         const piani = data.piani_config || {};
         const setVal = (id, def) => { const el = document.getElementById(id); if (el) el.value = piani[id] !== undefined ? piani[id] : def; };
+        setVal('desc-base', 'Gratuita e accessibile per esplorare le dinamiche fondamentali dei giochi.');
+        setVal('btn-base', 'Inizia Gratis');
+        setVal('features-base', '+ FantaLetteratura (Max 4 squadre, una sola classe)\n+ Palestra di Riflessione (Attività fondamentali)\n- FantaLetteratura: Tornei interni e missioni personalizzate\n- Palestra: Analisi logica, periodo, testi B1/B2, test cultura gen.');
         setVal('desc-viandante', 'Perfetto per appassionati e giocatori che vogliono esplorare i giochi e le storie.');
         setVal('btn-viandante', 'Scegli Viandante');
         setVal('features-viandante', '+ FantaLetteratura (Versione Base)\n+ Palestra di Riflessione (Versione Base)\n+ La Rotta degli Eroi\n+ La Corte dei Dannati\n+ Accesso ai futuri giochi narrativi\n- Strumenti docente (creazione classi, tornei, dashboard)');
@@ -217,6 +220,9 @@ const EcosistemaUI = {
             price_ecosistema: g('price-ecosistema'),
         };
         const pianiConfig = {
+            'desc-base': g('desc-base'),
+            'btn-base': g('btn-base'),
+            'features-base': g('features-base'),
             'desc-viandante': g('desc-viandante'),
             'btn-viandante': g('btn-viandante'),
             'features-viandante': g('features-viandante'),

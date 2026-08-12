@@ -1478,42 +1478,28 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
         </div>
       </div>
 
-      <!-- Controllo Massimale Fiscale Incassi -->
-      <div class="glass-panel" style="margin-bottom: 20px;">
-        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-calculator"></i> Massimale Incassi Annuale (Controllo Fiscale)</h3>
-        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 15px;">
-          Imposta il tetto massimo di incasso annuale per l'anno solare corrente. Se il totale incassato raggiunge questa soglia, la possibilità di sottoscrivere abbonamenti a pagamento verrà automaticamente sospesa sui siti.
-        </p>
-
-        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center; margin-bottom: 15px;">
-          <div style="flex: 1; min-width: 250px;">
-            <label style="font-weight: 600; display: block; margin-bottom: 5px;">Massimale Anno Solare (€)</label>
-            <input type="number" id="hub-massimale-incassi" class="input-field" value="4500" step="100" min="0" placeholder="Es. 4500">
-          </div>
-          <div style="flex: 1; min-width: 250px; background: #f8fafc; padding: 12px 18px; border-radius: 10px; border: 1px solid var(--border-color);">
-            <div style="font-size: 0.82rem; color: var(--text-muted);">Incassato Anno Solare Corrente</div>
-            <div style="font-size: 1.4rem; font-weight: bold; color: var(--accent);" id="hub-totale-incassato-display">0,00 €</div>
-          </div>
-        </div>
-
-        <button class="btn" style="background: var(--accent); color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 8px; cursor: pointer;" onclick="EcosistemaUI.saveMassimaleConfig()"><i class="fa-solid fa-floppy-disk"></i> Salva Massimale</button>
-      </div>
 
       <div class="glass-panel">
-        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-tags"></i> Prezzi Versioni Complete</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Questi prezzi verranno mostrati nella pagina "Prezzi e accessi" quando il sistema sarà attivato.</p>
+        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-tags"></i> Prezzi e Piani</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Modifica nome, descrizione, funzionalità e prezzo di ogni piano. Le modifiche appaiono in tempo reale su <strong>prezzi.html</strong>. Usa <code>+</code> per feature incluse e <code>-</code> per escluse.</p>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 20px;">
           
+          <!-- Piano Base -->
           <div style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <strong style="font-size: 1.1rem; color: var(--text-main);">Versione Base (Gratuita)</strong>
-            <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);">
-              <strong>FantaLetteratura:</strong> gioco disp., max 4 squadre, una classe.<br>
-              <em>Non disp:</em> tornei interni, missioni personalizzate.<br><br>
-              <strong>Palestra di Riflessione:</strong> attività fondamentali.<br>
-              <em>Non disp:</em> analisi logica, periodo, testi B1/B2, test cultura gen.
+            <strong style="font-size: 1.1rem; color: var(--text-main);">Versione Base</strong>
+            <div style="margin-top:10px;">
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">DESCRIZIONE PIANO</label>
+              <textarea id="desc-base" class="input-field" style="margin:0; margin-bottom:8px; height:60px; resize:vertical; font-size:0.85rem;">Gratuita e accessibile per esplorare le dinamiche fondamentali dei giochi.</textarea>
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TESTO BOTTONE</label>
+              <input type="text" id="btn-base" class="input-field" style="margin:0; margin-bottom:8px;" value="Inizia Gratis">
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">FEATURES (una per riga, prefissa con + o -)</label>
+              <textarea id="features-base" class="input-field" style="margin:0; margin-bottom:12px; height:110px; resize:vertical; font-size:0.82rem;">+ FantaLetteratura (Max 4 squadre, una sola classe)
++ Palestra di Riflessione (Attività fondamentali)
+- FantaLetteratura: Tornei interni e missioni personalizzate
+- Palestra: Analisi logica, periodo, testi B1/B2, test cultura gen.</textarea>
             </div>
-            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
               <span style="font-weight:bold; font-size: 1.2rem;">0,00 €</span>
               <span>/ anno</span>
             </div>
@@ -1541,7 +1527,7 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
           </div>
           
           <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <strong style="font-size: 1.1rem; color: var(--text-main);">Docente Completo Didattico</strong>
+            <strong style="font-size: 1.1rem; color: var(--text-main);">Docente Didattico</strong>
             <div style="margin-top:10px;">
               <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">DESCRIZIONE PIANO</label>
               <textarea id="desc-docente" class="input-field" style="margin:0; margin-bottom:8px; height:60px; resize:vertical; font-size:0.85rem;">Gli strumenti definitivi per gestire le tue classi e la didattica.</textarea>
@@ -1562,7 +1548,7 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
           </div>
           
           <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border: 1px solid #bfdbfe; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <strong style="font-size: 1.1rem; color: var(--text-main);">Docente Ecosistema Completo</strong>
+            <strong style="font-size: 1.1rem; color: var(--text-main);">Ecosistema Completo</strong>
             <div style="margin-top:10px;">
               <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">DESCRIZIONE PIANO</label>
               <textarea id="desc-ecosistema" class="input-field" style="margin:0; margin-bottom:8px; height:60px; resize:vertical; font-size:0.85rem;">L'esperienza totale. Accesso illimitato a tutti i contenuti e strumenti.</textarea>
@@ -1693,13 +1679,13 @@ Strumenti di reportistica e statistiche per docenti</textarea>
   <!-- UI Modules -->
   <script src="js/dashboard/messages-ui.js?v=1"></script>
   <script src="js/dashboard/requests-ui.js?v=1"></script>
-  <script src="js/dashboard/ecosistema-ui.js?v=1"></script>
+  <script src="js/dashboard/ecosistema-ui.js?v=2"></script>
   <script src="js/dashboard/games-ui.js?v=1"></script>
   <script src="js/dashboard/users-ui.js?v=99"></script>
   <script src="js/dashboard/vetrina-ui.js"></script>
   
   <script src="js/dashboard/newsletter-ui.js?v=1"></script>
-  <script src="js/dashboard/analytics-ui.js?v=99"></script>
+  <script src="js/dashboard/analytics-ui.js?v=100"></script>
   <script src="js/dashboard/notifications-ui.js?v=1"></script>
   <script src="js/dashboard/legal-admin-ui.js?v=1"></script>
   
