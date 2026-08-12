@@ -326,11 +326,11 @@ const UsersUI = {
                 const c = (user.classe || '').toUpperCase().trim();
                 
                 if (this.activeRoleFilter === 'studenti') {
-                    matchesRole = r.includes('student');
+                    matchesRole = r.includes('student') || r === 'studente';
                 } else if (this.activeRoleFilter === 'docenti') {
-                    matchesRole = r.includes('teacher') || r.includes('admin') || r.includes('docente');
+                    matchesRole = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r === 'prof';
                 } else if (this.activeRoleFilter === 'viandanti') {
-                    matchesRole = !r.includes('student') && !r.includes('teacher') && !r.includes('admin') && !r.includes('docente');
+                    matchesRole = !r.includes('student') && !r.includes('teacher') && !r.includes('admin') && !r.includes('docente') && r !== 'studente' && r !== 'prof';
                 } else if (this.activeRoleFilter === 'scuole') {
                     matchesRole = (c && c !== 'N/A' && c !== '' && c !== 'TEST' && c !== 'N/D');
                 }

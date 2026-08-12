@@ -45,8 +45,8 @@ const UserService = {
     createUserProfile: async function(uid, nome, email, ruolo) {
         if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
         
-        // I ruoli ammessi sono: studente, docente, amico_del_prof
-        const validRoles = ['studente', 'docente', 'amico_del_prof', 'admin'];
+        // I ruoli ammessi sono: studente, docente, viandante, admin
+        const validRoles = ['studente', 'docente', 'viandante', 'amico_del_prof', 'admin'];
         if (!validRoles.includes(ruolo)) {
             ruolo = 'studente'; // fallback
         }

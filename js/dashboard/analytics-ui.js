@@ -38,9 +38,19 @@ const AnalyticsUI = {
         };
 
         iscritti.forEach(user => {
-            // Conta Ruoli
-            const ruolo = user.ruolo ? user.ruolo.toLowerCase() : 'sconosciuto';
-            stats.ruoli[ruolo] = (stats.ruoli[ruolo] || 0) + 1;
+            // Normalizzazione Ruolo Unificato
+            const rRaw = (user.ruolo || '').toLowerCase().trim();
+            let ruoloUnificato = 'viandante';
+            if (rRaw.includes('student') || rRaw === 'studente') {
+                ruoloUnificato = 'studente';
+            } else if (rRaw.includes('teacher') || rRaw.includes('docente') || rRaw === 'prof') {
+                ruoloUnificato = 'docente';
+            } else if (rRaw.includes('admin') || user.email === 'prof.memmo@gmail.com') {
+                ruoloUnificato = 'admin';
+            } else {
+                ruoloUnificato = 'viandante';
+            }
+            stats.ruoli[ruoloUnificato] = (stats.ruoli[ruoloUnificato] || 0) + 1;
 
             // Conta Piani (Versione Base vs Viandante vs Docente, ecc.)
             let piano = 'Base/Gratuito';
