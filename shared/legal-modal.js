@@ -224,12 +224,49 @@
       }
     } catch (e) { /* fallback default */ }
 
+    function formatPlainTextToHTML(txt) {
+      if (!txt) return '';
+      // Se contiene già tag HTML principali, lo usa direttamente
+      if (txt.includes('<h3>') || txt.includes('<p>')) return txt;
+
+      var lines = txt.split('\n');
+      var html = '';
+      var inList = false;
+
+      lines.forEach(function(line) {
+        var trimmed = line.trim();
+        if (!trimmed) {
+          if (inList) { html += '</ul>'; inList = false; }
+          return;
+        }
+
+        // Titolo numerato (es. "1. Titolare...")
+        if (/^\d+\.\s+/.test(trimmed)) {
+          if (inList) { html += '</ul>'; inList = false; }
+          html += '<h3>' + trimmed + '</h3>';
+        } 
+        // Elemento di lista (es. "- Indirizzo...")
+        else if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
+          if (!inList) { html += '<ul>'; inList = true; }
+          html += '<li>' + trimmed.substring(1).trim() + '</li>';
+        } 
+        // Paragrafo normale
+        else {
+          if (inList) { html += '</ul>'; inList = false; }
+          html += '<p>' + trimmed + '</p>';
+        }
+      });
+
+      if (inList) html += '</ul>';
+      return html;
+    }
+
     if (type === 'privacy') {
       title.textContent = 'Privacy Policy';
-      body.innerHTML = dynamicPrivacy;
+      body.innerHTML = formatPlainTextToHTML(dynamicPrivacy);
     } else if (type === 'termini') {
       title.textContent = 'Termini e Condizioni';
-      body.innerHTML = dynamicTerms;
+      body.innerHTML = formatPlainTextToHTML(dynamicTerms);
     } else if (type === 'contatti') {
       title.textContent = 'Contattaci';
       var sostieniUrl = null;
