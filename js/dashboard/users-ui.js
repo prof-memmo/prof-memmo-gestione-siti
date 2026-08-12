@@ -72,10 +72,16 @@ const UsersUI = {
             
             const isChecked = window.UsersUI.selectedUsers.has(user.id) ? 'checked' : '';
             
+            let displayRole = 'Viandante';
+            const rLow = (user.ruolo || '').toLowerCase();
+            if (rLow.includes('student') || rLow === 'studente') displayRole = 'Studente';
+            else if (rLow.includes('teacher') || rLow.includes('docente') || rLow.includes('admin') || rLow === 'prof') displayRole = 'Docente';
+            else displayRole = 'Viandante';
+
             tr.innerHTML = `
                 <td style="text-align: center;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
                 <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
-                <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
+                <td style="padding: 10px;"><span class="badge" style="background:#f1f5f9; color:#475569; padding:4px 8px; border-radius:6px; font-weight:600; font-size:0.8rem;">${displayRole}</span></td>
                 <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
                 <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
                 <td style="padding: 10px;">

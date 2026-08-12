@@ -63,14 +63,16 @@ const RequestsService = {
             } catch(e) { console.warn("Errore fetch richieste palestra", e); }
         }
 
-        // 5. Hub Centrale (Utenti con statusAccount == 'pending' o statoAccount == 'pending')
+        // 5. Hub Centrale (Utenti con statusAccount/statoAccount == 'pending' O role/ruolo che inizia con 'pending')
         if (window.fbDb && window.fbDb.hub) {
             try {
                 const snapHub = await window.fbDb.hub.collection("hub_users").get();
                 snapHub.forEach(doc => {
                     const d = doc.data();
                     const st = (d.statusAccount || d.statoAccount || '').toLowerCase();
-                    if (st === 'pending') {
+                    const r = (d.role || d.ruolo || '').toLowerCase();
+
+                    if (st === 'pending' || st === 'in_attesa' || r.includes('pending') || r.includes('attesa')) {
                         const nomeStr = d.anagrafica ? (d.anagrafica.nome + " " + (d.anagrafica.cognome || "")) : (d.nome || d.displayName || 'Sconosciuto');
                         richiesteDati.push({
                             id: doc.id, gioco: 'Hub (Identità Centrale)',
