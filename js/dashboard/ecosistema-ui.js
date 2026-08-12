@@ -38,15 +38,28 @@ const EcosistemaUI = {
         if (elTestoFuturo) elTestoFuturo.value = sostieni.testo_futuro || "❤️ Sostieni Prof. Memmo.\nGli abbonamenti permettono di mantenere attive le piattaforme e sviluppare nuove funzionalità.\nSe vuoi contribuire ulteriormente alla crescita del progetto educativo, puoi sostenere liberamente Prof. Memmo con una donazione.";
         if (elRingraziamento) elRingraziamento.value = sostieni.ringraziamento || '';
 
-        // Aggiornamento Campi Monetizzazione (Prezzi)
+        // Aggiornamento Campi Monetizzazione (Prezzi e Massimale Fiscale)
         const monet = data.monetizzazione_config || {};
         const elPriceViandante = document.getElementById('price-viandante');
         const elPriceDidattico = document.getElementById('price-docente-didattico');
         const elPriceEcosistema = document.getElementById('price-docente-ecosistema');
+        const elMassimale = document.getElementById('hub-massimale-incassi');
         
         if (elPriceViandante) elPriceViandante.value = monet.price_viandante || '9.99';
         if (elPriceDidattico) elPriceDidattico.value = monet.price_docente_didattico || '19.99';
         if (elPriceEcosistema) elPriceEcosistema.value = monet.price_docente_ecosistema || '24.99';
+        if (elMassimale) elMassimale.value = data.massimale_incassi || 4500;
+    },
+
+    saveMassimaleConfig: async function() {
+        const val = parseFloat(document.getElementById('hub-massimale-incassi').value) || 4500;
+        try {
+            await window.EcosystemService.saveEcosystemSettings({ massimale_incassi: val });
+            alert("✅ Massimale fiscale annuale salvato con successo: " + val.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' }));
+        } catch (e) {
+            console.error("Errore salvataggio massimale:", e);
+            alert("Errore durante il salvataggio del massimale.");
+        }
     },
 
     updateSwitchVisuals: function(settingId, isChecked) {

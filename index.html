@@ -1459,6 +1459,27 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
         </div>
       </div>
 
+      <!-- Controllo Massimale Fiscale Incassi -->
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-calculator"></i> Massimale Incassi Annuale (Controllo Fiscale)</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 15px;">
+          Imposta il tetto massimo di incasso annuale per l'anno solare corrente. Se il totale incassato raggiunge questa soglia, la possibilità di sottoscrivere abbonamenti a pagamento verrà automaticamente sospesa sui siti.
+        </p>
+
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center; margin-bottom: 15px;">
+          <div style="flex: 1; min-width: 250px;">
+            <label style="font-weight: 600; display: block; margin-bottom: 5px;">Massimale Anno Solare (€)</label>
+            <input type="number" id="hub-massimale-incassi" class="input-field" value="4500" step="100" min="0" placeholder="Es. 4500">
+          </div>
+          <div style="flex: 1; min-width: 250px; background: #f8fafc; padding: 12px 18px; border-radius: 10px; border: 1px solid var(--border-color);">
+            <div style="font-size: 0.82rem; color: var(--text-muted);">Incassato Anno Solare Corrente</div>
+            <div style="font-size: 1.4rem; font-weight: bold; color: var(--accent);" id="hub-totale-incassato-display">0,00 €</div>
+          </div>
+        </div>
+
+        <button class="btn" style="background: var(--accent); color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 8px; cursor: pointer;" onclick="EcosistemaUI.saveMassimaleConfig()"><i class="fa-solid fa-floppy-disk"></i> Salva Massimale</button>
+      </div>
+
       <div class="glass-panel">
         <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-tags"></i> Prezzi Versioni Complete</h3>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Questi prezzi verranno mostrati nella pagina "Prezzi e accessi" quando il sistema sarà attivato.</p>
