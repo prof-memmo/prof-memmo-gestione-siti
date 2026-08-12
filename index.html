@@ -1496,6 +1496,75 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
         <button class="btn" style="background: var(--accent); color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 8px; cursor: pointer;" onclick="EcosistemaUI.saveMassimaleConfig()"><i class="fa-solid fa-floppy-disk"></i> Salva Massimale</button>
       </div>
 
+      <!-- Sezione: Contenuto Pagina Come Funziona -->
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-file-pen"></i> Contenuto Pagina "Come Funziona"</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Modifica i testi delle due schede informative visibili quando la monetizzazione è <strong>OFF</strong>. Le modifiche vengono salvate su Firestore e applicate immediatamente al sito.</p>
+
+        <!-- Scheda 1: Funzionalità Attive -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; margin-bottom: 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+            <strong style="color:var(--text-main);"><span style="font-size:1.1rem;">🚀</span> Scheda 1: Funzionalità Attivamente Attive</strong>
+            <div class="light-switch-btn" id="btn-toggle-scheda1" onclick="EcosistemaUI.toggleSwitchBtn('scheda1')" style="transform:scale(0.85); transform-origin:right;">
+              <i class="fa-solid fa-eye"></i>
+              <div class="status-text" id="status-text-scheda1">ON</div>
+              <div class="label-text">Visibile sul sito</div>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TITOLO SCHEDA</label>
+              <input type="text" id="scheda1-titolo" class="input-field" style="margin:0;" value="Funzionalità Attualmente Attive" placeholder="Titolo scheda">
+            </div>
+            <div style="grid-column: 1/-1;">
+              <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI PER I DOCENTI (una per riga)</label>
+              <textarea id="scheda1-docenti" class="input-field" style="margin:0; height:90px; resize:vertical; font-size:0.88rem;">Creazione ed organizzazione delle classi didattiche
+Generazione di Codici Classe per gli studenti
+Gestione fino a 4 squadre su FantaLetteratura
+Attività di riflessione e grammatica su Palestra di Riflessione</textarea>
+            </div>
+            <div style="grid-column: 1/-1;">
+              <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI PER GLI STUDENTI (una per riga)</label>
+              <textarea id="scheda1-studenti" class="input-field" style="margin:0; height:90px; resize:vertical; font-size:0.88rem;">Accesso alle classi create dal proprio docente tramite codice
+Partecipazione attiva ai giochi didattici e alle sfide
+Monitoraggio dei progressi e delle attività svolte
+Profilo Studente attivo e collegato alla scuola</textarea>
+            </div>
+            <div style="grid-column: 1/-1;">
+              <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI PER I VIANDANTI (una per riga)</label>
+              <textarea id="scheda1-viandanti" class="input-field" style="margin:0; height:75px; resize:vertical; font-size:0.88rem;">Esplorazione libera delle app e dei giochi disponibili
+Accesso alle versioni dimostrative ed alle attività aperte
+Partecipazione alla filosofia ludica dell'Ecosistema</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scheda 2: In Lavorazione -->
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 14px; padding: 20px; margin-bottom: 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+            <strong style="color:var(--text-main);"><span style="font-size:1.1rem;">🛠️</span> Scheda 2: In Lavorazione / Prossimamente</strong>
+            <div class="light-switch-btn" id="btn-toggle-scheda2" onclick="EcosistemaUI.toggleSwitchBtn('scheda2')" style="transform:scale(0.85); transform-origin:right;">
+              <i class="fa-solid fa-eye"></i>
+              <div class="status-text" id="status-text-scheda2">ON</div>
+              <div class="label-text">Visibile sul sito</div>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TITOLO SCHEDA</label>
+            <input type="text" id="scheda2-titolo" class="input-field" style="margin:0; margin-bottom:10px;" value="In Lavorazione / Prossimamente" placeholder="Titolo scheda">
+            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">INTRO TESTO</label>
+            <input type="text" id="scheda2-intro" class="input-field" style="margin:0; margin-bottom:10px;" value="L'Ecosistema Prof. Memmo è in continua evoluzione. Stiamo sviluppando nuove espansioni e funzionalità avanzate per arricchire l'esperienza in classe:" placeholder="Testo introduttivo">
+            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI IN SVILUPPO (una per riga)</label>
+            <textarea id="scheda2-voci" class="input-field" style="margin:0; height:90px; resize:vertical; font-size:0.88rem;">Tornei interscolastici estesi
+Moduli avanzati di analisi sintattica e del periodo
+Nuovi giochi di ruolo e storie interattive
+Strumenti di reportistica e statistiche per docenti</textarea>
+          </div>
+        </div>
+
+        <button class="btn" onclick="EcosistemaUI.saveComeFunziona()" style="background: var(--accent); color:white; border:none; padding:10px 20px; font-weight:bold; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-floppy-disk"></i> Salva Contenuto Pagina</button>
+      </div>
+
       <div class="glass-panel">
         <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-tags"></i> Prezzi Versioni Complete</h3>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Questi prezzi verranno mostrati nella pagina "Prezzi e accessi" quando il sistema sarà attivato.</p>
@@ -1516,10 +1585,22 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
             </div>
           </div>
 
-          <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #border-color; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+          <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <strong style="font-size: 1.1rem; color: var(--text-main);">Piano Viandante</strong>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 10px 0;">Include: FantaLetteratura (Base), Palestra (Base), Rotta degli Eroi, Corte dei Dannati, futuri giochi.<br><br><em>Non include:</em> creazione classi, gestione studenti, codici classe, dashboard docente, tornei.</p>
-            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+            <div style="margin-top:10px;">
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">DESCRIZIONE PIANO</label>
+              <textarea id="desc-viandante" class="input-field" style="margin:0; margin-bottom:8px; height:60px; resize:vertical; font-size:0.85rem;">Perfetto per appassionati e giocatori che vogliono esplorare i giochi e le storie.</textarea>
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TESTO BOTTONE</label>
+              <input type="text" id="btn-viandante" class="input-field" style="margin:0; margin-bottom:8px;" value="Scegli Viandante">
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">FEATURES (una per riga, prefissa con + o - per incluso/escluso)</label>
+              <textarea id="features-viandante" class="input-field" style="margin:0; margin-bottom:12px; height:110px; resize:vertical; font-size:0.82rem;">+ FantaLetteratura (Versione Base)
++ Palestra di Riflessione (Versione Base)
++ La Rotta degli Eroi
++ La Corte dei Dannati
++ Accesso ai futuri giochi narrativi
+- Strumenti docente (creazione classi, tornei, dashboard)</textarea>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
               <input type="number" id="price-viandante" class="input-field" style="width: 90px; margin:0;" value="9.99" step="0.01">
               <span>€ / anno</span>
             </div>
@@ -1527,8 +1608,20 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
           
           <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <strong style="font-size: 1.1rem; color: var(--text-main);">Docente Completo Didattico</strong>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 10px 0;">Include: FantaLetteratura (Completo), Palestra (Completo), Strumenti docente, Gestione classi, Gestione studenti.</p>
-            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+            <div style="margin-top:10px;">
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">DESCRIZIONE PIANO</label>
+              <textarea id="desc-docente" class="input-field" style="margin:0; margin-bottom:8px; height:60px; resize:vertical; font-size:0.85rem;">Gli strumenti definitivi per gestire le tue classi e la didattica.</textarea>
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TESTO BOTTONE</label>
+              <input type="text" id="btn-docente" class="input-field" style="margin:0; margin-bottom:8px;" value="Scegli Docente">
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">FEATURES (una per riga, prefissa con + o -)</label>
+              <textarea id="features-docente" class="input-field" style="margin:0; margin-bottom:12px; height:110px; resize:vertical; font-size:0.82rem;">+ FantaLetteratura (Completo): Tornei, missioni
++ Palestra (Completa): Analisi logica, testi B2
++ Gestione Classi e Studenti
++ Codici Classe privati
++ Strumenti Docente e Dashboard avanzata
+- Non include La Rotta degli Eroi o Travel Agency</textarea>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
               <input type="number" id="price-docente" class="input-field" style="width: 90px; margin:0;" value="19.99" step="0.01">
               <span>€ / anno</span>
             </div>
@@ -1536,15 +1629,26 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
           
           <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border: 1px solid #bfdbfe; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <strong style="font-size: 1.1rem; color: var(--text-main);">Docente Ecosistema Completo</strong>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 10px 0;">Include: Tutto il piano Docente Completo Didattico + La Rotta degli Eroi + Travel Agency C. (e futuri giochi completi).</p>
-            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+            <div style="margin-top:10px;">
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">DESCRIZIONE PIANO</label>
+              <textarea id="desc-ecosistema" class="input-field" style="margin:0; margin-bottom:8px; height:60px; resize:vertical; font-size:0.85rem;">L'esperienza totale. Accesso illimitato a tutti i contenuti e strumenti.</textarea>
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TESTO BOTTONE</label>
+              <input type="text" id="btn-ecosistema" class="input-field" style="margin:0; margin-bottom:8px;" value="Ottieni Tutto">
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">FEATURES (una per riga, prefissa con + o -)</label>
+              <textarea id="features-ecosistema" class="input-field" style="margin:0; margin-bottom:12px; height:110px; resize:vertical; font-size:0.82rem;">+ Tutto il piano Docente Completo Didattico
++ La Rotta degli Eroi
++ Travel Agency C.
++ Tutti i futuri giochi completi in anteprima
++ Assistenza dedicata</textarea>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
               <input type="number" id="price-ecosistema" class="input-field" style="width: 90px; margin:0;" value="24.99" step="0.01">
               <span>€ / anno</span>
             </div>
           </div>
         </div>
         
-        <button class="btn" onclick="EcosistemaUI.savePrices()"><i class="fa-solid fa-floppy-disk"></i> Salva Prezzi</button>
+        <button class="btn" onclick="EcosistemaUI.savePrices()"><i class="fa-solid fa-floppy-disk"></i> Salva Prezzi e Diciture</button>
       </div>
     </div>
 
