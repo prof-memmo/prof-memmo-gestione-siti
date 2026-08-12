@@ -15,6 +15,18 @@ const AnalyticsUI = {
         
         this.iscrittiAggregati = iscrittiAggregati; // Salva per l'esportazione CSV
 
+        // Imposta le date di default all'anno solare corrente (se non già impostate dall'utente)
+        const elFrom = document.getElementById('analytics-date-from');
+        const elTo = document.getElementById('analytics-date-to');
+        if (elFrom && !elFrom.value) {
+            const currentYear = new Date().getFullYear();
+            elFrom.value = `${currentYear}-01-01`;
+        }
+        if (elTo && !elTo.value) {
+            const currentYear = new Date().getFullYear();
+            elTo.value = `${currentYear}-12-31`;
+        }
+
         // 1. Elaborazione dati
         const stats = this.processData(iscrittiAggregati);
 
@@ -146,8 +158,10 @@ const AnalyticsUI = {
         const elTop = document.getElementById('kpi-top-gioco');
         if (elTop) elTop.textContent = stats.topGiocoName;
 
-        // Aggiorna il pannello Incassato Anno Corrente (tutti gli utenti, senza filtro date)
-        const earnings = this.calculateEarnings(this.iscrittiAggregati, null, null);
+        // Aggiorna il pannello Incassato Anno Corrente (rispettando il filtro date attivo)
+        const dateFrom = document.getElementById('analytics-date-from') ? document.getElementById('analytics-date-from').value : '';
+        const dateTo = document.getElementById('analytics-date-to') ? document.getElementById('analytics-date-to').value : '';
+        const earnings = this.calculateEarnings(this.iscrittiAggregati, dateFrom || null, dateTo || null);
         const elIncassato = document.getElementById('analytics-incassato-display');
         if (elIncassato) {
             elIncassato.textContent = earnings.total.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
