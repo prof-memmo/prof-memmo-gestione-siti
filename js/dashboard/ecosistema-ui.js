@@ -48,7 +48,23 @@ const EcosistemaUI = {
         if (elPriceViandante) elPriceViandante.value = monet.price_viandante || '9.99';
         if (elPriceDidattico) elPriceDidattico.value = monet.price_docente_didattico || '19.99';
         if (elPriceEcosistema) elPriceEcosistema.value = monet.price_docente_ecosistema || '24.99';
-        if (elMassimale) elMassimale.value = data.massimale_incassi || 4500;
+        
+        const massimale = data.massimale_incassi || 4500;
+        const incassato = data.totale_incassato_anno || 0;
+        const residuo = Math.max(0, massimale - incassato);
+
+        if (elMassimale) elMassimale.value = massimale;
+        
+        const elDispMassimale = document.getElementById('analytics-massimale-display');
+        const elDispIncassato = document.getElementById('analytics-incassato-display');
+        const elDispResiduo = document.getElementById('analytics-residuo-display');
+        const elHubIncassato = document.getElementById('hub-totale-incassato-display');
+
+        const fmt = val => val.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
+        if (elDispMassimale) elDispMassimale.textContent = fmt(massimale);
+        if (elDispIncassato) elDispIncassato.textContent = fmt(incassato);
+        if (elDispResiduo) elDispResiduo.textContent = fmt(residuo);
+        if (elHubIncassato) elHubIncassato.textContent = fmt(incassato);
     },
 
     saveMassimaleConfig: async function() {

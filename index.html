@@ -577,7 +577,33 @@
       </div>
 
       <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
-        <div class="glass-panel" style="flex: 1; min-width: 250px; text-align: center;">
+      <!-- Riquadro Controllo Massimale Fiscale negli Analytics -->
+      <div class="glass-panel" style="margin-bottom: 25px; background: linear-gradient(135deg, #ffffff, #f8fafc); border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+          <div>
+            <h3 style="margin: 0 0 5px 0; color: var(--text-main);"><i class="fa-solid fa-scale-balanced" style="color: var(--accent);"></i> Controllo Massimale Fiscale Incassi (Anno Solare)</h3>
+            <p style="margin: 0; color: var(--text-muted); font-size: 0.88rem;">Monitoraggio entrate da abbonamenti rispetto al tetto massimo fiscalmente consentito.</p>
+          </div>
+          <button class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 14px;" onclick="switchView('view-monetizzazione')"><i class="fa-solid fa-sliders"></i> Modifica Massimale</button>
+        </div>
+
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+          <div style="flex: 1; min-width: 200px; background: #ffffff; padding: 15px 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">TETTO MASSIMO IMPOSTATO</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: var(--text-main);" id="analytics-massimale-display">4.500,00 €</div>
+          </div>
+          <div style="flex: 1; min-width: 200px; background: #ffffff; padding: 15px 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">INCASSATO ANNO CORRENTE</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #10b981;" id="analytics-incassato-display">0,00 €</div>
+          </div>
+          <div style="flex: 1; min-width: 200px; background: #ffffff; padding: 15px 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">DISPONIBILITÀ RESIDUA</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #6366f1;" id="analytics-residuo-display">4.500,00 €</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel" style="flex: 1; min-width: 250px; text-align: center;">
           <h3 style="color:var(--text-muted); margin-top:0;">Utenti Unici Globali</h3>
           <h1 id="counter-total" style="font-size: 4rem; color:var(--text-main); margin: 10px 0;">--</h1>
           <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
