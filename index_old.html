@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Prof. Memmo - Hub di Gestione Generale</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#f3f4f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Stylesheet di Progetto (recuperati dai giochi) -->
+  <link rel="stylesheet" href="css/style.css?v=2">
+  <link rel="stylesheet" href="css/components.css">
+
+  <!-- Firebase SDKs (Versione 9 Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Admin Hub Specific Overrides - SaaS Light Theme */
+    :root {
+      --bg-color: #f3f4f6;
+      --surface-color: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --border-color: #e5e7eb;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Outfit', sans-serif; margin: 0; }
+    
+    .hub-sidebar {
+      display: none !important;
+    }
+    .hub-sidebar .logo { text-align: center; margin-bottom: 20px; }
+    .hub-sidebar .logo img { width: 100px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+    .hub-sidebar .logo h3 { color: var(--text-main); font-weight: 700; font-size: 1.1rem; }
+    
+    .sidebar-section-title {
+      font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);
+      font-weight: 700; letter-spacing: 0.05em; padding: 15px 20px 5px 20px;
+    }
+    
+    .hub-sidebar .nav-item {
+      padding: 12px 20px; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 15px;
+      border-left: 4px solid transparent; transition: all 0.2s; cursor: pointer;
+      font-weight: 500; font-size: 0.95rem; margin: 2px 0;
+    }
+    .hub-sidebar .nav-item i { width: 20px; text-align: center; font-size: 1.1rem; }
+    .hub-sidebar .nav-item:hover { background: #f9fafb; color: var(--text-main); }
+    .hub-sidebar .nav-item.active {
+      background: #eef2ff; border-left-color: var(--accent); color: var(--accent);
+    }
+    
+    .hub-main {
+      margin-left: 0; padding: 30px 30px 100px 30px; min-height: 100vh; box-sizing: border-box;
+    }
+    .hub-view { display: none; }
+    .hub-view.active { display: block; animation: fadeIn 0.3s ease-out; }
+    
+    .hub-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 30px;
+    }
+    .hub-header h2 { margin: 0; color: var(--text-main); font-weight: 700; font-size: 1.8rem; display: flex; align-items: center; gap: 12px; }
+    .hub-header h2 i { color: var(--accent); }
+    
+    .glass-panel {
+      background: var(--surface-color); padding: 25px; border-radius: 12px;
+      border: 1px solid var(--border-color); box-shadow: var(--shadow);
+    }
+    
+    .btn {
+      background: var(--accent); color: white; padding: 10px 20px; border-radius: 8px; border: none;
+      font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 0.9rem;
+      display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn.outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+    .btn.outline:hover { background: #eef2ff; }
+    
+    .input-field {
+      width: 100%; padding: 12px; background: #f9fafb; color: var(--text-main);
+      border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box;
+      font-family: inherit; font-size: 0.95rem; transition: border-color 0.2s;
+    }
+    .input-field:focus { outline: none; border-color: var(--accent); background: white; }
+    
+    .game-table th { padding: 12px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600; }
+    .game-table td { padding: 12px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* Scrollbar Style */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    /* Calendario Social CSS */
+    .cal-day {
+      background: #f9fafb; border: 1px solid var(--border-color); border-radius: 8px;
+      min-height: 110px; padding: 12px; cursor: pointer; transition: all 0.2s; position: relative;
+      min-width: 0; /* IMPEDISCE ALLA GRIGLIA DI DEFORMARSI CON TESTI LUNGHI */
+    }
+    .cal-day:hover { background: white; border-color: var(--accent); box-shadow: 0 2px 8px rgba(79,70,229,0.15); }
+    .cal-day.empty { background: transparent; border: none; cursor: default; }
+    .cal-day .date-num { font-weight: 700; color: var(--text-muted); font-size: 0.95rem; margin-bottom: 8px; display: block; }
+    .cal-day.today { border-color: var(--accent); background: #eef2ff; }
+    .cal-day.today .date-num { color: var(--accent); }
+    .cal-event {
+      background: var(--accent); color: white; font-size: 0.75rem; font-weight: 600;
+      padding: 6px 8px; border-radius: 6px; margin-bottom: 6px;
+      white-space: normal; word-break: break-word; line-height: 1.3;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      border-left: 4px solid rgba(255,255,255,0.4);
+      background-image: linear-gradient(45deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.05) 100%);
+    }
+    .cal-header-day { text-align: center; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; font-size: 0.9rem; }
+    
+    /* Iframe Wrapper */
+    .iframe-container {
+      width: 100%; height: calc(100vh - 120px); border: none; border-radius: 12px;
+      box-shadow: var(--shadow); background: white;
+    }
+
+    /* Hamburger Menu non più utilizzato (sostituito da bottom nav) */
+    .hamburger-menu {
+      display: none !important;
+    }
+
+    /* Mobile Bottom Navigation (Ora globale) */
+    .mobile-bottom-nav {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: var(--surface-color);
+      border-top: 1px solid var(--border-color);
+      z-index: 1000;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      padding: 5px 10px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      gap: 8px;
+      -webkit-overflow-scrolling: touch;
+      justify-content: center; /* Centrato su PC */
+    }
+    
+    .mobile-bottom-nav::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 70px;
+      color: var(--text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      padding: 5px;
+      border-radius: 8px;
+    }
+    .mobile-nav-item i {
+      font-size: 1.3rem;
+      margin-bottom: 4px;
+    }
+    
+    /* Su PC: nascondi testo e mostra all'hover (come tooltip) */
+    @media (min-width: 901px) {
+        .mobile-bottom-nav {
+            overflow: visible !important; /* Consente ai tooltip di uscire dalla barra */
+        }
+        .mobile-nav-item {
+            position: relative;
+        }
+        .mobile-nav-item span {
+            position: absolute;
+            bottom: 100%; /* Mostrato sopra l'icona */
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--text-main);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            pointer-events: none; /* Evita conflitti col mouse */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+        }
+        /* Triangolino sotto il tooltip */
+        .mobile-nav-item span::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--text-main) transparent transparent transparent;
+        }
+        .mobile-nav-item:hover span {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+    
+    /* Su Mobile: testo sempre visibile come prima */
+    @media (max-width: 900px) {
+        .mobile-bottom-nav {
+            justify-content: flex-start; /* Scorrimento orizzontale se necessario su schermi stretti */
+        }
+        .mobile-nav-item span {
+            font-size: 0.65rem;
+            font-weight: 600;
+            max-height: 20px;
+            opacity: 1;
+        }
+        
+        .hub-main {
+            margin-left: 0;
+            padding: 20px 15px 80px 15px;
+        }
+        
+        #calendar-grid { 
+            display: grid !important; 
+            grid-template-columns: repeat(7, minmax(60px, 1fr)) !important; 
+            gap: 5px !important; 
+            min-width: 500px !important; 
+        }
+        .glass-panel { overflow-x: auto; overflow-y: hidden; }
+        .cal-day { min-height: 80px; padding: 5px; }
+        .cal-header-day { font-size: 0.7rem; overflow: hidden; text-overflow: ellipsis; }
+        .cal-event { font-size: 0.65rem; padding: 2px 4px; }
+    }
+    
+    .mobile-nav-item.active {
+      color: var(--accent);
+      background: #eef2ff;
+    }
+    /* Hub Card (stile Palestra di Riflessione) */
+    .hub-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 25px;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        border: 2px solid transparent;
+        flex: 1;
+        min-width: 150px;
+        cursor: pointer;
+    }
+    .hub-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border-color: var(--accent);
+    }
+    .hub-card.active {
+        border-color: var(--accent);
+        background: #f8fafc;
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+    }
+    .hub-card .materia-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .hub-card .materia-label {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+    .hub-card .materia-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--accent);
+        margin-top: 5px;
+    }
+  </style>
+
+  <!-- Icone per Safari e Dispositivi Mobili -->
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-hub.png?v=5">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-hub.png?v=2">
+</head>
+<body>
+
+  <!-- Login Overlay -->
+  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#f3f4f6; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column;">
+    <img src="assets/avatar.png" style="width:150px; margin-bottom:20px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); border-radius: 50%;">
+    <h2 style="color:var(--text-main); font-weight: 700; font-family: 'Outfit', sans-serif;">Hub Centrale - Accesso</h2>
+    <p style="color:var(--text-muted); font-family: 'Outfit', sans-serif;">Autenticazione richiesta per accedere al cruscotto.</p>
+    <button class="btn" id="btn-google-login" onclick="eseguiLoginGoogle()" style="margin-top:20px; padding:15px 30px; font-size:1.1rem; font-family: 'Outfit', sans-serif;"><i class="fa-brands fa-google"></i> Accedi con Google</button>
+  </div>
+
+  <!-- Hamburger Menu -->
+  <div class="hamburger-menu" onclick="toggleSidebar()">
+    <i class="fa-solid fa-bars"></i>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="hub-sidebar" id="main-sidebar">
+    <div class="logo">
+      <img src="assets/avatar.png" alt="Prof Memmo">
+      <h3>Hub Centrale</h3>
+    </div>
+    
+    <div class="sidebar-section-title">Marketing & AI</div>
+    <div class="nav-item" data-target="view-ai" onclick="switchView('view-ai')">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> Generatore AI
+    </div>
+    
+    <div class="sidebar-section-title">Console Giochi</div>
+    <div class="nav-item" data-target="view-gestione-giochi" onclick="switchView('view-gestione-giochi')">
+      <i class="fa-solid fa-gamepad" style="color:#10b981;"></i> Gestione Giochi & Pop-up
+    </div>
+    <div class="nav-item" data-target="view-vetrina" onclick="switchView('view-vetrina')">
+      <i class="fa-solid fa-store" style="color:#ec4899;"></i> Sito Vetrina
+    </div>
+    <div class="nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
+      <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i> Panoramica Globale
+    </div>
+    <div class="sidebar-section-title">Ecosistema</div>
+    <div class="nav-item" data-target="view-analytics" onclick="switchView('view-analytics')">
+      <i class="fa-solid fa-chart-line" style="color:#6366f1;"></i> Analytics
+    </div>
+    <div class="nav-item" data-target="view-sostieni" onclick="switchView('view-sostieni')">
+      <i class="fa-solid fa-hand-holding-dollar" style="color:#f59e0b;"></i> Sostieni il Progetto
+    </div>
+    <div class="nav-item" data-target="view-monetizzazione" onclick="switchView('view-monetizzazione')">
+      <i class="fa-solid fa-euro-sign" style="color:#10b981;"></i> Monetizzazione e Piani
+    </div>
+    <div class="nav-item" data-target="view-abbonamenti" onclick="switchView('view-abbonamenti')">
+      <i class="fa-solid fa-user-tag" style="color:#8b5cf6;"></i> Abbonamenti
+    </div>
+    <div class="sidebar-section-title">Comunicazioni</div>
+    <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
+      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter Manager
+    </div>
+    <div class="nav-item" data-target="view-esperienze" onclick="switchView('view-esperienze')">
+      <i class="fa-solid fa-star" style="color:#f59e0b;"></i> Esperienze Hub
+    </div>
+    <div class="nav-item" data-target="view-posta" onclick="switchView('view-posta')">
+      <i class="fa-solid fa-envelope" style="color:#64748b;"></i> Casella Postale
+    </div>
+    <div class="nav-item" data-target="view-richieste" onclick="switchView('view-richieste')">
+      <i class="fa-solid fa-envelope-open-text" style="color:#10b981;"></i> Richieste Iscrizione
+    </div>
+    <div class="nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')">
+      <i class="fa-solid fa-file-signature" style="color:#f43f5e;"></i> Modelli Email
+    </div>
+    
+    <div style="flex-grow: 1;"></div>
+    <div class="nav-item" style="color:#ef4444; border-top:1px solid var(--border-color);" onclick="HubApp.logout()">
+      <i class="fa-solid fa-power-off"></i> Disconnetti
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation (Solo Smartphone) -->
+  <div class="mobile-bottom-nav" id="mobile-nav">
+    <div class="mobile-nav-item" data-target="view-ai" onclick="switchView('view-ai')">
+      <i class="fa-solid fa-wand-magic-sparkles"></i><span>AI</span>
+    </div>
+    <div class="mobile-nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
+      <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i><span>Dashboard</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-gestione-giochi" onclick="switchView('view-gestione-giochi')">
+      <i class="fa-solid fa-gamepad" style="color:#10b981;"></i><span>Giochi</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-vetrina" onclick="switchView('view-vetrina')">
+      <i class="fa-solid fa-store" style="color:#ec4899;"></i><span>Vetrina</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-analytics" onclick="switchView('view-analytics')">
+      <i class="fa-solid fa-chart-line" style="color:#6366f1;"></i><span>Analytics</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-sostieni" onclick="switchView('view-sostieni')">
+      <i class="fa-solid fa-hand-holding-dollar" style="color:#f59e0b;"></i><span>Sostieni</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-monetizzazione" onclick="switchView('view-monetizzazione')">
+      <i class="fa-solid fa-euro-sign" style="color:#10b981;"></i><span>Piani</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
+      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i><span>News</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-esperienze" onclick="switchView('view-esperienze')">
+      <i class="fa-solid fa-star" style="color:#f59e0b;"></i><span>Esperienze</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-posta" onclick="switchView('view-posta')">
+      <i class="fa-solid fa-envelope" style="color:#64748b;"></i><span>Posta</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-richieste" onclick="switchView('view-richieste')">
+      <i class="fa-solid fa-envelope-open-text" style="color:#10b981;"></i><span>Richieste</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')">
+      <i class="fa-solid fa-file-signature" style="color:#f43f5e;"></i><span>Modelli</span>
+    </div>
+    <div class="mobile-nav-item" style="color:#ef4444;" onclick="HubApp.logout()">
+      <i class="fa-solid fa-power-off"></i><span>Esci</span>
+    </div>
+  </div>
+
+  <!-- Modal Modifica Card Gioco -->
+  <div id="modal-edit-game" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
+    <div class="glass-panel" style="background: white; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 25px; border-radius: 12px; position: relative;">
+      <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--color-primary); border-bottom: 1px solid #eee; padding-bottom: 10px;">Modifica Dati Gioco: <span id="edit-game-name" style="color: var(--text-main);"></span></h3>
+      <form id="edit-game-form" onsubmit="event.preventDefault(); window.HubApp.saveGameInfo();">
+        <input type="hidden" id="edit-game-id">
+        <div style="margin-bottom: 15px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Descrizione breve (Home):</label>
+          <textarea id="edit-game-shortdesc" rows="3" class="input-field" style="width: 100%; resize: vertical;" placeholder="Testo visibile nella card principale"></textarea>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Descrizione estesa (Dettagli):</label>
+          <textarea id="edit-game-longdesc" rows="5" class="input-field" style="width: 100%; resize: vertical;" placeholder="Testo lungo visibile nella pagina dedicata"></textarea>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+          <div><label style="font-size: 0.9rem; font-weight: 600;">📚 Materia:</label><input type="text" id="edit-game-materia" class="input-field" style="width: 100%;"></div>
+          <div><label style="font-size: 0.9rem; font-weight: 600;">👥 Giocatori:</label><input type="text" id="edit-game-giocatori" class="input-field" style="width: 100%;"></div>
+          <div><label style="font-size: 0.9rem; font-weight: 600;">⏱️ Durata:</label><input type="text" id="edit-game-durata" class="input-field" style="width: 100%;"></div>
+          <div><label style="font-size: 0.9rem; font-weight: 600;">🎯 Obiettivi:</label><input type="text" id="edit-game-obiettivi" class="input-field" style="width: 100%;"></div>
+          <div><label style="font-size: 0.9rem; font-weight: 600;">👶 Classe/Età:</label><input type="text" id="edit-game-classe" class="input-field" style="width: 100%;"></div>
+          <div><label style="font-size: 0.9rem; font-weight: 600;">🏫 Uso:</label><input type="text" id="edit-game-uso" class="input-field" style="width: 100%;"></div>
+        </div>
+        
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+          <strong style="color:var(--text-main); font-size: 1.05rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;"><i class="fa-solid fa-key" style="color:#6366f1;"></i> Piani Abilitati all'Accesso</strong>
+          <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+            Seleziona quali abbonamenti hanno il diritto di entrare in questo gioco. Se autorizzati, saranno poi soggetti alle restrizioni interne previste dal loro piano.
+          </p>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+              <input type="checkbox" id="edit-game-plan-base" style="width: 18px; height: 18px;">
+              <div><strong style="color: #10b981;">Piano Base / Gratuito</strong><div style="font-size: 0.75rem; color: #64748b;">(Applicate limitazioni interne: es. max 4 squadre, blocco test)</div></div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+              <input type="checkbox" id="edit-game-plan-viandante" style="width: 18px; height: 18px;">
+              <div><strong style="color: #6366f1;">Piano Viandante</strong><div style="font-size: 0.75rem; color: #64748b;">(Accesso personale, nessuna funzione classe/docente)</div></div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+              <input type="checkbox" id="edit-game-plan-docente" style="width: 18px; height: 18px;">
+              <div><strong style="color: #f59e0b;">Piano Docente Completo Didattico</strong></div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+              <input type="checkbox" id="edit-game-plan-ecosistema" style="width: 18px; height: 18px;">
+              <div><strong style="color: #ec4899;">Piano Docente Ecosistema Completo</strong></div>
+            </label>
+          </div>
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn outline" onclick="document.getElementById('modal-edit-game').style.display='none'">Annulla</button>
+          <button type="submit" class="btn" style="background: #3b82f6; color: white;">Salva Modifiche</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="hub-main">
+    
+    <!-- VISTA: VETRINA (NUOVA) -->
+    <div id="view-vetrina" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-store" style="color:#ec4899;"></i> Sito Vetrina</h2>
+      </div>
+      <div class="glass-panel" style="margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
+          <div>
+            <h3 style="margin: 0; color: var(--text-main);">Banner Intestazione</h3>
+            <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.9rem;">Gestisci il blocco di benvenuto sulla homepage di Games&Co.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);" id="vetrina-status-label">Caricamento...</span>
+            <label style="position: relative; display: inline-block; width: 50px; height: 26px;">
+              <input type="checkbox" id="vetrina-toggle" style="opacity: 0; width: 0; height: 0;" onchange="VetrinaApp.toggleVetrina(this.checked)">
+              <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 34px;">
+                <span id="vetrina-toggle-slider" style="position: absolute; content: ''; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%;"></span>
+              </span>
+            </label>
+            <style>
+              input:checked + span { background-color: #10b981; }
+              input:checked + span span { transform: translateX(24px); }
+            </style>
+          </div>
+        </div>
+        
+        <form onsubmit="event.preventDefault(); VetrinaApp.saveVetrinaSettings();">
+          <div style="margin-bottom: 20px;">
+            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Titolo in evidenza (Es: "Prima Edizione 2026.")</label>
+            <input type="text" id="vetrina-titolo" class="input-field" placeholder="Titolo del banner..." required>
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Descrizione / Testo principale</label>
+            <textarea id="vetrina-descrizione" class="input-field" rows="3" placeholder="Testo che accompagna il titolo..." required></textarea>
+          </div>
+          
+          <div style="margin-bottom: 20px; display: flex; gap: 20px; align-items: flex-start;">
+            <div style="flex-grow: 1;">
+              <label style="font-weight: 600; display: block; margin-bottom: 8px;">Immagine Corrente</label>
+              <input type="file" id="vetrina-immagine" class="input-field" accept="image/*" onchange="VetrinaApp.previewImage(this)">
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Carica una nuova immagine (png, jpg, webp) per sostituire quella attuale.</p>
+            </div>
+            <div>
+              <img id="vetrina-immagine-preview" src="" alt="Anteprima" style="width: 100px; height: auto; border-radius: 8px; border: 1px dashed var(--border-color); display: none;">
+            </div>
+          </div>
+          
+          <div style="text-align: right; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <button type="submit" class="btn" id="btn-save-vetrina"><i class="fa-solid fa-save"></i> Salva Modifiche</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    
+    <!-- VISTA GESTIONE GIOCHI -->
+    <div id="view-gestione-giochi" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-gamepad" style="color:#10b981;"></i> Gestione Giochi & Pop-up</h2>
+      </div>
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <p style="margin-bottom: 20px; color: var(--text-main); font-size: 1.05rem;">Qui puoi controllare quali giochi sono attualmente accessibili. Se un gioco è disattivato, il link nell'archivio verrà bloccato e i tentativi di accesso diretto mostreranno il pop-up predefinito ("Lavori in corso").</p>
+        <div class="table-responsive" style="overflow-x:auto;">
+          <table class="game-table" style="width:100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="border-bottom:1px solid #e5e7eb;">
+                <th style="padding:15px 10px; color: var(--text-muted);">Nome Gioco / Materiale</th>
+                <th style="padding:15px 10px; color: var(--text-muted); text-align: center;">Visibilità Hub</th>
+                <th style="padding:15px 10px; color: var(--text-muted); text-align: right;">Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="games-list-body">
+              <tr><td colspan="3" style="text-align:center; padding:20px;">Caricamento in corso...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Dashboard / Panoramica (Ripristinata) -->
+    <div id="view-dashboard" class="hub-view active">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-chart-pie"></i> Panoramica Generale Iscritti</h2>
+      </div>
+      <div class="glass-panel" style="margin-bottom: 30px;">
+        <p style="color:var(--text-muted); margin-bottom: 20px;"><i class="fa-solid fa-circle-info"></i> Affinché i numeri si aggiornino, assicurati di aver fatto il login almeno una volta all'interno di ciascuna Console Gioco nel menu laterale. Questo permette all'Hub di accedere ai database in totale sicurezza.</p>
+        <button class="btn" onclick="HubApp.loadIscrittiAggregati()"><i class="fa-solid fa-arrows-rotate"></i> Aggiorna Dati Ora</button>
+      </div>
+
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
+        <div class="glass-panel" style="flex: 1; min-width: 250px; text-align: center;">
+          <h3 style="color:var(--text-muted); margin-top:0;">Utenti Unici Globali</h3>
+          <h1 id="counter-total" style="font-size: 4rem; color:var(--text-main); margin: 10px 0;">--</h1>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="document.getElementById('filter-gioco').value='La Rotta degli Eroi'; if(window.HubApp && window.HubApp.filterIscritti) window.HubApp.filterIscritti(); document.getElementById('hub-iscritti-table').scrollIntoView({behavior: 'smooth', block: 'start'});" title="Filtra La Rotta degli Eroi">
+                <img src="assets/LOGO 'La rotta degli eroi scritta nera'.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Eroi</div>
+                <div class="materia-value" id="counter-eroi" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="document.getElementById('filter-gioco').value='La Corte della Commedia'; if(window.HubApp && window.HubApp.filterIscritti) window.HubApp.filterIscritti(); document.getElementById('hub-iscritti-table').scrollIntoView({behavior: 'smooth', block: 'start'});" title="Filtra La Corte della Commedia">
+                <img src="assets/commedia_logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Commedia</div>
+                <div class="materia-value" id="counter-commedia" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="document.getElementById('filter-gioco').value='Fantaletteratura'; if(window.HubApp && window.HubApp.filterIscritti) window.HubApp.filterIscritti(); document.getElementById('hub-iscritti-table').scrollIntoView({behavior: 'smooth', block: 'start'});" title="Filtra Fantaletteratura">
+                <img src="assets/fanta_logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Fanta</div>
+                <div class="materia-value" id="counter-fanta" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="document.getElementById('filter-gioco').value='Palestra di Riflessione'; if(window.HubApp && window.HubApp.filterIscritti) window.HubApp.filterIscritti(); document.getElementById('hub-iscritti-table').scrollIntoView({behavior: 'smooth', block: 'start'});" title="Filtra Palestra di Riflessione">
+                <img src="assets/palestra-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Palestra</div>
+                <div class="materia-value" id="counter-palestra" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+            <div class="hub-card" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="document.getElementById('filter-gioco').value='Ops! Operazione Storia'; if(window.HubApp && window.HubApp.filterIscritti) window.HubApp.filterIscritti(); document.getElementById('hub-iscritti-table').scrollIntoView({behavior: 'smooth', block: 'start'});" title="Filtra Ops! Operazione Storia">
+                <img src="assets/ops-logo-scritte.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Ops!</div>
+                <div class="materia-value" id="counter-ops" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW CARDS ROW -->
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; justify-content: center;">
+        <div class="hub-card active" id="card-stats-tutti" onclick="HubApp.filterIscrittiByCard('tutti')">
+            <i class="fa-solid fa-users materia-icon" style="color: #94a3b8;"></i>
+            <div class="materia-label">Tutti</div>
+            <div class="materia-value" id="counter-tutti">--</div>
+        </div>
+        <div class="hub-card" id="card-stats-studenti" onclick="HubApp.filterIscrittiByCard('studenti')">
+            <i class="fa-solid fa-user-graduate materia-icon" style="color: #6366f1;"></i>
+            <div class="materia-label">Studenti</div>
+            <div class="materia-value" id="counter-studenti">--</div>
+        </div>
+        <div class="hub-card" id="card-stats-docenti" onclick="HubApp.filterIscrittiByCard('docenti')">
+            <i class="fa-solid fa-chalkboard-user materia-icon" style="color: #f59e0b;"></i>
+            <div class="materia-label">Docenti</div>
+            <div class="materia-value" id="counter-docenti">--</div>
+        </div>
+        <div class="hub-card" id="card-stats-viandanti" onclick="HubApp.filterIscrittiByCard('viandanti')">
+            <i class="fa-solid fa-person-hiking materia-icon" style="color: #10b981;"></i>
+            <div class="materia-label">Viandanti</div>
+            <div class="materia-value" id="counter-viandanti">--</div>
+        </div>
+        <div class="hub-card" id="card-stats-scuole" onclick="HubApp.filterIscrittiByCard('scuole')" title="Mostra tutti gli utenti con una scuola assegnata">
+            <i class="fa-solid fa-school materia-icon" style="color: #ec4899;"></i>
+            <div class="materia-label">Scuole Attive</div>
+            <div class="materia-value" id="counter-scuole">--</div>
+        </div>
+      </div>
+
+      <div class="glass-panel">
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+          <h3 style="color:var(--text-main); margin:0;">Tabella Iscritti Multi-Sito</h3>
+          <div style="display: flex; gap: 10px;" id="bulk-actions-container" class="hidden">
+            <button class="btn btn-secondary" onclick="window.UsersUI.openBulkEditPlanModal()"><i class="fa-solid fa-crown"></i> Modifica Piano Selezionati</button>
+          </div>
+        </div>
+        <div class="table-responsive" style="overflow-x:auto;">
+          <table class="game-table" id="hub-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="width: 40px; text-align: center;">
+                  <input type="checkbox" id="select-all-users" onchange="window.UsersUI.toggleAllUsers(this.checked)">
+                </th>
+                <th style="cursor:pointer;" onclick="HubApp.sortIscritti('nome')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <input type="text" id="search-iscritti" class="input-field" placeholder="Cerca utente per nome o email..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="HubApp.filterIscritti()">
+                </th>
+                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortIscritti('ruolo')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Ruolo <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortIscritti('data')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Data Iscrizione <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer;" onclick="HubApp.sortIscritti('gioco')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <select id="filter-gioco" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
+                    <option value="all">Tutti</option>
+                    <option value="La Rotta degli Eroi">Eroi</option>
+                    <option value="La Corte della Commedia">Commedia</option>
+                    <option value="Fantaletteratura">Fanta</option>
+                    <option value="Palestra di Riflessione">Palestra</option>
+                  </select>
+                </th>
+                <th style="vertical-align: top;">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Stato / Piano</div>
+                </th>
+                <th style="vertical-align: top;">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Scadenza</div>
+                </th>
+                <th style="vertical-align: top;">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Azione</div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="5" style="text-align:center; padding: 20px; color:var(--text-muted);">Clicca "Aggiorna Dati Ora" per caricare.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- View: Viste Iframe Rimosse a favore dell'apertura in nuova scheda -->
+
+    <!-- Modale Eliminazione Utente -->
+    <div id="modal-delete-user" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-trash" style="color:var(--danger-color);"></i> Elimina Utente</h2>
+                <span class="close-modal" onclick="document.getElementById('modal-delete-user').style.display = 'none';">&times;</span>
+            </div>
+            <div class="modal-body" style="text-align: left;">
+                <p>Vuoi eliminare l'utente <strong id="delete-user-name"></strong>?</p>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Scegli da dove vuoi eliminare l'utente:</p>
+                
+                <input type="hidden" id="delete-user-id">
+                <input type="hidden" id="delete-user-email">
+                
+                <div style="margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <label style="display:flex; align-items:center; gap:10px; margin-bottom: 15px; font-weight: 600; color: var(--danger-color);">
+                        <input type="checkbox" id="delete-everywhere" onchange="window.UsersUI.toggleDeleteEverywhere(this.checked)" style="accent-color: var(--danger-color);">
+                        Cancella Ovunque (Tutti i siti e l'Hub)
+                    </label>
+                    <hr style="border:none; border-top: 1px solid #e2e8f0; margin-bottom: 15px;">
+                    <div id="delete-sites-container" style="display:flex; flex-direction:column; gap:10px;">
+                        <!-- I checkbox dei siti verranno popolati dinamicamente -->
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('modal-delete-user').style.display = 'none';" style="flex:1;">Annulla</button>
+                    <button class="btn btn-primary" onclick="window.UsersUI.executeDeleteUser()" style="flex:1; background: var(--danger-color); border-color: var(--danger-color);">Conferma Eliminazione</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View: Esperienze -->
+    <div id="view-esperienze" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-star"></i> Hub Esperienze in Sospeso</h2>
+      </div>
+      <div class="glass-panel">
+        <div class="table-responsive" style="overflow-x:auto;">
+          <table class="game-table" id="hub-esperienze-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Sito</th>
+                <th>Utente</th>
+                <th>Esperienza</th>
+                <th>Punti</th>
+                <th>Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento esperienze...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Casella Postale -->
+    <div id="view-posta" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-envelope"></i> Casella Postale (Tutti i Siti)</h2>
+      </div>
+      
+      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <!-- Posta in Arrivo -->
+        <div class="glass-panel" style="flex: 1; min-width: 300px;">
+          <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 15px;"><i class="fa-solid fa-inbox"></i> Posta in Arrivo</h3>
+          <div class="table-responsive" style="overflow-x:auto;">
+            <table class="game-table" id="hub-posta-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Mittente</th>
+                  <th>Oggetto</th>
+                  <th>Stato</th>
+                  <th>Azione</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="5" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento posta...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Posta Inviata -->
+        <div class="glass-panel" style="flex: 1; min-width: 300px;">
+          <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 15px;"><i class="fa-solid fa-paper-plane"></i> Posta Inviata</h3>
+          <div class="table-responsive" style="overflow-x:auto;">
+            <table class="game-table" id="hub-posta-inviata-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Destinatario</th>
+                  <th>Oggetto / Azione</th>
+                  <th>Sito</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento posta inviata...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Richieste Iscrizione -->
+    <div id="view-richieste" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-envelope-open-text" style="color:#10b981;"></i> Richieste Iscrizione in Sospeso</h2>
+      </div>
+      <div class="glass-panel">
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+          <h3 style="color:var(--text-main); margin:0;">Tabella Richieste Multi-Sito</h3>
+          <button class="btn" onclick="HubApp.loadRichiesteIscrizione()"><i class="fa-solid fa-arrows-rotate"></i> Aggiorna Dati Ora</button>
+        </div>
+        <div class="table-responsive" style="overflow-x:auto;">
+          <table class="game-table" id="hub-richieste-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="cursor:pointer;" onclick="HubApp.sortRichieste('nome')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <input type="text" id="search-richieste" class="input-field" placeholder="Cerca..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="HubApp.filterRichieste()">
+                </th>
+                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortRichieste('ruolo')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Ruolo Richiesto <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortRichieste('data')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Data Richiesta <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer;" onclick="HubApp.sortRichieste('gioco')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <select id="filter-richieste-gioco" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterRichieste()">
+                    <option value="all">Tutti</option>
+                    <option value="La Rotta degli Eroi">Eroi</option>
+                    <option value="La Corte della Commedia">Commedia</option>
+                    <option value="Fantaletteratura">Fanta</option>
+                    <option value="Palestra di Riflessione">Palestra</option>
+                  </select>
+                </th>
+                <th style="vertical-align: top;">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Azione</div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="5" style="text-align:center; padding: 20px; color:var(--text-muted);">Clicca "Aggiorna Dati Ora" per caricare.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Modelli Email -->
+    <div id="view-email-templates" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-file-signature"></i> Modelli Email di Approvazione</h2>
+      </div>
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <p style="color:var(--text-muted); margin-bottom: 20px;">
+          Gestisci i testi completi e statici delle email inviate ai docenti quando vengono approvati. Quello che scrivi qui è esattamente ciò che verrà inviato. Non sono necessari segnaposti.
+        </p>
+        <div style="margin-bottom: 15px;">
+          <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Seleziona Gioco</label>
+          <select id="email-template-select" class="input-form" onchange="HubApp.loadEmailTemplateForSelected()" style="width: 100%; max-width: 400px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <option value="Fantaletteratura">Fantaletteratura</option>
+            <option value="La Rotta degli Eroi">La Rotta degli Eroi</option>
+            <option value="La Corte della Commedia">La Corte della Commedia</option>
+            <option value="Palestra di Riflessione">Palestra di Riflessione</option>
+            <option value="Ops! Operazione Storia">Ops! Operazione Storia</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <textarea id="email-template-text" class="input-form" style="width: 100%; height: 350px; padding: 15px; font-family: monospace; font-size: 0.9rem; border-radius: 8px; border: 1px solid var(--border-color);"></textarea>
+        </div>
+        <button class="btn" onclick="HubApp.saveEmailTemplate()"><i class="fa-solid fa-floppy-disk"></i> Salva Modello per questo gioco</button>
+      </div>
+    </div>
+
+    <!-- View: Generatore AI & Social -->
+    <!-- View: Generatore AI & Strumenti -->
+    <div id="view-ai" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Strumenti AI & Social</h2>
+      </div>
+      
+      <div class="glass-panel" style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 20px;">Lancio Rapido Strumenti</h3>
+        <p style="color:var(--text-muted); font-size:1rem; margin-bottom: 30px;">Clicca sui pulsanti per aprire le relative piattaforme in una nuova scheda.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <button class="btn" onclick="window.open('https://business.facebook.com/', '_blank')" style="background: #E1306C; padding: 20px; font-size: 1.1rem;"><i class="fa-brands fa-instagram" style="margin-right: 10px;"></i> Meta Business</button>
+          <button class="btn" onclick="window.open('https://chat.openai.com/', '_blank')" style="background: #10a37f; padding: 20px; font-size: 1.1rem;"><i class="fa-solid fa-robot" style="margin-right: 10px;"></i> ChatGPT</button>
+          <button class="btn" onclick="window.open('https://www.canva.com/', '_blank')" style="background: #00c4cc; padding: 20px; font-size: 1.1rem;"><i class="fa-solid fa-pen-nib" style="margin-right: 10px;"></i> Canva</button>
+          <button class="btn" onclick="window.open('https://gemini.google.com/', '_blank')" style="background: #4285f4; padding: 20px; font-size: 1.1rem;"><i class="fa-solid fa-sparkles" style="margin-right: 10px;"></i> Gemini</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Newsletter Manager -->
+    <div id="view-newsletter" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-paper-plane"></i> Newsletter Manager</h2>
+      </div>
+      
+      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <!-- Editor -->
+        <div class="glass-panel" style="flex: 2; min-width: 300px;">
+          <h3 style="color:var(--text-main); margin-top:0; margin-bottom:20px;">Nuova Newsletter</h3>
+          
+          <input type="text" id="news-oggetto" class="input-field" placeholder="Oggetto dell'email" style="margin-bottom: 15px;">
+          
+          <textarea id="news-corpo" class="input-field" rows="12" placeholder="Scrivi qui il corpo dell'email... (supporta il testo che poi incollerai in Gmail o Mailchimp)" style="resize: vertical;"></textarea>
+          
+          <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="btn" onclick="salvaBozzaNewsletter()"><i class="fa-solid fa-floppy-disk"></i> Salva Bozza</button>
+            <button class="btn outline" onclick="preparaInvioGmail()" style="border-color: #ea4335; color: #ea4335;"><i class="fa-brands fa-google"></i> Prepara per Gmail (BCC)</button>
+          </div>
+        </div>
+
+        <!-- Bozze Salvate -->
+        <div class="glass-panel" style="flex: 1; min-width: 250px;">
+          <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 15px;">Bozze Salvate</h3>
+          <div id="newsletter-lista-bozze" style="max-height: 400px; overflow-y: auto;">
+            <p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Caricamento bozze...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabella Destinatari Full-Width -->
+      <div class="glass-panel" style="margin-top: 20px;">
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+            <div>
+              <h3 style="color:var(--text-main); margin:0;">Destinatari Selezionati</h3>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;"><i class="fa-solid fa-circle-info"></i> Usa i filtri sulle colonne per cercare gli utenti. Le spunte rimarranno memorizzate.</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px;" onclick="window.HubApp.toggleAllNews(true)">Seleziona Tutti</button>
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:var(--text-muted); color:var(--text-muted);" onclick="window.HubApp.toggleAllNews(false)">Deseleziona Tutti</button>
+            </div>
+        </div>
+        
+        <div class="table-responsive" style="overflow-x:auto; max-height: 400px; margin-top: 15px;">
+          <table class="game-table" id="newsletter-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="width: 50px; text-align:center;">Invia</th>
+                <th style="cursor:pointer;" onclick="window.HubApp.sortNews('nome')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <input type="text" id="search-news-iscritti" class="input-field" placeholder="Cerca..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="window.HubApp.filterNews()">
+                </th>
+                <th style="cursor:pointer; vertical-align: top;" onclick="window.HubApp.sortNews('ruolo')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Ruolo <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer; vertical-align: top;" onclick="window.HubApp.sortNews('data')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Data Iscrizione <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer;" onclick="window.HubApp.sortNews('gioco')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <select id="filter-news-gioco-col" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="window.HubApp.filterNews()">
+                    <option value="all">Tutti</option>
+                    <option value="La Rotta degli Eroi">Eroi</option>
+                    <option value="La Corte della Commedia">Commedia</option>
+                    <option value="Fantaletteratura">Fanta</option>
+                    <option value="Palestra di Riflessione">Palestra</option>
+                  </select>
+                </th>
+                <th style="vertical-align: top;">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Contatta</div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" style="text-align:center; padding: 20px; color:var(--text-muted);">Carica gli iscritti cliccando su "Aggiorna Dati Ora" nella Panoramica.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Analytics -->
+    <div id="view-analytics" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-chart-line"></i> Analytics Ecosistema</h2>
+      </div>
+      
+      <!-- KPI Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+        
+        <div class="glass-panel" style="display: flex; align-items: center; padding: 15px; gap: 15px;">
+          <div style="background: rgba(99, 102, 241, 0.1); color: #6366f1; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">UTENTI REGISTRATI</div>
+            <div id="kpi-totali" style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">0</div>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="display: flex; align-items: center; padding: 15px; gap: 15px;">
+          <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+            <i class="fa-solid fa-chalkboard-user"></i>
+          </div>
+          <div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">DOCENTI ATTIVI</div>
+            <div id="kpi-docenti" style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">0</div>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="display: flex; align-items: center; padding: 15px; gap: 15px;">
+          <div style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">STUDENTI COINVOLTI</div>
+            <div id="kpi-studenti" style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">0</div>
+          </div>
+        </div>
+        
+        <div class="glass-panel" style="display: flex; align-items: center; padding: 15px; gap: 15px;">
+          <div style="background: rgba(168, 85, 247, 0.1); color: #a855f7; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+            <i class="fa-solid fa-gamepad"></i>
+          </div>
+          <div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">PIATTAFORME</div>
+            <div id="kpi-piattaforme" style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">0</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+        
+        <div class="glass-panel" style="display: flex; align-items: center; padding: 15px; gap: 15px;">
+          <div style="background: rgba(236, 72, 153, 0.1); color: #ec4899; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+          <div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">GIOCO PIÙ UTILIZZATO</div>
+            <div id="kpi-top-gioco" style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">N/A</div>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="display: flex; align-items: center; padding: 15px; gap: 15px;" title="Dato in arrivo: richiede implementazione modulo accessi">
+          <div style="background: rgba(100, 116, 139, 0.1); color: #64748b; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+            <i class="fa-solid fa-right-to-bracket"></i>
+          </div>
+          <div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">ACCESSI / ATTIVI</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-muted);">In arrivo...</div>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="display: flex; align-items: center; padding: 15px; gap: 15px;" title="Dato in arrivo: richiede aggregazione database classi">
+          <div style="background: rgba(100, 116, 139, 0.1); color: #64748b; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+            <i class="fa-solid fa-school"></i>
+          </div>
+          <div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">CLASSI CREATE</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-muted);">In arrivo...</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Andamento nel tempo -->
+      <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 25px;">
+        <h3 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.1rem;">Andamento Iscrizioni nel Tempo</h3>
+        <div style="position: relative; width: 100%; height: 300px;">
+          <canvas id="chart-andamento"></canvas>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;">
+        <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center;">
+          <h3 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.1rem;">Distribuzione Ruoli</h3>
+          <div style="position: relative; width: 100%; height: 250px;">
+            <canvas id="chart-ruoli"></canvas>
+          </div>
+        </div>
+        <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center;">
+          <h3 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.1rem;">Distribuzione Piani</h3>
+          <div style="position: relative; width: 100%; height: 250px;">
+            <canvas id="chart-piani"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;">
+        <h3 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.1rem;">Utenti per Gioco/Piattaforma</h3>
+        <div style="position: relative; width: 100%; height: 300px;">
+          <canvas id="chart-giochi"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Sostieni il Progetto -->
+    <div id="view-sostieni" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-hand-holding-dollar"></i> Sostieni il Progetto</h2>
+      </div>
+      
+      <style>
+        .switch-board {
+          display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;
+        }
+        .light-switch-btn {
+          flex: 1; min-width: 200px;
+          background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 12px;
+          padding: 20px; text-align: center; cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative; overflow: hidden;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 -4px 0 rgba(0,0,0,0.05);
+        }
+        .light-switch-btn:active {
+          transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.1), inset 0 -1px 0 rgba(0,0,0,0.05);
+        }
+        .light-switch-btn.on {
+          background: #10b981; border-color: #059669; color: white;
+          box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4), inset 0 -4px 0 rgba(0,0,0,0.1);
+        }
+        .light-switch-btn i { font-size: 2rem; margin-bottom: 10px; display: block; }
+        .light-switch-btn .status-text { font-weight: bold; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
+        .light-switch-btn .label-text { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
+      </style>
+
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <h3 style="margin-top:0; color:var(--text-main);">Visibilità Pagina e Pulsanti</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Accendi l'interruttore per mostrare la pagina "Sostieni Prof. Memmo" e i relativi pulsanti in tutto l'ecosistema.</p>
+        
+        <div class="switch-board" style="margin-bottom: 30px;">
+          <!-- Toggle Sostieni il progetto -->
+          <div class="light-switch-btn" id="btn-toggle-sostieni" onclick="EcosistemaUI.toggleSwitchBtn('sostieni')">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+            <div class="status-text" id="status-text-sostieni">OFF</div>
+            <div class="label-text">Visibilità "Sostieni il Progetto"</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top:0; color:var(--text-main); border-top: 1px solid var(--border-color); padding-top: 20px;">Configurazione Testi e Link</h3>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Link PayPal (o piattaforma donazioni)</label>
+          <input type="url" id="sostieni-paypal-link" class="input-field" placeholder="https://paypal.me/tuolink">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Testo iniziale periodo gratuito (Fino ad agosto 2027)</label>
+          <textarea id="sostieni-testo-gratuito" class="input-field" rows="3" placeholder="❤️ Sostieni Prof. Memmo.&#10;Quest'anno scolastico le piattaforme sono gratuite. Le donazioni aiutano a creare nuovi giochi didattici per la scuola secondaria." style="resize: vertical;"></textarea>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Testo futuro (Dopo attivazione abbonamenti)</label>
+          <textarea id="sostieni-testo-futuro" class="input-field" rows="4" placeholder="❤️ Sostieni Prof. Memmo.&#10;Gli abbonamenti permettono di mantenere attive le piattaforme e sviluppare nuove funzionalità.&#10;Se vuoi contribuire ulteriormente alla crescita del progetto educativo, puoi sostenere liberamente Prof. Memmo con una donazione." style="resize: vertical;"></textarea>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Messaggio di ringraziamento (Opzionale)</label>
+          <input type="text" id="sostieni-ringraziamento" class="input-field" placeholder="Es. Grazie di cuore per il tuo prezioso contributo!">
+        </div>
+        
+        <button class="btn" onclick="EcosistemaUI.saveSostieniSettings()"><i class="fa-solid fa-floppy-disk"></i> Salva Configurazione Sostieni</button>
+      </div>
+    </div>
+
+    <!-- View: Monetizzazione -->
+    <div id="view-monetizzazione" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-euro-sign"></i> Monetizzazione e Piani</h2>
+      </div>
+      
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <h3 style="margin-top:0; color:var(--text-main);">Attivazione Sistema Monetizzazione</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">L'attivazione è prevista per Settembre 2027. Questo interruttore abiliterà i controlli sui piani e sbloccherà gli accessi alle Versioni Complete.</p>
+        
+        <div class="switch-board" style="margin-bottom: 20px;">
+          <!-- Toggle Monetizzazione -->
+          <div class="light-switch-btn" id="btn-toggle-monetizzazione" onclick="EcosistemaUI.toggleSwitchBtn('monetizzazione')">
+            <i class="fa-solid fa-lock"></i>
+            <div class="status-text" id="status-text-monetizzazione">OFF</div>
+            <div class="label-text">Sistema Monetizzazione (Abbonamenti)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel">
+        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-tags"></i> Prezzi Versioni Complete</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Questi prezzi verranno mostrati nella pagina "Prezzi e accessi" quando il sistema sarà attivato.</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 20px;">
+          
+          <div style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <strong style="font-size: 1.1rem; color: var(--text-main);">Versione Base (Gratuita)</strong>
+            <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);">
+              <strong>FantaLetteratura:</strong> gioco disp., max 4 squadre, una classe.<br>
+              <em>Non disp:</em> tornei interni, missioni personalizzate.<br><br>
+              <strong>Palestra di Riflessione:</strong> attività fondamentali.<br>
+              <em>Non disp:</em> analisi logica, periodo, testi B1/B2, test cultura gen.
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+              <span style="font-weight:bold; font-size: 1.2rem;">0,00 €</span>
+              <span>/ anno</span>
+            </div>
+          </div>
+
+          <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #border-color; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <strong style="font-size: 1.1rem; color: var(--text-main);">Piano Viandante</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 10px 0;">Include: FantaLetteratura (Base), Palestra (Base), Rotta degli Eroi, Corte dei Dannati, futuri giochi.<br><br><em>Non include:</em> creazione classi, gestione studenti, codici classe, dashboard docente, tornei.</p>
+            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+              <input type="number" id="price-viandante" class="input-field" style="width: 90px; margin:0;" value="9.99" step="0.01">
+              <span>€ / anno</span>
+            </div>
+          </div>
+          
+          <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <strong style="font-size: 1.1rem; color: var(--text-main);">Docente Completo Didattico</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 10px 0;">Include: FantaLetteratura (Completo), Palestra (Completo), Strumenti docente, Gestione classi, Gestione studenti.</p>
+            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+              <input type="number" id="price-docente" class="input-field" style="width: 90px; margin:0;" value="19.99" step="0.01">
+              <span>€ / anno</span>
+            </div>
+          </div>
+          
+          <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border: 1px solid #bfdbfe; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <strong style="font-size: 1.1rem; color: var(--text-main);">Docente Ecosistema Completo</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 10px 0;">Include: Tutto il piano Docente Completo Didattico + La Rotta degli Eroi + Travel Agency C. (e futuri giochi completi).</p>
+            <div style="display:flex; align-items:center; gap:10px; margin-top: 15px;">
+              <input type="number" id="price-ecosistema" class="input-field" style="width: 90px; margin:0;" value="24.99" step="0.01">
+              <span>€ / anno</span>
+            </div>
+          </div>
+        </div>
+        
+        <button class="btn" onclick="EcosistemaUI.savePrices()"><i class="fa-solid fa-floppy-disk"></i> Salva Prezzi</button>
+      </div>
+    </div>
+
+    <!-- Fine Viste -->
+    
+    <!-- Logo Globale (sempre in basso, fuori dalle singole viste) -->
+    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 40px; margin-top: 40px;">
+      <img src="assets/prof_memmo_dark.png" alt="Prof. Memmo" style="height: 50px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+      <h1 style="margin: 0; color: var(--text-main); font-weight: 700; font-size: 2.2rem; letter-spacing: -0.5px;">Hub Centrale</h1>
+    </div>
+
+  </main>
+
+  <script src="js/firebase-init.js?v=29"></script>
+  <script src="js/services/auth/auth-service.js?v=1"></script>
+  <script src="js/utils/ai-prompts.js?v=1"></script>
+  <script src="js/utils/db-fixer.js?v=1"></script>
+  
+  <!-- Services -->
+  <script src="js/services/cross-projects.js?v=1"></script>
+  <script src="js/services/users/user-service.js?v=1"></script>
+  <script src="js/services/messages/messages-service.js?v=1"></script>
+  <script src="js/services/requests/requests-service.js?v=1"></script>
+  <script src="js/services/games/games-service.js?v=1"></script>
+  <script src="js/services/newsletter/newsletter-service.js?v=1"></script>
+  <script src="js/services/ecosystem/ecosystem-service.js?v=1"></script>
+  <script src="js/services/archive/archive-service.js?v=1"></script>
+  
+  <!-- UI Modules -->
+  <script src="js/dashboard/messages-ui.js?v=1"></script>
+  <script src="js/dashboard/requests-ui.js?v=1"></script>
+  <script src="js/dashboard/ecosistema-ui.js?v=1"></script>
+  <script src="js/dashboard/ui.js?v=2"></script>
+  <script src="js/dashboard/users-ui.js"></script>
+  <script src="js/dashboard/vetrina-ui.js"></script>
+  
+  <script src="js/dashboard/newsletter-ui.js?v=1"></script>
+  <script src="js/dashboard/analytics-ui.js?v=1"></script>
+  
+  <script src="js/app_v2.js?v=34"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('main-sidebar').classList.toggle('open');
+    }
+
+    function switchView(targetId) {
+      document.querySelectorAll('.hub-view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(targetId).classList.add('active');
+      const navItem = document.querySelector(`.nav-item[data-target="${targetId}"]`);
+      if (navItem) navItem.classList.add('active');
+      
+      const mobileNavItem = document.querySelector(`.mobile-nav-item[data-target="${targetId}"]`);
+      if (mobileNavItem) mobileNavItem.classList.add('active');
+      
+      // Chiude la sidebar se siamo su mobile
+      if (window.innerWidth <= 900) {
+        document.getElementById('main-sidebar').classList.remove('open');
+      }
+    }
+  </script>
+</body>
+</html>

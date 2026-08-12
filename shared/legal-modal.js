@@ -240,13 +240,62 @@
   window.openSharedModal = openSharedModal;
   window.closeSharedModal = closeSharedModal;
 
-  // Auto-intercept data-legal attributes
+  // Controlla scadenze abbonamento al 31 Dicembre e notifiche dell'Ecosistema
+  async function checkEcosystemNotificationsAndExpiration() {
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
+    try {
+      var auth = firebase.auth();
+      var db = firebase.app().firestore();
+      var user = auth.currentUser;
+      if (!user) return;
+
+      // 1. Controllo Scadenza al 31 Dicembre dell'Anno Corrente
+      var hubRef = db.collection('hub_users').doc(user.uid);
+      var hubSnap = await hubRef.get();
+      if (hubSnap.exists) {
+        var uData = hubSnap.data();
+        var currentYear = new Date().getFullYear();
+        var sub = uData.subscription || 'base';
+        var role = uData.role || 'studente';
+
+        // Solo per ruoli a pagamento non-studenti se l'anno corrente supera l'anno di sottoscrizione/scadenza
+        if (role !== 'studente' && sub !== 'base') {
+          var subYear = uData.subscriptionYear || currentYear;
+          // Se la data odierna ha superato il 31/12 dell'anno di abbonamento
+          if (currentYear > subYear) {
+            await hubRef.update({
+              subscription: 'base',
+              previousSubscription: sub,
+              subscriptionExpiredAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Mostra avviso di scadenza
+            setTimeout(function() {
+              alert("⚠️ ATTENZIONE: Il tuo abbonamento per l'anno scolastico precedente è scaduto il 31 Dicembre.\n\nIl tuo profilo è stato impostato sulla Versione Base gratuita. Se utilizzi Fantaletteratura e hai più di 4 classi/squadre attive, potrai farne partecipare al massimo 4 quest'anno, oppure puoi rinnovare l'abbonamento nell'Hub per mantenerle tutte!");
+            }, 1200);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("PM Ecosystem check warning:", e);
+    }
+  }
+
+  // Auto-intercept data-legal attributes e avvia controlli al login
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-legal]').forEach(function (el) {
       var type = el.getAttribute('data-legal');
       var mapped = type === 'terms' ? 'termini' : type;
       el.addEventListener('click', function (e) { e.preventDefault(); openSharedModal(mapped); });
     });
+
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          checkEcosystemNotificationsAndExpiration();
+        }
+      });
+    }
   });
 
 })();

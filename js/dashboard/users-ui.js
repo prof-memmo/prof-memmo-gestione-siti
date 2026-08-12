@@ -88,8 +88,14 @@ const UsersUI = {
                 </td>
                 <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">-</td>
                 <td style="padding: 10px; text-align:center;">
-                    <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); font-size:1.1rem; text-decoration:none; margin-right: 10px;"><i class="fa-solid fa-envelope"></i></a>
-                    <button class="btn" style="padding: 5px 10px; font-size: 0.8rem; color: var(--danger-color); border-color: var(--danger-color);" onclick="window.UsersUI.openDeleteUserModal('${user.id}', '${user.email}', '${user.nome.replace(/'/g, "\\'")}', '${user.gioco}')" title="Elimina Utente"><i class="fa-solid fa-trash"></i></button>
+                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 12px;">
+                        <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color: var(--primary-color); font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                            <i class="fa-solid fa-envelope"></i>
+                        </a>
+                        <button type="button" style="background: none; border: none; padding: 0; color: #ef4444; font-size: 1.15rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="window.UsersUI.openDeleteUserModal('${user.id}', '${user.email}', '${user.nome.replace(/'/g, "\\'")}', '${user.gioco}')" title="Elimina Utente">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
