@@ -194,10 +194,61 @@ const HubApp = {
 
 
 
-    // --- BRIDGE VETRINA GIOCHI (Richiamati da HTML via HubApp.*) ---
     toggleGameStatus: function(gameId, targetStatus) { if(window.GamesUI) window.GamesUI.toggleGameStatus(gameId, targetStatus); },
     editGame: function(gameId, gameName) { if(window.GamesUI) window.GamesUI.editGame(gameId, gameName); },
-    saveGameInfo: function() { if(window.GamesUI) window.GamesUI.saveGameInfo(); }
+    saveGameInfo: function() { if(window.GamesUI) window.GamesUI.saveGameInfo(); },
+
+    // --- EMAIL TEMPLATES ---
+    _defaultTemplates: {
+        'abbonamento_attivo': `Oggetto: Il tuo abbonamento Prof. Memmo è attivo 🎉\n\nCiao [NOME],\n\nil tuo abbonamento all'Ecosistema Prof. Memmo è stato attivato.\n\nPiano attivo: [PIANO]\n\nEcco cosa puoi fare:\n[DESCRIZIONE]\n\nAccedi subito alla piattaforma:\nhttps://prof-memmo.github.io/games/\n\nA presto,\nProf. Memmo`,
+
+        'abbonamento_pagamento': `Oggetto: Grazie per il tuo abbonamento a Prof. Memmo! 🎉\n\nCiao [NOME],\n\nAbbiamo ricevuto il tuo ordine.\n\n--- RIEPILOGO ORDINE ---\nOrdine #[ORDINE_ID] ([DATA])\n\nPiano: [PIANO]\nPrezzo: [PREZZO]\nMetodo di pagamento: [METODO]\n\n--- COSA PUOI FARE ---\n[DESCRIZIONE]\n\nAccedi subito:\nhttps://prof-memmo.github.io/games/\n\nSe non ricordi la password, usa "Password dimenticata" nella schermata di login.\n\nGrazie per aver scelto Prof. Memmo!\nA presto,\nProf. Memmo`
+    },
+
+    loadEmailTemplateForSelected: async function() {
+        const sel = document.getElementById('email-template-select');
+        const textarea = document.getElementById('email-template-text');
+        if (!sel || !textarea) return;
+        const key = sel.value;
+
+        let text = null;
+        try {
+            if (window.fbDb && window.fbDb.hub) {
+                const doc = await window.fbDb.hub.collection('hub_settings').doc('email_templates').get();
+                if (doc.exists && doc.data()[key]) {
+                    text = doc.data()[key];
+                }
+            }
+        } catch(e) { /* usa default */ }
+
+        if (!text) {
+            text = this._defaultTemplates[key] || '';
+        }
+        textarea.value = text;
+    },
+
+    saveEmailTemplate: async function() {
+        const sel = document.getElementById('email-template-select');
+        const textarea = document.getElementById('email-template-text');
+        if (!sel || !textarea) return;
+        const key = sel.value;
+        const text = textarea.value;
+
+        try {
+            if (window.fbDb && window.fbDb.hub) {
+                await window.fbDb.hub.collection('hub_settings').doc('email_templates').set(
+                    { [key]: text },
+                    { merge: true }
+                );
+                alert('✅ Modello email salvato per: ' + sel.options[sel.selectedIndex].text);
+            } else {
+                alert('Database Hub non disponibile.');
+            }
+        } catch(e) {
+            console.error('Errore salvataggio template email:', e);
+            alert('Errore durante il salvataggio: ' + e.message);
+        }
+    }
 };
 
 

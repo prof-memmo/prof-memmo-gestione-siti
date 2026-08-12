@@ -403,6 +403,9 @@
     <div class="mobile-nav-item" data-target="view-monetizzazione" onclick="switchView('view-monetizzazione')">
       <i class="fa-solid fa-euro-sign" style="color:#10b981;"></i><span>Piani</span>
     </div>
+    <div class="mobile-nav-item" data-target="view-come-funziona" onclick="switchView('view-come-funziona')">
+      <i class="fa-solid fa-circle-info" style="color:#3b82f6;"></i><span>Info</span>
+    </div>
     <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
       <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i><span>News</span>
     </div>
@@ -677,8 +680,12 @@
                     <option value="Palestra di Riflessione">Palestra</option>
                   </select>
                 </th>
-                <th style="vertical-align: top;">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Stato / Piano</div>
+                <th style="cursor:pointer;" onclick="HubApp.sortIscritti('piano')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Stato / Piano <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <select id="filter-admin-override" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
+                    <option value="all">Tutti i piani</option>
+                    <option value="override">⚙️ Solo Admin Override</option>
+                  </select>
                 </th>
                 <th style="vertical-align: top;">
                   <div style="display: flex; align-items: center; white-space: nowrap;">Scadenza</div>
@@ -879,11 +886,17 @@
         <div style="margin-bottom: 15px;">
           <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Seleziona Gioco</label>
           <select id="email-template-select" class="input-form" onchange="HubApp.loadEmailTemplateForSelected()" style="width: 100%; max-width: 400px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <option value="Fantaletteratura">Fantaletteratura</option>
-            <option value="La Rotta degli Eroi">La Rotta degli Eroi</option>
-            <option value="La Corte della Commedia">La Corte della Commedia</option>
-            <option value="Palestra di Riflessione">Palestra di Riflessione</option>
-            <option value="Ops! Operazione Storia">Ops! Operazione Storia</option>
+            <optgroup label="Email Approvazione Giochi">
+              <option value="Fantaletteratura">Fantaletteratura</option>
+              <option value="La Rotta degli Eroi">La Rotta degli Eroi</option>
+              <option value="La Corte della Commedia">La Corte della Commedia</option>
+              <option value="Palestra di Riflessione">Palestra di Riflessione</option>
+              <option value="Ops! Operazione Storia">Ops! Operazione Storia</option>
+            </optgroup>
+            <optgroup label="Email Abbonamenti">
+              <option value="abbonamento_attivo">✅ Abbonamento Attivato (da Admin)</option>
+              <option value="abbonamento_pagamento">💳 Abbonamento da Pagamento</option>
+            </optgroup>
           </select>
         </div>
         <div style="margin-bottom: 15px;">
@@ -1681,7 +1694,7 @@ Strumenti di reportistica e statistiche per docenti</textarea>
   <script src="js/dashboard/requests-ui.js?v=1"></script>
   <script src="js/dashboard/ecosistema-ui.js?v=2"></script>
   <script src="js/dashboard/games-ui.js?v=1"></script>
-  <script src="js/dashboard/users-ui.js?v=99"></script>
+  <script src="js/dashboard/users-ui.js?v=100"></script>
   <script src="js/dashboard/vetrina-ui.js"></script>
   
   <script src="js/dashboard/newsletter-ui.js?v=1"></script>
@@ -1689,7 +1702,7 @@ Strumenti di reportistica e statistiche per docenti</textarea>
   <script src="js/dashboard/notifications-ui.js?v=1"></script>
   <script src="js/dashboard/legal-admin-ui.js?v=1"></script>
   
-  <script src="js/app_v2.js?v=99"></script>
+  <script src="js/app_v2.js?v=100"></script>
   <script>
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');

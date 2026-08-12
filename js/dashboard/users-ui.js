@@ -64,12 +64,24 @@ const UsersUI = {
         const selectAllCb = document.getElementById('select-all-users');
         if (selectAllCb) selectAllCb.checked = false;
 
+        const SUPER_ADMIN_EMAIL = 'prof.memmo@gmail.com';
+        const currentYear = new Date().getFullYear();
+        const scadenzaStr = `31/12/${currentYear}`;
+
+        const planLabels = {
+            'base': 'Base',
+            'viandante': 'Viandante',
+            'docente_didattico': 'Docente Did.',
+            'docente_ecosistema': 'Ecosistema'
+        };
+
         usersArray.forEach(user => {
             const tr = document.createElement('tr');
             const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
             
             const userPlan = user.plan || 'base';
-            
+            const isAdminOverride = !!user.admin_override;
+            const isSuperAdmin = (user.email || '').toLowerCase() === SUPER_ADMIN_EMAIL;
             const isChecked = window.UsersUI.selectedUsers.has(user.id) ? 'checked' : '';
             
             let displayRole = 'Viandante';
@@ -78,6 +90,22 @@ const UsersUI = {
             else if (rLow.includes('teacher') || rLow.includes('docente') || rLow.includes('admin') || rLow === 'prof') displayRole = 'Docente';
             else displayRole = 'Viandante';
 
+            // Scadenza
+            let scadenzaCell = '';
+            if (isSuperAdmin) {
+                scadenzaCell = '<span title="Super Admin" style="color:#f59e0b; font-weight:700;">👑 Mai</span>';
+            } else if (isAdminOverride) {
+                scadenzaCell = '<span title="Piano assegnato da Admin" style="color:#6366f1; font-weight:700;">⚙️ Mai</span>';
+            } else if (userPlan !== 'base') {
+                scadenzaCell = `<span style="color:#10b981; font-size:0.85rem;">${user.abbonamento_scadenza ? user.abbonamento_scadenza.replace(/-/g, '/').split('/').reverse().join('/') : scadenzaStr}</span>`;
+            } else {
+                scadenzaCell = '<span style="color:var(--text-muted);">-</span>';
+            }
+
+            // Badge piano
+            const overrideBadge = isAdminOverride ? ' <span title="Piano assegnato da Admin" style="font-size:0.75rem; background:#ede9fe; color:#6366f1; border-radius:4px; padding:1px 5px;">⚙️ Admin</span>' : '';
+            const superBadge = isSuperAdmin ? ' <span style="font-size:0.75rem; background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px;">👑</span>' : '';
+
             tr.innerHTML = `
                 <td style="text-align: center;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
                 <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
@@ -85,20 +113,20 @@ const UsersUI = {
                 <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
                 <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
                 <td style="padding: 10px;">
-                    <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 0.85rem; outline: none; cursor: pointer; background: white;">
+                    <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value, '${(user.email||'').replace(/'/g,"\\'")  }', '${(user.nome||'').replace(/'/g,"\\'")  }')" style="padding: 4px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 0.85rem; outline: none; cursor: pointer; background: white;">
                         <option value="base" ${userPlan === 'base' ? 'selected' : ''}>Base</option>
                         <option value="viandante" ${userPlan === 'viandante' ? 'selected' : ''}>Viandante</option>
                         <option value="docente_didattico" ${userPlan === 'docente_didattico' ? 'selected' : ''}>Docente Did.</option>
                         <option value="docente_ecosistema" ${userPlan === 'docente_ecosistema' ? 'selected' : ''}>Ecosistema</option>
-                    </select>
+                    </select>${overrideBadge}${superBadge}
                 </td>
-                <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">-</td>
+                <td style="padding: 10px;">${scadenzaCell}</td>
                 <td style="padding: 10px; text-align:center;">
                     <div style="display: inline-flex; align-items: center; justify-content: center; gap: 12px;">
                         <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color: var(--primary-color); font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-envelope"></i>
                         </a>
-                        <button type="button" style="background: none; border: none; padding: 0; color: #ef4444; font-size: 1.15rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="window.UsersUI.openDeleteUserModal('${user.id}', '${user.email}', '${user.nome.replace(/'/g, "\\'")}', '${user.gioco}')" title="Elimina Utente">
+                        <button type="button" style="background: none; border: none; padding: 0; color: #ef4444; font-size: 1.15rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="window.UsersUI.openDeleteUserModal('${user.id}', '${user.email}', '${user.nome.replace(/'/g, "\\'") }', '${user.gioco}')" title="Elimina Utente">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -137,18 +165,34 @@ const UsersUI = {
         alert("La modifica massiva del piano non è più supportata dal menu a tendina.");
     },
     
-    updateUserPlan: async function(userId, newPlan) {
+    updateUserPlan: async function(userId, newPlan, userEmail, userName) {
         if (!userId) return;
+        const currentYear = new Date().getFullYear();
+        const scadenza = `${currentYear}-12-31`;
         try {
             if (window.fbDb && window.fbDb.hub) {
                 await window.fbDb.hub.collection('hub_users').doc(userId).set({
                     abbonamento: newPlan,
+                    admin_override: true,
+                    abbonamento_scadenza: newPlan === 'base' ? null : scadenza,
                     lastUpdated: new Date().toISOString()
                 }, { merge: true });
                 
                 if (this.allUsers) {
                     const usr = this.allUsers.find(u => u.id === userId);
-                    if (usr) usr.plan = newPlan;
+                    if (usr) {
+                        usr.plan = newPlan;
+                        usr.admin_override = true;
+                        usr.abbonamento_scadenza = newPlan === 'base' ? null : scadenza;
+                    }
+                }
+
+                // Ricarica tabella con badge aggiornato
+                this.filterIscritti();
+
+                // Invia email di notifica all'utente
+                if (userEmail && newPlan !== 'base') {
+                    this.sendAbbonamentoEmail(userEmail, userName, newPlan);
                 }
             } else {
                 alert("Impossibile connettersi al database Hub.");
@@ -157,6 +201,38 @@ const UsersUI = {
             console.error("Errore salvataggio piano:", e);
             alert("Errore durante l'aggiornamento del piano: " + e.message);
         }
+    },
+
+    sendAbbonamentoEmail: async function(userEmail, userName, newPlan) {
+        const planNames = {
+            'viandante': 'Piano Viandante',
+            'docente_didattico': 'Docente Didattico',
+            'docente_ecosistema': 'Ecosistema Completo'
+        };
+        const planName = planNames[newPlan] || newPlan;
+
+        // Carica template da Firestore se disponibile
+        let templateText = null;
+        try {
+            if (window.fbDb && window.fbDb.hub) {
+                const doc = await window.fbDb.hub.collection('hub_settings').doc('email_templates').get();
+                if (doc.exists) {
+                    templateText = doc.data()['abbonamento_attivo'] || null;
+                }
+            }
+        } catch(e) { /* usa default */ }
+
+        if (!templateText) {
+            templateText = `Ciao [NOME],\n\nIl tuo abbonamento all'Ecosistema Prof. Memmo è attivo!\n\nPiano: [PIANO]\n\nAccedi ora: https://prof-memmo.github.io/games/\n\nA presto,\nProf. Memmo`;
+        }
+
+        const body = templateText
+            .replace(/\[NOME\]/g, userName || '')
+            .replace(/\[PIANO\]/g, planName);
+
+        const subject = encodeURIComponent('Il tuo abbonamento Prof. Memmo è attivo 🎉');
+        const bodyEncoded = encodeURIComponent(body);
+        window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(userEmail)}&su=${subject}&body=${bodyEncoded}`, '_blank');
     },
     
     openDeleteUserModal: function(userId, userEmail, userName, gamesString) {
@@ -324,13 +400,14 @@ const UsersUI = {
     filterIscritti: function() {
         const searchInput = document.getElementById('search-iscritti') ? document.getElementById('search-iscritti').value.toLowerCase() : '';
         const filterGioco = document.getElementById('filter-gioco') ? document.getElementById('filter-gioco').value : 'all';
-        // Predisposizione futuri filtri (es. Piano Abbonamento, Stato Sospensione)
+        const filterOverride = document.getElementById('filter-admin-override') ? document.getElementById('filter-admin-override').value : 'all';
 
         if (!this.allUsers) return;
 
         const filtered = this.allUsers.filter(user => {
             const matchesSearch = user.nome.toLowerCase().includes(searchInput) || (user.email && user.email.toLowerCase().includes(searchInput));
             const matchesGioco = filterGioco === 'all' || user.gioco === filterGioco;
+            const matchesOverride = filterOverride === 'all' || (filterOverride === 'override' && !!user.admin_override);
             
             let matchesRole = true;
             if (this.activeRoleFilter !== 'tutti') {
@@ -348,7 +425,7 @@ const UsersUI = {
                 }
             }
 
-            return matchesSearch && matchesGioco && matchesRole;
+            return matchesSearch && matchesGioco && matchesRole && matchesOverride;
         });
 
         this.renderIscrittiTable(filtered);
