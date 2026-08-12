@@ -63,18 +63,21 @@ const RequestsService = {
             } catch(e) { console.warn("Errore fetch richieste palestra", e); }
         }
 
-        // 5. Hub Centrale (Utenti con statusAccount == 'pending')
+        // 5. Hub Centrale (Utenti con statusAccount == 'pending' o statoAccount == 'pending')
         if (window.fbDb && window.fbDb.hub) {
             try {
-                const snapHub = await window.fbDb.hub.collection("hub_users").where("statusAccount", "==", "pending").get();
+                const snapHub = await window.fbDb.hub.collection("hub_users").get();
                 snapHub.forEach(doc => {
                     const d = doc.data();
-                    const nomeStr = d.anagrafica ? (d.anagrafica.nome + " " + (d.anagrafica.cognome || "")) : (d.nome || 'Sconosciuto');
-                    richiesteDati.push({
-                        id: doc.id, gioco: 'Hub (Identità Centrale)',
-                        nome: nomeStr.trim(), email: d.email || '', ruolo: d.role || 'Docente',
-                        dataValue: d.createdAt ? (d.createdAt.toMillis ? d.createdAt.toMillis() : new Date(d.createdAt).getTime()) : 0
-                    });
+                    const st = (d.statusAccount || d.statoAccount || '').toLowerCase();
+                    if (st === 'pending') {
+                        const nomeStr = d.anagrafica ? (d.anagrafica.nome + " " + (d.anagrafica.cognome || "")) : (d.nome || d.displayName || 'Sconosciuto');
+                        richiesteDati.push({
+                            id: doc.id, gioco: 'Hub (Identità Centrale)',
+                            nome: nomeStr.trim(), email: d.email || '', ruolo: d.role || d.ruolo || 'Docente',
+                            dataValue: d.createdAt ? (d.createdAt.toMillis ? d.createdAt.toMillis() : new Date(d.createdAt).getTime()) : 0
+                        });
+                    }
                 });
             } catch(e) { console.warn("Errore fetch richieste hub", e); }
         }
