@@ -431,14 +431,25 @@
     }
   }
 
+  // Esponi le funzioni in window per gli onclick inline
+  window.openSharedModal = openSharedModal;
+  window.closeSharedModal = closeSharedModal;
+
+  // Delega globale degli eventi click per catturare data-legal e link dinamici (compresi footer e modali)
+  document.addEventListener('click', function(e) {
+    var target = e.target.closest('[data-legal], [onclick*="openSharedModal"]');
+    if (!target) return;
+
+    var dataLegal = target.getAttribute('data-legal');
+    if (dataLegal) {
+      e.preventDefault();
+      var mapped = dataLegal === 'terms' ? 'termini' : dataLegal;
+      openSharedModal(mapped);
+    }
+  });
+
   // Auto-intercept data-legal attributes, avvia controlli al login e sincronizza il footer
   document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('[data-legal]').forEach(function (el) {
-      var type = el.getAttribute('data-legal');
-      var mapped = type === 'terms' ? 'termini' : type;
-      el.addEventListener('click', function (e) { e.preventDefault(); openSharedModal(mapped); });
-    });
-
     syncEcosystemFooterLegalData();
 
     if (typeof firebase !== 'undefined' && firebase.auth) {
