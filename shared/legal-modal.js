@@ -276,6 +276,57 @@
           }
         }
       }
+      // 2. Controllo Notifiche Personalizzate dell'Admin
+      try {
+        var notifSnap = await db.collection('hub_notifications').orderBy('createdAt', 'desc').limit(10).get();
+        if (!notifSnap.empty) {
+          var userRole = (hubSnap.exists ? (hubSnap.data().role || 'studente') : 'studente').toLowerCase();
+          var userEmail = (user.email || '').toLowerCase();
+          var currentPlatformTitle = document.title || '';
+
+          notifSnap.forEach(function(nDoc) {
+            var n = nDoc.data();
+            var nId = nDoc.id;
+
+            // Controlla se la notifica è già stata letta localmente
+            if (localStorage.getItem('pm_notif_read_' + nId)) return;
+
+            // Filtro Gruppo Destinatari
+            var matchesTarget = false;
+            if (n.targetGroup === 'all') matchesTarget = true;
+            else if (n.targetGroup === 'docenti' && (userRole.includes('docente') || userRole.includes('teacher'))) matchesTarget = true;
+            else if (n.targetGroup === 'studenti' && (userRole.includes('student') || userRole.includes('studente'))) matchesTarget = true;
+            else if (n.targetGroup === 'viandanti' && (!userRole.includes('student') && !userRole.includes('teacher') && !userRole.includes('docente'))) matchesTarget = true;
+            else if (n.targetGroup === 'single' && n.targetEmail === userEmail) matchesTarget = true;
+
+            if (!matchesTarget) return;
+
+            // Filtro Piattaforme / Giochi Destinatari
+            var matchesGame = false;
+            if (!n.targetGames || n.targetGames.includes('all')) {
+              matchesGame = true;
+            } else {
+              // Verifica se una delle piattaforme selezionate corrisponde all'URL o al Titolo della pagina
+              var pageUrl = window.location.href.toLowerCase();
+              n.targetGames.forEach(function(g) {
+                var gLow = g.toLowerCase();
+                if (pageUrl.includes(gLow) || currentPlatformTitle.toLowerCase().includes(gLow)) {
+                  matchesGame = true;
+                }
+              });
+            }
+
+            if (matchesTarget && matchesGame) {
+              setTimeout(function() {
+                alert("📣 " + n.title.toUpperCase() + "\n\n" + n.body);
+                localStorage.setItem('pm_notif_read_' + nId, 'true');
+              }, 1500);
+            }
+          });
+        }
+      } catch (errNotif) {
+        console.warn("PM Ecosystem notifications fetch error:", errNotif);
+      }
     } catch (e) {
       console.warn("PM Ecosystem check warning:", e);
     }
