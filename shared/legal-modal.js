@@ -209,12 +209,27 @@
     var title = document.getElementById('pmSharedTitle');
     var body = document.getElementById('pmSharedBody');
 
+    var dynamicPrivacy = PRIVACY_HTML;
+    var dynamicTerms = TERMINI_HTML;
+
+    try {
+      if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+        var db = firebase.app().firestore();
+        var legalSnap = await db.collection('ecosistema_settings').doc('legal').get();
+        if (legalSnap.exists) {
+          var legData = legalSnap.data();
+          if (legData.privacyText) dynamicPrivacy = legData.privacyText;
+          if (legData.termsText) dynamicTerms = legData.termsText;
+        }
+      }
+    } catch (e) { /* fallback default */ }
+
     if (type === 'privacy') {
       title.textContent = 'Privacy Policy';
-      body.innerHTML = PRIVACY_HTML;
+      body.innerHTML = dynamicPrivacy;
     } else if (type === 'termini') {
       title.textContent = 'Termini e Condizioni';
-      body.innerHTML = TERMINI_HTML;
+      body.innerHTML = dynamicTerms;
     } else if (type === 'contatti') {
       title.textContent = 'Contattaci';
       var sostieniUrl = null;
