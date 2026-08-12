@@ -47,11 +47,11 @@ const AnalyticsUI = {
         const stats = this.processData(filteredUsers);
         this.updateKPIs(stats, filteredUsers.length);
 
-        // Aggiorna anche l'importo stimato nel periodo selezionato
+        // Aggiorna il valore Incassato nel pannello superiore (filtrato per date)
         const earnings = this.calculateEarnings(this.iscrittiAggregati, dateFrom, dateTo);
-        const elGuadagni = document.getElementById('kpi-guadagni');
-        if (elGuadagni) {
-            elGuadagni.textContent = "€ " + earnings.total.toFixed(2);
+        const elIncassato = document.getElementById('analytics-incassato-display');
+        if (elIncassato) {
+            elIncassato.textContent = earnings.total.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
         }
 
         // Ridisegna grafici filtrati
@@ -146,11 +146,20 @@ const AnalyticsUI = {
         const elTop = document.getElementById('kpi-top-gioco');
         if (elTop) elTop.textContent = stats.topGiocoName;
 
-        // Guadagni Totali
+        // Aggiorna il pannello Incassato Anno Corrente (tutti gli utenti, senza filtro date)
         const earnings = this.calculateEarnings(this.iscrittiAggregati, null, null);
-        const elGuadagni = document.getElementById('kpi-guadagni');
-        if (elGuadagni) {
-            elGuadagni.textContent = "€ " + earnings.total.toFixed(2);
+        const elIncassato = document.getElementById('analytics-incassato-display');
+        if (elIncassato) {
+            elIncassato.textContent = earnings.total.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+        }
+        // Aggiorna Disponibilità Residua
+        const elMassimale = document.getElementById('analytics-massimale-display');
+        const elResiduo = document.getElementById('analytics-residuo-display');
+        if (elMassimale && elResiduo) {
+            const massimaleText = elMassimale.textContent.replace(/[^0-9.,]/g, '').replace(',', '.');
+            const massimale = parseFloat(massimaleText) || 4500;
+            const residuo = Math.max(0, massimale - earnings.total);
+            elResiduo.textContent = residuo.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
         }
     },
 
