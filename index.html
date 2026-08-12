@@ -415,6 +415,9 @@
     <div class="mobile-nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')">
       <i class="fa-solid fa-file-signature" style="color:#f43f5e;"></i><span>Modelli</span>
     </div>
+    <div class="mobile-nav-item" data-target="view-notifiche-admin" onclick="switchView('view-notifiche-admin')">
+      <i class="fa-solid fa-bell" style="color:#a855f7;"></i><span>Notifiche</span>
+    </div>
     <div class="mobile-nav-item" style="color:#ef4444;" onclick="HubApp.logout()">
       <i class="fa-solid fa-power-off"></i><span>Esci</span>
     </div>
@@ -883,6 +886,56 @@
       </div>
     </div>
 
+    <!-- View: Notifiche & Comunicazioni Ecosistema -->
+    <div id="view-notifiche-admin" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-bell"></i> Gestione Notifiche & Comunicazioni</h2>
+      </div>
+      <div class="glass-panel" style="margin-bottom: 20px; max-width: 800px;">
+        <h3 style="margin-top: 0; color: var(--accent);"><i class="fa-solid fa-paper-plane"></i> Invia Nuova Notifica</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+          Le notifiche inviate qui appariranno agli utenti al loro successivo login in qualsiasi gioco o nell'Hub Didattico.
+        </p>
+
+        <form id="form-send-notification" onsubmit="event.preventDefault(); window.NotificationsUI.sendNotification();">
+          <div style="margin-bottom: 15px;">
+            <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Destinatari</label>
+            <select id="notif-target-group" class="input-form" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);" onchange="document.getElementById('notif-email-single-container').style.display = this.value === 'single' ? 'block' : 'none';">
+              <option value="all">Tutti gli utenti (Docenti, Studenti, Viandanti)</option>
+              <option value="docenti">Solo Docenti</option>
+              <option value="studenti">Solo Studenti</option>
+              <option value="viandanti">Solo Viandanti</option>
+              <option value="single">Singolo Utente (per Email)</option>
+            </select>
+          </div>
+
+          <div id="notif-email-single-container" style="display: none; margin-bottom: 15px;">
+            <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Email Utente Specifico</label>
+            <input type="email" id="notif-single-email" class="input-form" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);" placeholder="es: docente@scuola.it">
+          </div>
+
+          <div style="margin-bottom: 15px;">
+            <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Titolo Notifica</label>
+            <input type="text" id="notif-title" class="input-form" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);" placeholder="es: Aggiornamento Piattaforma o Avviso Scadenza" required>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Messaggio della Notifica</label>
+            <textarea id="notif-body" class="input-form" style="width: 100%; height: 120px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);" placeholder="Scrivi qui il messaggio..." required></textarea>
+          </div>
+
+          <button type="submit" id="btn-send-notif" class="btn" style="background: var(--accent); color: white;"><i class="fa-solid fa-paper-plane"></i> Invia Notifica</button>
+        </form>
+      </div>
+
+      <div class="glass-panel" style="max-width: 800px;">
+        <h3 style="margin-top: 0; color: var(--text-main);"><i class="fa-solid fa-list-check"></i> Storico Notifiche Inviate</h3>
+        <div id="notifications-history-list" style="margin-top: 15px;">
+          <p style="color: var(--text-muted);">Caricamento storico notifiche...</p>
+        </div>
+      </div>
+    </div>
+
     <!-- View: Generatore AI & Social -->
     <!-- View: Generatore AI & Strumenti -->
     <div id="view-ai" class="hub-view">
@@ -1301,6 +1354,7 @@
   
   <script src="js/dashboard/newsletter-ui.js?v=1"></script>
   <script src="js/dashboard/analytics-ui.js?v=1"></script>
+  <script src="js/dashboard/notifications-ui.js?v=1"></script>
   
   <script src="js/app_v2.js?v=34"></script>
   <script>
@@ -1323,6 +1377,10 @@
       // Chiude la sidebar se siamo su mobile
       if (window.innerWidth <= 900) {
         document.getElementById('main-sidebar').classList.remove('open');
+      }
+
+      if (targetId === 'view-notifiche-admin' && window.NotificationsUI) {
+        window.NotificationsUI.init();
       }
     }
   </script>
