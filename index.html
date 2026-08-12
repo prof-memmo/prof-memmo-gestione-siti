@@ -1354,11 +1354,11 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
           <div style="flex: 2; min-width: 300px; display: flex; gap: 15px; align-items: flex-end;">
             <div style="flex: 1;">
               <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Data Inizio</label>
-              <input type="date" id="analytics-date-from" class="input-field" style="margin:0;">
+              <input type="date" id="analytics-date-from" class="input-field" style="margin:0;" onchange="AnalyticsUI.updateDateFilter()">
             </div>
             <div style="flex: 1;">
               <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Data Fine</label>
-              <input type="date" id="analytics-date-to" class="input-field" style="margin:0;">
+              <input type="date" id="analytics-date-to" class="input-field" style="margin:0;" onchange="AnalyticsUI.updateDateFilter()">
             </div>
           </div>
 

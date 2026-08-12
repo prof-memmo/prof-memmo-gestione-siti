@@ -28,6 +28,39 @@ const AnalyticsUI = {
         this.renderAndamentoChart(stats.timeline);
     },
 
+    updateDateFilter: function() {
+        if (!this.iscrittiAggregati) return;
+
+        const dateFrom = document.getElementById('analytics-date-from') ? document.getElementById('analytics-date-from').value : '';
+        const dateTo = document.getElementById('analytics-date-to') ? document.getElementById('analytics-date-to').value : '';
+
+        let startTs = dateFrom ? new Date(dateFrom).getTime() : 0;
+        let endTs = dateTo ? (new Date(dateTo).getTime() + 86400000) : Infinity;
+
+        const filteredUsers = this.iscrittiAggregati.filter(user => {
+            const t = user.dataValue || 0;
+            if (startTs && t < startTs) return false;
+            if (endTs && t > endTs) return false;
+            return true;
+        });
+
+        const stats = this.processData(filteredUsers);
+        this.updateKPIs(stats, filteredUsers.length);
+
+        // Aggiorna anche l'importo stimato nel periodo selezionato
+        const earnings = this.calculateEarnings(this.iscrittiAggregati, dateFrom, dateTo);
+        const elGuadagni = document.getElementById('kpi-guadagni');
+        if (elGuadagni) {
+            elGuadagni.textContent = "€ " + earnings.total.toFixed(2);
+        }
+
+        // Ridisegna grafici filtrati
+        this.renderRuoliChart(stats.ruoli);
+        this.renderPianiChart(stats.piani);
+        this.renderGiochiChart(stats.giochi);
+        this.renderAndamentoChart(stats.timeline);
+    },
+
     processData: function(iscritti) {
         const stats = {
             ruoli: {},
