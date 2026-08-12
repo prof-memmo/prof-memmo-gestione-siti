@@ -351,6 +351,9 @@
     <div class="nav-item" data-target="view-monetizzazione" onclick="switchView('view-monetizzazione')">
       <i class="fa-solid fa-euro-sign" style="color:#10b981;"></i> Monetizzazione e Piani
     </div>
+    <div class="nav-item" data-target="view-come-funziona" onclick="switchView('view-come-funziona')">
+      <i class="fa-solid fa-circle-info" style="color:#3b82f6;"></i> Come Funziona
+    </div>
     <div class="nav-item" data-target="view-abbonamenti" onclick="switchView('view-abbonamenti')">
       <i class="fa-solid fa-user-tag" style="color:#8b5cf6;"></i> Abbonamenti
     </div>
@@ -1496,75 +1499,6 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
         <button class="btn" style="background: var(--accent); color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 8px; cursor: pointer;" onclick="EcosistemaUI.saveMassimaleConfig()"><i class="fa-solid fa-floppy-disk"></i> Salva Massimale</button>
       </div>
 
-      <!-- Sezione: Contenuto Pagina Come Funziona -->
-      <div class="glass-panel" style="margin-bottom: 20px;">
-        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-file-pen"></i> Contenuto Pagina "Come Funziona"</h3>
-        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Modifica i testi delle due schede informative visibili quando la monetizzazione è <strong>OFF</strong>. Le modifiche vengono salvate su Firestore e applicate immediatamente al sito.</p>
-
-        <!-- Scheda 1: Funzionalità Attive -->
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; margin-bottom: 16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
-            <strong style="color:var(--text-main);"><span style="font-size:1.1rem;">🚀</span> Scheda 1: Funzionalità Attivamente Attive</strong>
-            <div class="light-switch-btn" id="btn-toggle-scheda1" onclick="EcosistemaUI.toggleSwitchBtn('scheda1')" style="transform:scale(0.85); transform-origin:right;">
-              <i class="fa-solid fa-eye"></i>
-              <div class="status-text" id="status-text-scheda1">ON</div>
-              <div class="label-text">Visibile sul sito</div>
-            </div>
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-            <div>
-              <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TITOLO SCHEDA</label>
-              <input type="text" id="scheda1-titolo" class="input-field" style="margin:0;" value="Funzionalità Attualmente Attive" placeholder="Titolo scheda">
-            </div>
-            <div style="grid-column: 1/-1;">
-              <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI PER I DOCENTI (una per riga)</label>
-              <textarea id="scheda1-docenti" class="input-field" style="margin:0; height:90px; resize:vertical; font-size:0.88rem;">Creazione ed organizzazione delle classi didattiche
-Generazione di Codici Classe per gli studenti
-Gestione fino a 4 squadre su FantaLetteratura
-Attività di riflessione e grammatica su Palestra di Riflessione</textarea>
-            </div>
-            <div style="grid-column: 1/-1;">
-              <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI PER GLI STUDENTI (una per riga)</label>
-              <textarea id="scheda1-studenti" class="input-field" style="margin:0; height:90px; resize:vertical; font-size:0.88rem;">Accesso alle classi create dal proprio docente tramite codice
-Partecipazione attiva ai giochi didattici e alle sfide
-Monitoraggio dei progressi e delle attività svolte
-Profilo Studente attivo e collegato alla scuola</textarea>
-            </div>
-            <div style="grid-column: 1/-1;">
-              <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI PER I VIANDANTI (una per riga)</label>
-              <textarea id="scheda1-viandanti" class="input-field" style="margin:0; height:75px; resize:vertical; font-size:0.88rem;">Esplorazione libera delle app e dei giochi disponibili
-Accesso alle versioni dimostrative ed alle attività aperte
-Partecipazione alla filosofia ludica dell'Ecosistema</textarea>
-            </div>
-          </div>
-        </div>
-
-        <!-- Scheda 2: In Lavorazione -->
-        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 14px; padding: 20px; margin-bottom: 16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
-            <strong style="color:var(--text-main);"><span style="font-size:1.1rem;">🛠️</span> Scheda 2: In Lavorazione / Prossimamente</strong>
-            <div class="light-switch-btn" id="btn-toggle-scheda2" onclick="EcosistemaUI.toggleSwitchBtn('scheda2')" style="transform:scale(0.85); transform-origin:right;">
-              <i class="fa-solid fa-eye"></i>
-              <div class="status-text" id="status-text-scheda2">ON</div>
-              <div class="label-text">Visibile sul sito</div>
-            </div>
-          </div>
-          <div>
-            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TITOLO SCHEDA</label>
-            <input type="text" id="scheda2-titolo" class="input-field" style="margin:0; margin-bottom:10px;" value="In Lavorazione / Prossimamente" placeholder="Titolo scheda">
-            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">INTRO TESTO</label>
-            <input type="text" id="scheda2-intro" class="input-field" style="margin:0; margin-bottom:10px;" value="L'Ecosistema Prof. Memmo è in continua evoluzione. Stiamo sviluppando nuove espansioni e funzionalità avanzate per arricchire l'esperienza in classe:" placeholder="Testo introduttivo">
-            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI IN SVILUPPO (una per riga)</label>
-            <textarea id="scheda2-voci" class="input-field" style="margin:0; height:90px; resize:vertical; font-size:0.88rem;">Tornei interscolastici estesi
-Moduli avanzati di analisi sintattica e del periodo
-Nuovi giochi di ruolo e storie interattive
-Strumenti di reportistica e statistiche per docenti</textarea>
-          </div>
-        </div>
-
-        <button class="btn" onclick="EcosistemaUI.saveComeFunziona()" style="background: var(--accent); color:white; border:none; padding:10px 20px; font-weight:bold; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-floppy-disk"></i> Salva Contenuto Pagina</button>
-      </div>
-
       <div class="glass-panel">
         <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-tags"></i> Prezzi Versioni Complete</h3>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Questi prezzi verranno mostrati nella pagina "Prezzi e accessi" quando il sistema sarà attivato.</p>
@@ -1650,6 +1584,91 @@ Strumenti di reportistica e statistiche per docenti</textarea>
         
         <button class="btn" onclick="EcosistemaUI.savePrices()"><i class="fa-solid fa-floppy-disk"></i> Salva Prezzi e Diciture</button>
       </div>
+    </div>
+
+    <!-- Vista: Come Funziona -->
+    <div id="view-come-funziona" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-circle-info"></i> Pagina "Come Funziona"</h2>
+      </div>
+
+      <!-- Toggle visibilità pagina principale -->
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-eye" style="color:#3b82f6;"></i> Visibilità Pagina</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">
+          Controlla se la pagina "Come Funziona" è raggiungibile e visibile sul sito vetrina. Indipendente dalla pagina Prezzi e Piani — entrambe possono essere attive o spente contemporaneamente.
+        </p>
+        <div class="switch-board">
+          <div class="light-switch-btn" id="btn-toggle-come-funziona" onclick="EcosistemaUI.toggleSwitchBtn('come_funziona')">
+            <i class="fa-solid fa-eye"></i>
+            <div class="status-text" id="status-text-come-funziona">ON</div>
+            <div class="label-text">Pagina "Come Funziona" visibile sul sito</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scheda 1: Funzionalità Attive -->
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <h3 style="margin:0; color:var(--text-main);"><span style="font-size:1.2rem;">🚀</span> Scheda 1 — Funzionalità Attive</h3>
+          <div class="light-switch-btn" id="btn-toggle-scheda1" onclick="EcosistemaUI.toggleSwitchBtn('scheda1')" style="transform:scale(0.85); transform-origin:right;">
+            <i class="fa-solid fa-eye"></i>
+            <div class="status-text" id="status-text-scheda1">ON</div>
+            <div class="label-text">Visibile sul sito</div>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div>
+            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TITOLO SCHEDA</label>
+            <input type="text" id="scheda1-titolo" class="input-field" style="margin:0;" value="Funzionalità Attualmente Attive" placeholder="Titolo scheda">
+          </div>
+          <div style="grid-column:1/-1;">
+            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI PER I DOCENTI (una per riga)</label>
+            <textarea id="scheda1-docenti" class="input-field" style="margin:0; height:90px; resize:vertical; font-size:0.88rem;">Creazione ed organizzazione delle classi didattiche
+Generazione di Codici Classe per gli studenti
+Gestione fino a 4 squadre su FantaLetteratura
+Attività di riflessione e grammatica su Palestra di Riflessione</textarea>
+          </div>
+          <div style="grid-column:1/-1;">
+            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI PER GLI STUDENTI (una per riga)</label>
+            <textarea id="scheda1-studenti" class="input-field" style="margin:0; height:90px; resize:vertical; font-size:0.88rem;">Accesso alle classi create dal proprio docente tramite codice
+Partecipazione attiva ai giochi didattici e alle sfide
+Monitoraggio dei progressi e delle attività svolte
+Profilo Studente attivo e collegato alla scuola</textarea>
+          </div>
+          <div style="grid-column:1/-1;">
+            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI PER I VIANDANTI (una per riga)</label>
+            <textarea id="scheda1-viandanti" class="input-field" style="margin:0; height:75px; resize:vertical; font-size:0.88rem;">Esplorazione libera delle app e dei giochi disponibili
+Accesso alle versioni dimostrative ed alle attività aperte
+Partecipazione alla filosofia ludica dell'Ecosistema</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scheda 2: In Lavorazione -->
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <h3 style="margin:0; color:var(--text-main);"><span style="font-size:1.2rem;">🛠️</span> Scheda 2 — In Lavorazione</h3>
+          <div class="light-switch-btn" id="btn-toggle-scheda2" onclick="EcosistemaUI.toggleSwitchBtn('scheda2')" style="transform:scale(0.85); transform-origin:right;">
+            <i class="fa-solid fa-eye"></i>
+            <div class="status-text" id="status-text-scheda2">ON</div>
+            <div class="label-text">Visibile sul sito</div>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TITOLO SCHEDA</label>
+          <input type="text" id="scheda2-titolo" class="input-field" style="margin:0; margin-bottom:10px;" value="In Lavorazione / Prossimamente">
+          <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">INTRO TESTO</label>
+          <input type="text" id="scheda2-intro" class="input-field" style="margin:0; margin-bottom:10px;" value="L'Ecosistema Prof. Memmo è in continua evoluzione. Stiamo sviluppando nuove espansioni e funzionalità avanzate per arricchire l'esperienza in classe:">
+          <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">VOCI IN SVILUPPO (una per riga)</label>
+          <textarea id="scheda2-voci" class="input-field" style="margin:0; height:90px; resize:vertical; font-size:0.88rem;">Tornei interscolastici estesi
+Moduli avanzati di analisi sintattica e del periodo
+Nuovi giochi di ruolo e storie interattive
+Strumenti di reportistica e statistiche per docenti</textarea>
+        </div>
+      </div>
+
+      <button class="btn" onclick="EcosistemaUI.saveComeFunziona()" style="background: var(--accent); color:white; border:none; padding:10px 20px; font-weight:bold; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-floppy-disk"></i> Salva Contenuto Pagina</button>
     </div>
 
     <!-- Fine Viste -->

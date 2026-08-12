@@ -25,6 +25,7 @@ const EcosistemaUI = {
         this.updateSwitchVisuals('sostieni', !!data.sostieni_il_progetto);
         this.updateSwitchVisuals('monetizzazione', !!data.monetizzazione);
         this.updateSwitchVisuals('esperienze', !!data.esperienze);
+        this.updateSwitchVisuals('come-funziona', data.come_funziona_visibile !== false);
 
         // Aggiornamento Campi Sostieni il Progetto
         const sostieni = data.sostieni_config || {};
@@ -127,6 +128,7 @@ const EcosistemaUI = {
             'sostieni': 'sostieni_il_progetto',
             'esperienze': 'esperienze',
             'monetizzazione': 'monetizzazione',
+            'come_funziona': 'come_funziona_visibile',
         };
         
         // scheda1 e scheda2 sono dentro come_funziona_config
