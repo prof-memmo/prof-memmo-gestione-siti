@@ -131,7 +131,7 @@ const EcosistemaUI = {
             'sostieni': 'sostieni_il_progetto',
             'esperienze': 'esperienze',
             'monetizzazione': 'monetizzazione',
-            'come_funziona': 'come_funziona_visibile',
+            'come-funziona': 'come_funziona_visibile',
         };
         
         // scheda1 e scheda2 sono dentro come_funziona_config

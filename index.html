@@ -352,7 +352,7 @@
       <i class="fa-solid fa-euro-sign" style="color:#10b981;"></i> Monetizzazione e Piani
     </div>
     <div class="nav-item" data-target="view-come-funziona" onclick="switchView('view-come-funziona')">
-      <i class="fa-solid fa-circle-info" style="color:#3b82f6;"></i> Come Funziona
+      <i class="fa-solid fa-circle-info" style="color:#3b82f6;"></i> Accedi (Vetrina)
     </div>
     <div class="nav-item" data-target="view-abbonamenti" onclick="switchView('view-abbonamenti')">
       <i class="fa-solid fa-user-tag" style="color:#8b5cf6;"></i> Abbonamenti
@@ -1589,34 +1589,27 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
     <!-- Vista: Come Funziona -->
     <div id="view-come-funziona" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-circle-info"></i> Pagina "Come Funziona"</h2>
+        <h2><i class="fa-solid fa-circle-info"></i> Pagina "Accedi" (Vetrina)</h2>
       </div>
 
       <!-- Toggle visibilità pagina principale -->
       <div class="glass-panel" style="margin-bottom: 20px;">
         <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-eye" style="color:#3b82f6;"></i> Visibilità Pagina</h3>
         <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">
-          Controlla se la pagina "Come Funziona" è raggiungibile e visibile sul sito vetrina. Indipendente dalla pagina Prezzi e Piani — entrambe possono essere attive o spente contemporaneamente.
+          Controlla se la pagina "Accedi" è raggiungibile e visibile sul sito vetrina. Indipendente dalla pagina Prezzi — entrambe possono essere attive o spente contemporaneamente.
         </p>
         <div class="switch-board">
-          <div class="light-switch-btn" id="btn-toggle-come-funziona" onclick="EcosistemaUI.toggleSwitchBtn('come_funziona')">
+          <div class="light-switch-btn" id="btn-toggle-come-funziona" onclick="EcosistemaUI.toggleSwitchBtn('come-funziona')">
             <i class="fa-solid fa-eye"></i>
             <div class="status-text" id="status-text-come-funziona">ON</div>
-            <div class="label-text">Pagina "Come Funziona" visibile sul sito</div>
+            <div class="label-text">Pagina "Accedi" visibile sul sito</div>
           </div>
         </div>
       </div>
 
-      <!-- Scheda 1: Funzionalità Attive -->
+        <!-- Scheda 1: Funzionalità Attive -->
       <div class="glass-panel" style="margin-bottom: 20px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-          <h3 style="margin:0; color:var(--text-main);"><span style="font-size:1.2rem;">🚀</span> Scheda 1 — Funzionalità Attive</h3>
-          <div class="light-switch-btn" id="btn-toggle-scheda1" onclick="EcosistemaUI.toggleSwitchBtn('scheda1')" style="transform:scale(0.85); transform-origin:right;">
-            <i class="fa-solid fa-eye"></i>
-            <div class="status-text" id="status-text-scheda1">ON</div>
-            <div class="label-text">Visibile sul sito</div>
-          </div>
-        </div>
+        <h3 style="margin:0 0 16px 0; color:var(--text-main);"><span style="font-size:1.2rem;">🚀</span> Scheda 1 — Funzionalità Attive</h3>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
           <div>
             <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TITOLO SCHEDA</label>
@@ -1645,16 +1638,9 @@ Partecipazione alla filosofia ludica dell'Ecosistema</textarea>
         </div>
       </div>
 
-      <!-- Scheda 2: In Lavorazione -->
+        <!-- Scheda 2: In Lavorazione -->
       <div class="glass-panel" style="margin-bottom: 20px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-          <h3 style="margin:0; color:var(--text-main);"><span style="font-size:1.2rem;">🛠️</span> Scheda 2 — In Lavorazione</h3>
-          <div class="light-switch-btn" id="btn-toggle-scheda2" onclick="EcosistemaUI.toggleSwitchBtn('scheda2')" style="transform:scale(0.85); transform-origin:right;">
-            <i class="fa-solid fa-eye"></i>
-            <div class="status-text" id="status-text-scheda2">ON</div>
-            <div class="label-text">Visibile sul sito</div>
-          </div>
-        </div>
+        <h3 style="margin:0 0 16px 0; color:var(--text-main);"><span style="font-size:1.2rem;">🛠️</span> Scheda 2 — In Lavorazione</h3>
         <div>
           <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">TITOLO SCHEDA</label>
           <input type="text" id="scheda2-titolo" class="input-field" style="margin:0; margin-bottom:10px;" value="In Lavorazione / Prossimamente">
@@ -1693,7 +1679,7 @@ Strumenti di reportistica e statistiche per docenti</textarea>
   <!-- UI Modules -->
   <script src="js/dashboard/messages-ui.js?v=1"></script>
   <script src="js/dashboard/requests-ui.js?v=1"></script>
-  <script src="js/dashboard/ecosistema-ui.js?v=2"></script>
+  <script src="js/dashboard/ecosistema-ui.js?v=3"></script>
   <script src="js/dashboard/games-ui.js?v=1"></script>
   <script src="js/dashboard/users-ui.js?v=100"></script>
   <script src="js/dashboard/vetrina-ui.js"></script>
@@ -1703,7 +1689,7 @@ Strumenti di reportistica e statistiche per docenti</textarea>
   <script src="js/dashboard/notifications-ui.js?v=1"></script>
   <script src="js/dashboard/legal-admin-ui.js?v=1"></script>
   
-  <script src="js/app_v2.js?v=100"></script>
+  <script src="js/app_v2.js?v=101"></script>
   <script>
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');
@@ -1731,6 +1717,10 @@ Strumenti di reportistica e statistiche per docenti</textarea>
       }
       if (targetId === 'view-legal-admin' && window.LegalAdminUI) {
         window.LegalAdminUI.init();
+      }
+      if (targetId === 'view-email-templates' && window.HubApp) {
+        // Carica subito il testo del template selezionato
+        window.HubApp.loadEmailTemplateForSelected();
       }
     }
   </script>
