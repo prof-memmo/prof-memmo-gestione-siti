@@ -202,7 +202,9 @@ const HubApp = {
     _defaultTemplates: {
         'abbonamento_attivo': `Oggetto: Il tuo abbonamento Prof. Memmo è attivo 🎉\n\nCiao [NOME],\n\nil tuo abbonamento all'Ecosistema Prof. Memmo è stato attivato.\n\nPiano attivo: [PIANO]\n\nEcco cosa puoi fare:\n[DESCRIZIONE]\n\nAccedi subito alla piattaforma:\nhttps://prof-memmo.github.io/games/\n\nA presto,\nProf. Memmo`,
 
-        'abbonamento_pagamento': `Oggetto: Grazie per il tuo abbonamento a Prof. Memmo! 🎉\n\nCiao [NOME],\n\nAbbiamo ricevuto il tuo ordine.\n\n--- RIEPILOGO ORDINE ---\nOrdine #[ORDINE_ID] ([DATA])\n\nPiano: [PIANO]\nPrezzo: [PREZZO]\nMetodo di pagamento: [METODO]\n\n--- COSA PUOI FARE ---\n[DESCRIZIONE]\n\nAccedi subito:\nhttps://prof-memmo.github.io/games/\n\nSe non ricordi la password, usa "Password dimenticata" nella schermata di login.\n\nGrazie per aver scelto Prof. Memmo!\nA presto,\nProf. Memmo`
+        'abbonamento_pagamento': `Oggetto: Grazie per il tuo abbonamento a Prof. Memmo! 🎉\n\nCiao [NOME],\n\nAbbiamo ricevuto il tuo ordine.\n\n--- RIEPILOGO ORDINE ---\nOrdine #[ORDINE_ID] ([DATA])\n\nPiano: [PIANO]\nPrezzo: [PREZZO]\nMetodo di pagamento: [METODO]\n\n--- COSA PUOI FARE ---\n[DESCRIZIONE]\n\nAccedi subito:\nhttps://prof-memmo.github.io/games/\n\nSe non ricordi la password, usa "Password dimenticata" nella schermata di login.\n\nGrazie per aver scelto Prof. Memmo!\nA presto,\nProf. Memmo`,
+
+        'abbonamento_in_scadenza': `Oggetto: Il tuo abbonamento Prof. Memmo sta per scadere ⏰\n\nCiao [NOME],\n\nti ricordiamo che il tuo abbonamento [PIANO] scadrà il [DATA_SCADENZA].\n\nPer continuare a usufruire di tutti i vantaggi del tuo piano, rinnova prima della scadenza.\n\nRinnova ora:\nhttps://prof-memmo.github.io/games/prezzi.html\n\nSe hai domande o hai bisogno di assistenza, rispondi a questa email.\n\nA presto,\nProf. Memmo`
     },
 
     loadEmailTemplateForSelected: async function() {
