@@ -798,6 +798,63 @@
       <div class="hub-header">
         <h2><i class="fa-solid fa-envelope"></i> Casella Postale (Tutti i Siti)</h2>
       </div>
+
+      <!-- Box: Componi / Invia Email a Contatto -->
+      <div class="glass-panel" style="margin-bottom: 25px;">
+        <h3 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-paper-plane" style="color:var(--accent);"></i> Scrivi / Rispondi a un Contatto dell'Ecosistema
+        </h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 15px;">
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:5px; text-transform:uppercase;">1. Seleziona Iscritto (o inserisci email)</label>
+            <select id="posta-select-contact" class="input-field" style="margin:0; width:100%;" onchange="window.MessagesUI.onContactSelected(this.value)">
+              <option value="">-- Seleziona un utente registrato --</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:5px; text-transform:uppercase;">Email Destinatario</label>
+            <input type="email" id="posta-dest-email" class="input-field" placeholder="destinatario@email.com" style="margin:0; width:100%;">
+          </div>
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:5px; text-transform:uppercase;">Carica Modello Email (Opzionale)</label>
+            <select id="posta-select-template" class="input-field" style="margin:0; width:100%;" onchange="window.MessagesUI.onTemplateSelected(this.value)">
+              <option value="">-- Nessun modello (testo libero) --</option>
+              <optgroup label="Approvazione Giochi">
+                <option value="Fantaletteratura">FantaLetteratura</option>
+                <option value="La Rotta degli Eroi">La Rotta degli Eroi</option>
+                <option value="La Corte della Commedia">La Corte della Commedia</option>
+                <option value="Palestra di Riflessione">Palestra di Riflessione</option>
+                <option value="Ops! Operazione Storia">Ops! Operazione Storia</option>
+              </optgroup>
+              <optgroup label="Abbonamenti">
+                <option value="abbonamento_attivo">✅ Abbonamento Attivato</option>
+                <option value="abbonamento_pagamento">💳 Conferma Pagamento</option>
+                <option value="abbonamento_in_scadenza">⏰ Abbonamento in Scadenza</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:5px; text-transform:uppercase;">Oggetto</label>
+          <input type="text" id="posta-oggetto" class="input-field" placeholder="Oggetto del messaggio..." style="margin:0; width:100%;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:5px; text-transform:uppercase;">Messaggio</label>
+          <textarea id="posta-corpo" class="input-field" style="margin:0; width:100%; height:120px; resize:vertical; font-family:inherit;" placeholder="Scrivi qui il messaggio per il contatto..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" style="background:#ea4335; color:white;" onclick="window.MessagesUI.sendViaGmail()">
+            <i class="fa-brands fa-google"></i> Apri in Gmail (Precompilato)
+          </button>
+          <button class="btn outline" style="border-color:#3b82f6; color:#2563eb;" onclick="window.MessagesUI.sendViaMailto()">
+            <i class="fa-solid fa-envelope"></i> Apri nel Client Predefinito
+          </button>
+        </div>
+      </div>
       
       <div style="display: flex; gap: 20px; flex-wrap: wrap;">
         <!-- Posta in Arrivo -->
@@ -937,13 +994,24 @@
         <form id="form-send-notification" onsubmit="event.preventDefault(); window.NotificationsUI.sendNotification();">
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
-              <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main);">1. Destinatari (Ruolo Utente)</label>
+              <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main);">1. Destinatari (Ruolo o Piano Utente)</label>
               <select id="notif-target-group" class="input-form" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);" onchange="document.getElementById('notif-email-single-container').style.display = this.value === 'single' ? 'block' : 'none';">
-                <option value="all">Tutti gli utenti (Docenti, Studenti, Viandanti)</option>
-                <option value="docenti">Solo Docenti</option>
-                <option value="studenti">Solo Studenti</option>
-                <option value="viandanti">Solo Viandanti</option>
-                <option value="single">Singolo Utente (per Email)</option>
+                <optgroup label="Per Ruolo">
+                  <option value="all">Tutti gli utenti (Docenti, Studenti, Viandanti)</option>
+                  <option value="docenti">Solo Docenti</option>
+                  <option value="studenti">Solo Studenti</option>
+                  <option value="viandanti">Solo Viandanti</option>
+                </optgroup>
+                <optgroup label="Per Piano / Abbonamento">
+                  <option value="piano_base">Solo Utenti Piano Base (Gratuito)</option>
+                  <option value="piano_viandante">Solo Abbonati Viandante</option>
+                  <option value="piano_docente_didattico">Solo Docenti Didattici</option>
+                  <option value="piano_docente_ecosistema">Solo Docenti Ecosistema Completo</option>
+                  <option value="piano_abbonati_tutti">Tutti gli Utenti con Abbonamento a Pagamento</option>
+                </optgroup>
+                <optgroup label="Destinatario Singolo">
+                  <option value="single">Singolo Utente (per Email specifica)</option>
+                </optgroup>
               </select>
 
               <div id="notif-email-single-container" style="display: none; margin-top: 15px;">
@@ -954,14 +1022,37 @@
 
             <div>
               <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main);">2. Piattaforme / Giochi Destinatari</label>
-              <div id="notif-games-checkboxes" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
-                <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
+              <div id="notif-games-checkboxes" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer;">
                   <input type="checkbox" id="notif-game-all" value="all" checked onchange="window.NotificationsUI.toggleAllGames(this.checked)">
                   <span style="color: var(--accent);">Tutte le Piattaforme dell'Ecosistema</span>
                 </label>
                 <hr style="margin: 4px 0; border: none; border-top: 1px solid #e2e8f0;">
                 <div id="notif-games-list-dynamic" style="display: flex; flex-direction: column; gap: 6px;">
-                  <!-- Popolato dinamicamente da NotificationsUI -->
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
+                    <input type="checkbox" class="notif-game-cb" value="FantaLetteratura" checked onchange="window.NotificationsUI.onGameCbChange()">
+                    <span>FantaLetteratura</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
+                    <input type="checkbox" class="notif-game-cb" value="La Rotta degli Eroi" checked onchange="window.NotificationsUI.onGameCbChange()">
+                    <span>La Rotta degli Eroi</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
+                    <input type="checkbox" class="notif-game-cb" value="La Corte della Commedia" checked onchange="window.NotificationsUI.onGameCbChange()">
+                    <span>La Corte della Commedia</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
+                    <input type="checkbox" class="notif-game-cb" value="Palestra di Riflessione" checked onchange="window.NotificationsUI.onGameCbChange()">
+                    <span>Palestra di Riflessione</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
+                    <input type="checkbox" class="notif-game-cb" value="Ops! Operazione Storia" checked onchange="window.NotificationsUI.onGameCbChange()">
+                    <span>Ops! Operazione Storia</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
+                    <input type="checkbox" class="notif-game-cb" value="Sito Vetrina & Profilo" checked onchange="window.NotificationsUI.onGameCbChange()">
+                    <span>Sito Vetrina & Profilo Utente</span>
+                  </label>
                 </div>
               </div>
             </div>
@@ -1205,49 +1296,90 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
 
       <!-- Tabella Destinatari Full-Width -->
       <div class="glass-panel" style="margin-top: 20px;">
-        <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <div>
-              <h3 style="color:var(--text-main); margin:0;">Destinatari Selezionati</h3>
-              <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;"><i class="fa-solid fa-circle-info"></i> Usa i filtri sulle colonne per cercare gli utenti. Le spunte rimarranno memorizzate.</p>
+              <h3 style="color:var(--text-main); margin:0; display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid fa-users" style="color:var(--accent);"></i> Destinatari Newsletter 
+                <span id="news-dest-badge" style="background:#e0e7ff; color:#4338ca; font-size:0.8rem; font-weight:700; padding:4px 10px; border-radius:20px;">0 selezionati</span>
+              </h3>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px; margin-bottom:0;">
+                Filtra gli iscritti dell'Ecosistema per ruolo, piano o gioco. Solo gli utenti selezionati con la spunta riceveranno l'email.
+              </p>
             </div>
-            <div style="display: flex; gap: 10px;">
-               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px;" onclick="window.HubApp.toggleAllNews(true)">Seleziona Tutti</button>
-               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:var(--text-muted); color:var(--text-muted);" onclick="window.HubApp.toggleAllNews(false)">Deseleziona Tutti</button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px;" onclick="window.NewsletterUI.toggleFiltered(true)"><i class="fa-solid fa-check-double"></i> Seleziona Visibili</button>
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:#94a3b8; color:#64748b;" onclick="window.NewsletterUI.toggleAllNews(false)"><i class="fa-solid fa-xmark"></i> Deseleziona Tutti</button>
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:#10b981; color:#059669;" onclick="window.NewsletterUI.selectByRole('docente')"><i class="fa-solid fa-chalkboard-user"></i> Solo Docenti</button>
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:#8b5cf6; color:#7c3aed;" onclick="window.NewsletterUI.selectSubscribersOnly()"><i class="fa-solid fa-credit-card"></i> Solo Abbonati</button>
             </div>
         </div>
+
+        <!-- Barra Filtri Avanzati -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 15px;">
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Cerca Utente</label>
+            <input type="text" id="search-news-iscritti" class="input-field" placeholder="Nome o email..." style="margin:0; padding: 8px 10px; font-size: 0.85rem;" onkeyup="window.NewsletterUI.filterNews()">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Filtro Ruolo</label>
+            <select id="filter-news-ruolo" class="input-field" style="margin:0; padding: 8px 10px; font-size: 0.85rem;" onchange="window.NewsletterUI.filterNews()">
+              <option value="all">Tutti i Ruoli</option>
+              <option value="docente">Docenti</option>
+              <option value="studente">Studenti</option>
+              <option value="viandante">Viandanti</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Filtro Piano / Abbonamento</label>
+            <select id="filter-news-piano" class="input-field" style="margin:0; padding: 8px 10px; font-size: 0.85rem;" onchange="window.NewsletterUI.filterNews()">
+              <option value="all">Tutti i Piani</option>
+              <option value="paid_only">⭐ Solo a Pagamento (Tutti gli Abbonati)</option>
+              <option value="base">Piano Base (Gratuito)</option>
+              <option value="viandante">Piano Viandante</option>
+              <option value="docente_didattico">Docente Didattico</option>
+              <option value="docente_ecosistema">Docente Ecosistema</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Filtro Gioco / Sito</label>
+            <select id="filter-news-gioco" class="input-field" style="margin:0; padding: 8px 10px; font-size: 0.85rem;" onchange="window.NewsletterUI.filterNews()">
+              <option value="all">Tutti i Giochi</option>
+              <option value="Fantaletteratura">FantaLetteratura</option>
+              <option value="La Rotta degli Eroi">La Rotta degli Eroi</option>
+              <option value="La Corte della Commedia">La Corte della Commedia</option>
+              <option value="Palestra di Riflessione">Palestra di Riflessione</option>
+              <option value="Ops! Operazione Storia">Ops! Operazione Storia</option>
+            </select>
+          </div>
+        </div>
         
-        <div class="table-responsive" style="overflow-x:auto; max-height: 400px; margin-top: 15px;">
+        <div class="table-responsive" style="overflow-x:auto; max-height: 450px;">
           <table class="game-table" id="newsletter-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>
               <tr>
-                <th style="width: 50px; text-align:center;">Invia</th>
-                <th style="cursor:pointer;" onclick="window.HubApp.sortNews('nome')">
-                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                  <input type="text" id="search-news-iscritti" class="input-field" placeholder="Cerca..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="window.HubApp.filterNews()">
+                <th style="width: 45px; text-align:center;">Invia</th>
+                <th style="cursor:pointer;" onclick="window.NewsletterUI.sortNews('nome')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
-                <th style="cursor:pointer; vertical-align: top;" onclick="window.HubApp.sortNews('ruolo')">
+                <th style="cursor:pointer;" onclick="window.NewsletterUI.sortNews('ruolo')">
                   <div style="display: flex; align-items: center; white-space: nowrap;">Ruolo <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
-                <th style="cursor:pointer; vertical-align: top;" onclick="window.HubApp.sortNews('data')">
+                <th>
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Piano Attivo</div>
+                </th>
+                <th style="cursor:pointer;" onclick="window.NewsletterUI.sortNews('data')">
                   <div style="display: flex; align-items: center; white-space: nowrap;">Data Iscrizione <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
-                <th style="cursor:pointer;" onclick="window.HubApp.sortNews('gioco')">
-                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                  <select id="filter-news-gioco-col" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="window.HubApp.filterNews()">
-                    <option value="all">Tutti</option>
-                    <option value="La Rotta degli Eroi">Eroi</option>
-                    <option value="La Corte della Commedia">Commedia</option>
-                    <option value="Fantaletteratura">Fanta</option>
-                    <option value="Palestra di Riflessione">Palestra</option>
-                  </select>
+                <th style="cursor:pointer;" onclick="window.NewsletterUI.sortNews('gioco')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Gioco / Sito <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
-                <th style="vertical-align: top;">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Contatta</div>
+                <th style="text-align:center;">
+                  <div style="display: flex; align-items: center; justify-content: center; white-space: nowrap;">Contatta</div>
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr><td colspan="6" style="text-align:center; padding: 20px; color:var(--text-muted);">Carica gli iscritti cliccando su "Aggiorna Dati Ora" nella Panoramica.</td></tr>
+              <tr><td colspan="7" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento iscritti in corso...</td></tr>
             </tbody>
           </table>
         </div>

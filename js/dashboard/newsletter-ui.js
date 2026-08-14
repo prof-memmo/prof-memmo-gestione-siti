@@ -11,9 +11,9 @@ const NewsletterUI = {
     },
 
     setUsers: function(usersArray) {
-        this.users = usersArray;
+        this.users = usersArray || [];
         this.initNewsUsers();
-        this.renderNewsTable(this.users);
+        this.filterNews();
     },
 
     initNewsUsers: function() {
@@ -23,13 +23,27 @@ const NewsletterUI = {
         });
     },
 
+    getPlanLabelAndBadge: function(user) {
+        const pRaw = (user.abbonamento || user.subscription || user.piano || user.plan || 'base').toLowerCase().trim();
+        if (pRaw.includes('ecosistema')) {
+            return { key: 'docente_ecosistema', label: 'Ecosistema Completo', isPaid: true, color: '#059669', bg: '#ecfdf5', icon: 'fa-crown' };
+        } else if (pRaw.includes('didattico')) {
+            return { key: 'docente_didattico', label: 'Docente Didattico', isPaid: true, color: '#2563eb', bg: '#eff6ff', icon: 'fa-book-open' };
+        } else if (pRaw.includes('viandante')) {
+            return { key: 'viandante', label: 'Piano Viandante', isPaid: true, color: '#d97706', bg: '#fffbeb', icon: 'fa-compass' };
+        } else {
+            return { key: 'base', label: 'Piano Base', isPaid: false, color: '#64748b', bg: '#f8fafc', icon: 'fa-circle-check' };
+        }
+    },
+
     renderNewsTable: function(usersArray) {
         const tbody = document.querySelector('#newsletter-iscritti-table tbody');
         if (!tbody) return;
         tbody.innerHTML = '';
         
         if (!usersArray || usersArray.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color:var(--text-muted);">Nessun utente trovato con i filtri attuali.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 25px; color:var(--text-muted);">Nessun utente trovato con i filtri selezionati.</td></tr>';
+            this.updateNewsCount();
             return;
         }
 
@@ -37,15 +51,37 @@ const NewsletterUI = {
             if (!user.email) return;
             const tr = document.createElement('tr');
             const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
+            const planInfo = this.getPlanLabelAndBadge(user);
+            
+            // Badge Ruolo
+            const rRaw = (user.ruolo || user.role || 'viandante').toLowerCase();
+            let roleBadge = `<span style="background:#f1f5f9; color:#475569; padding:3px 8px; border-radius:6px; font-size:0.8rem; font-weight:600;">Viandante</span>`;
+            if (rRaw.includes('docente') || rRaw.includes('prof')) {
+                roleBadge = `<span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:6px; font-size:0.8rem; font-weight:600;">Docente</span>`;
+            } else if (rRaw.includes('student')) {
+                roleBadge = `<span style="background:#fef3c7; color:#b45309; padding:3px 8px; border-radius:6px; font-size:0.8rem; font-weight:600;">Studente</span>`;
+            }
+
+            // Badge Piano
+            const planBadge = `<span style="background:${planInfo.bg}; color:${planInfo.color}; padding:3px 8px; border-radius:6px; font-size:0.8rem; font-weight:700; border:1px solid ${planInfo.color}30;"><i class="fa-solid ${planInfo.icon}" style="margin-right:4px;"></i>${planInfo.label}</span>`;
+
             tr.innerHTML = `
                 <td style="padding: 10px; text-align:center;">
-                    <input type="checkbox" style="cursor:pointer;" class="news-dest-checkbox" value="${user.email}" ${user.newsSelected ? 'checked' : ''} onchange="window.HubApp.toggleUserSelection('${user.email}', this.checked)">
+                    <input type="checkbox" style="cursor:pointer; width:16px; height:16px;" class="news-dest-checkbox" value="${user.email}" ${user.newsSelected ? 'checked' : ''} onchange="window.NewsletterUI.toggleUserSelection('${user.email}', this.checked)">
                 </td>
-                <td style="padding: 10px;"><strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span></td>
-                <td style="padding: 10px; text-transform:capitalize;">${user.ruolo}</td>
+                <td style="padding: 10px;">
+                    <strong style="color:var(--text-main); font-size:0.95rem;">${user.nome || ''} ${user.cognome || ''}</strong><br>
+                    <span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span>
+                </td>
+                <td style="padding: 10px;">${roleBadge}</td>
+                <td style="padding: 10px;">${planBadge}</td>
                 <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
-                <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
-                <td style="padding: 10px; text-align:center;"><a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color:var(--primary-color); font-size:1.1rem; text-decoration:none;"><i class="fa-solid fa-envelope"></i></a></td>
+                <td style="padding: 10px; font-size:0.88rem; color:${user.giocoColor || '#334155'};"><i class="fa-solid ${user.giocoIcon || 'fa-gamepad'}"></i> ${user.gioco || 'Ecosistema'}</td>
+                <td style="padding: 10px; text-align:center;">
+                    <a href="mailto:${user.email}" title="Scrivi a ${user.nome || user.email}" style="color:var(--accent); font-size:1.1rem; text-decoration:none;">
+                        <i class="fa-solid fa-envelope"></i>
+                    </a>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -83,34 +119,91 @@ const NewsletterUI = {
         this.filterNews();
     },
 
-    filterNews: function() {
-        const searchInput = document.getElementById('search-news-iscritti').value.toLowerCase();
-        const filterGioco = document.getElementById('filter-news-gioco-col').value;
+    getFilteredUsers: function() {
+        if (!this.users) return [];
+        const searchInput = (document.getElementById('search-news-iscritti') ? document.getElementById('search-news-iscritti').value : '').toLowerCase().trim();
+        const filterRuolo = document.getElementById('filter-news-ruolo') ? document.getElementById('filter-news-ruolo').value : 'all';
+        const filterPiano = document.getElementById('filter-news-piano') ? document.getElementById('filter-news-piano').value : 'all';
+        const filterGioco = document.getElementById('filter-news-gioco') ? document.getElementById('filter-news-gioco').value : 'all';
 
-        if (!this.users) return;
+        return this.users.filter(user => {
+            // Ricerca testo
+            const userFull = `${user.nome || ''} ${user.cognome || ''} ${user.email || ''}`.toLowerCase();
+            const matchesSearch = !searchInput || userFull.includes(searchInput);
 
-        const filtered = this.users.filter(user => {
-            const matchesSearch = user.nome.toLowerCase().includes(searchInput) || (user.email && user.email.toLowerCase().includes(searchInput));
-            const matchesGioco = filterGioco === 'all' || user.gioco === filterGioco;
-            return matchesSearch && matchesGioco;
+            // Filtro ruolo
+            const rRaw = (user.ruolo || user.role || 'viandante').toLowerCase();
+            let matchesRuolo = true;
+            if (filterRuolo === 'docente') matchesRuolo = rRaw.includes('docente') || rRaw.includes('prof');
+            else if (filterRuolo === 'studente') matchesRuolo = rRaw.includes('student');
+            else if (filterRuolo === 'viandante') matchesRuolo = (!rRaw.includes('docente') && !rRaw.includes('student') && !rRaw.includes('prof'));
+
+            // Filtro piano
+            const planInfo = this.getPlanLabelAndBadge(user);
+            let matchesPiano = true;
+            if (filterPiano === 'paid_only') matchesPiano = planInfo.isPaid;
+            else if (filterPiano === 'base') matchesPiano = planInfo.key === 'base';
+            else if (filterPiano === 'viandante') matchesPiano = planInfo.key === 'viandante';
+            else if (filterPiano === 'docente_didattico') matchesPiano = planInfo.key === 'docente_didattico';
+            else if (filterPiano === 'docente_ecosistema') matchesPiano = planInfo.key === 'docente_ecosistema';
+
+            // Filtro gioco
+            const matchesGioco = filterGioco === 'all' || (user.gioco && user.gioco.toLowerCase().includes(filterGioco.toLowerCase()));
+
+            return matchesSearch && matchesRuolo && matchesPiano && matchesGioco;
         });
+    },
 
+    filterNews: function() {
+        if (!this.users || this.users.length === 0) {
+            // Se users è vuoto ma window.HubApp.iscrittiAggregati è disponibile, sincronizza!
+            if (window.HubApp && window.HubApp.iscrittiAggregati && window.HubApp.iscrittiAggregati.length > 0) {
+                this.setUsers(window.HubApp.iscrittiAggregati);
+                return;
+            }
+        }
+        const filtered = this.getFilteredUsers();
+        this.renderNewsTable(filtered);
+    },
+
+    toggleFiltered: function(selectAll) {
+        const filtered = this.getFilteredUsers();
+        filtered.forEach(user => {
+            if (user.email) user.newsSelected = selectAll;
+        });
         this.renderNewsTable(filtered);
     },
 
     toggleAllNews: function(selectAll) {
         if (!this.users) return;
-        const searchInput = document.getElementById('search-news-iscritti').value.toLowerCase();
-        const filterGioco = document.getElementById('filter-news-gioco-col').value;
-
         this.users.forEach(user => {
-            if (!user.email) return;
-            const matchesSearch = user.nome.toLowerCase().includes(searchInput) || user.email.toLowerCase().includes(searchInput);
-            const matchesGioco = filterGioco === 'all' || user.gioco === filterGioco;
-            if (matchesSearch && matchesGioco) {
-                user.newsSelected = selectAll;
-            }
+            if (user.email) user.newsSelected = selectAll;
         });
+        this.filterNews();
+    },
+
+    selectByRole: function(targetRole) {
+        const elRuolo = document.getElementById('filter-news-ruolo');
+        if (elRuolo) elRuolo.value = targetRole;
+        if (this.users) {
+            this.users.forEach(u => {
+                const r = (u.ruolo || u.role || '').toLowerCase();
+                const isMatch = targetRole === 'docente' ? (r.includes('docente') || r.includes('prof')) : r.includes(targetRole);
+                u.newsSelected = isMatch;
+            });
+        }
+        this.filterNews();
+    },
+
+    selectSubscribersOnly: function() {
+        const elPiano = document.getElementById('filter-news-piano');
+        if (elPiano) elPiano.value = 'paid_only';
+        if (this.users) {
+            this.users.forEach(u => {
+                const p = this.getPlanLabelAndBadge(u);
+                u.newsSelected = p.isPaid;
+            });
+        }
         this.filterNews();
     },
     
@@ -123,9 +216,12 @@ const NewsletterUI = {
     
     updateNewsCount: function() {
         const countSpan = document.getElementById('news-dest-count');
-        if (countSpan && this.users) {
+        const badge = document.getElementById('news-dest-badge');
+        if (this.users) {
             const selected = this.users.filter(u => u.newsSelected && u.email).length;
-            countSpan.textContent = selected > 0 ? `(${selected})` : '';
+            const total = this.users.length;
+            if (countSpan) countSpan.textContent = selected > 0 ? `(${selected})` : '';
+            if (badge) badge.textContent = `${selected} selezionati su ${total}`;
         }
     },
 

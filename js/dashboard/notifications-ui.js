@@ -125,7 +125,16 @@ const NotificationsUI = {
                 snap.forEach(doc => {
                     const d = doc.data();
                     const dateStr = d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate().toLocaleString('it-IT') : new Date(d.createdAt).toLocaleString('it-IT')) : 'N/D';
-                    const targetStr = d.targetGroup === 'all' ? 'Tutti gli utenti' : d.targetGroup === 'docenti' ? 'Solo Docenti' : d.targetGroup === 'studenti' ? 'Solo Studenti' : d.targetGroup === 'viandanti' ? 'Solo Viandanti' : `Singolo (${d.targetEmail})`;
+                    let targetStr = 'Tutti gli utenti';
+                    if (d.targetGroup === 'docenti') targetStr = 'Solo Docenti';
+                    else if (d.targetGroup === 'studenti') targetStr = 'Solo Studenti';
+                    else if (d.targetGroup === 'viandanti') targetStr = 'Solo Viandanti';
+                    else if (d.targetGroup === 'piano_base') targetStr = 'Piano Base (Gratuito)';
+                    else if (d.targetGroup === 'piano_viandante') targetStr = 'Piano Viandante';
+                    else if (d.targetGroup === 'piano_docente_didattico') targetStr = 'Docente Didattico';
+                    else if (d.targetGroup === 'piano_docente_ecosistema') targetStr = 'Docente Ecosistema';
+                    else if (d.targetGroup === 'piano_abbonati_tutti') targetStr = 'Tutti gli Abbonati';
+                    else if (d.targetGroup === 'single') targetStr = `Singolo (${d.targetEmail || 'N/A'})`;
                     
                     let gamesStr = 'Tutte le Piattaforme';
                     if (d.targetGames && Array.isArray(d.targetGames) && !d.targetGames.includes('all')) {
