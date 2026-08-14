@@ -41,15 +41,26 @@
     body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Outfit', sans-serif; margin: 0; }
     
     .hub-sidebar {
-      display: none !important;
+      width: 260px;
+      background: var(--surface-color);
+      border-right: 1px solid var(--border-color);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 100;
+      display: flex !important;
+      flex-direction: column;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.03);
     }
-    .hub-sidebar .logo { text-align: center; margin-bottom: 20px; }
-    .hub-sidebar .logo img { width: 100px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
-    .hub-sidebar .logo h3 { color: var(--text-main); font-weight: 700; font-size: 1.1rem; }
+    .hub-sidebar .logo { text-align: center; padding: 20px 10px 10px 10px; }
+    .hub-sidebar .logo img { width: 90px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+    .hub-sidebar .logo h3 { color: var(--text-main); font-weight: 700; font-size: 1.1rem; margin: 8px 0 0 0; }
     
     .sidebar-section-title {
       font-size: 0.72rem; text-transform: uppercase; color: #475569;
-      font-weight: 800; letter-spacing: 0.06em; padding: 18px 20px 6px 20px;
+      font-weight: 800; letter-spacing: 0.06em; padding: 16px 20px 6px 20px;
       display: flex; align-items: center; gap: 8px;
       border-top: 1px solid rgba(226, 232, 240, 0.6);
       margin-top: 6px;
@@ -58,18 +69,18 @@
     .sidebar-section-title i { font-size: 0.8rem; opacity: 0.7; }
     
     .hub-sidebar .nav-item {
-      padding: 12px 20px; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 15px;
+      padding: 10px 20px; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 12px;
       border-left: 4px solid transparent; transition: all 0.2s; cursor: pointer;
-      font-weight: 500; font-size: 0.95rem; margin: 2px 0;
+      font-weight: 500; font-size: 0.92rem; margin: 1px 0;
     }
     .hub-sidebar .nav-item i { width: 20px; text-align: center; font-size: 1.1rem; }
     .hub-sidebar .nav-item:hover { background: #f9fafb; color: var(--text-main); }
     .hub-sidebar .nav-item.active {
-      background: #eef2ff; border-left-color: var(--accent); color: var(--accent);
+      background: #eef2ff; border-left-color: var(--accent); color: var(--accent); font-weight: 700;
     }
     
     .hub-main {
-      margin-left: 0; padding: 30px 30px 100px 30px; min-height: 100vh; box-sizing: border-box;
+      margin-left: 260px; padding: 30px 40px 60px 40px; min-height: 100vh; box-sizing: border-box;
     }
     .hub-view { display: none; }
     .hub-view.active { display: block; animation: fadeIn 0.3s ease-out; }
@@ -145,9 +156,9 @@
       display: none !important;
     }
 
-    /* Mobile Bottom Navigation (Ora globale) */
+    /* Mobile Bottom Navigation (Solo Smartphone sotto i 900px) */
     .mobile-bottom-nav {
-      display: flex;
+      display: none !important;
       position: fixed;
       bottom: 0;
       left: 0;
@@ -163,7 +174,6 @@
       box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
       gap: 8px;
       -webkit-overflow-scrolling: touch;
-      justify-content: center; /* Centrato su PC */
     }
     
     .mobile-bottom-nav::-webkit-scrollbar {
@@ -175,79 +185,39 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-width: 70px;
+      min-width: 65px;
       color: var(--text-muted);
       text-decoration: none;
       cursor: pointer;
       transition: all 0.2s;
-      padding: 5px;
+      padding: 4px;
       border-radius: 8px;
     }
     .mobile-nav-item i {
       font-size: 1.3rem;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
+    }
+    .mobile-nav-item span {
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+    .mobile-nav-item.active {
+      color: var(--accent);
+      background: #eef2ff;
     }
     
-    /* Su PC: nascondi testo e mostra all'hover (come tooltip) */
-    @media (min-width: 901px) {
-        .mobile-bottom-nav {
-            overflow: visible !important; /* Consente ai tooltip di uscire dalla barra */
-        }
-        .mobile-nav-item {
-            position: relative;
-        }
-        .mobile-nav-item span {
-            position: absolute;
-            bottom: 100%; /* Mostrato sopra l'icona */
-            left: 50%;
-            transform: translateX(-50%) translateY(10px);
-            background: var(--text-main);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            white-space: nowrap;
-            pointer-events: none; /* Evita conflitti col mouse */
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            margin-bottom: 10px;
-        }
-        /* Triangolino sotto il tooltip */
-        .mobile-nav-item span::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: var(--text-main) transparent transparent transparent;
-        }
-        .mobile-nav-item:hover span {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(0);
-        }
-    }
-    
-    /* Su Mobile: testo sempre visibile come prima */
+    /* Su Mobile: mostra bottom nav e nascondi sidebar */
     @media (max-width: 900px) {
+        .hub-sidebar {
+            display: none !important;
+        }
         .mobile-bottom-nav {
-            justify-content: flex-start; /* Scorrimento orizzontale se necessario su schermi stretti */
+            display: flex !important;
+            justify-content: flex-start;
         }
-        .mobile-nav-item span {
-            font-size: 0.65rem;
-            font-weight: 600;
-            max-height: 20px;
-            opacity: 1;
-        }
-        
         .hub-main {
-            margin-left: 0;
-            padding: 20px 15px 80px 15px;
+            margin-left: 0 !important;
+            padding: 20px 15px 90px 15px !important;
         }
         
         #calendar-grid { 
