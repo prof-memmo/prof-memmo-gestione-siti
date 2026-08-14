@@ -186,16 +186,38 @@ const RequestsUI = {
     },
 
     inviaMailApprovazione: async function(gioco, email, nome) {
-        let subject = `Approvazione Registrazione Docente - ${gioco}`;
-        let body = (window.HubEmailTemplates && window.HubEmailTemplates[gioco]) ? window.HubEmailTemplates[gioco] : `Gent.le docente,\n\nLa tua registrazione al progetto '${gioco}' è stata approvata.`;
-        
-        body = encodeURIComponent(body);
-        
+        let rawText = '';
         try {
-            await window.RequestsService.salvaPostaInviata(email, nome, gioco, subject);
+            if (window.RequestsService) {
+                const dbData = await window.RequestsService.getTemplatesFromDb();
+                if (dbData && dbData[gioco]) {
+                    rawText = dbData[gioco];
+                }
+            }
+        } catch(e) {}
+
+        if (!rawText) {
+            rawText = this._defaultTemplates[gioco] || `Oggetto: Approvazione Registrazione Docente - ${gioco}\n\nGent.le docente,\n\nLa tua registrazione al progetto '${gioco}' è stata approvata.`;
+        }
+
+        let subject = `Approvazione Registrazione Docente - ${gioco}`;
+        let body = rawText;
+        if (rawText.startsWith('Oggetto:')) {
+            const parts = rawText.split('\n\n');
+            subject = parts[0].replace('Oggetto:', '').trim();
+            body = parts.slice(1).join('\n\n');
+        }
+        if (nome) {
+            body = body.replace(/\[NOME\]/g, nome);
+        }
+
+        try {
+            if (window.RequestsService) {
+                await window.RequestsService.salvaPostaInviata(email, nome, gioco, subject);
+            }
         } catch(e) { console.warn("Errore salvataggio posta inviata:", e); }
 
-        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+        window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     }
 };
 window.RequestsUI = RequestsUI;

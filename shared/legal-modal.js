@@ -531,37 +531,41 @@
     }
   }
 
-  // Gestione Universale Menu Mobile per tutti i siti dell'Ecosistema
+  // Gestione Universale Menu Mobile per tutti i siti dell'Ecosistema (UNICO PUNTO DI VERITÀ)
+  var _lastToggleTime = 0;
   window.toggleMobileMenu = function(btn) {
+    var now = Date.now();
+    if (now - _lastToggleTime < 300) return; // Ignora chiamate duplicate entro 300ms
+    _lastToggleTime = now;
+
     var nav = document.querySelector('.nav-links');
     if (!nav) return;
-    nav.classList.toggle('active');
-    var icon = (btn && btn.querySelector) ? btn.querySelector('i') : document.querySelector('.menu-toggle i');
+    var isActive = nav.classList.toggle('active');
+    var icon = document.querySelector('.menu-toggle i');
     if (icon) {
-      if (nav.classList.contains('active')) {
-        icon.className = 'ph ph-x';
-      } else {
-        icon.className = 'ph ph-list';
-      }
+      icon.className = isActive ? 'ph ph-x' : 'ph ph-list';
     }
   };
 
   document.addEventListener('click', function(e) {
     var toggle = e.target.closest('.menu-toggle');
     if (toggle) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.toggleMobileMenu(toggle);
+      return;
+    }
+    
+    var navLink = e.target.closest('.nav-links a');
+    if (navLink) {
       var nav = document.querySelector('.nav-links');
-      if (nav) {
-        nav.classList.toggle('active');
-        var icon = toggle.querySelector('i');
-        if (icon) {
-          if (nav.classList.contains('active')) {
-            icon.className = 'ph ph-x';
-          } else {
-            icon.className = 'ph ph-list';
-          }
-        }
-      }
-    } else if (!e.target.closest('.nav-links') && !e.target.closest('.navbar')) {
+      if (nav) nav.classList.remove('active');
+      var icon = document.querySelector('.menu-toggle i');
+      if (icon) icon.className = 'ph ph-list';
+      return;
+    }
+
+    if (!e.target.closest('.navbar')) {
       var activeNav = document.querySelector('.nav-links.active');
       if (activeNav) {
         activeNav.classList.remove('active');
@@ -569,7 +573,26 @@
         if (mainIcon) mainIcon.className = 'ph ph-list';
       }
     }
-  });
+  }, true);
+
+  function syncAuthProfileLink(user) {
+    var links = document.querySelectorAll('a[href="accedi.html"], a[href="profilo.html"], #nav-accedi-link');
+    links.forEach(function(a) {
+      if (user) {
+        a.id = 'nav-accedi-link';
+        a.href = 'profilo.html';
+        a.innerHTML = '<i class="ph ph-user-circle"></i> Il mio Profilo';
+        a.style.color = '#059669';
+        a.style.fontWeight = '600';
+      } else {
+        a.id = 'nav-accedi-link';
+        a.href = 'accedi.html';
+        a.innerHTML = 'Accedi';
+        a.style.color = '';
+        a.style.fontWeight = '';
+      }
+    });
+  }
 
   function syncEcosystemMenuLinks() {
     if (typeof firebase === 'undefined' || !firebase.firestore) return;
@@ -627,6 +650,7 @@
       firebase.auth().onAuthStateChanged(function(user) {
         checkEcosystemMaintenanceMode();
         syncEcosystemMenuLinks();
+        syncAuthProfileLink(user);
         if (user) {
           checkEcosystemNotificationsAndExpiration();
         }
