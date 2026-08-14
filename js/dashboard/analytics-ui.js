@@ -7,6 +7,9 @@ const AnalyticsUI = {
     chartGiochi: null,
     chartAndamento: null,
 
+    expensesList: [],
+    expensesListenerAttached: false,
+
     render: function(iscrittiAggregati) {
         if (!iscrittiAggregati || iscrittiAggregati.length === 0) {
             console.log("Nessun dato iscritto per gli analytics.");
@@ -14,6 +17,9 @@ const AnalyticsUI = {
         }
         
         this.iscrittiAggregati = iscrittiAggregati; // Salva per l'esportazione CSV
+
+        // Inizializza listener spese (se non ancora agganciato)
+        this.initExpenses();
 
         // Imposta le date di default all'anno solare corrente (se non già impostate dall'utente)
         const elFrom = document.getElementById('analytics-date-from');
@@ -38,6 +44,17 @@ const AnalyticsUI = {
         this.renderPianiChart(stats.piani);
         this.renderGiochiChart(stats.giochi);
         this.renderAndamentoChart(stats.timeline);
+    },
+
+    initExpenses: function() {
+        if (this.expensesListenerAttached) return;
+        if (window.EcosystemService && typeof window.EcosystemService.listenToExpenses === 'function') {
+            this.expensesListenerAttached = true;
+            window.EcosystemService.listenToExpenses(items => {
+                this.expensesList = Array.isArray(items) ? items : [];
+                this.updateExpensesKPIs();
+            });
+        }
     },
 
     updateDateFilter: function() {
@@ -65,6 +82,9 @@ const AnalyticsUI = {
         if (elIncassato) {
             elIncassato.textContent = earnings.total.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
         }
+
+        // Aggiorna Spese e Guadagno con il nuovo filtro date
+        this.updateExpensesKPIs();
 
         // Ridisegna grafici filtrati
         this.renderRuoliChart(stats.ruoli);
@@ -283,13 +303,19 @@ const AnalyticsUI = {
         const dateTo = document.getElementById('analytics-date-to').value;
         
         const data = this.calculateEarnings(this.iscrittiAggregati, dateFrom, dateTo);
+        const expensesData = this.calculateExpenses(dateFrom, dateTo);
+        const incassato = data.total || 0;
+        const speseTot = expensesData.total || 0;
+        const guadagnoNetto = incassato - speseTot;
         
         let csvContent = "data:text/csv;charset=utf-8,";
         
         // Intestazione aggregata
-        csvContent += "REPORT GUADAGNI STIMATI\n";
+        csvContent += "REPORT ECONOMICO ECOSISTEMA PROF. MEMMO\n";
         csvContent += `Periodo:,${dateFrom || 'Inizio'} - ${dateTo || 'Oggi'}\n`;
-        csvContent += `Totale Incassato:,€ ${data.total.toFixed(2)}\n`;
+        csvContent += `Totale Incassato (Entrate):,€ ${incassato.toFixed(2)}\n`;
+        csvContent += `Totale Spese:,€ ${speseTot.toFixed(2)}\n`;
+        csvContent += `Guadagno Effettivo (Incasso - Spese):,€ ${guadagnoNetto.toFixed(2)}\n`;
         csvContent += "\n";
         
         // Riepilogo per piano
@@ -297,14 +323,27 @@ const AnalyticsUI = {
         const countDidattico = data.detailedList.filter(u => u.piano.includes('docente_didattico')).length;
         const countEcosistema = data.detailedList.filter(u => u.piano.includes('docente_ecosistema')).length;
         
-        csvContent += "RIEPILOGO PIANI\n";
+        csvContent += "RIEPILOGO ENTRATE PER PIANO\n";
         csvContent += `Viandante (Totale):,${countViandante},Valore: € ${(countViandante * data.prices.viandante).toFixed(2)}\n`;
         csvContent += `Docente Didattico (Totale):,${countDidattico},Valore: € ${(countDidattico * data.prices.docente_didattico).toFixed(2)}\n`;
         csvContent += `Docente Ecosistema (Totale):,${countEcosistema},Valore: € ${(countEcosistema * data.prices.docente_ecosistema).toFixed(2)}\n`;
         csvContent += "\n\n";
+
+        // Elenco Spese
+        csvContent += "ELENCO SPESE NEL PERIODO\n";
+        csvContent += "Data Inizio,Nome Spesa,Tipo,Note,Costo nel Periodo (€)\n";
+        if (expensesData.items && expensesData.items.length > 0) {
+            expensesData.items.forEach(exp => {
+                const tipoStr = exp.tipo === 'mensile' ? `Fissa Mensile (${exp.monthsCalculated} mesi)` : 'Singola';
+                csvContent += `"${exp.data || ''}","${exp.nome || ''}","${tipoStr}","${exp.note || ''}","${(exp.effectiveCost || 0).toFixed(2)}"\n`;
+            });
+        } else {
+            csvContent += "Nessuna spesa registrata nel periodo selezionato.\n";
+        }
+        csvContent += "\n\n";
         
         // Dettaglio utenti
-        csvContent += "ELENCO DETTAGLIATO UTENTI\n";
+        csvContent += "ELENCO DETTAGLIATO ISCRITTI\n";
         csvContent += "Nome,Cognome,Email,Data Iscrizione,Piano,Importo (€)\n";
         
         data.detailedList.forEach(u => {
@@ -314,7 +353,7 @@ const AnalyticsUI = {
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `report_guadagni_${dateFrom || 'all'}_${dateTo || 'all'}.csv`);
+        link.setAttribute("download", `report_economico_${dateFrom || 'all'}_${dateTo || 'all'}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -488,7 +527,199 @@ const AnalyticsUI = {
                 }
             }
         });
+    },
+
+    // --- GESTIONE SPESE & GUADAGNO ---
+    calculateExpenses: function(fromDate, toDate) {
+        if (!this.expensesList || this.expensesList.length === 0) {
+            return { total: 0, count: 0, items: [] };
+        }
+
+        let startTs = fromDate ? new Date(fromDate).getTime() : 0;
+        let endTs = toDate ? (new Date(toDate).getTime() + 86400000) : (Date.now() + 86400000);
+
+        let total = 0;
+        let countedItems = [];
+
+        this.expensesList.forEach(spesa => {
+            const amount = parseFloat(spesa.importo) || 0;
+            const spesaTs = spesa.data ? new Date(spesa.data).getTime() : 0;
+
+            if (spesa.tipo === 'mensile') {
+                const startDate = spesa.data ? new Date(spesa.data) : new Date(startTs || Date.now());
+                const effectiveStart = startTs ? new Date(Math.max(startDate.getTime(), startTs)) : startDate;
+                const effectiveEnd = new Date(endTs);
+
+                if (effectiveStart <= effectiveEnd) {
+                    let months = (effectiveEnd.getFullYear() - effectiveStart.getFullYear()) * 12 + (effectiveEnd.getMonth() - effectiveStart.getMonth()) + 1;
+                    if (months > 0) {
+                        const cost = months * amount;
+                        total += cost;
+                        countedItems.push({ ...spesa, monthsCalculated: months, effectiveCost: cost });
+                    }
+                }
+            } else {
+                if (spesaTs >= startTs && spesaTs <= endTs) {
+                    total += amount;
+                    countedItems.push({ ...spesa, monthsCalculated: 1, effectiveCost: amount });
+                }
+            }
+        });
+
+        return { total, count: countedItems.length, items: countedItems };
+    },
+
+    updateExpensesKPIs: function() {
+        const dateFrom = document.getElementById('analytics-date-from') ? document.getElementById('analytics-date-from').value : '';
+        const dateTo = document.getElementById('analytics-date-to') ? document.getElementById('analytics-date-to').value : '';
+
+        const expensesData = this.calculateExpenses(dateFrom, dateTo);
+        const earnings = this.calculateEarnings(this.iscrittiAggregati || [], dateFrom || null, dateTo || null);
+        const incassato = earnings.total || 0;
+        const spese = expensesData.total || 0;
+        const guadagno = incassato - spese;
+
+        const elSpese = document.getElementById('analytics-spese-display');
+        if (elSpese) {
+            elSpese.textContent = (spese > 0 ? '- ' : '') + spese.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+        }
+
+        const elGuadagno = document.getElementById('analytics-guadagno-display');
+        if (elGuadagno) {
+            elGuadagno.textContent = guadagno.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+            elGuadagno.style.color = (guadagno >= 0) ? '#059669' : '#dc2626';
+        }
+
+        const elCount = document.getElementById('analytics-spese-count');
+        if (elCount) {
+            elCount.textContent = this.expensesList.length;
+        }
+    },
+
+    openAddExpenseModal: function() {
+        const modal = document.getElementById('modal-add-expense');
+        if (modal) {
+            modal.style.display = 'flex';
+            const dateInput = document.getElementById('expense-date');
+            if (dateInput && !dateInput.value) {
+                dateInput.value = new Date().toISOString().split('T')[0];
+            }
+        }
+    },
+
+    closeAddExpenseModal: function() {
+        const modal = document.getElementById('modal-add-expense');
+        if (modal) modal.style.display = 'none';
+        const form = document.getElementById('form-new-expense');
+        if (form) form.reset();
+    },
+
+    saveNewExpense: async function() {
+        const name = document.getElementById('expense-name').value.trim();
+        const amount = parseFloat(document.getElementById('expense-amount').value);
+        const date = document.getElementById('expense-date').value;
+        const type = document.getElementById('expense-type').value;
+        const notes = document.getElementById('expense-notes').value.trim();
+
+        if (!name || isNaN(amount) || amount <= 0 || !date) {
+            alert("Compila tutti i campi obbligatori correttamente.");
+            return;
+        }
+
+        const newExpense = {
+            id: 'exp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            nome: name,
+            importo: amount,
+            data: date,
+            tipo: type,
+            note: notes,
+            createdAt: new Date().toISOString()
+        };
+
+        const updatedList = [newExpense, ...this.expensesList];
+        try {
+            if (window.EcosystemService && typeof window.EcosystemService.saveExpenses === 'function') {
+                await window.EcosystemService.saveExpenses(updatedList);
+            }
+            this.expensesList = updatedList;
+            this.closeAddExpenseModal();
+            this.updateExpensesKPIs();
+            alert("✅ Spesa registrata con successo!");
+        } catch (e) {
+            console.error("Errore salvataggio spesa:", e);
+            alert("Errore durante il salvataggio della spesa: " + e.message);
+        }
+    },
+
+    openExpensesListModal: function() {
+        const modal = document.getElementById('modal-expenses-list');
+        if (modal) {
+            modal.style.display = 'flex';
+            this.renderExpensesTable();
+        }
+    },
+
+    closeExpensesListModal: function() {
+        const modal = document.getElementById('modal-expenses-list');
+        if (modal) modal.style.display = 'none';
+    },
+
+    renderExpensesTable: function() {
+        const tbody = document.getElementById('expenses-table-body');
+        if (!tbody) return;
+
+        if (!this.expensesList || this.expensesList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 25px; color: var(--text-muted);">Nessuna spesa registrata. Clicca su "+ Aggiungi Nuova" per iniziare.</td></tr>';
+            return;
+        }
+
+        const escapeStr = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        let html = '';
+        this.expensesList.forEach(exp => {
+            const dataFormatted = exp.data ? new Date(exp.data).toLocaleDateString('it-IT') : '-';
+            const badgeTipo = (exp.tipo === 'mensile') 
+                ? '<span style="background: #e0e7ff; color: #4338ca; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Fissa Mensile</span>'
+                : '<span style="background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Singola</span>';
+
+            html += `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="padding: 12px 14px; font-weight: 500;">${dataFormatted}</td>
+                  <td style="padding: 12px 14px;">
+                    <div style="font-weight: 600; color: var(--text-main);">${escapeStr(exp.nome)}</div>
+                    ${exp.note ? `<div style="font-size: 0.78rem; color: var(--text-muted);">${escapeStr(exp.note)}</div>` : ''}
+                  </td>
+                  <td style="padding: 12px 14px;">${badgeTipo}</td>
+                  <td style="padding: 12px 14px; text-align: right; font-weight: 700; color: #d97706;">${(parseFloat(exp.importo) || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
+                  <td style="padding: 12px 14px; text-align: center;">
+                    <button class="btn btn-sm" style="background: #fee2e2; color: #dc2626; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer;" onclick="AnalyticsUI.deleteExpense('${exp.id}')" title="Elimina spesa">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+    },
+
+    deleteExpense: async function(id) {
+        if (!confirm("Sei sicuro di voler eliminare questa spesa?")) return;
+
+        const updatedList = this.expensesList.filter(e => e.id !== id);
+        try {
+            if (window.EcosystemService && typeof window.EcosystemService.saveExpenses === 'function') {
+                await window.EcosystemService.saveExpenses(updatedList);
+            }
+            this.expensesList = updatedList;
+            this.renderExpensesTable();
+            this.updateExpensesKPIs();
+        } catch (e) {
+            console.error("Errore cancellazione spesa:", e);
+            alert("Errore durante l'eliminazione: " + e.message);
+        }
     }
 };
 
 window.AnalyticsUI = AnalyticsUI;
+

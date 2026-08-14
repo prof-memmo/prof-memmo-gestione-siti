@@ -20,6 +20,28 @@ const EcosystemService = {
     saveEcosystemSettings: async function(data) {
         if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase non inizializzato");
         return window.fbDb.hub.collection("hub_settings").doc("ecosistema").set(data, { merge: true });
+    },
+
+    listenToExpenses: function(callback) {
+        if (!window.fbDb || !window.fbDb.hub) return;
+        return window.fbDb.hub.collection("hub_settings").doc("spese").onSnapshot(doc => {
+            if (doc.exists && doc.data() && Array.isArray(doc.data().items)) {
+                callback(doc.data().items);
+            } else {
+                callback([]);
+            }
+        }, error => {
+            console.error("Errore listenToExpenses:", error);
+            callback([]);
+        });
+    },
+
+    saveExpenses: async function(items) {
+        if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase non inizializzato");
+        return window.fbDb.hub.collection("hub_settings").doc("spese").set({
+            items: items,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
     }
 };
 
