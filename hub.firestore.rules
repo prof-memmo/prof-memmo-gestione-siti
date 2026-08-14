@@ -3,19 +3,22 @@ service cloud.firestore {
   match /databases/{database}/documents {
   
     // ==============================================================
-    // HELPER FUNCTIONS
+    // HELPER FUNCTIONS GLOBALI
     // ==============================================================
     
     // Verifica se l'utente autenticato è Amministratore (Admin)
     function isAdmin() {
-      let isEmailAdmin = request.auth != null && request.auth.token.email == 'prof.memmo@gmail.com';
-      // In futuro leggere il ruolo da hub_users, per ora evitiamo cicli infiniti
+      let isEmailAdmin = request.auth != null && request.auth.token.email.lower() == 'prof.memmo@gmail.com';
       return isEmailAdmin;
     }
     
     // Verifica se l'utente sta agendo sul proprio documento
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
+    }
+
+    function currentUserEmail() {
+      return request.auth != null && request.auth.token.email != null ? request.auth.token.email.lower() : '';
     }
     
     // Verifica che l'utente non stia tentando di auto-assegnarsi privilegi
@@ -34,7 +37,7 @@ service cloud.firestore {
       let isValidNormalUser = (data.role != 'docente' && data.statusAccount == 'active');
       
       // Assicura che non si nasca con subscription premium o adminOverrides alterati
-      let hasDefaultSub = data.subscription == 'base';
+      let hasDefaultSub = data.subscription == 'base' || data.subscription == 'studente';
       
       return isAllowedRole && (isValidTeacher || isValidNormalUser) && hasDefaultSub;
     }
@@ -43,21 +46,16 @@ service cloud.firestore {
     // PROFILI UTENTE CENTRALI (L'identità dell'Ecosistema)
     // ==============================================================
     match /hub_users/{userId} {
-      
-      // Lettura: 
-      // L'owner può leggere solo sé stesso. L'Admin può leggere tutti.
+      // Lettura: L'owner può leggere solo sé stesso. L'Admin può leggere tutti.
       allow read: if isOwner(userId) || isAdmin();
       
-      // Creazione: 
-      // L'utente loggato inizializza il suo profilo (passando la validazione)
-      allow create: if (isOwner(userId) && isValidNewUser()) || isAdmin();
+      // Creazione: L'utente loggato inizializza il suo profilo (passando la validazione)
+      allow create: if (isOwner(userId) && (isValidNewUser() || isAdmin())) || isAdmin();
       
-      // Aggiornamento: 
-      // L'admin modifica qualsiasi cosa. L'owner aggiorna solo dati non critici (es. anagrafica.nome).
+      // Aggiornamento: L'admin modifica qualsiasi cosa. L'owner aggiorna solo dati non critici.
       allow update: if isAdmin() || (isOwner(userId) && noPrivilegeEscalation());
       
-      // Eliminazione: 
-      // Operazione distruttiva riservata solo agli Amministratori.
+      // Eliminazione: Riservata agli Amministratori.
       allow delete: if isAdmin();
     }
     
@@ -65,7 +63,8 @@ service cloud.firestore {
     // STRUMENTI E IMPOSTAZIONI HUB (Esclusivi per l'Amministratore)
     // ==============================================================
     match /hub_settings/{docId} {
-      allow read, write: if isAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
     
     match /hub_newsletters/{docId} {
@@ -83,22 +82,31 @@ service cloud.firestore {
     match /hub_esperienze/{docId} {
       allow read, write: if isAdmin();
     }
-    
-    // ==============================================================
-    // REGOLE FANTALETTERATURA (Namespace fanta_*)
-    // ==============================================================
-    
-    function currentUserEmail() {
-      return request.auth.token.email.lower();
+
+    // Impostazioni Globali Ecosistema e Stato Giochi Hub
+    match /games_status/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
     
-    // Verifica l'autorizzazione centrale dell'Hub per accedere a FantaLetteratura
+    // Impostazioni Vetrina
+    match /vetrina/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // ==============================================================
+    // 1. REGOLE FANTALETTERATURA (Namespace fanta_*)
+    // ==============================================================
+    
     function isFantaAuthorized() {
       let hubProfile = get(/databases/$(database)/documents/hub_users/$(request.auth.uid));
-      return request.auth != null 
-          && hubProfile != null 
-          && hubProfile.data.statusAccount == 'active' 
-          && hubProfile.data.platforms.fantaletteratura.enabled == true;
+      return isAdmin() || (
+        request.auth != null 
+        && hubProfile != null 
+        && hubProfile.data.statusAccount == 'active' 
+        && hubProfile.data.platforms.fantaletteratura.enabled == true
+      );
     }
     
     function isAuthorizedTeacherForTeamFanta(teamId) {
@@ -109,13 +117,11 @@ service cloud.firestore {
       );
     }
     
-    // 1. Collezione: fanta_settings
     match /fanta_settings/{docId} {
       allow read: if isAdmin() || isFantaAuthorized();
       allow write: if isAdmin();
     }
 
-    // 2. Collezione: fanta_users
     match /fanta_users/{email} {
       allow read: if isAdmin() || isFantaAuthorized();
       allow create, delete: if isAdmin() || (isFantaAuthorized() && currentUserEmail() == email.lower());
@@ -129,14 +135,12 @@ service cloud.firestore {
       ));
     }
 
-    // 3. Collezione: fanta_pending_requests
     match /fanta_pending_requests/{reqId} {
       allow read: if isAdmin() || isFantaAuthorized();
       allow create: if isFantaAuthorized();
       allow update, delete: if isAdmin() || (isFantaAuthorized() && resource.data.email.lower() == currentUserEmail());
     }
 
-    // 4. Collezione: fanta_teams
     match /fanta_teams/{teamId} {
       allow read: if isAdmin() || isFantaAuthorized();
       allow create: if isFantaAuthorized() && request.resource.data.ownerEmail.lower() == currentUserEmail();
@@ -156,28 +160,24 @@ service cloud.firestore {
       ));
     }
 
-    // 5. Collezione: fanta_missions
     match /fanta_missions/{missionId} {
       allow read: if isAdmin() || isFantaAuthorized();
       allow create: if isFantaAuthorized() && request.resource.data.ownerEmail.lower() == currentUserEmail();
       allow update, delete: if isAdmin() || (isFantaAuthorized() && resource.data.ownerEmail.lower() == currentUserEmail());
     }
 
-    // 6. Collezione: fanta_tournaments
     match /fanta_tournaments/{tournamentId} {
       allow read: if isAdmin() || isFantaAuthorized();
       allow create: if isFantaAuthorized() && request.resource.data.ownerEmail.lower() == currentUserEmail();
       allow update, delete: if isAdmin() || (isFantaAuthorized() && resource.data.ownerEmail.lower() == currentUserEmail());
     }
 
-    // 7. Collezione: fanta_invites
     match /fanta_invites/{inviteId} {
       allow read: if isFantaAuthorized() && (resource.data.fromEmail.lower() == currentUserEmail() || resource.data.toEmail.lower() == currentUserEmail());
       allow create: if isFantaAuthorized() && request.resource.data.fromEmail.lower() == currentUserEmail();
       allow update, delete: if isAdmin() || (isFantaAuthorized() && (resource.data.fromEmail.lower() == currentUserEmail() || resource.data.toEmail.lower() == currentUserEmail()));
     }
     
-    // 8. Collezioni fanta_archives, fanta_minigame_logs, fanta_games_status
     match /fanta_archives/{docId} {
       allow read: if isAdmin() || isFantaAuthorized();
       allow write: if isAdmin();
@@ -192,20 +192,192 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // 9. Impostazioni Globali Ecosistema e Stato Giochi Hub
-    match /hub_settings/{docId} {
-      allow read: if true;
+    // ==============================================================
+    // 2. REGOLE LA ROTTA DEGLI EROI (Namespace eroi_*)
+    // ==============================================================
+
+    function isEroiAuthorized() {
+      let hubProfile = get(/databases/$(database)/documents/hub_users/$(request.auth.uid));
+      return isAdmin() || (
+        request.auth != null 
+        && hubProfile != null 
+        && hubProfile.data.statusAccount == 'active' 
+        && hubProfile.data.platforms.rotta_degli_eroi.enabled == true
+      );
+    }
+
+    match /eroi_users/{userId} {
+      allow read: if isAdmin() || isEroiAuthorized();
+      allow create, update: if isAdmin() || isEroiAuthorized();
+      allow delete: if isAdmin();
+    }
+
+    match /eroi_classes/{classId} {
+      allow read: if isAdmin() || isEroiAuthorized();
+      allow create: if isEroiAuthorized();
+      allow update: if isAdmin() || (isEroiAuthorized() && (
+        resource.data.teacherId == request.auth.uid ||
+        (resource.data.teacherIds != null && resource.data.teacherIds.hasAny([request.auth.uid])) ||
+        (resource.data.teacherEmail != null && resource.data.teacherEmail.lower() == currentUserEmail()) ||
+        (resource.data.collaboratori != null && resource.data.collaboratori.hasAny([currentUserEmail()]))
+      ));
+      allow delete: if isAdmin() || (isEroiAuthorized() && (
+        resource.data.teacherId == request.auth.uid ||
+        (resource.data.teacherEmail != null && resource.data.teacherEmail.lower() == currentUserEmail())
+      ));
+    }
+
+    match /eroi_pending_requests/{reqId} {
+      allow read: if isAdmin() || isEroiAuthorized();
+      allow create: if isEroiAuthorized();
+      allow update, delete: if isAdmin() || isEroiAuthorized();
+    }
+
+    match /eroi_archives/{docId} {
+      allow read: if isAdmin() || isEroiAuthorized();
       allow write: if isAdmin();
     }
-    match /games_status/{docId} {
-      allow read: if true;
+
+    match /eroi_settings/{docId} {
+      allow read: if isAdmin() || isEroiAuthorized();
       allow write: if isAdmin();
     }
-    
-    // 10. Impostazioni Vetrina
-    match /vetrina/{docId} {
-      allow read: if true;
+
+    // ==============================================================
+    // 3. REGOLE PALESTRA DI RIFLESSIONE (Namespace palestra_*)
+    // ==============================================================
+
+    function isPalestraAuthorized() {
+      let hubProfile = get(/databases/$(database)/documents/hub_users/$(request.auth.uid));
+      return isAdmin() || (
+        request.auth != null 
+        && hubProfile != null 
+        && hubProfile.data.statusAccount == 'active' 
+        && hubProfile.data.platforms.palestra_riflessione.enabled == true
+      );
+    }
+
+    match /palestra_users/{userId} {
+      allow read: if isAdmin() || isPalestraAuthorized();
+      allow create, update: if isAdmin() || isPalestraAuthorized();
+      allow delete: if isAdmin();
+    }
+
+    match /palestra_classes/{classId} {
+      allow read: if isAdmin() || isPalestraAuthorized();
+      allow create: if isPalestraAuthorized();
+      allow update: if isAdmin() || (isPalestraAuthorized() && (
+        resource.data.teacherId == request.auth.uid ||
+        (resource.data.teacherIds != null && resource.data.teacherIds.hasAny([request.auth.uid])) ||
+        (resource.data.teacherEmail != null && resource.data.teacherEmail.lower() == currentUserEmail())
+      ));
+      allow delete: if isAdmin() || (isPalestraAuthorized() && (
+        resource.data.teacherId == request.auth.uid ||
+        (resource.data.teacherEmail != null && resource.data.teacherEmail.lower() == currentUserEmail())
+      ));
+    }
+
+    match /palestra_progress/{userId} {
+      allow read: if isAdmin() || isPalestraAuthorized();
+      allow create, update: if isAdmin() || isPalestraAuthorized();
+      allow delete: if isAdmin();
+    }
+
+    match /palestra_history/{docId} {
+      allow read: if isAdmin() || isPalestraAuthorized();
       allow write: if isAdmin();
+    }
+
+    match /palestra_archives/{docId} {
+      allow read: if isAdmin() || isPalestraAuthorized();
+      allow write: if isAdmin();
+    }
+
+    match /palestra_test_assignments/{docId} {
+      allow read: if isAdmin() || isPalestraAuthorized();
+      allow create, update, delete: if isAdmin() || isPalestraAuthorized();
+    }
+
+    match /palestra_settings/{docId} {
+      allow read: if isAdmin() || isPalestraAuthorized();
+      allow write: if isAdmin();
+    }
+
+    // ==============================================================
+    // 4. REGOLE LA CORTE DELLA COMMEDIA (Namespace corte_*)
+    // ==============================================================
+
+    function isCorteAuthorized() {
+      let hubProfile = get(/databases/$(database)/documents/hub_users/$(request.auth.uid));
+      return isAdmin() || (
+        request.auth != null 
+        && hubProfile != null 
+        && hubProfile.data.statusAccount == 'active' 
+        && hubProfile.data.platforms.corte_della_commedia.enabled == true
+      );
+    }
+
+    match /corte_users/{userId} {
+      allow read: if isAdmin() || isCorteAuthorized();
+      allow create, update: if isAdmin() || (isCorteAuthorized() && request.auth.uid == userId);
+      allow delete: if isAdmin();
+    }
+
+    match /corte_classes/{classId} {
+      allow read: if isAdmin() || isCorteAuthorized();
+      allow create: if isCorteAuthorized();
+      allow update, delete: if isAdmin() || (isCorteAuthorized() && (
+        resource.data.ownerId == request.auth.uid || 
+        resource.data.teacherId == request.auth.uid ||
+        (resource.data.teacherEmail != null && resource.data.teacherEmail.lower() == currentUserEmail())
+      ));
+    }
+
+    match /corte_courts/{courtId} {
+      allow read: if isAdmin() || isCorteAuthorized();
+      allow create: if isCorteAuthorized();
+      allow update, delete: if isAdmin() || (isCorteAuthorized() && (
+        resource.data.ownerId == request.auth.uid || 
+        resource.data.teacherId == request.auth.uid ||
+        (resource.data.teacherEmail != null && resource.data.teacherEmail.lower() == currentUserEmail())
+      ));
+    }
+
+    match /corte_sentences/{sentenceId} {
+      allow read: if isAdmin() || isCorteAuthorized();
+      allow create: if isCorteAuthorized() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin() || (isCorteAuthorized() && resource.data.userId == request.auth.uid);
+    }
+
+    match /corte_xpLogs/{logId} {
+      allow read: if isAdmin() || isCorteAuthorized();
+      allow create: if isCorteAuthorized() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /corte_progress/{progressId} {
+      allow read: if isAdmin() || isCorteAuthorized();
+      allow create, update: if isAdmin() || (isCorteAuthorized() && (
+        request.resource.data.userId == request.auth.uid ||
+        request.auth.uid == progressId
+      ));
+      allow delete: if isAdmin();
+    }
+
+    match /corte_campaigns/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_cases/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_activities/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_badges/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_levels/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_questions/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_characters/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_cantos/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_missions/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_settings/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_missions_completed/{docId} {
+      allow read: if isAdmin() || isCorteAuthorized();
+      allow create: if isCorteAuthorized() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
     }
 
   }

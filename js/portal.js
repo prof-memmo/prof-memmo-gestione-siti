@@ -302,10 +302,15 @@ const PortalApp = {
         });
     },
     openPlatform: function(gameId) {
-        if (gameId === 'fantaletteratura') {
-            window.location.href = "https://prof-memmo.github.io/fantaletteratura/index.html";
-        } else if (gameId === 'palestra_riflessione') {
-            window.location.href = "https://prof-memmo.github.io/palestra-di-riflessione/index.html";
+        const urls = {
+            'fantaletteratura': 'https://prof-memmo.github.io/fantaletteratura/index.html',
+            'palestra_riflessione': 'https://prof-memmo.github.io/palestra-di-riflessione/index.html',
+            'rotta_degli_eroi': 'https://prof-memmo.github.io/la-rotta-degli-eroi/index.html',
+            'corte_della_commedia': 'https://prof-memmo.github.io/la-corte-della-commedia/index.html',
+            'ops_storia': 'https://prof-memmo.github.io/ops-storia/index.html'
+        };
+        if (urls[gameId]) {
+            window.location.href = urls[gameId];
         }
     },
 
