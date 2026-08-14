@@ -201,11 +201,21 @@ const HubApp = {
 
     // --- EMAIL TEMPLATES ---
     _defaultTemplates: {
-        'abbonamento_attivo': `Oggetto: Il tuo abbonamento Prof. Memmo è attivo 🎉\n\nCiao [NOME],\n\nil tuo abbonamento all'Ecosistema Prof. Memmo è stato attivato.\n\nPiano attivo: [PIANO]\n\nEcco cosa puoi fare:\n[DESCRIZIONE]\n\nAccedi subito alla piattaforma:\nhttps://prof-memmo.github.io/games/\n\nA presto,\nProf. Memmo`,
+        'Fantaletteratura': `Oggetto: Richiesta Approvata - Benvenuto su FantaLetteratura! 🎉\n\nGentile Docente,\n\nla tua richiesta di accesso a FantaLetteratura è stata approvata con successo!\n\nDa oggi puoi accedere alla piattaforma per gestire le tue classi didattiche, organizzare gare letterarie e monitorare l'attività degli studenti.\n\nAccedi ora con il tuo account Google:\nhttps://prof-memmo.github.io/Fantaletteratura\n\nBuon lavoro e buone sfide in classe,\nProf. Memmo`,
 
-        'abbonamento_pagamento': `Oggetto: Grazie per il tuo abbonamento a Prof. Memmo! 🎉\n\nCiao [NOME],\n\nAbbiamo ricevuto il tuo ordine.\n\n--- RIEPILOGO ORDINE ---\nOrdine #[ORDINE_ID] ([DATA])\n\nPiano: [PIANO]\nPrezzo: [PREZZO]\nMetodo di pagamento: [METODO]\n\n--- COSA PUOI FARE ---\n[DESCRIZIONE]\n\nAccedi subito:\nhttps://prof-memmo.github.io/games/\n\nSe non ricordi la password, usa "Password dimenticata" nella schermata di login.\n\nGrazie per aver scelto Prof. Memmo!\nA presto,\nProf. Memmo`,
+        'La Rotta degli Eroi': `Oggetto: Richiesta Approvata - Benvenuto su La Rotta degli Eroi! 🧭\n\nGentile Docente,\n\nla tua richiesta di accesso a La Rotta degli Eroi è stata approvata!\n\nPuoi ora condurre i tuoi studenti nei percorsi di epica e mitologia, impostare compiti autentici ed esplorare le rotte narrative.\n\nAccedi alla piattaforma:\nhttps://prof-memmo.github.io/rotta-eroi\n\nBuon viaggio didattico,\nProf. Memmo`,
 
-        'abbonamento_in_scadenza': `Oggetto: Il tuo abbonamento Prof. Memmo sta per scadere ⏰\n\nCiao [NOME],\n\nti ricordiamo che il tuo abbonamento [PIANO] scadrà il [DATA_SCADENZA].\n\nPer continuare a usufruire di tutti i vantaggi del tuo piano, rinnova prima della scadenza.\n\nRinnova ora:\nhttps://prof-memmo.github.io/games/accedi.html\n\nSe hai domande o hai bisogno di assistenza, rispondi a questa email.\n\nA presto,\nProf. Memmo`
+        'La Corte della Commedia': `Oggetto: Richiesta Approvata - Benvenuto su La Corte della Commedia! 🎭\n\nGentile Docente,\n\nla tua richiesta di accesso a La Corte della Commedia è stata approvata!\n\nEsplora il teatro, la drammaturgia e la commedia con le tue classi attraverso attività cooperative e simulazioni coinvolgenti.\n\nAccedi alla piattaforma:\nhttps://prof-memmo.github.io/corte-commedia\n\nA presto,\nProf. Memmo`,
+
+        'Palestra di Riflessione': `Oggetto: Richiesta Approvata - Benvenuto su Palestra di Riflessione! 🧠\n\nGentile Docente,\n\nla tua richiesta di accesso a Palestra di Riflessione è stata approvata con successo!\n\nPuoi iniziare a utilizzare gli esercizi modulari di grammatica, analisi sintattica e riflessione linguistica con i tuoi studenti.\n\nAccedi subito:\nhttps://prof-memmo.github.io/palestra-di-riflessione\n\nBuon allenamento didattico,\nProf. Memmo`,
+
+        'Ops! Operazione Storia': `Oggetto: Richiesta Approvata - Benvenuto su Ops! Operazione Storia! ⏳\n\nGentile Docente,\n\nla tua richiesta di accesso a Ops! Operazione Storia è stata approvata!\n\nAccedi alla piattaforma per guidare gli studenti nelle indagini storiche e nelle missioni nel tempo:\nhttps://prof-memmo.github.io/games/giochi.html\n\nBuona esplorazione,\nProf. Memmo`,
+
+        'abbonamento_attivo': `Oggetto: Il tuo abbonamento Prof. Memmo è attivo 🎉\n\nCiao [NOME],\n\nil tuo abbonamento all'Ecosistema Prof. Memmo è stato attivato con successo.\n\nPiano attivo: [PIANO]\n\nAccedi subito al tuo profilo e a tutte le piattaforme abilitate:\nhttps://prof-memmo.github.io/games/profilo.html\n\nA presto,\nProf. Memmo`,
+
+        'abbonamento_pagamento': `Oggetto: Conferma Pagamento e Attivazione Piano - Prof. Memmo 🎉\n\nCiao [NOME],\n\nabbiamo ricevuto la conferma del tuo ordine e il tuo piano è ora attivo.\n\n--- RIEPILOGO ABBONAMENTO ---\nPiano: [PIANO]\nData: [DATA]\n\nAccedi subito al tuo profilo personale:\nhttps://prof-memmo.github.io/games/profilo.html\n\nGrazie per aver scelto l'Ecosistema Didattico Prof. Memmo!\nA presto,\nProf. Memmo`,
+
+        'abbonamento_in_scadenza': `Oggetto: Il tuo abbonamento Prof. Memmo è in scadenza ⏰\n\nCiao [NOME],\n\nti ricordiamo che il tuo abbonamento [PIANO] è in scadenza al termine del periodo corrente.\n\nPer continuare a utilizzare tutte le funzionalità avanzate e i materiali didattici senza interruzioni, puoi rinnovare il tuo piano dalla pagina dedicata:\nhttps://prof-memmo.github.io/games/prezzi.html\n\nSe hai domande o desideri chiarimenti, rispondi pure a questa email.\n\nA presto,\nProf. Memmo`
     },
 
     loadEmailTemplateForSelected: async function() {
