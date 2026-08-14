@@ -571,14 +571,62 @@
     }
   });
 
+  function syncEcosystemMenuLinks() {
+    if (typeof firebase === 'undefined' || !firebase.firestore) return;
+    try {
+      var db = firebase.firestore();
+      db.collection('hub_settings').doc('ecosistema').onSnapshot(function(doc) {
+        if (!doc.exists) return;
+        var data = doc.data() || {};
+        var navUl = document.querySelector('.nav-links');
+        if (!navUl) return;
+
+        var prezziLi = document.getElementById('nav-prezzi-piani');
+        if (!prezziLi) {
+          prezziLi = document.createElement('li');
+          prezziLi.id = 'nav-prezzi-piani';
+          if (navUl.lastElementChild) {
+            navUl.insertBefore(prezziLi, navUl.lastElementChild);
+          } else {
+            navUl.appendChild(prezziLi);
+          }
+        }
+
+        if (data.monetizzazione) {
+          prezziLi.innerHTML = '<a href="prezzi.html" style="color: #8b5cf6; font-weight: bold;"><i class="ph-bold ph-star"></i> Prezzi e Piani</a>';
+        } else {
+          prezziLi.innerHTML = '<a href="prezzi.html" style="color: #2563eb; font-weight: bold;"><i class="ph-bold ph-info"></i> Come funziona</a>';
+        }
+
+        var sostieniLi = document.getElementById('nav-sostieni');
+        if (data.sostieni_il_progetto) {
+          if (!sostieniLi) {
+            sostieniLi = document.createElement('li');
+            sostieniLi.id = 'nav-sostieni';
+            sostieniLi.innerHTML = '<a href="sostieni.html" style="color: #ef4444; font-weight: bold;"><i class="ph-fill ph-heart"></i> Sostieni il Progetto</a>';
+            if (navUl.lastElementChild) {
+              navUl.insertBefore(sostieniLi, navUl.lastElementChild);
+            } else {
+              navUl.appendChild(sostieniLi);
+            }
+          }
+        } else if (sostieniLi) {
+          sostieniLi.remove();
+        }
+      });
+    } catch(e) {}
+  }
+
   // Auto-intercept data-legal attributes, avvia controlli al login e sincronizza il footer
   document.addEventListener('DOMContentLoaded', function () {
     syncEcosystemFooterLegalData();
     checkEcosystemMaintenanceMode();
+    syncEcosystemMenuLinks();
 
     if (typeof firebase !== 'undefined' && firebase.auth) {
       firebase.auth().onAuthStateChanged(function(user) {
         checkEcosystemMaintenanceMode();
+        syncEcosystemMenuLinks();
         if (user) {
           checkEcosystemNotificationsAndExpiration();
         }

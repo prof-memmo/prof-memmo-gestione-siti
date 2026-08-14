@@ -1908,11 +1908,14 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
       if (targetId === 'view-legal-admin' && window.LegalAdminUI) {
         window.LegalAdminUI.init();
       }
-      if (targetId === 'view-email-templates' && window.HubApp) {
-        window.HubApp.loadEmailTemplateForSelected();
+      if (targetId === 'view-email-templates' && window.RequestsUI) {
+        window.RequestsUI.loadEmailTemplateForSelected();
       }
       if (targetId === 'view-impostazioni' && window.ImpostazioniUI) {
         window.ImpostazioniUI.init();
+      }
+      if ((targetId === 'view-monetizzazione' || targetId === 'view-come-funziona' || targetId === 'view-sostieni') && window.EcosistemaUI) {
+        window.EcosistemaUI.renderUI();
       }
     }
   </script>
