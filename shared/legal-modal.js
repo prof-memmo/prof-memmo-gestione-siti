@@ -603,25 +603,23 @@
         var data = doc.data() || {};
         var isMonetization = !!data.monetizzazione;
 
-        // Gestione univoca di Scegli il tuo Piano (senza duplicazioni)
-        var allPrezziElements = document.querySelectorAll('li#nav-prezzi, li#nav-prezzi-piani, .nav-links a[href="prezzi.html"]');
-        if (allPrezziElements.length > 0) {
-          allPrezziElements.forEach(function(el, index) {
-            var li = el.tagName === 'LI' ? el : el.closest('li');
-            if (li) {
-              if (index === 0) {
-                li.id = 'nav-prezzi';
-                li.style.display = isMonetization ? 'list-item' : 'none';
-              } else {
-                li.remove();
-              }
-            }
+        // Gestione univoca di Scegli il tuo Piano (senza duplicazioni o cancellazioni errate)
+        var navUl = document.querySelector('.nav-links');
+        if (navUl) {
+          var listItems = Array.from(navUl.querySelectorAll('li')).filter(function(li) {
+            return li.id === 'nav-prezzi' || li.id === 'nav-prezzi-piani' || li.querySelector('a[href="prezzi.html"]');
           });
-        } else if (isMonetization) {
-          var navUl = document.querySelector('.nav-links');
-          if (navUl) {
+
+          if (listItems.length > 0) {
+            var mainLi = listItems[0];
+            mainLi.id = 'nav-prezzi';
+            mainLi.style.display = isMonetization ? 'list-item' : 'none';
+            for (var i = 1; i < listItems.length; i++) {
+              listItems[i].remove();
+            }
+          } else if (isMonetization) {
             var targetLi = navUl.querySelector('a[href="accedi.html"], a[href="profilo.html"]');
-            var parentLi = targetLi ? targetLi.parentElement : null;
+            var parentLi = targetLi ? targetLi.closest('li') : null;
             var newLi = document.createElement('li');
             newLi.id = 'nav-prezzi';
             newLi.innerHTML = '<a href="prezzi.html">Scegli il tuo Piano</a>';
