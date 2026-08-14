@@ -26,12 +26,12 @@ const UserService = {
             statusAccount: ruoloIniziale === 'docente' ? 'pending' : 'active',
             subscription: ruoloIniziale === 'studente' ? 'studente' : 'base',
             platforms: {
-                fantaletteratura: { enabled: false, permissions: [] },
-                palestra_riflessione: { enabled: false, permissions: [] },
-                rotta_degli_eroi: { enabled: false, permissions: [] },
-                corte_della_commedia: { enabled: false, permissions: [] },
-                ops_storia: { enabled: false, permissions: [] },
-                supplenze: { enabled: false, permissions: [] }
+                fantaletteratura: { enabled: true, permissions: [] },
+                palestra_riflessione: { enabled: true, permissions: [] },
+                rotta_degli_eroi: { enabled: true, permissions: [] },
+                corte_della_commedia: { enabled: true, permissions: [] },
+                ops_storia: { enabled: true, permissions: [] },
+                supplenze: { enabled: true, permissions: [] }
             },
             adminOverrides: {},
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
