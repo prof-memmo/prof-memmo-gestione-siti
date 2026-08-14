@@ -45,9 +45,14 @@
     .hub-sidebar .logo h3 { color: var(--text-main); font-weight: 700; font-size: 1.1rem; }
     
     .sidebar-section-title {
-      font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);
-      font-weight: 700; letter-spacing: 0.05em; padding: 15px 20px 5px 20px;
+      font-size: 0.72rem; text-transform: uppercase; color: #475569;
+      font-weight: 800; letter-spacing: 0.06em; padding: 18px 20px 6px 20px;
+      display: flex; align-items: center; gap: 8px;
+      border-top: 1px solid rgba(226, 232, 240, 0.6);
+      margin-top: 6px;
     }
+    .sidebar-section-title:first-of-type { border-top: none; margin-top: 0; }
+    .sidebar-section-title i { font-size: 0.8rem; opacity: 0.7; }
     
     .hub-sidebar .nav-item {
       padding: 12px 20px; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 15px;
@@ -326,62 +331,63 @@
       <h3>Hub Centrale</h3>
     </div>
     
-    <div class="sidebar-section-title">Marketing & AI</div>
-    <div class="nav-item" data-target="view-ai" onclick="switchView('view-ai')">
-      <i class="fa-solid fa-wand-magic-sparkles"></i> Generatore AI
+    <div class="sidebar-section-title"><i class="fa-solid fa-gamepad"></i> Console & Giochi</div>
+    <div class="nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
+      <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i> Panoramica Globale
     </div>
-    
-    <div class="sidebar-section-title">Console Giochi</div>
     <div class="nav-item" data-target="view-gestione-giochi" onclick="switchView('view-gestione-giochi')">
       <i class="fa-solid fa-gamepad" style="color:#10b981;"></i> Gestione Giochi & Pop-up
     </div>
     <div class="nav-item" data-target="view-vetrina" onclick="switchView('view-vetrina')">
       <i class="fa-solid fa-store" style="color:#ec4899;"></i> Sito Vetrina
     </div>
-    <div class="nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
-      <i class="fa-solid fa-chart-pie" style="color:#f59e0b;"></i> Panoramica Globale
+    <div class="nav-item" data-target="view-come-funziona" onclick="switchView('view-come-funziona')">
+      <i class="fa-solid fa-circle-info" style="color:#3b82f6;"></i> Accedi (Vetrina)
     </div>
-    <div class="sidebar-section-title">Ecosistema</div>
+
+    <div class="sidebar-section-title"><i class="fa-solid fa-chart-line"></i> Ecosistema & Piani</div>
     <div class="nav-item" data-target="view-analytics" onclick="switchView('view-analytics')">
       <i class="fa-solid fa-chart-line" style="color:#6366f1;"></i> Analytics
-    </div>
-    <div class="nav-item" data-target="view-sostieni" onclick="switchView('view-sostieni')">
-      <i class="fa-solid fa-hand-holding-dollar" style="color:#f59e0b;"></i> Sostieni il Progetto
     </div>
     <div class="nav-item" data-target="view-monetizzazione" onclick="switchView('view-monetizzazione')">
       <i class="fa-solid fa-euro-sign" style="color:#10b981;"></i> Monetizzazione e Piani
     </div>
-    <div class="nav-item" data-target="view-come-funziona" onclick="switchView('view-come-funziona')">
-      <i class="fa-solid fa-circle-info" style="color:#3b82f6;"></i> Accedi (Vetrina)
-    </div>
     <div class="nav-item" data-target="view-abbonamenti" onclick="switchView('view-abbonamenti')">
       <i class="fa-solid fa-user-tag" style="color:#8b5cf6;"></i> Abbonamenti
     </div>
-    <div class="sidebar-section-title">Comunicazioni</div>
-    <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
-      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter Manager
+    <div class="nav-item" data-target="view-sostieni" onclick="switchView('view-sostieni')">
+      <i class="fa-solid fa-hand-holding-dollar" style="color:#f59e0b;"></i> Sostieni il Progetto
     </div>
-    <div class="nav-item" data-target="view-esperienze" onclick="switchView('view-esperienze')">
-      <i class="fa-solid fa-star" style="color:#f59e0b;"></i> Esperienze Hub
-    </div>
+
+    <div class="sidebar-section-title"><i class="fa-solid fa-toolbox"></i> Strumenti & Posta</div>
     <div class="nav-item" data-target="view-posta" onclick="switchView('view-posta')">
       <i class="fa-solid fa-envelope" style="color:#64748b;"></i> Casella Postale
     </div>
     <div class="nav-item" data-target="view-richieste" onclick="switchView('view-richieste')">
       <i class="fa-solid fa-envelope-open-text" style="color:#10b981;"></i> Richieste Iscrizione
     </div>
+    <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
+      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter Manager
+    </div>
     <div class="nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')">
       <i class="fa-solid fa-file-signature" style="color:#f43f5e;"></i> Modelli Email
     </div>
-    
     <div class="nav-item" data-target="view-notifiche-admin" onclick="switchView('view-notifiche-admin')">
-      <i class="fa-solid fa-bell" style="color:#f59e0b;"></i> Notifiche
+      <i class="fa-solid fa-bell" style="color:#f59e0b;"></i> Notifiche Ecosistema
     </div>
     <div class="nav-item" data-target="view-legal-admin" onclick="switchView('view-legal-admin')">
       <i class="fa-solid fa-scale-balanced" style="color:#64748b;"></i> Aspetto Legale
     </div>
+    <div class="nav-item" data-target="view-esperienze" onclick="switchView('view-esperienze')">
+      <i class="fa-solid fa-star" style="color:#f59e0b;"></i> Esperienze Hub
+    </div>
+
+    <div class="sidebar-section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Marketing & AI</div>
+    <div class="nav-item" data-target="view-ai" onclick="switchView('view-ai')">
+      <i class="fa-solid fa-wand-magic-sparkles" style="color:#a855f7;"></i> Generatore AI & Tool
+    </div>
     
-    <div style="flex-grow: 1;"></div>
+    <div style="flex-grow: 1; min-height: 20px;"></div>
     <div class="nav-item" data-target="view-impostazioni" onclick="switchView('view-impostazioni')" style="border-top:1px solid var(--border-color); color:#6366f1;">
       <i class="fa-solid fa-gear"></i> Impostazioni Generali
     </div>
