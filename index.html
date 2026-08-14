@@ -453,27 +453,45 @@
           <div><label style="font-size: 0.9rem; font-weight: 600;">🏫 Uso:</label><input type="text" id="edit-game-uso" class="input-field" style="width: 100%;"></div>
         </div>
         
-        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
-          <strong style="color:var(--text-main); font-size: 1.05rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;"><i class="fa-solid fa-key" style="color:#6366f1;"></i> Piani Abilitati all'Accesso</strong>
+        <!-- SEZIONE 1: GIOCHI CON LIMITAZIONI INTERNE (FantaLetteratura & Palestra) -->
+        <div id="edit-game-plans-internal-rules" style="display: none; background: #f0fdf4; padding: 16px; border-radius: 10px; border: 1px solid #bbf7d0; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <i class="fa-solid fa-sliders" style="color: #16a34a; font-size: 1.1rem;"></i>
+            <strong style="color: #15803d; font-size: 1rem;">Accesso Regolato da Limitazioni Interne</strong>
+          </div>
+          <p style="margin: 0 0 12px 0; font-size: 0.85rem; color: #166534; line-height: 1.45;">
+            Questo gioco è <strong>aperto a tutti i piani</strong> dell'Ecosistema. L'accesso non è a blocco unico ma applica limitazioni progressive e funzionalità dedicate a seconda dell'abbonamento attivo:
+          </p>
+          <div id="edit-game-internal-rules-content" style="display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem;">
+            <!-- Generato dinamicamente via JS in base al gioco -->
+          </div>
+        </div>
+
+        <!-- SEZIONE 2: ALTRI GIOCHI E MATERIALI (Abilitazione per Piano) -->
+        <div id="edit-game-plans-selector" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+            <strong style="color:var(--text-main); font-size: 1rem;"><i class="fa-solid fa-key" style="color:#6366f1;"></i> Piani Abilitati all'Accesso</strong>
+            <span style="font-size: 0.75rem; color: var(--text-muted); background: #e2e8f0; padding: 2px 8px; border-radius: 10px;">Stato Attuale Piani</span>
+          </div>
           <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
-            Seleziona quali abbonamenti hanno il diritto di entrare in questo gioco. Se autorizzati, saranno poi soggetti alle restrizioni interne previste dal loro piano.
+            Seleziona quali piani di abbonamento hanno diritto di accedere a questo gioco / materiale:
           </p>
           <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 12px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
               <input type="checkbox" id="edit-game-plan-base" style="width: 18px; height: 18px;">
-              <div><strong style="color: #10b981;">Piano Base / Gratuito</strong><div style="font-size: 0.75rem; color: #64748b;">(Applicate limitazioni interne: es. max 4 squadre, blocco test)</div></div>
+              <div><strong style="color: #10b981; font-size: 0.88rem;">Piano Base / Gratuito</strong><div style="font-size: 0.75rem; color: #64748b;">(Accesso aperto a tutti gli iscritti gratuiti)</div></div>
             </label>
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 12px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
               <input type="checkbox" id="edit-game-plan-viandante" style="width: 18px; height: 18px;">
-              <div><strong style="color: #6366f1;">Piano Viandante</strong><div style="font-size: 0.75rem; color: #64748b;">(Accesso personale, nessuna funzione classe/docente)</div></div>
+              <div><strong style="color: #6366f1; font-size: 0.88rem;">Piano Viandante</strong><div style="font-size: 0.75rem; color: #64748b;">(Accesso per utenti e appassionati individuali)</div></div>
             </label>
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 12px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
               <input type="checkbox" id="edit-game-plan-docente" style="width: 18px; height: 18px;">
-              <div><strong style="color: #f59e0b;">Piano Docente Completo Didattico</strong></div>
+              <div><strong style="color: #f59e0b; font-size: 0.88rem;">Piano Docente Completo Didattico</strong></div>
             </label>
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 12px; border-radius: 6px; background: white; border: 1px solid #e2e8f0;">
               <input type="checkbox" id="edit-game-plan-ecosistema" style="width: 18px; height: 18px;">
-              <div><strong style="color: #ec4899;">Piano Docente Ecosistema Completo</strong></div>
+              <div><strong style="color: #ec4899; font-size: 0.88rem;">Piano Docente Ecosistema Completo</strong></div>
             </label>
           </div>
         </div>

@@ -97,17 +97,79 @@ const GamesUI = {
             document.getElementById('edit-game-classe').value = data.classe || defs.classe || '';
             document.getElementById('edit-game-uso').value = data.uso || defs.uso || '';
             
-            // Gestione Nuova Architettura allowedPlans
-            let allowed = data.allowedPlans || {};
-            // Fallback retrocompatibilità per vecchi dati
-            if (!data.allowedPlans && data.isFreeBaseVersion !== undefined) {
-                allowed.base = data.isFreeBaseVersion === true;
-            }
+            // Controllo se il gioco adotta limitazioni interne avanzate (Fantaletteratura / Palestra)
+            const isInternalRulesGame = (gameId === 'fantaletteratura' || gameId === 'palestra-di-riflessione');
+            const elInternalRules = document.getElementById('edit-game-plans-internal-rules');
+            const elInternalContent = document.getElementById('edit-game-internal-rules-content');
+            const elPlansSelector = document.getElementById('edit-game-plans-selector');
 
-            document.getElementById('edit-game-plan-base').checked = allowed.base === true;
-            document.getElementById('edit-game-plan-viandante').checked = allowed.viandante === true;
-            document.getElementById('edit-game-plan-docente').checked = allowed.docente_didattico === true;
-            document.getElementById('edit-game-plan-ecosistema').checked = allowed.docente_ecosistema === true;
+            if (isInternalRulesGame) {
+                if (elInternalRules) elInternalRules.style.display = 'block';
+                if (elPlansSelector) elPlansSelector.style.display = 'none';
+
+                if (elInternalContent) {
+                    if (gameId === 'fantaletteratura') {
+                        elInternalContent.innerHTML = `
+                          <div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcfce7; display: flex; align-items: flex-start; gap: 8px;">
+                            <strong style="color: #16a34a; min-width: 130px;">🟢 Piano Base:</strong>
+                            <span style="color: #334155;">Max 4 squadre, una sola classe didattica, sfide base tra autori.</span>
+                          </div>
+                          <div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcfce7; display: flex; align-items: flex-start; gap: 8px;">
+                            <strong style="color: #6366f1; min-width: 130px;">🟣 Viandante:</strong>
+                            <span style="color: #334155;">Accesso individuale per appassionati, creazione della propria fanta-squadra personale.</span>
+                          </div>
+                          <div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcfce7; display: flex; align-items: flex-start; gap: 8px;">
+                            <strong style="color: #d97706; min-width: 130px;">🟡 Docente Didattico:</strong>
+                            <span style="color: #334155;">Squadre e classi illimitate, campionati interni, codici classe privati e monitoraggio voti.</span>
+                          </div>
+                          <div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcfce7; display: flex; align-items: flex-start; gap: 8px;">
+                            <strong style="color: #db2777; min-width: 130px;">🌸 Docente Ecosistema:</strong>
+                            <span style="color: #334155;">Tutte le funzionalità didattiche complete senza alcuna limitazione + supporto prioritario.</span>
+                          </div>
+                        `;
+                    } else {
+                        // Palestra di Riflessione
+                        elInternalContent.innerHTML = `
+                          <div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcfce7; display: flex; align-items: flex-start; gap: 8px;">
+                            <strong style="color: #16a34a; min-width: 130px;">🟢 Piano Base:</strong>
+                            <span style="color: #334155;">Percorsi ed esercizi fondamentali di analisi e riflessione sulla lingua.</span>
+                          </div>
+                          <div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcfce7; display: flex; align-items: flex-start; gap: 8px;">
+                            <strong style="color: #6366f1; min-width: 130px;">🟣 Viandante:</strong>
+                            <span style="color: #334155;">Accesso personale completo a tutti gli allenamenti e sfide di riflessione.</span>
+                          </div>
+                          <div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcfce7; display: flex; align-items: flex-start; gap: 8px;">
+                            <strong style="color: #d97706; min-width: 130px;">🟡 Docente Didattico:</strong>
+                            <span style="color: #334155;">Assegnazione schede e compiti, analisi logica e del periodo, testi B1/B2 e verifiche di classe.</span>
+                          </div>
+                          <div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcfce7; display: flex; align-items: flex-start; gap: 8px;">
+                            <strong style="color: #db2777; min-width: 130px;">🌸 Docente Ecosistema:</strong>
+                            <span style="color: #334155;">Tutte le funzioni didattiche complete e anteprime dei nuovi moduli.</span>
+                          </div>
+                        `;
+                    }
+                }
+            } else {
+                // Altri giochi e materiali: mostra il selettore con lo stato attuale
+                if (elInternalRules) elInternalRules.style.display = 'none';
+                if (elPlansSelector) elPlansSelector.style.display = 'flex';
+
+                let allowed = data.allowedPlans || {};
+                // Default per retrocompatibilità o prima inizializzazione basata sui piani dell'ecosistema
+                if (!data.allowedPlans) {
+                    if (data.isFreeBaseVersion !== undefined) {
+                        allowed.base = data.isFreeBaseVersion === true;
+                    }
+                    // Di default La Rotta, Corte, Ops etc. sono inclusi in Viandante ed Ecosistema
+                    if (allowed.viandante === undefined) allowed.viandante = true;
+                    if (allowed.docente_ecosistema === undefined) allowed.docente_ecosistema = true;
+                }
+
+                document.getElementById('edit-game-plan-base').checked = allowed.base === true;
+                document.getElementById('edit-game-plan-viandante').checked = allowed.viandante === true;
+                document.getElementById('edit-game-plan-docente').checked = allowed.docente_didattico === true;
+                document.getElementById('edit-game-plan-ecosistema').checked = allowed.docente_ecosistema === true;
+            }
             
             document.getElementById('modal-edit-game').style.display = 'flex';
         }).catch(err => {
@@ -119,6 +181,26 @@ const GamesUI = {
     saveGameInfo: function() {
         if (!window.GamesService) return;
         const gameId = document.getElementById('edit-game-id').value;
+        const isInternalRulesGame = (gameId === 'fantaletteratura' || gameId === 'palestra-di-riflessione');
+
+        let allowedPlansToSave = {};
+        if (isInternalRulesGame) {
+            // Per i giochi con regole interne tutti i piani possono entrare (e vengono regolati internamente)
+            allowedPlansToSave = {
+                base: true,
+                viandante: true,
+                docente_didattico: true,
+                docente_ecosistema: true
+            };
+        } else {
+            // Per gli altri giochi salviamo la selezione decisa
+            allowedPlansToSave = {
+                base: document.getElementById('edit-game-plan-base').checked,
+                viandante: document.getElementById('edit-game-plan-viandante').checked,
+                docente_didattico: document.getElementById('edit-game-plan-docente').checked,
+                docente_ecosistema: document.getElementById('edit-game-plan-ecosistema').checked
+            };
+        }
         
         const dataToSave = {
             shortDescription: document.getElementById('edit-game-shortdesc').value,
@@ -129,13 +211,7 @@ const GamesUI = {
             obiettivi: document.getElementById('edit-game-obiettivi').value,
             classe: document.getElementById('edit-game-classe').value,
             uso: document.getElementById('edit-game-uso').value,
-            // Sostituiamo isFreeBaseVersion con allowedPlans per granularità
-            allowedPlans: {
-                base: document.getElementById('edit-game-plan-base').checked,
-                viandante: document.getElementById('edit-game-plan-viandante').checked,
-                docente_didattico: document.getElementById('edit-game-plan-docente').checked,
-                docente_ecosistema: document.getElementById('edit-game-plan-ecosistema').checked
-            }
+            allowedPlans: allowedPlansToSave
         };
         
         window.GamesService.saveGameDetails(gameId, dataToSave).then(() => {
