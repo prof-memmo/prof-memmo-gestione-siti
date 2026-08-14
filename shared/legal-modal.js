@@ -32,6 +32,49 @@
       box-sizing: border-box;
     }
     #pmSharedOverlay.pm-open { display: flex; }
+    
+    @media (max-width: 1024px) {
+      .menu-toggle {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        font-size: 1.8rem !important;
+        z-index: 10005 !important;
+        color: #1e293b !important;
+      }
+      .nav-links {
+        display: none !important;
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        background: #ffffff !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        padding: 1rem 0 !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
+        border-top: 1px solid #e2e8f0 !important;
+        border-bottom: 3px solid #2563eb !important;
+        z-index: 10000 !important;
+      }
+      .nav-links.active {
+        display: flex !important;
+      }
+      .nav-links li {
+        width: 100% !important;
+        text-align: center !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+      }
+      .nav-links a {
+        display: block !important;
+        padding: 0.9rem 1.5rem !important;
+        font-size: 1.05rem !important;
+        font-weight: 600 !important;
+        color: #1e293b !important;
+      }
+    }
     #pmSharedBox {
       background: #ffffff;
       border-radius: 20px;
