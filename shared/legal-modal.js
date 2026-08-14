@@ -604,21 +604,34 @@
         var navUl = document.querySelector('.nav-links');
         if (!navUl) return;
 
-        var prezziLi = document.getElementById('nav-prezzi-piani');
-        if (!prezziLi) {
-          prezziLi = document.createElement('li');
-          prezziLi.id = 'nav-prezzi-piani';
-          if (navUl.lastElementChild) {
-            navUl.insertBefore(prezziLi, navUl.lastElementChild);
-          } else {
-            navUl.appendChild(prezziLi);
-          }
-        }
+        var oldStaticPrezzi = document.getElementById('nav-prezzi');
+        if (oldStaticPrezzi) oldStaticPrezzi.remove();
 
+        var prezziLi = document.getElementById('nav-prezzi-piani');
         if (data.monetizzazione) {
-          prezziLi.innerHTML = '<a href="prezzi.html" style="color: #8b5cf6; font-weight: bold;"><i class="ph-bold ph-star"></i> Prezzi e Piani</a>';
-        } else {
-          prezziLi.innerHTML = '<a href="prezzi.html" style="color: #2563eb; font-weight: bold;"><i class="ph-bold ph-info"></i> Come funziona</a>';
+          if (!prezziLi) {
+            prezziLi = document.createElement('li');
+            prezziLi.id = 'nav-prezzi-piani';
+            if (navUl.lastElementChild) {
+              navUl.insertBefore(prezziLi, navUl.lastElementChild);
+            } else {
+              navUl.appendChild(prezziLi);
+            }
+          }
+          prezziLi.innerHTML = '<a href="prezzi.html" style="color: #2563eb; font-weight: bold;">Scegli il tuo Piano</a>';
+        } else if (data.come_funziona_visibile !== false) {
+          if (!prezziLi) {
+            prezziLi = document.createElement('li');
+            prezziLi.id = 'nav-prezzi-piani';
+            if (navUl.lastElementChild) {
+              navUl.insertBefore(prezziLi, navUl.lastElementChild);
+            } else {
+              navUl.appendChild(prezziLi);
+            }
+          }
+          prezziLi.innerHTML = '<a href="accedi.html">Come funziona</a>';
+        } else if (prezziLi) {
+          prezziLi.remove();
         }
 
         var sostieniLi = document.getElementById('nav-sostieni');
@@ -626,13 +639,13 @@
           if (!sostieniLi) {
             sostieniLi = document.createElement('li');
             sostieniLi.id = 'nav-sostieni';
-            sostieniLi.innerHTML = '<a href="sostieni.html" style="color: #ef4444; font-weight: bold;"><i class="ph-fill ph-heart"></i> Sostieni il Progetto</a>';
             if (navUl.lastElementChild) {
               navUl.insertBefore(sostieniLi, navUl.lastElementChild);
             } else {
               navUl.appendChild(sostieniLi);
             }
           }
+          sostieniLi.innerHTML = '<a href="sostieni.html" style="color: #ef4444; font-weight: bold;"><i class="ph-fill ph-heart"></i> Sostieni il Progetto</a>';
         } else if (sostieniLi) {
           sostieniLi.remove();
         }
