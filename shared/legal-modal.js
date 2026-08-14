@@ -448,12 +448,54 @@
     }
   });
 
+  // Controllo Modalità Manutenzione Globale
+  async function checkEcosystemMaintenanceMode() {
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
+    try {
+      var db = firebase.app().firestore();
+      var snap = await db.collection('hub_settings').doc('impostazioni').get();
+      if (!snap.exists) return;
+      var data = snap.data();
+      if (data && data.manutenzione) {
+        var user = firebase.auth && firebase.auth().currentUser;
+        if (user && user.email && user.email.toLowerCase() === 'prof.memmo@gmail.com') {
+          console.log("[Ecosystem] Admin bypass manutenzione");
+          return;
+        }
+
+        var overlayId = 'pmMaintenanceOverlay';
+        var existing = document.getElementById(overlayId);
+        if (!existing) {
+          var mOverlay = document.createElement('div');
+          mOverlay.id = overlayId;
+          mOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:9999999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;font-family:sans-serif;';
+          
+          var msg = (data.manutenzione_testo || "🔧 Sito temporaneamente in manutenzione.\n\nStiamo migliorando l'ecosistema. Torna tra poco!").replace(/\n/g, '<br>');
+          
+          mOverlay.innerHTML = '<div style="background:#ffffff;border-radius:24px;max-width:540px;width:100%;padding:40px 30px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.4);animation:pmFadeIn 0.3s ease;">' +
+            '<div style="font-size:3.5rem;margin-bottom:15px;">🔧</div>' +
+            '<h2 style="font-size:1.6rem;color:#0f172a;margin:0 0 15px;font-weight:800;">Lavori in Corso</h2>' +
+            '<p style="font-size:1.05rem;line-height:1.6;color:#475569;margin:0 0 25px;">' + msg + '</p>' +
+            '<div style="font-size:0.85rem;color:#94a3b8;font-weight:600;">Ecosistema Didattico Prof. Memmo</div>' +
+          '</div>';
+          
+          document.body.appendChild(mOverlay);
+          document.body.style.overflow = 'hidden';
+        }
+      }
+    } catch(e) {
+      console.warn("[Ecosystem] Errore verifica manutenzione:", e);
+    }
+  }
+
   // Auto-intercept data-legal attributes, avvia controlli al login e sincronizza il footer
   document.addEventListener('DOMContentLoaded', function () {
     syncEcosystemFooterLegalData();
+    checkEcosystemMaintenanceMode();
 
     if (typeof firebase !== 'undefined' && firebase.auth) {
       firebase.auth().onAuthStateChanged(function(user) {
+        checkEcosystemMaintenanceMode();
         if (user) {
           checkEcosystemNotificationsAndExpiration();
         }

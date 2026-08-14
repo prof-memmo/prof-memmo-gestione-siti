@@ -374,7 +374,17 @@
       <i class="fa-solid fa-file-signature" style="color:#f43f5e;"></i> Modelli Email
     </div>
     
+    <div class="nav-item" data-target="view-notifiche-admin" onclick="switchView('view-notifiche-admin')">
+      <i class="fa-solid fa-bell" style="color:#f59e0b;"></i> Notifiche
+    </div>
+    <div class="nav-item" data-target="view-legal-admin" onclick="switchView('view-legal-admin')">
+      <i class="fa-solid fa-scale-balanced" style="color:#64748b;"></i> Aspetto Legale
+    </div>
+    
     <div style="flex-grow: 1;"></div>
+    <div class="nav-item" data-target="view-impostazioni" onclick="switchView('view-impostazioni')" style="border-top:1px solid var(--border-color); color:#6366f1;">
+      <i class="fa-solid fa-gear"></i> Impostazioni Generali
+    </div>
     <div class="nav-item" style="color:#ef4444; border-top:1px solid var(--border-color);" onclick="HubApp.logout()">
       <i class="fa-solid fa-power-off"></i> Disconnetti
     </div>
@@ -1653,11 +1663,66 @@ Nuovi giochi di ruolo e storie interattive
 Strumenti di reportistica e statistiche per docenti</textarea>
         </div>
       </div>
-
       <button class="btn" onclick="EcosistemaUI.saveComeFunziona()" style="background: var(--accent); color:white; border:none; padding:10px 20px; font-weight:bold; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-floppy-disk"></i> Salva Contenuto Pagina</button>
     </div>
 
-    <!-- Fine Viste -->
+    <!-- Vista: Impostazioni Generali -->
+    <div id="view-impostazioni" class="hub-view">
+      <div class="hub-header">
+        <h2><i class="fa-solid fa-gear"></i> Impostazioni Generali</h2>
+      </div>
+
+      <!-- Switch Manutenzione -->
+      <div class="glass-panel" style="margin-bottom:24px; border-left:4px solid #ef4444;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size:1.4rem; color:#ef4444;"></i>
+          <h3 style="margin:0; color:var(--text-main);">Modalità Manutenzione</h3>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">
+          Quando attiva, tutti i siti dell'ecosistema mostrano un popup di manutenzione ai visitatori. Puoi personalizzare il messaggio qui sotto.
+        </p>
+        <div class="switch-board">
+          <div class="light-switch-btn" id="btn-toggle-manutenzione" onclick="ImpostazioniUI.toggleManutenzione()">
+            <i class="fa-solid fa-wrench"></i>
+            <div class="status-text" id="status-text-manutenzione">OFF</div>
+            <div class="label-text">Siti in manutenzione</div>
+          </div>
+        </div>
+        <div style="margin-top:20px;">
+          <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:6px;">MESSAGGIO POPUP (visibile agli utenti)</label>
+          <textarea id="manutenzione-testo" class="input-field" style="height:100px; resize:vertical; font-size:0.9rem;" placeholder="Es: 🔧 Sito temporaneamente in manutenzione. Torna tra poco!">🔧 Sito temporaneamente in manutenzione.
+
+Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" onclick="ImpostazioniUI.saveManutenzioneSettings()" style="background:var(--accent); color:white; border:none; padding:10px 20px; font-weight:bold; border-radius:8px; cursor:pointer;">
+            <i class="fa-solid fa-floppy-disk"></i> Salva Messaggio
+          </button>
+          <span id="manutenzione-save-status" style="align-self:center; font-size:0.85rem; color:#10b981; display:none;">✅ Salvato!</span>
+        </div>
+      </div>
+
+      <!-- Link rapidi siti -->
+      <div class="glass-panel" style="margin-bottom:24px;">
+        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-link" style="color:#6366f1;"></i> Link Rapidi Siti</h3>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px; margin-top:12px;">
+          <a href="https://prof-memmo.github.io/games/" target="_blank" style="display:flex; align-items:center; gap:10px; padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; text-decoration:none; color:#334155; font-weight:600; font-size:0.9rem; transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+            <i class="fa-solid fa-globe" style="color:#2563eb; font-size:1.2rem;"></i> Sito Vetrina
+          </a>
+          <a href="https://prof-memmo.github.io/Fantaletteratura" target="_blank" style="display:flex; align-items:center; gap:10px; padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; text-decoration:none; color:#334155; font-weight:600; font-size:0.9rem; transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+            <i class="fa-solid fa-gamepad" style="color:#10b981; font-size:1.2rem;"></i> FantaLetteratura
+          </a>
+          <a href="https://prof-memmo.github.io/rotta-eroi" target="_blank" style="display:flex; align-items:center; gap:10px; padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; text-decoration:none; color:#334155; font-weight:600; font-size:0.9rem; transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+            <i class="fa-solid fa-compass" style="color:#f59e0b; font-size:1.2rem;"></i> Rotta degli Eroi
+          </a>
+          <a href="https://prof-memmo.github.io/corte-commedia" target="_blank" style="display:flex; align-items:center; gap:10px; padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; text-decoration:none; color:#334155; font-weight:600; font-size:0.9rem; transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+            <i class="fa-solid fa-masks-theater" style="color:#8b5cf6; font-size:1.2rem;"></i> Corte della Commedia
+          </a>
+        </div>
+      </div>
+    </div>
+
+
 
   </main>
 
@@ -1688,6 +1753,7 @@ Strumenti di reportistica e statistiche per docenti</textarea>
   <script src="js/dashboard/analytics-ui.js?v=100"></script>
   <script src="js/dashboard/notifications-ui.js?v=1"></script>
   <script src="js/dashboard/legal-admin-ui.js?v=1"></script>
+  <script src="js/dashboard/impostazioni-ui.js?v=1"></script>
   
   <script src="js/app_v2.js?v=101"></script>
   <script>
@@ -1719,8 +1785,10 @@ Strumenti di reportistica e statistiche per docenti</textarea>
         window.LegalAdminUI.init();
       }
       if (targetId === 'view-email-templates' && window.HubApp) {
-        // Carica subito il testo del template selezionato
         window.HubApp.loadEmailTemplateForSelected();
+      }
+      if (targetId === 'view-impostazioni' && window.ImpostazioniUI) {
+        window.ImpostazioniUI.init();
       }
     }
   </script>

@@ -122,7 +122,10 @@ const UsersUI = {
                 </td>
                 <td style="padding: 10px;">${scadenzaCell}</td>
                 <td style="padding: 10px; text-align:center;">
-                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 12px;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px;">
+                        <a href="https://prof-memmo.github.io/games/profilo.html?preview=${user.id}" target="_blank" title="Anteprima Profilo Utente" style="color: #6366f1; font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
                         <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color: var(--primary-color); font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-envelope"></i>
                         </a>

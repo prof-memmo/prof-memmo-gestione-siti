@@ -61,6 +61,7 @@ const HubApp = {
         if(window.RequestsUI) window.RequestsUI.init();
         if(window.NewsletterUI) window.NewsletterUI.init();
         if(window.EcosistemaUI) window.EcosistemaUI.init();
+        if(window.ImpostazioniUI) window.ImpostazioniUI.init();
         
         // Carica i dati aggregati (Utenti, Analytics, Newsletter)
         this.loadIscrittiAggregati();
