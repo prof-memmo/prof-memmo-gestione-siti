@@ -122,50 +122,22 @@ const RequestsUI = {
         }
     },
 
-    // EMAIL TEMPLATES
-    loadEmailTemplates: async function() {
-        window.HubEmailTemplates = {};
-        const defaultTemplates = {
-            'Fantaletteratura': `Gent.le docente,\n\nla tua richiesta di iscrizione a Fantaletteratura è stata APPROVATA. 🎉\n...`,
-            'La Rotta degli Eroi': `Gent.le docente,\n\nla tua richiesta di iscrizione a La Rotta degli Eroi è stata APPROVATA. 🎉\n...`,
-            'La Corte della Commedia': `Gent.le docente,\n\nla tua richiesta di iscrizione alla Loggia dei Magistrati de La Corte della Commedia è stata APPROVATA. 🎉\n...`,
-            'Palestra di Riflessione': `Gent.le docente,\n\nla tua richiesta di iscrizione alla Palestra di Riflessione è stata APPROVATA. 🎉\n...`,
-            'Ops! Operazione Storia': `Gent.le docente,\n\nla tua richiesta di iscrizione a Ops! Operazione Storia è stata APPROVATA. 🎉\n...`
-        };
-
-        try {
-            const dbData = await window.RequestsService.getTemplatesFromDb();
-            if (dbData) {
-                window.HubEmailTemplates = dbData;
-            } else {
-                window.HubEmailTemplates = defaultTemplates;
-                await window.RequestsService.saveTemplatesToDb(defaultTemplates);
-            }
-        } catch(e) {
-            window.HubEmailTemplates = defaultTemplates;
+    // EMAIL TEMPLATES (Delegati ad HubApp con default completi)
+    loadEmailTemplates: function() {
+        if (window.HubApp && window.HubApp.loadEmailTemplateForSelected) {
+            window.HubApp.loadEmailTemplateForSelected();
         }
-
-        this.loadEmailTemplateForSelected();
     },
 
     loadEmailTemplateForSelected: function() {
-        const select = document.getElementById('email-template-select');
-        const textarea = document.getElementById('email-template-text');
-        if (!select || !textarea || !window.HubEmailTemplates) return;
-        textarea.value = window.HubEmailTemplates[select.value] || '';
+        if (window.HubApp && window.HubApp.loadEmailTemplateForSelected) {
+            window.HubApp.loadEmailTemplateForSelected();
+        }
     },
 
-    saveEmailTemplate: async function() {
-        const select = document.getElementById('email-template-select');
-        const textarea = document.getElementById('email-template-text');
-        if (!select || !textarea || !window.HubEmailTemplates) return;
-
-        window.HubEmailTemplates[select.value] = textarea.value;
-        try {
-            await window.RequestsService.saveTemplatesToDb(window.HubEmailTemplates);
-            alert("Modello email salvato con successo per " + select.value + "!");
-        } catch(e) {
-            alert("Errore nel salvataggio del modello.");
+    saveEmailTemplate: function() {
+        if (window.HubApp && window.HubApp.saveEmailTemplate) {
+            window.HubApp.saveEmailTemplate();
         }
     },
 

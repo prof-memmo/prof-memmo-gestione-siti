@@ -224,20 +224,21 @@ const HubApp = {
         if (!sel || !textarea) return;
         const key = sel.value;
 
-        let text = null;
+        // 1. Inserisce immediatamente il template di default
+        const defaultVal = this._defaultTemplates[key] || '';
+        textarea.value = defaultVal;
+
+        // 2. Se salvato su Firestore, sovrascrive con la personalizzazione
         try {
             if (window.fbDb && window.fbDb.hub) {
                 const doc = await window.fbDb.hub.collection('hub_settings').doc('email_templates').get();
-                if (doc.exists && doc.data()[key]) {
-                    text = doc.data()[key];
+                if (doc.exists && doc.data() && doc.data()[key] !== undefined && doc.data()[key] !== '') {
+                    textarea.value = doc.data()[key];
                 }
             }
-        } catch(e) { /* usa default */ }
-
-        if (!text) {
-            text = this._defaultTemplates[key] || '';
+        } catch(e) {
+            console.warn("Uso template default per:", key);
         }
-        textarea.value = text;
     },
 
     saveEmailTemplate: async function() {
