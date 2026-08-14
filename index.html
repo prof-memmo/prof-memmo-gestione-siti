@@ -1556,10 +1556,43 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
         </div>
       </div>
       
-      <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;">
+      <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 25px;">
         <h3 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.1rem;">Utenti per Gioco/Piattaforma</h3>
         <div style="position: relative; width: 100%; height: 300px;">
           <canvas id="chart-giochi"></canvas>
+        </div>
+      </div>
+
+      <!-- Insights Community & Questionario di Benvenuto -->
+      <div style="margin-bottom: 30px;">
+        <h3 style="color: var(--text-main); font-size: 1.15rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-compass" style="color: var(--accent);"></i> Insights Community &amp; Questionario di Benvenuto
+        </h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+          <!-- Canali di Acquisizione -->
+          <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center;">
+            <h4 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.05rem;">📱 Come ci hanno conosciuto</h4>
+            <div style="position: relative; width: 100%; height: 260px;">
+              <canvas id="chart-canali"></canvas>
+            </div>
+          </div>
+
+          <!-- Fasce di Età -->
+          <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center;">
+            <h4 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.05rem;">🎂 Fasce di Età</h4>
+            <div style="position: relative; width: 100%; height: 260px;">
+              <canvas id="chart-fasce-eta"></canvas>
+            </div>
+          </div>
+
+          <!-- Materie Preferite -->
+          <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center;">
+            <h4 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.05rem;">📚 Materie più Amate</h4>
+            <div style="position: relative; width: 100%; height: 260px;">
+              <canvas id="chart-materie"></canvas>
+            </div>
+          </div>
         </div>
       </div>
     </div>

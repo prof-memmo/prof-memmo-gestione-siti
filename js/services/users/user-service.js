@@ -13,7 +13,7 @@ const UserService = {
     /**
      * Struttura base per un nuovo utente centrale dell'Hub
      */
-    getDefaultProfile: function(uid, nome, email, ruoloIniziale = 'studente', fotoProfilo = '') {
+    getDefaultProfile: function(uid, nome, email, ruoloIniziale = 'studente', fotoProfilo = '', surveyData = null) {
         return {
             uid: uid,
             email: email,
@@ -33,6 +33,7 @@ const UserService = {
                 ops_storia: { enabled: true, permissions: [] },
                 supplenze: { enabled: true, permissions: [] }
             },
+            survey: surveyData || null,
             adminOverrides: {},
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -42,7 +43,7 @@ const UserService = {
     /**
      * Crea un nuovo profilo utente centrale nell'Hub
      */
-    createUserProfile: async function(uid, nome, email, ruolo) {
+    createUserProfile: async function(uid, nome, email, ruolo, surveyData = null) {
         if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
         
         // I ruoli ammessi sono: studente, docente, viandante, admin
@@ -51,8 +52,8 @@ const UserService = {
             ruolo = 'studente'; // fallback
         }
 
-        const newUser = this.getDefaultProfile(uid, nome, email, ruolo);
-        await window.fbDb.hub.collection("hub_users").doc(uid).set(newUser);
+        const newUser = this.getDefaultProfile(uid, nome, email, ruolo, '', surveyData);
+        await window.fbDb.hub.collection("hub_users").doc(uid).set(newUser, { merge: true });
         return newUser;
     },
 

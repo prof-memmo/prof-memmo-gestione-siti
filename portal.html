@@ -350,6 +350,34 @@
       background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px;
       box-shadow: var(--shadow);
     }
+    .pill-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 25px;
+      border: 1.5px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      margin: 4px;
+    }
+    .pill-option:hover {
+      border-color: var(--accent);
+      background: #eef2ff;
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .pill-option.selected {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -443,7 +471,7 @@
     </div>
   </div>
 
-  <!-- VISTA ONBOARDING A CARD -->
+  <!-- VISTA ONBOARDING A CARD (STEP 1: RUOLO) -->
   <div id="portal-onboarding" style="display:none; width: 100%; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
     <div style="text-align: center; margin-bottom: 3rem; max-width: 600px;">
       <h1 style="font-size: 2.5rem; font-family: var(--font-display); color: var(--text-main); margin-bottom: 10px;">Benvenuto! Scegli il tuo profilo</h1>
@@ -478,6 +506,72 @@
       <button class="btn btn-google" style="margin: 0 auto; width: auto; padding: 10px 20px;" onclick="PortalApp.logout()">
         <i class="fa-solid fa-arrow-left"></i> Annulla ed esci
       </button>
+    </div>
+  </div>
+
+  <!-- VISTA ONBOARDING (STEP 2: QUESTIONARIO 3 DOMANDE) -->
+  <div id="portal-survey" style="display:none; width: 100%; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 25px 20px;">
+    <div style="background: white; width: 100%; max-width: 650px; border-radius: 24px; box-shadow: var(--shadow); padding: 35px; box-sizing: border-box;">
+      <div style="text-align: center; margin-bottom: 25px;">
+        <span style="font-size: 2.2rem; margin-bottom: 8px; display: inline-block;">✨</span>
+        <h2 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 8px 0; color: var(--text-main);">Piacere di conoscerti!</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">Raccontaci qualcosa di te con 3 veloci risposte (richiede 30 secondi):</p>
+      </div>
+
+      <!-- DOMANDA 1: Canale -->
+      <div style="margin-bottom: 24px;">
+        <label style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); display: block; margin-bottom: 10px;">
+          1. 📱 Come mi hai conosciuto?
+        </label>
+        <div id="survey-canale-options" style="display: flex; flex-wrap: wrap;">
+          <div class="pill-option" data-value="Instagram" onclick="PortalApp.toggleSingleOption('survey-canale-options', this)">📸 Instagram</div>
+          <div class="pill-option" data-value="TikTok / YouTube" onclick="PortalApp.toggleSingleOption('survey-canale-options', this)">🎬 TikTok / YouTube</div>
+          <div class="pill-option" data-value="Passaparola" onclick="PortalApp.toggleSingleOption('survey-canale-options', this)">💬 Passaparola (Amici / Colleghi)</div>
+          <div class="pill-option" data-value="A Scuola" onclick="PortalApp.toggleSingleOption('survey-canale-options', this)">🏫 A Scuola</div>
+          <div class="pill-option" data-value="Ricerca Google" onclick="PortalApp.toggleSingleOption('survey-canale-options', this)">🔍 Ricerca Google / Web</div>
+          <div class="pill-option" data-value="Altro" onclick="PortalApp.toggleSingleOption('survey-canale-options', this)">✨ Altro</div>
+        </div>
+      </div>
+
+      <!-- DOMANDA 2: Fascia di Età -->
+      <div style="margin-bottom: 24px;">
+        <label style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); display: block; margin-bottom: 10px;">
+          2. 🎂 Qual è la tua fascia di età?
+        </label>
+        <div id="survey-eta-options" style="display: flex; flex-wrap: wrap;">
+          <div class="pill-option" data-value="Under 14" onclick="PortalApp.toggleSingleOption('survey-eta-options', this)">Under 14</div>
+          <div class="pill-option" data-value="14-18 anni" onclick="PortalApp.toggleSingleOption('survey-eta-options', this)">14 - 18 anni</div>
+          <div class="pill-option" data-value="19-25 anni" onclick="PortalApp.toggleSingleOption('survey-eta-options', this)">19 - 25 anni</div>
+          <div class="pill-option" data-value="26-40 anni" onclick="PortalApp.toggleSingleOption('survey-eta-options', this)">26 - 40 anni</div>
+          <div class="pill-option" data-value="41-60 anni" onclick="PortalApp.toggleSingleOption('survey-eta-options', this)">41 - 60 anni</div>
+          <div class="pill-option" data-value="Over 60" onclick="PortalApp.toggleSingleOption('survey-eta-options', this)">Over 60</div>
+        </div>
+      </div>
+
+      <!-- DOMANDA 3: Materie di Interesse (Multi-selezione) -->
+      <div style="margin-bottom: 30px;">
+        <label style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); display: block; margin-bottom: 6px;">
+          3. 📚 Quali materie ti appassionano di più? <span style="font-weight: 400; font-size: 0.8rem; color: var(--text-muted);">(seleziona una o più)</span>
+        </label>
+        <div id="survey-materie-options" style="display: flex; flex-wrap: wrap;">
+          <div class="pill-option" data-value="Letteratura" onclick="this.classList.toggle('selected')">📖 Letteratura</div>
+          <div class="pill-option" data-value="Storia" onclick="this.classList.toggle('selected')">🏺 Storia</div>
+          <div class="pill-option" data-value="Epica & Mitologia" onclick="this.classList.toggle('selected')">⚡ Epica &amp; Mitologia</div>
+          <div class="pill-option" data-value="Geografia" onclick="this.classList.toggle('selected')">🗺️ Geografia</div>
+          <div class="pill-option" data-value="Riflessione sulla lingua" onclick="this.classList.toggle('selected')">🧠 Riflessione sulla lingua</div>
+          <div class="pill-option" data-value="Religione & Etica" onclick="this.classList.toggle('selected')">🕊️ Religione &amp; Etica</div>
+          <div class="pill-option" data-value="Filosofia" onclick="this.classList.toggle('selected')">🏛️ Filosofia</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button type="button" class="btn btn-primary" style="padding: 14px; font-size: 1.05rem;" onclick="PortalApp.submitSurvey(false)">
+          Completa e Inizia 🚀
+        </button>
+        <button type="button" class="link" style="background: none; border: none; font-size: 0.88rem; color: var(--text-muted); margin-top: 5px;" onclick="PortalApp.submitSurvey(true)">
+          Salta questo passaggio per ora &rarr;
+        </button>
+      </div>
     </div>
   </div>
   <!-- LEGAL MODALS -->

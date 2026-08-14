@@ -238,22 +238,57 @@ const PortalApp = {
         }
     },
 
-    selectRole: async function(ruolo) {
+    pendingRole: 'studente',
+
+    toggleSingleOption: function(containerId, el) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.querySelectorAll('.pill-option').forEach(p => p.classList.remove('selected'));
+        el.classList.add('selected');
+    },
+
+    selectRole: function(ruolo) {
+        this.pendingRole = ruolo || 'studente';
+        // Passa allo Step 2: Questionario 3 Domande
+        const onboardingEl = document.getElementById('portal-onboarding');
+        const surveyEl = document.getElementById('portal-survey');
+        if (onboardingEl) onboardingEl.style.display = 'none';
+        if (surveyEl) surveyEl.style.display = 'flex';
+    },
+
+    submitSurvey: async function(skipped = false) {
         try {
-            // Recupera o usa un nome di default
             const nome = this.user.displayName || "Nuovo Utente";
             const email = this.user.email || "";
-            
-            // Mostra indicatore caricamento bloccando l'interfaccia se necessario
-            // ... (potremmo aggiungere un overlay di loading)
-            
-            await window.UserService.createUserProfile(this.user.uid, nome, email, ruolo);
+            let surveyData = null;
+
+            if (!skipped) {
+                const canaleEl = document.querySelector('#survey-canale-options .pill-option.selected');
+                const etaEl = document.querySelector('#survey-eta-options .pill-option.selected');
+                const materieEls = document.querySelectorAll('#survey-materie-options .pill-option.selected');
+
+                const canale = canaleEl ? canaleEl.getAttribute('data-value') : 'Non specificato';
+                const fasciaEta = etaEl ? etaEl.getAttribute('data-value') : 'Non specificato';
+                const materie = Array.from(materieEls).map(el => el.getAttribute('data-value'));
+
+                surveyData = {
+                    canale: canale,
+                    fasciaEta: fasciaEta,
+                    materie: materie,
+                    completedAt: new Date().toISOString()
+                };
+            }
+
+            const surveyEl = document.getElementById('portal-survey');
+            if (surveyEl) surveyEl.style.display = 'none';
+
+            await window.UserService.createUserProfile(this.user.uid, nome, email, this.pendingRole || 'studente', surveyData);
             
             // Ricarica il profilo adesso che esiste
             await this.loadUserProfile();
         } catch(e) {
-            console.error(e);
-            alert("Errore durante la creazione del profilo.");
+            console.error("Errore completamento onboarding:", e);
+            alert("Errore durante la registrazione del profilo.");
         }
     },
 

@@ -6,6 +6,9 @@ const AnalyticsUI = {
     chartPiani: null,
     chartGiochi: null,
     chartAndamento: null,
+    chartCanali: null,
+    chartFasceEta: null,
+    chartMaterie: null,
 
     expensesList: [],
     expensesListenerAttached: false,
@@ -44,6 +47,9 @@ const AnalyticsUI = {
         this.renderPianiChart(stats.piani);
         this.renderGiochiChart(stats.giochi);
         this.renderAndamentoChart(stats.timeline);
+        this.renderCanaliChart(stats.canali);
+        this.renderFasceEtaChart(stats.fasceEta);
+        this.renderMaterieChart(stats.materie);
     },
 
     initExpenses: function() {
@@ -91,6 +97,9 @@ const AnalyticsUI = {
         this.renderPianiChart(stats.piani);
         this.renderGiochiChart(stats.giochi);
         this.renderAndamentoChart(stats.timeline);
+        this.renderCanaliChart(stats.canali);
+        this.renderFasceEtaChart(stats.fasceEta);
+        this.renderMaterieChart(stats.materie);
     },
 
     processData: function(iscritti) {
@@ -106,6 +115,9 @@ const AnalyticsUI = {
             },
             giochi: {},
             timeline: {},
+            canali: {},
+            fasceEta: {},
+            materie: {},
             topGiocoName: 'N/A'
         };
 
@@ -157,6 +169,21 @@ const AnalyticsUI = {
                 const month = String(d.getMonth() + 1).padStart(2, '0');
                 const key = `${d.getFullYear()}-${month}`;
                 stats.timeline[key] = (stats.timeline[key] || 0) + 1;
+            }
+
+            // Elabora dati Questionario (Survey)
+            if (user.survey) {
+                if (user.survey.canale) {
+                    stats.canali[user.survey.canale] = (stats.canali[user.survey.canale] || 0) + 1;
+                }
+                if (user.survey.fasciaEta) {
+                    stats.fasceEta[user.survey.fasciaEta] = (stats.fasceEta[user.survey.fasciaEta] || 0) + 1;
+                }
+                if (Array.isArray(user.survey.materie)) {
+                    user.survey.materie.forEach(m => {
+                        stats.materie[m] = (stats.materie[m] || 0) + 1;
+                    });
+                }
             }
         });
 
@@ -521,6 +548,128 @@ const AnalyticsUI = {
                 scales: {
                     y: { beginAtZero: true, ticks: { precision: 0 } },
                     x: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    },
+
+    renderCanaliChart: function(data) {
+        const ctx = document.getElementById('chart-canali');
+        if (!ctx) return;
+        if (this.chartCanali) this.chartCanali.destroy();
+
+        const labels = Object.keys(data);
+        const values = Object.values(data);
+
+        // Se vuoto mostra placeholder
+        if (labels.length === 0) {
+            labels.push('Nessuna risposta');
+            values.push(1);
+        }
+
+        this.chartCanali = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['#e11d48', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#06b6d4', '#64748b'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: this.getTooltipWithPercentage()
+                }
+            }
+        });
+    },
+
+    renderFasceEtaChart: function(data) {
+        const ctx = document.getElementById('chart-fasce-eta');
+        if (!ctx) return;
+        if (this.chartFasceEta) this.chartFasceEta.destroy();
+
+        const order = ['Under 14', '14-18 anni', '19-25 anni', '26-40 anni', '41-60 anni', 'Over 60'];
+        const labels = [];
+        const values = [];
+
+        order.forEach(k => {
+            labels.push(k);
+            values.push(data[k] || 0);
+        });
+
+        // Aggiunge eventuali chiavi non standard
+        Object.keys(data).forEach(k => {
+            if (!order.includes(k)) {
+                labels.push(k);
+                values.push(data[k]);
+            }
+        });
+
+        this.chartFasceEta = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Iscritti per Età',
+                    data: values,
+                    backgroundColor: '#6366f1',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } },
+                    x: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    },
+
+    renderMaterieChart: function(data) {
+        const ctx = document.getElementById('chart-materie');
+        if (!ctx) return;
+        if (this.chartMaterie) this.chartMaterie.destroy();
+
+        const sortedEntries = Object.entries(data).sort((a, b) => b[1] - a[1]);
+        let labels = sortedEntries.map(e => e[0]);
+        let values = sortedEntries.map(e => e[1]);
+
+        if (labels.length === 0) {
+            labels = ['In attesa di risposte'];
+            values = [0];
+        }
+
+        this.chartMaterie = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Preferenze',
+                    data: values,
+                    backgroundColor: '#06b6d4',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Barre orizzontali
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { beginAtZero: true, ticks: { precision: 0 } },
+                    y: { grid: { display: false } }
                 },
                 plugins: {
                     legend: { display: false }
