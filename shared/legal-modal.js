@@ -488,6 +488,46 @@
     }
   }
 
+  // Gestione Universale Menu Mobile per tutti i siti dell'Ecosistema
+  window.toggleMobileMenu = function(btn) {
+    var nav = document.querySelector('.nav-links');
+    if (!nav) return;
+    nav.classList.toggle('active');
+    var icon = (btn && btn.querySelector) ? btn.querySelector('i') : document.querySelector('.menu-toggle i');
+    if (icon) {
+      if (nav.classList.contains('active')) {
+        icon.className = 'ph ph-x';
+      } else {
+        icon.className = 'ph ph-list';
+      }
+    }
+  };
+
+  document.addEventListener('click', function(e) {
+    var toggle = e.target.closest('.menu-toggle');
+    if (toggle) {
+      var nav = document.querySelector('.nav-links');
+      if (nav) {
+        nav.classList.toggle('active');
+        var icon = toggle.querySelector('i');
+        if (icon) {
+          if (nav.classList.contains('active')) {
+            icon.className = 'ph ph-x';
+          } else {
+            icon.className = 'ph ph-list';
+          }
+        }
+      }
+    } else if (!e.target.closest('.nav-links') && !e.target.closest('.navbar')) {
+      var activeNav = document.querySelector('.nav-links.active');
+      if (activeNav) {
+        activeNav.classList.remove('active');
+        var mainIcon = document.querySelector('.menu-toggle i');
+        if (mainIcon) mainIcon.className = 'ph ph-list';
+      }
+    }
+  });
+
   // Auto-intercept data-legal attributes, avvia controlli al login e sincronizza il footer
   document.addEventListener('DOMContentLoaded', function () {
     syncEcosystemFooterLegalData();
