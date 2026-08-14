@@ -77,34 +77,55 @@ const AnalyticsUI = {
         const stats = {
             ruoli: {},
             piani: {},
+            pianiCounts: {
+                base: 0,
+                viandante: 0,
+                docente_didattico: 0,
+                docente_ecosistema: 0,
+                totaleAbbonati: 0
+            },
             giochi: {},
-            timeline: {}, // Per andamento nel tempo (es. "2026-08")
+            timeline: {},
             topGiocoName: 'N/A'
         };
 
         iscritti.forEach(user => {
             // Normalizzazione Ruolo Unificato
-            const rRaw = (user.ruolo || '').toLowerCase().trim();
+            const rRaw = (user.ruolo || user.role || '').toLowerCase().trim();
             let ruoloUnificato = 'viandante';
             if (rRaw.includes('student') || rRaw === 'studente') {
                 ruoloUnificato = 'studente';
             } else if (rRaw.includes('teacher') || rRaw.includes('docente') || rRaw === 'prof') {
                 ruoloUnificato = 'docente';
-            } else if (rRaw.includes('admin') || user.email === 'prof.memmo@gmail.com') {
+            } else if (rRaw.includes('admin') || (user.email && user.email.toLowerCase() === 'prof.memmo@gmail.com')) {
                 ruoloUnificato = 'admin';
             } else {
                 ruoloUnificato = 'viandante';
             }
             stats.ruoli[ruoloUnificato] = (stats.ruoli[ruoloUnificato] || 0) + 1;
 
-            // Conta Piani (Versione Base vs Viandante vs Docente, ecc.)
-            let piano = 'Base/Gratuito';
-            if (user.abbonamento && user.abbonamento.toLowerCase() !== 'base') {
-                piano = user.abbonamento;
-            } else if (user.piano) {
-                piano = user.piano;
+            // Normalizzazione e Conteggio Piani
+            const pRaw = (user.abbonamento || user.subscription || user.piano || user.plan || 'base').toLowerCase().trim();
+            let pianoLabel = 'Piano Base';
+            
+            if (pRaw.includes('ecosistema') || pRaw === 'docente_ecosistema') {
+                pianoLabel = 'Docente Ecosistema';
+                stats.pianiCounts.docente_ecosistema++;
+                stats.pianiCounts.totaleAbbonati++;
+            } else if (pRaw.includes('didattico') || pRaw === 'docente_didattico') {
+                pianoLabel = 'Docente Didattico';
+                stats.pianiCounts.docente_didattico++;
+                stats.pianiCounts.totaleAbbonati++;
+            } else if (pRaw.includes('viandante')) {
+                pianoLabel = 'Piano Viandante';
+                stats.pianiCounts.viandante++;
+                stats.pianiCounts.totaleAbbonati++;
+            } else {
+                pianoLabel = 'Piano Base (Gratuito)';
+                stats.pianiCounts.base++;
             }
-            stats.piani[piano] = (stats.piani[piano] || 0) + 1;
+
+            stats.piani[pianoLabel] = (stats.piani[pianoLabel] || 0) + 1;
 
             // Conta Giochi
             const gioco = user.gioco || 'Sconosciuto';
@@ -113,7 +134,6 @@ const AnalyticsUI = {
             // Elabora andamento temporale (mese-anno)
             if (user.dataValue && user.dataValue > 0) {
                 const d = new Date(user.dataValue);
-                // Formato YYYY-MM per raggruppamento (es. 2026-08)
                 const month = String(d.getMonth() + 1).padStart(2, '0');
                 const key = `${d.getFullYear()}-${month}`;
                 stats.timeline[key] = (stats.timeline[key] || 0) + 1;
@@ -157,6 +177,35 @@ const AnalyticsUI = {
         // Top Gioco
         const elTop = document.getElementById('kpi-top-gioco');
         if (elTop) elTop.textContent = stats.topGiocoName;
+
+        // --- KPI Conteggio per Piano di Abbonamento ---
+        const calcPct = (count) => totalUsers > 0 ? Math.round((count / totalUsers) * 100) : 0;
+        const pc = stats.pianiCounts || { base: 0, viandante: 0, docente_didattico: 0, docente_ecosistema: 0, totaleAbbonati: 0 };
+
+        const elBase = document.getElementById('kpi-piano-base');
+        const elBasePct = document.getElementById('kpi-piano-base-pct');
+        if (elBase) elBase.textContent = pc.base;
+        if (elBasePct) elBasePct.textContent = `${calcPct(pc.base)}% del totale`;
+
+        const elVian = document.getElementById('kpi-piano-viandante');
+        const elVianPct = document.getElementById('kpi-piano-viandante-pct');
+        if (elVian) elVian.textContent = pc.viandante;
+        if (elVianPct) elVianPct.textContent = `${calcPct(pc.viandante)}% del totale`;
+
+        const elDid = document.getElementById('kpi-piano-docente-didattico');
+        const elDidPct = document.getElementById('kpi-piano-docente-didattico-pct');
+        if (elDid) elDid.textContent = pc.docente_didattico;
+        if (elDidPct) elDidPct.textContent = `${calcPct(pc.docente_didattico)}% del totale`;
+
+        const elEco = document.getElementById('kpi-piano-docente-ecosistema');
+        const elEcoPct = document.getElementById('kpi-piano-docente-ecosistema-pct');
+        if (elEco) elEco.textContent = pc.docente_ecosistema;
+        if (elEcoPct) elEcoPct.textContent = `${calcPct(pc.docente_ecosistema)}% del totale`;
+
+        const elAbbTot = document.getElementById('kpi-abbonati-totali');
+        const elAbbTotPct = document.getElementById('kpi-abbonati-totali-pct');
+        if (elAbbTot) elAbbTot.textContent = pc.totaleAbbonati;
+        if (elAbbTotPct) elAbbTotPct.textContent = `${calcPct(pc.totaleAbbonati)}% a pagamento`;
 
         // Aggiorna il pannello Incassato Anno Corrente (rispettando il filtro date attivo)
         const dateFrom = document.getElementById('analytics-date-from') ? document.getElementById('analytics-date-from').value : '';

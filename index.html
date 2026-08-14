@@ -1343,38 +1343,44 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
 
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
-        
-        <div class="glass-panel" style="display: flex; align-items: center; padding: 15px; gap: 15px;">
-          <div style="background: rgba(236, 72, 153, 0.1); color: #ec4899; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-            <i class="fa-solid fa-trophy"></i>
+      <!-- KPI Conteggio per Piano di Abbonamento -->
+      <div class="glass-panel" style="margin-bottom: 25px;">
+        <h3 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.1rem; display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-credit-card" style="color:var(--accent);"></i> Conteggio Iscritti per Abbonamento / Piano
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+          
+          <div style="background: #f8fafc; padding: 14px 18px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 4px solid #94a3b8;">
+            <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Piano Base (Gratuito)</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #475569; margin-top: 4px;" id="kpi-piano-base">0</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);" id="kpi-piano-base-pct">0% del totale</div>
           </div>
-          <div>
-            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">GIOCO PIÙ UTILIZZATO</div>
-            <div id="kpi-top-gioco" style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">N/A</div>
-          </div>
-        </div>
 
-        <div class="glass-panel" style="display: flex; align-items: center; padding: 15px; gap: 15px;" title="Dato in arrivo: richiede implementazione modulo accessi">
-          <div style="background: rgba(100, 116, 139, 0.1); color: #64748b; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-            <i class="fa-solid fa-right-to-bracket"></i>
+          <div style="background: #fffbeb; padding: 14px 18px; border-radius: 12px; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b;">
+            <div style="font-size: 0.78rem; color: #b45309; font-weight: 700; text-transform: uppercase;">Piano Viandante</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #d97706; margin-top: 4px;" id="kpi-piano-viandante">0</div>
+            <div style="font-size: 0.75rem; color: #b45309;" id="kpi-piano-viandante-pct">0% del totale</div>
           </div>
-          <div>
-            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">ACCESSI / ATTIVI</div>
-            <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-muted);">In arrivo...</div>
-          </div>
-        </div>
 
-        <div class="glass-panel" style="display: flex; align-items: center; padding: 15px; gap: 15px;" title="Dato in arrivo: richiede aggregazione database classi">
-          <div style="background: rgba(100, 116, 139, 0.1); color: #64748b; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-            <i class="fa-solid fa-school"></i>
+          <div style="background: #eff6ff; padding: 14px 18px; border-radius: 12px; border: 1px solid #dbeafe; border-left: 4px solid #3b82f6;">
+            <div style="font-size: 0.78rem; color: #1d4ed8; font-weight: 700; text-transform: uppercase;">Docente Didattico</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #2563eb; margin-top: 4px;" id="kpi-piano-docente-didattico">0</div>
+            <div style="font-size: 0.75rem; color: #1d4ed8;" id="kpi-piano-docente-didattico-pct">0% del totale</div>
           </div>
-          <div>
-            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">CLASSI CREATE</div>
-            <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-muted);">In arrivo...</div>
-          </div>
-        </div>
 
+          <div style="background: #f0fdf4; padding: 14px 18px; border-radius: 12px; border: 1px solid #dcfce7; border-left: 4px solid #10b981;">
+            <div style="font-size: 0.78rem; color: #047857; font-weight: 700; text-transform: uppercase;">Docente Ecosistema</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #059669; margin-top: 4px;" id="kpi-piano-docente-ecosistema">0</div>
+            <div style="font-size: 0.75rem; color: #047857;" id="kpi-piano-docente-ecosistema-pct">0% del totale</div>
+          </div>
+
+          <div style="background: #f5f3ff; padding: 14px 18px; border-radius: 12px; border: 1px solid #ede9fe; border-left: 4px solid #8b5cf6;">
+            <div style="font-size: 0.78rem; color: #6d28d9; font-weight: 700; text-transform: uppercase;">Totale Abbonati</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #7c3aed; margin-top: 4px;" id="kpi-abbonati-totali">0</div>
+            <div style="font-size: 0.75rem; color: #6d28d9;" id="kpi-abbonati-totali-pct">0% a pagamento</div>
+          </div>
+
+        </div>
       </div>
 
       <!-- Andamento nel tempo -->
