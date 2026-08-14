@@ -619,17 +619,6 @@
             }
           }
           prezziLi.innerHTML = '<a href="prezzi.html" style="color: #2563eb; font-weight: bold;">Scegli il tuo Piano</a>';
-        } else if (data.come_funziona_visibile !== false) {
-          if (!prezziLi) {
-            prezziLi = document.createElement('li');
-            prezziLi.id = 'nav-prezzi-piani';
-            if (navUl.lastElementChild) {
-              navUl.insertBefore(prezziLi, navUl.lastElementChild);
-            } else {
-              navUl.appendChild(prezziLi);
-            }
-          }
-          prezziLi.innerHTML = '<a href="accedi.html">Come funziona</a>';
         } else if (prezziLi) {
           prezziLi.remove();
         }
