@@ -1913,33 +1913,6 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
 
   </main>
 
-  <script src="js/firebase-init.js?v=20260814_1145"></script>
-  <script src="js/services/auth/auth-service.js?v=20260814_1145"></script>
-  <script src="js/utils/ai-prompts.js?v=20260814_1145"></script>
-  <script src="js/utils/db-fixer.js?v=20260814_1145"></script>
-  
-  <!-- Services -->
-  <script src="js/services/cross-projects.js?v=20260814_1145"></script>
-  <script src="js/services/users/user-service.js?v=20260814_1145"></script>
-  <script src="js/services/messages/messages-service.js?v=20260814_1145"></script>
-  <script src="js/services/requests/requests-service.js?v=20260814_1145"></script>
-  <script src="js/services/games/games-service.js?v=20260814_1145"></script>
-  <script src="js/services/newsletter/newsletter-service.js?v=20260814_1145"></script>
-  <script src="js/services/ecosystem/ecosystem-service.js?v=20260814_1145"></script>
-  <script src="js/services/archive/archive-service.js?v=20260814_1145"></script>
-  
-  <!-- UI Modules -->
-  <script src="js/dashboard/messages-ui.js?v=20260814_1215"></script>
-  <script src="js/dashboard/requests-ui.js?v=20260814_1215"></script>
-  <script src="js/dashboard/ecosistema-ui.js?v=20260814_1215"></script>
-  <script src="js/dashboard/games-ui.js?v=20260814_1215"></script>
-  <script src="js/dashboard/users-ui.js?v=20260814_1215"></script>
-  <script src="js/dashboard/vetrina-ui.js?v=20260814_1215"></script>
-  
-  <script src="js/dashboard/newsletter-ui.js?v=20260814_1215"></script>
-  <script src="js/dashboard/analytics-ui.js?v=20260814_1215"></script>
-  <script src="js/dashboard/notifications-ui.js?v=20260814_1215"></script>
-  <script src="js/dashboard/legal-admin-ui.js?v=20260814_1215"></script>
   <!-- MODAL: AGGIUNGI SPESA -->
   <div id="modal-add-expense" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
     <div class="glass-panel" style="background: #ffffff; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 25px; border-radius: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
@@ -2033,9 +2006,37 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
     </div>
   </div>
 
-  <script src="js/dashboard/impostazioni-ui.js?v=20260814_1215"></script>
+  <!-- Scripts -->
+  <script src="js/firebase-init.js?v=20260814_1520"></script>
+  <script src="js/services/auth/auth-service.js?v=20260814_1520"></script>
+  <script src="js/utils/ai-prompts.js?v=20260814_1520"></script>
+  <script src="js/utils/db-fixer.js?v=20260814_1520"></script>
   
-  <script src="js/app_v2.js?v=20260814_1215"></script>
+  <!-- Services -->
+  <script src="js/services/cross-projects.js?v=20260814_1520"></script>
+  <script src="js/services/users/user-service.js?v=20260814_1520"></script>
+  <script src="js/services/messages/messages-service.js?v=20260814_1520"></script>
+  <script src="js/services/requests/requests-service.js?v=20260814_1520"></script>
+  <script src="js/services/games/games-service.js?v=20260814_1520"></script>
+  <script src="js/services/newsletter/newsletter-service.js?v=20260814_1520"></script>
+  <script src="js/services/ecosystem/ecosystem-service.js?v=20260814_1520"></script>
+  <script src="js/services/archive/archive-service.js?v=20260814_1520"></script>
+  
+  <!-- UI Modules -->
+  <script src="js/dashboard/messages-ui.js?v=20260814_1520"></script>
+  <script src="js/dashboard/requests-ui.js?v=20260814_1520"></script>
+  <script src="js/dashboard/ecosistema-ui.js?v=20260814_1520"></script>
+  <script src="js/dashboard/games-ui.js?v=20260814_1520"></script>
+  <script src="js/dashboard/users-ui.js?v=20260814_1520"></script>
+  <script src="js/dashboard/vetrina-ui.js?v=20260814_1520"></script>
+  
+  <script src="js/dashboard/newsletter-ui.js?v=20260814_1520"></script>
+  <script src="js/dashboard/analytics-ui.js?v=20260814_1520"></script>
+  <script src="js/dashboard/notifications-ui.js?v=20260814_1520"></script>
+  <script src="js/dashboard/legal-admin-ui.js?v=20260814_1520"></script>
+  <script src="js/dashboard/impostazioni-ui.js?v=20260814_1520"></script>
+  
+  <script src="js/app_v2.js?v=20260814_1520"></script>
   <script>
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');
@@ -2058,6 +2059,13 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
         document.getElementById('main-sidebar').classList.remove('open');
       }
 
+      if (targetId === 'view-analytics' && window.AnalyticsUI) {
+        if (window.HubApp && window.HubApp.allUsers) {
+          window.AnalyticsUI.render(window.HubApp.allUsers);
+        } else {
+          window.AnalyticsUI.initExpenses();
+        }
+      }
       if (targetId === 'view-notifiche-admin' && window.NotificationsUI) {
         window.NotificationsUI.init();
       }
