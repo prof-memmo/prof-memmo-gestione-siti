@@ -218,6 +218,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /users/{userId} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isEroiAuthorized();
+      allow create, update: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isEroiAuthorized();
+      allow delete: if isAdmin();
+    }
+
     match /eroi_classes/{classId} {
       allow read: if isAdmin() || isEroiAuthorized();
       allow create: if isEroiAuthorized();
@@ -233,15 +239,41 @@ service cloud.firestore {
       ));
     }
 
+    match /classes/{classId} {
+      allow read: if isAdmin() || isEroiAuthorized() || request.auth != null;
+      allow create: if isEroiAuthorized() || request.auth != null;
+      allow update: if isAdmin() || (request.auth != null && (
+        resource.data.teacherId == request.auth.uid ||
+        (resource.data.teacherIds != null && resource.data.teacherIds.hasAny([request.auth.uid])) ||
+        (resource.data.teacherEmail != null && resource.data.teacherEmail.lower() == currentUserEmail()) ||
+        (resource.data.collaboratori != null && resource.data.collaboratori.hasAny([currentUserEmail()]))
+      ));
+      allow delete: if isAdmin() || (request.auth != null && (
+        resource.data.teacherId == request.auth.uid ||
+        (resource.data.teacherEmail != null && resource.data.teacherEmail.lower() == currentUserEmail())
+      ));
+    }
+
     match /eroi_pending_requests/{reqId} {
       allow read: if isAdmin() || isEroiAuthorized();
       allow create: if isEroiAuthorized();
       allow update, delete: if isAdmin() || isEroiAuthorized();
     }
 
+    match /pending_requests/{reqId} {
+      allow read: if isAdmin() || isEroiAuthorized() || request.auth != null;
+      allow create: if isEroiAuthorized() || request.auth != null;
+      allow update, delete: if isAdmin() || isEroiAuthorized() || request.auth != null;
+    }
+
     match /eroi_archives/{docId} {
       allow read: if isAdmin() || isEroiAuthorized();
       allow write: if isAdmin();
+    }
+
+    match /archives/{docId} {
+      allow read: if isAdmin() || isEroiAuthorized() || request.auth != null;
+      allow write: if isAdmin() || request.auth != null;
     }
 
     match /eroi_settings/{docId} {
