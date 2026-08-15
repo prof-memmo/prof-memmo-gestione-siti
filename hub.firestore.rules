@@ -94,6 +94,12 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // Modifiche Didattiche al Volo (Live Editor Didattico)
+    match /hub_didactic_overrides/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
     
     // ==============================================================
     // 1. REGOLE FANTALETTERATURA (Namespace fanta_*)

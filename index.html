@@ -591,6 +591,27 @@
       <div class="hub-header">
         <h2><i class="fa-solid fa-chart-pie"></i> Panoramica Generale Iscritti</h2>
       </div>
+
+      <!-- Banner Didattico Live Editor / Promemoria GitHub -->
+      <div id="hub-didactic-sync-banner" style="display: none; margin-bottom: 25px; background: linear-gradient(135deg, #eef2ff, #e0e7ff); border: 1.5px solid #818cf8; border-radius: 16px; padding: 18px 24px; box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.1);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="background: #4f46e5; color: white; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(79,70,229,0.3);">
+              <i class="fa-solid fa-bell"></i>
+            </div>
+            <div>
+              <h4 style="margin: 0; color: #1e1b4b; font-size: 1.05rem; font-weight: 800;" id="hub-didactic-sync-title">Modifiche Didattiche nel Cloud</h4>
+              <p style="margin: 3px 0 0 0; color: #4338ca; font-size: 0.88rem;" id="hub-didactic-sync-desc">Hai modifiche didattiche attive nel cloud da consolidare nel codice sorgente di GitHub.</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn" style="background: #4f46e5; color: white; font-size: 0.85rem; padding: 8px 16px;" onclick="switchView('view-notifiche-admin'); document.getElementById('tab-didactic-overrides-section')?.scrollIntoView({behavior: 'smooth'});">
+              <i class="fa-solid fa-list-check"></i> Gestisci &amp; Consolle
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="glass-panel" style="margin-bottom: 30px;">
         <p style="color:var(--text-muted); margin-bottom: 20px;"><i class="fa-solid fa-circle-info"></i> Affinché i numeri si aggiornino, assicurati di aver fatto il login almeno una volta all'interno di ciascuna Console Gioco nel menu laterale. Questo permette all'Hub di accedere ai database in totale sicurezza.</p>
         <button class="btn" onclick="HubApp.loadIscrittiAggregati()"><i class="fa-solid fa-arrows-rotate"></i> Aggiorna Dati Ora</button>
@@ -1074,6 +1095,41 @@
         <h3 style="margin-top: 0; color: var(--text-main);"><i class="fa-solid fa-list-check"></i> Storico Notifiche Inviate</h3>
         <div id="notifications-history-list" style="margin-top: 15px;">
           <p style="color: var(--text-muted);">Caricamento storico notifiche...</p>
+        </div>
+      </div>
+
+      <!-- SEZIONE SPECIALE: Modifiche Didattiche al Volo (Live Editor & GitHub Consolidator) -->
+      <div class="glass-panel" id="tab-didactic-overrides-section" style="width: 100%; margin-top: 25px; border-left: 6px solid #4f46e5;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+          <div>
+            <h3 style="margin: 0; color: #1e1b4b; display: flex; align-items: center; gap: 8px;">
+              ✏️ Modifiche Didattiche nel Cloud (Live Editor)
+            </h3>
+            <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.9rem;">
+              Qui trovi tutti gli esercizi e i testi che hai corretto al volo dai siti. Gli studenti vedono già queste versioni aggiornate.
+            </p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn outline" onclick="window.HubApp.loadDidacticOverrides()"><i class="fa-solid fa-arrows-rotate"></i> Aggiorna</button>
+            <button class="btn" onclick="window.HubApp.exportDidacticOverrides()"><i class="fa-solid fa-download"></i> Copia Riepilogo per GitHub</button>
+          </div>
+        </div>
+
+        <div class="table-responsive" style="overflow-x: auto; margin-top: 15px;">
+          <table class="game-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 2px solid #e2e8f0; background: #f8fafc;">
+                <th style="padding: 12px 10px;">Data Modifica</th>
+                <th style="padding: 12px 10px;">Piattaforma</th>
+                <th style="padding: 12px 10px;">ID / Riferimento</th>
+                <th style="padding: 12px 10px;">Testo Aggiornato Attivo</th>
+                <th style="padding: 12px 10px; text-align: right;">Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="didactic-overrides-body">
+              <tr><td colspan="5" style="text-align: center; padding: 25px; color: var(--text-muted);">Caricamento modifiche didattiche in corso...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -2025,36 +2081,36 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   </div>
 
   <!-- Scripts -->
-  <script src="js/firebase-init.js?v=20260814_1520"></script>
-  <script src="js/services/auth/auth-service.js?v=20260814_1520"></script>
-  <script src="js/utils/ai-prompts.js?v=20260814_1520"></script>
-  <script src="js/utils/db-fixer.js?v=20260814_1520"></script>
+  <script src="js/firebase-init.js?v=20260815_2210"></script>
+  <script src="js/services/auth/auth-service.js?v=20260815_2210"></script>
+  <script src="js/utils/ai-prompts.js?v=20260815_2210"></script>
+  <script src="js/utils/db-fixer.js?v=20260815_2210"></script>
   
   <!-- Services -->
-  <script src="js/services/cross-projects.js?v=20260814_1520"></script>
-  <script src="js/services/users/user-service.js?v=20260814_1520"></script>
-  <script src="js/services/messages/messages-service.js?v=20260814_1520"></script>
-  <script src="js/services/requests/requests-service.js?v=20260814_1520"></script>
-  <script src="js/services/games/games-service.js?v=20260814_1520"></script>
-  <script src="js/services/newsletter/newsletter-service.js?v=20260814_1520"></script>
-  <script src="js/services/ecosystem/ecosystem-service.js?v=20260814_1520"></script>
-  <script src="js/services/archive/archive-service.js?v=20260814_1520"></script>
+  <script src="js/services/cross-projects.js?v=20260815_2210"></script>
+  <script src="js/services/users/user-service.js?v=20260815_2210"></script>
+  <script src="js/services/messages/messages-service.js?v=20260815_2210"></script>
+  <script src="js/services/requests/requests-service.js?v=20260815_2210"></script>
+  <script src="js/services/games/games-service.js?v=20260815_2210"></script>
+  <script src="js/services/newsletter/newsletter-service.js?v=20260815_2210"></script>
+  <script src="js/services/ecosystem/ecosystem-service.js?v=20260815_2210"></script>
+  <script src="js/services/archive/archive-service.js?v=20260815_2210"></script>
   
   <!-- UI Modules -->
-  <script src="js/dashboard/messages-ui.js?v=20260814_1520"></script>
-  <script src="js/dashboard/requests-ui.js?v=20260814_1520"></script>
-  <script src="js/dashboard/ecosistema-ui.js?v=20260814_1520"></script>
-  <script src="js/dashboard/games-ui.js?v=20260814_1520"></script>
-  <script src="js/dashboard/users-ui.js?v=20260814_1520"></script>
-  <script src="js/dashboard/vetrina-ui.js?v=20260814_1520"></script>
+  <script src="js/dashboard/messages-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/requests-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/ecosistema-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/games-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/users-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/vetrina-ui.js?v=20260815_2210"></script>
   
-  <script src="js/dashboard/newsletter-ui.js?v=20260814_1520"></script>
-  <script src="js/dashboard/analytics-ui.js?v=20260814_1520"></script>
-  <script src="js/dashboard/notifications-ui.js?v=20260814_1520"></script>
-  <script src="js/dashboard/legal-admin-ui.js?v=20260814_1520"></script>
-  <script src="js/dashboard/impostazioni-ui.js?v=20260814_1520"></script>
+  <script src="js/dashboard/newsletter-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/analytics-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/notifications-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/legal-admin-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/impostazioni-ui.js?v=20260815_2210"></script>
   
-  <script src="js/app_v2.js?v=20260814_1520"></script>
+  <script src="js/app_v2.js?v=20260815_2210"></script>
   <script>
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');
@@ -2084,8 +2140,9 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
           window.AnalyticsUI.initExpenses();
         }
       }
-      if (targetId === 'view-notifiche-admin' && window.NotificationsUI) {
-        window.NotificationsUI.init();
+      if (targetId === 'view-notifiche-admin') {
+        if (window.NotificationsUI) window.NotificationsUI.init();
+        if (window.HubApp && window.HubApp.loadDidacticOverrides) window.HubApp.loadDidacticOverrides();
       }
       if (targetId === 'view-legal-admin' && window.LegalAdminUI) {
         window.LegalAdminUI.init();

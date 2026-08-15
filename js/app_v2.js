@@ -66,8 +66,94 @@ const HubApp = {
         // Carica i dati aggregati (Utenti, Analytics, Newsletter)
         this.loadIscrittiAggregati();
 
+        // Carica e monitora le modifiche didattiche Live Editor nel cloud
+        this.loadDidacticOverrides();
+
         // Esegue lo script di riparazione silenziosa DB (una tantum)
         if(window.DBFixer) window.DBFixer.fixDatabasesBackground();
+    },
+
+    loadDidacticOverrides: async function() {
+        if (!window.fbDb) return;
+        const banner = document.getElementById('hub-didactic-sync-banner');
+        const titleEl = document.getElementById('hub-didactic-sync-title');
+        const descEl = document.getElementById('hub-didactic-sync-desc');
+        const tbody = document.getElementById('didactic-overrides-body');
+
+        try {
+            const snapshot = await window.fbDb.collection('hub_didactic_overrides').get();
+            const overrides = [];
+            snapshot.forEach(doc => {
+                overrides.push({ id: doc.id, ...doc.data() });
+            });
+
+            this._cachedDidacticOverrides = overrides;
+
+            // Aggiorna banner Dashboard
+            if (banner) {
+                if (overrides.length > 0) {
+                    banner.style.display = 'block';
+                    if (titleEl) titleEl.innerHTML = `🔔 ${overrides.length} Correzion${overrides.length === 1 ? 'e Didattica' : 'i Didattiche'} nel Cloud`;
+                    if (descEl) descEl.innerHTML = `Hai <b>${overrides.length}</b> modifiche salvate al volo nei giochi. Gli studenti vedono già i testi corretti. Ricordati di consolidarle su GitHub quando possibile.`;
+                } else {
+                    banner.style.display = 'none';
+                }
+            }
+
+            // Aggiorna tabella in Gestione Notifiche / Didattica
+            if (tbody) {
+                if (overrides.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 25px; color: #16a34a; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Nessuna modifica pendente nel cloud. Tutti i testi sono allineati con GitHub!</td></tr>';
+                } else {
+                    tbody.innerHTML = overrides.map(ov => {
+                        const dateStr = ov.updatedAt ? new Date(ov.updatedAt).toLocaleString('it-IT') : 'N/D';
+                        const pName = ov.platformName || ov.platform || 'Gioco';
+                        const text = (ov.data && (ov.data.text || ov.data.frase || ov.data.sentence || ov.data.domanda)) || JSON.stringify(ov.data || {});
+                        const safeId = ov.id;
+                        return `
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 10px; font-size: 0.85rem; color: #64748b;">${dateStr}</td>
+                                <td style="padding: 10px;"><span style="background: #eef2ff; color: #4f46e5; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.82rem;">${pName}</span></td>
+                                <td style="padding: 10px;"><code style="font-size: 0.82rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${ov.itemKey || ov.id}</code></td>
+                                <td style="padding: 10px; font-size: 0.9rem; max-width: 350px; word-break: break-word;">${text}</td>
+                                <td style="padding: 10px; text-align: right; white-space: nowrap;">
+                                    <button class="btn btn-secondary" onclick="window.HubApp.deleteDidacticOverride('${safeId}')" style="background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;" title="Rimuovi dal cloud / Segna come consolidato">
+                                        <i class="fa-solid fa-check"></i> Consolidato
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
+        } catch (err) {
+            console.warn("Recupero hub_didactic_overrides:", err);
+        }
+    },
+
+    deleteDidacticOverride: async function(docId) {
+        if (!confirm("Hai già inserito questa modifica nei file su GitHub o vuoi rimuovere questo override dal cloud?")) return;
+        try {
+            await window.fbDb.collection('hub_didactic_overrides').doc(docId).delete();
+            alert("✅ Override rimosso con successo dal cloud!");
+            this.loadDidacticOverrides();
+        } catch (e) {
+            alert("Errore eliminazione override: " + e.message);
+        }
+    },
+
+    exportDidacticOverrides: function() {
+        const overrides = this._cachedDidacticOverrides || [];
+        if (overrides.length === 0) {
+            alert("Nessuna modifica didattica attualmente presente nel cloud.");
+            return;
+        }
+        const jsonStr = JSON.stringify(overrides, null, 2);
+        navigator.clipboard.writeText(jsonStr).then(() => {
+            alert("📋 Riepilogo modifiche copiato negli appunti in formato JSON! Puoi condividerlo o incollarlo per integrarlo nei file sorgente.");
+        }).catch(() => {
+            prompt("Copia il riepilogo JSON delle modifiche:", jsonStr);
+        });
     },
 
 
