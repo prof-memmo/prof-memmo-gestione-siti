@@ -207,8 +207,8 @@ service cloud.firestore {
     }
 
     match /eroi_users/{userId} {
-      allow read: if isAdmin() || isEroiAuthorized();
-      allow create, update: if isAdmin() || isEroiAuthorized();
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isEroiAuthorized();
+      allow create, update: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isEroiAuthorized();
       allow delete: if isAdmin();
     }
 
@@ -258,8 +258,8 @@ service cloud.firestore {
     }
 
     match /palestra_users/{userId} {
-      allow read: if isAdmin() || isPalestraAuthorized();
-      allow create, update: if isAdmin() || isPalestraAuthorized();
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isPalestraAuthorized();
+      allow create, update: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isPalestraAuthorized();
       allow delete: if isAdmin();
     }
 
@@ -278,8 +278,8 @@ service cloud.firestore {
     }
 
     match /palestra_progress/{userId} {
-      allow read: if isAdmin() || isPalestraAuthorized();
-      allow create, update: if isAdmin() || isPalestraAuthorized();
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isPalestraAuthorized();
+      allow create, update: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isPalestraAuthorized();
       allow delete: if isAdmin();
     }
 
@@ -318,8 +318,8 @@ service cloud.firestore {
     }
 
     match /corte_users/{userId} {
-      allow read: if isAdmin() || isCorteAuthorized();
-      allow create, update: if isAdmin() || (isCorteAuthorized() && request.auth.uid == userId);
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isCorteAuthorized();
+      allow create, update: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isCorteAuthorized();
       allow delete: if isAdmin();
     }
 
