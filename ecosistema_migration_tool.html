@@ -266,11 +266,22 @@
 
       // Auto-detect auth se già memorizzata
       hubAuth.onAuthStateChanged(user => {
-        if (user && user.email === 'prof.memmo@gmail.com') {
+        if (user && user.email && user.email.toLowerCase() === 'prof.memmo@gmail.com') {
           log(`⚡ Sessione Super-Admin rilevata: ${user.email}`);
           document.getElementById('migrationActions').style.display = 'block';
-          document.getElementById('btnConnect').innerText = "✓ Connesso (" + user.email + ")";
-          document.getElementById('btnConnect').disabled = true;
+          const btnG = document.getElementById('btnGoogleConnect');
+          if (btnG) {
+            btnG.innerText = "✓ Connesso come Super-Admin (" + user.email + ")";
+            btnG.style.background = "#10b981";
+            btnG.style.color = "white";
+            btnG.disabled = true;
+          }
+          const btnC = document.getElementById('btnConnect');
+          if (btnC) {
+            btnC.innerText = "✓ Connesso (" + user.email + ")";
+            btnC.disabled = true;
+          }
+          log("👉 Clicca su '⚡ MIGRA TUTTI I GIOCHI NELL'HUB' per avviare il riversamento completo dei 5 database.");
         }
       });
     } catch(e) {
