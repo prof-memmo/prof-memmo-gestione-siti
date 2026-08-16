@@ -68,27 +68,36 @@ const UsersUI = {
         const currentYear = new Date().getFullYear();
         const scadenzaStr = `31/12/${currentYear}`;
 
-        const planLabels = {
-            'base': 'Base',
-            'viandante': 'Viandante',
-            'docente_didattico': 'Docente Did.',
-            'docente_ecosistema': 'Ecosistema'
-        };
+        function normalizePlanKey(rawPlan, rawRole) {
+            const role = String(rawRole || '').toLowerCase().trim();
+            if (!rawPlan) {
+                return (role.includes('student') || role === 'studente') ? 'studente' : 'base';
+            }
+            const p = String(rawPlan).toLowerCase().trim();
+            if (p.includes('ecosistema') || p === 'docente_ecosistema') return 'docente_ecosistema';
+            if (p.includes('didattic') || p === 'docente_didattico' || p === 'docente_didattica') return 'docente_didattico';
+            if (p.includes('viandante') || p.includes('pellegrino') || p.includes('ospite') || p.includes('external')) return 'viandante';
+            if (p.includes('studente_pro') || p === 'pro') return 'studente_pro';
+            if (p.includes('student') || p === 'studente' || p === 'studente_classe' || role.includes('student')) return 'studente';
+            if (p.includes('docente') || role.includes('docente') || role.includes('teacher')) return 'docente_didattico';
+            if (p === 'base' || p === 'free' || p === 'gratuito') return 'base';
+            return p;
+        }
 
         usersArray.forEach(user => {
             const tr = document.createElement('tr');
             const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
             
-            const userPlan = user.plan || 'base';
-            const isAdminOverride = !!user.admin_override;
-            const isSuperAdmin = (user.email || '').toLowerCase() === SUPER_ADMIN_EMAIL;
-            const isChecked = window.UsersUI.selectedUsers.has(user.id) ? 'checked' : '';
-            
-            let displayRole = 'Viandante';
             const rLow = (user.ruolo || '').toLowerCase();
+            let displayRole = 'Viandante';
             if (rLow.includes('student') || rLow === 'studente') displayRole = 'Studente';
             else if (rLow.includes('teacher') || rLow.includes('docente') || rLow.includes('admin') || rLow === 'prof') displayRole = 'Docente';
             else displayRole = 'Viandante';
+
+            const userPlan = normalizePlanKey(user.plan, user.ruolo);
+            const isAdminOverride = !!user.admin_override;
+            const isSuperAdmin = (user.email || '').toLowerCase() === SUPER_ADMIN_EMAIL;
+            const isChecked = window.UsersUI.selectedUsers.has(user.id) ? 'checked' : '';
 
             // Scadenza
             let scadenzaCell = '';
@@ -96,7 +105,7 @@ const UsersUI = {
                 scadenzaCell = '<span title="Super Admin" style="color:#f59e0b; font-weight:700;">👑 Mai</span>';
             } else if (isAdminOverride) {
                 scadenzaCell = '<span title="Piano assegnato da Admin" style="color:#6366f1; font-weight:700;">⚙️ Mai</span>';
-            } else if (userPlan !== 'base') {
+            } else if (userPlan !== 'base' && userPlan !== 'studente') {
                 scadenzaCell = `<span style="color:#10b981; font-size:0.85rem;">${user.abbonamento_scadenza ? user.abbonamento_scadenza.replace(/-/g, '/').split('/').reverse().join('/') : scadenzaStr}</span>`;
             } else {
                 scadenzaCell = '<span style="color:var(--text-muted);">-</span>';
@@ -113,11 +122,19 @@ const UsersUI = {
                 <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
                 <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
                 <td style="padding: 10px;">
-                    <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value, '${(user.email||'').replace(/'/g,"\\'")  }', '${(user.nome||'').replace(/'/g,"\\'")  }')" style="padding: 4px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 0.85rem; outline: none; cursor: pointer; background: white;">
-                        <option value="base" ${userPlan === 'base' ? 'selected' : ''}>Base</option>
-                        <option value="viandante" ${userPlan === 'viandante' ? 'selected' : ''}>Viandante</option>
-                        <option value="docente_didattico" ${userPlan === 'docente_didattico' ? 'selected' : ''}>Docente Did.</option>
-                        <option value="docente_ecosistema" ${userPlan === 'docente_ecosistema' ? 'selected' : ''}>Ecosistema</option>
+                    <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value, '${(user.email||'').replace(/'/g,"\\'")  }', '${(user.nome||'').replace(/'/g,"\\'")  }')" style="padding: 4px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; outline: none; cursor: pointer; background: white;">
+                        <optgroup label="Studenti">
+                            <option value="studente" ${userPlan === 'studente' ? 'selected' : ''}>🎓 Studente (Classe)</option>
+                            <option value="studente_pro" ${userPlan === 'studente_pro' ? 'selected' : ''}>⭐ Studente Pro</option>
+                        </optgroup>
+                        <optgroup label="Docenti">
+                            <option value="docente_didattico" ${userPlan === 'docente_didattico' ? 'selected' : ''}>🟡 Docente Did.</option>
+                            <option value="docente_ecosistema" ${userPlan === 'docente_ecosistema' ? 'selected' : ''}>🟣 Ecosistema</option>
+                        </optgroup>
+                        <optgroup label="Ospiti / Base">
+                            <option value="base" ${userPlan === 'base' ? 'selected' : ''}>⚪ Base / Gratuito</option>
+                            <option value="viandante" ${userPlan === 'viandante' ? 'selected' : ''}>🧭 Viandante</option>
+                        </optgroup>
                     </select>${overrideBadge}${superBadge}
                 </td>
                 <td style="padding: 10px;">${scadenzaCell}</td>

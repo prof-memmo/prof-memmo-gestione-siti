@@ -66,13 +66,28 @@ const CrossProjectsService = {
                 else if (fields.createdAt && fields.createdAt.stringValue) dataVal = new Date(fields.createdAt.stringValue).getTime();
                 else if (fields.joinedAt && fields.joinedAt.stringValue) dataVal = new Date(fields.joinedAt.stringValue).getTime();
                 
+                const rawRole = (fields.role && fields.role.stringValue) || (fields.ruolo && fields.ruolo.stringValue) || 'studente';
+                const rawPlan = (fields.plan && fields.plan.stringValue) || 
+                                (fields.piano && fields.piano.stringValue) || 
+                                (fields.subscription && fields.subscription.stringValue) || 
+                                (fields.abbonamento && fields.abbonamento.stringValue) || 
+                                (rawRole === 'studente' ? 'studente' : 'base');
+
+                const rawOverride = (fields.admin_override && fields.admin_override.booleanValue !== undefined ? fields.admin_override.booleanValue : (fields.adminOverride && fields.adminOverride.booleanValue !== undefined ? fields.adminOverride.booleanValue : (fields.isAdminOverride && fields.isAdminOverride.booleanValue !== undefined ? fields.isAdminOverride.booleanValue : false)));
+
+                const rawScadenza = (fields.abbonamento_scadenza && fields.abbonamento_scadenza.stringValue) || 
+                                     (fields.scadenza && fields.scadenza.stringValue) || '';
+
                 return {
                     id: doc.name.split('/').pop(),
                     nome: (fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || (fields.username && fields.username.stringValue) || (((fields.firstName && fields.firstName.stringValue) || (fields.lastName && fields.lastName.stringValue)) ? (((fields.firstName && fields.firstName.stringValue) || '') + ' ' + ((fields.lastName && fields.lastName.stringValue) || '')).trim() : 'Utente'),
                     email: (fields.email && fields.email.stringValue) || '',
-                    ruolo: (fields.role && fields.role.stringValue) || 'studente',
+                    ruolo: rawRole,
                     classe: (fields.classId && fields.classId.stringValue) || (fields.class && fields.class.stringValue) || 'N/A',
-                    dataValue: dataVal
+                    dataValue: dataVal,
+                    plan: rawPlan,
+                    admin_override: rawOverride,
+                    abbonamento_scadenza: rawScadenza
                 };
             });
         } catch(e) {
