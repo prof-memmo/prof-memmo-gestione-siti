@@ -394,5 +394,53 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // ==============================================================
+    // 5. REGOLE OPS! OPERAZIONE STORIA (Namespace ops_*)
+    // ==============================================================
+
+    function isOpsAuthorized() {
+      return isAdmin() || request.auth != null;
+    }
+
+    match /ops_users/{userId} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isOpsAuthorized();
+      allow create, update: if isAdmin() || (request.auth != null && request.auth.uid == userId) || isOpsAuthorized();
+      allow delete: if isAdmin();
+    }
+
+    match /ops_classes/{classId} {
+      allow read: if isAdmin() || isOpsAuthorized();
+      allow create: if isOpsAuthorized();
+      allow update, delete: if isAdmin() || (isOpsAuthorized() && (
+        resource.data.teacherId == request.auth.uid ||
+        (resource.data.teacherEmail != null && resource.data.teacherEmail.lower() == currentUserEmail())
+      ));
+    }
+
+    match /ops_progress/{progressId} {
+      allow read: if isAdmin() || isOpsAuthorized();
+      allow create, update: if isAdmin() || (isOpsAuthorized() && (
+        request.resource.data.userId == request.auth.uid ||
+        request.auth.uid == progressId
+      ));
+      allow delete: if isAdmin();
+    }
+
+    match /ops_game_sessions/{sessionId} {
+      allow read: if isAdmin() || isOpsAuthorized();
+      allow create, update: if isOpsAuthorized();
+      allow delete: if isAdmin();
+    }
+
+    match /ops_archives/{docId} {
+      allow read: if isAdmin() || isOpsAuthorized();
+      allow write: if isAdmin();
+    }
+
+    match /ops_settings/{docId} {
+      allow read: if isAdmin() || isOpsAuthorized();
+      allow write: if isAdmin();
+    }
+
   }
 }
