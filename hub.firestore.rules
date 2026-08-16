@@ -46,8 +46,8 @@ service cloud.firestore {
     // PROFILI UTENTE CENTRALI (L'identità dell'Ecosistema)
     // ==============================================================
     match /hub_users/{userId} {
-      // Lettura: L'owner può leggere solo sé stesso. L'Admin può leggere tutti.
-      allow read: if isOwner(userId) || isAdmin();
+      // Lettura: consentita a tutti gli utenti autenticati (docenti/studenti) per sincronizzazione classi
+      allow read: if request.auth != null || isAdmin();
       
       // Creazione: L'utente loggato inizializza il suo profilo (passando la validazione)
       allow create: if (isOwner(userId) && (isValidNewUser() || isAdmin())) || isAdmin();
