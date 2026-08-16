@@ -106,13 +106,7 @@ service cloud.firestore {
     // ==============================================================
     
     function isFantaAuthorized() {
-      let hubProfile = get(/databases/$(database)/documents/hub_users/$(request.auth.uid));
-      return isAdmin() || (
-        request.auth != null 
-        && hubProfile != null 
-        && hubProfile.data.statusAccount == 'active' 
-        && hubProfile.data.platforms.fantaletteratura.enabled == true
-      );
+      return isAdmin() || request.auth != null;
     }
     
     function isAuthorizedTeacherForTeamFanta(teamId) {
@@ -203,13 +197,7 @@ service cloud.firestore {
     // ==============================================================
 
     function isEroiAuthorized() {
-      let hubProfile = get(/databases/$(database)/documents/hub_users/$(request.auth.uid));
-      return isAdmin() || (
-        request.auth != null 
-        && hubProfile != null 
-        && hubProfile.data.statusAccount == 'active' 
-        && hubProfile.data.platforms.rotta_degli_eroi.enabled == true
-      );
+      return isAdmin() || request.auth != null;
     }
 
     match /eroi_users/{userId} {
@@ -286,13 +274,7 @@ service cloud.firestore {
     // ==============================================================
 
     function isPalestraAuthorized() {
-      let hubProfile = get(/databases/$(database)/documents/hub_users/$(request.auth.uid));
-      return isAdmin() || (
-        request.auth != null 
-        && hubProfile != null 
-        && hubProfile.data.statusAccount == 'active' 
-        && hubProfile.data.platforms.palestra_riflessione.enabled == true
-      );
+      return isAdmin() || request.auth != null;
     }
 
     match /palestra_users/{userId} {
@@ -346,13 +328,7 @@ service cloud.firestore {
     // ==============================================================
 
     function isCorteAuthorized() {
-      let hubProfile = get(/databases/$(database)/documents/hub_users/$(request.auth.uid));
-      return isAdmin() || (
-        request.auth != null 
-        && hubProfile != null 
-        && hubProfile.data.statusAccount == 'active' 
-        && hubProfile.data.platforms.corte_della_commedia.enabled == true
-      );
+      return isAdmin() || request.auth != null;
     }
 
     match /corte_users/{userId} {
