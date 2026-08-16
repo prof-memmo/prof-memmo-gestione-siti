@@ -248,15 +248,12 @@ const CrossProjectsService = {
         return result;
     },
 
-    fetchCollectionREST: async function(projectId, apiKey, collectionName) {
+    fetchCollectionREST: async function(projectId, apiKey, collectionName, appName = "[DEFAULT]") {
         try {
             let validToken = null;
-            if (window.fbAuth && window.fbAuth.currentUser) {
-                validToken = await window.fbAuth.currentUser.getIdToken(true).catch(() => null);
-            }
-            if (!validToken) {
-                const tokenManager = await CrossProjectsService.getAuthTokenFromDB(apiKey);
-                if (tokenManager && tokenManager.refreshToken) {
+            const tokenManager = await CrossProjectsService.getAuthTokenFromDB(apiKey, appName);
+            if (tokenManager && tokenManager.refreshToken) {
+                try {
                     const refreshRes = await fetch(`https://securetoken.googleapis.com/v1/token?key=${apiKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -264,13 +261,33 @@ const CrossProjectsService = {
                     });
                     const refreshData = await refreshRes.json();
                     validToken = refreshData.id_token || tokenManager.accessToken;
+                } catch(err) {
+                    validToken = tokenManager.accessToken;
                 }
+            }
+            if (!validToken && window.fbAuth && window.fbAuth.currentUser) {
+                validToken = await window.fbAuth.currentUser.getIdToken(true).catch(() => null);
             }
 
             const res = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}?pageSize=1000`, {
                 headers: validToken ? { Authorization: `Bearer ${validToken}` } : {}
             });
-            if (!res.ok) return [];
+            if (!res.ok) {
+                // Secondo tentativo senza header o con token default se fallito
+                if (validToken) {
+                    const res2 = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}?pageSize=1000`);
+                    if (res2.ok) {
+                        const data2 = await res2.json();
+                        if (data2.documents && Array.isArray(data2.documents)) {
+                            return data2.documents.map(doc => ({
+                                id: doc.name.split('/').pop(),
+                                data: CrossProjectsService.parseRestFields(doc.fields)
+                            }));
+                        }
+                    }
+                }
+                return [];
+            }
             const data = await res.json();
             if (!data.documents || !Array.isArray(data.documents)) return [];
             return data.documents.map(doc => ({
@@ -300,6 +317,7 @@ const CrossProjectsService = {
             {
                 name: "La Rotta degli Eroi",
                 key: "eroi",
+                appName: "Eroi",
                 projectId: "la-rotta-degli-eroi",
                 apiKey: "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A",
                 prefix: "eroi_",
@@ -308,6 +326,7 @@ const CrossProjectsService = {
             {
                 name: "Palestra di Riflessione",
                 key: "palestra",
+                appName: "Palestra",
                 projectId: "palestra-riflessione",
                 apiKey: "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo",
                 prefix: "palestra_",
@@ -316,6 +335,7 @@ const CrossProjectsService = {
             {
                 name: "La Corte della Commedia",
                 key: "corte",
+                appName: "Commedia",
                 projectId: "la-corte-della-commedia",
                 apiKey: "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls",
                 prefix: "corte_",
@@ -324,6 +344,7 @@ const CrossProjectsService = {
             {
                 name: "FantaLetteratura",
                 key: "fanta",
+                appName: "Fanta",
                 projectId: "fantaletteratura-a7ff1",
                 apiKey: "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ",
                 prefix: "fanta_",
@@ -332,6 +353,7 @@ const CrossProjectsService = {
             {
                 name: "Ops! Operazione Storia",
                 key: "ops",
+                appName: "Ops",
                 projectId: "ops-storia",
                 apiKey: "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY",
                 prefix: "ops_",
@@ -356,7 +378,7 @@ const CrossProjectsService = {
                 const targetColl = `${g.prefix}${coll}`;
                 log(`🔍 Lettura '${coll}' da ${g.projectId}...`);
 
-                const docs = await CrossProjectsService.fetchCollectionREST(g.projectId, g.apiKey, coll);
+                const docs = await CrossProjectsService.fetchCollectionREST(g.projectId, g.apiKey, coll, g.appName);
 
                 if (docs.length === 0) {
                     log(`   - Nessun documento trovato in '${coll}' (vuota o assente).`);
