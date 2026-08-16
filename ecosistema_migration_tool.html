@@ -288,17 +288,22 @@
       console.error(e);
     }
 
+    window.currentGoogleCredential = null;
+
     async function connectAdminWithGoogle() {
       log("🔑 Autenticazione con account Google in corso...");
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
         const result = await hubAuth.signInWithPopup(provider);
+        window.currentGoogleCredential = result.credential;
         log(`✅ Connesso con Google: ${result.user.email} (UID: ${result.user.uid})`);
         document.getElementById('migrationActions').style.display = 'block';
         const btnG = document.getElementById('btnGoogleConnect');
         if (btnG) {
           btnG.innerText = "✓ Connesso come " + result.user.email;
+          btnG.style.background = "#10b981";
+          btnG.style.color = "white";
           btnG.disabled = true;
         }
       } catch(err) {
@@ -356,11 +361,18 @@
       log(`🔄 Lettura collezione sorgente '${sourceColl}'...`);
       let docsToMigrate = [];
 
-      // 1. Prova lettura via SDK
+      // 1. Prova lettura via SDK con autenticazione
       try {
         let oldApp;
         try { oldApp = firebase.initializeApp(g.config, g.name); }
         catch(e) { oldApp = firebase.app(g.name); }
+        
+        if (window.currentGoogleCredential && !oldApp.auth().currentUser) {
+          try {
+            await oldApp.auth().signInWithCredential(window.currentGoogleCredential);
+          } catch(e) {}
+        }
+
         const oldDb = oldApp.firestore();
         const snap = await oldDb.collection(sourceColl).get();
         if (!snap.empty) {
