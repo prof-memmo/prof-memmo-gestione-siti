@@ -304,27 +304,15 @@
       return html;
     }
 
-    if (type === 'privacy') {
+    if (type === 'contatti') {
+      window.open('https://prof-memmo.github.io/games/contatti.html', '_blank');
+      return;
+    } else if (type === 'privacy') {
       title.textContent = 'Privacy Policy';
       body.innerHTML = formatPlainTextToHTML(dynamicPrivacy);
     } else if (type === 'termini') {
       title.textContent = 'Termini e Condizioni';
       body.innerHTML = formatPlainTextToHTML(dynamicTerms);
-    } else if (type === 'contatti') {
-      title.textContent = 'Contattaci';
-      var sostieniUrl = null;
-      try {
-        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
-          var db = firebase.app().firestore();
-          var snap = await db.collection('ecosistema_settings').doc('config').get();
-          if (snap.exists) {
-            var d = snap.data();
-            if (d.sostieni_il_progetto && d.paypal_link) sostieniUrl = d.paypal_link;
-          }
-        }
-      } catch (e) { /* silently fail */ }
-      body.innerHTML = buildContattiHTML(sostieniUrl);
-      attachFormLogic();
     }
 
     overlay.classList.add('pm-open');
