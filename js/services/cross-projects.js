@@ -221,6 +221,191 @@ const CrossProjectsService = {
         };
 
         return result;
+    },
+
+    parseRestFields: function(fields) {
+        const result = {};
+        if (!fields) return result;
+        for (const [key, valObj] of Object.entries(fields)) {
+            if (valObj.stringValue !== undefined) result[key] = valObj.stringValue;
+            else if (valObj.integerValue !== undefined) result[key] = parseInt(valObj.integerValue);
+            else if (valObj.doubleValue !== undefined) result[key] = parseFloat(valObj.doubleValue);
+            else if (valObj.booleanValue !== undefined) result[key] = valObj.booleanValue;
+            else if (valObj.timestampValue !== undefined) result[key] = valObj.timestampValue;
+            else if (valObj.nullValue !== undefined) result[key] = null;
+            else if (valObj.arrayValue !== undefined) {
+                result[key] = (valObj.arrayValue.values || []).map(v => {
+                    if (v.stringValue !== undefined) return v.stringValue;
+                    if (v.integerValue !== undefined) return parseInt(v.integerValue);
+                    if (v.booleanValue !== undefined) return v.booleanValue;
+                    if (v.mapValue !== undefined) return CrossProjectsService.parseRestFields(v.mapValue.fields);
+                    return v;
+                });
+            } else if (valObj.mapValue !== undefined) {
+                result[key] = CrossProjectsService.parseRestFields(valObj.mapValue.fields);
+            }
+        }
+        return result;
+    },
+
+    fetchCollectionREST: async function(projectId, apiKey, collectionName) {
+        try {
+            let validToken = null;
+            if (window.fbAuth && window.fbAuth.currentUser) {
+                validToken = await window.fbAuth.currentUser.getIdToken(true).catch(() => null);
+            }
+            if (!validToken) {
+                const tokenManager = await CrossProjectsService.getAuthTokenFromDB(apiKey);
+                if (tokenManager && tokenManager.refreshToken) {
+                    const refreshRes = await fetch(`https://securetoken.googleapis.com/v1/token?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `grant_type=refresh_token&refresh_token=${tokenManager.refreshToken}`
+                    });
+                    const refreshData = await refreshRes.json();
+                    validToken = refreshData.id_token || tokenManager.accessToken;
+                }
+            }
+
+            const res = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}?pageSize=1000`, {
+                headers: validToken ? { Authorization: `Bearer ${validToken}` } : {}
+            });
+            if (!res.ok) return [];
+            const data = await res.json();
+            if (!data.documents || !Array.isArray(data.documents)) return [];
+            return data.documents.map(doc => ({
+                id: doc.name.split('/').pop(),
+                data: CrossProjectsService.parseRestFields(doc.fields)
+            }));
+        } catch(e) {
+            console.warn(`Errore lettura REST per ${projectId}/${collectionName}:`, e);
+            return [];
+        }
+    },
+
+    migrateAllDataToHub: async function(onLog, onProgress) {
+        const log = (msg) => {
+            console.log(msg);
+            if (typeof onLog === 'function') onLog(msg);
+        };
+
+        if (!window.fbDb || !window.fbDb.hub) {
+            log("❌ Errore: Connessione al database Hub non disponibile.");
+            return { success: false, error: "Database Hub non connesso" };
+        }
+
+        const targetDb = window.fbDb.hub;
+
+        const games = [
+            {
+                name: "La Rotta degli Eroi",
+                key: "eroi",
+                projectId: "la-rotta-degli-eroi",
+                apiKey: "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A",
+                prefix: "eroi_",
+                collections: ['users', 'classes', 'progress', 'pending_requests', 'archives', 'settings', 'games_status']
+            },
+            {
+                name: "Palestra di Riflessione",
+                key: "palestra",
+                projectId: "palestra-riflessione",
+                apiKey: "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo",
+                prefix: "palestra_",
+                collections: ['users', 'classes', 'progress', 'history', 'test_assignments', 'archives', 'settings', 'games_status']
+            },
+            {
+                name: "La Corte della Commedia",
+                key: "corte",
+                projectId: "la-corte-della-commedia",
+                apiKey: "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls",
+                prefix: "corte_",
+                collections: ['users', 'classes', 'courts', 'cases', 'sentences', 'verdicts', 'xpLogs', 'progress', 'campaigns', 'missions_completed', 'activities', 'badges', 'levels', 'questions', 'characters', 'cantos', 'missions', 'settings', 'games_status', 'corte_cases', 'corte_verdicts', 'corte_archives']
+            },
+            {
+                name: "FantaLetteratura",
+                key: "fanta",
+                projectId: "fantaletteratura-a7ff1",
+                apiKey: "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ",
+                prefix: "fanta_",
+                collections: ['users', 'teams', 'missions', 'tournaments', 'invites', 'pending_requests', 'archives', 'minigame_logs', 'games_status', 'calendar', 'settings']
+            },
+            {
+                name: "Ops! Operazione Storia",
+                key: "ops",
+                projectId: "ops-storia",
+                apiKey: "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY",
+                prefix: "ops_",
+                collections: ['users', 'classes', 'progress', 'archives', 'settings', 'game_sessions']
+            }
+        ];
+
+        let grandTotal = 0;
+        const resultsByGame = {};
+
+        log("🚀 AVVIO MIGRAZIONE TOTALE DATABASE NELL'HUB CENTRALE (prof-memmo-hub)...");
+
+        for (let gIdx = 0; gIdx < games.length; gIdx++) {
+            const g = games[gIdx];
+            log(`\n=======================================================`);
+            log(`📦 [${gIdx + 1}/${games.length}] Elaborazione: ${g.name} (${g.projectId})`);
+            log(`=======================================================`);
+
+            let gameTotal = 0;
+
+            for (const coll of g.collections) {
+                const targetColl = `${g.prefix}${coll}`;
+                log(`🔍 Lettura '${coll}' da ${g.projectId}...`);
+
+                const docs = await CrossProjectsService.fetchCollectionREST(g.projectId, g.apiKey, coll);
+
+                if (docs.length === 0) {
+                    log(`   - Nessun documento trovato in '${coll}' (vuota o assente).`);
+                    continue;
+                }
+
+                log(`   - Trovati ${docs.length} documenti. Scrittura in '${targetColl}'...`);
+                let batch = targetDb.batch();
+                let count = 0;
+                const batchSize = 100;
+
+                for (let i = 0; i < docs.length; i++) {
+                    const item = docs[i];
+                    const docRef = targetDb.collection(targetColl).doc(item.id);
+                    batch.set(docRef, item.data, { merge: true });
+                    count++;
+                    gameTotal++;
+                    grandTotal++;
+
+                    if (count % batchSize === 0) {
+                        await batch.commit();
+                        log(`   - Salvati ${count}/${docs.length} doc in '${targetColl}'...`);
+                        batch = targetDb.batch();
+                    }
+                }
+
+                if (count % batchSize !== 0) {
+                    await batch.commit();
+                }
+
+                log(`   ✅ '${targetColl}' completata (${count} doc migrati).`);
+            }
+
+            resultsByGame[g.key] = gameTotal;
+            log(`🏁 Completato ${g.name}: ${gameTotal} documenti migrati.`);
+
+            if (typeof onProgress === 'function') {
+                onProgress(Math.round(((gIdx + 1) / games.length) * 100));
+            }
+        }
+
+        log(`\n🎉🎉 MIGRAZIONE GENERALE COMPLETATA CON SUCCESSO! 🎉🎉`);
+        log(`📊 Totale documenti migrati in prof-memmo-hub: ${grandTotal}`);
+
+        return {
+            success: true,
+            totalDocs: grandTotal,
+            byGame: resultsByGame
+        };
     }
 };
 
