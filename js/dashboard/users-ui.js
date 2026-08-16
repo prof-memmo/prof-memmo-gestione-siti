@@ -83,20 +83,23 @@ const UsersUI = {
             const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
             
             const rLow = (user.ruolo || '').toLowerCase();
+            const isSuperAdmin = (user.email || '').toLowerCase() === SUPER_ADMIN_EMAIL;
+            const isAdminRole = isSuperAdmin || rLow.includes('admin');
+
             let displayRole = 'Viandante';
-            if (rLow.includes('student') || rLow === 'studente') displayRole = 'Studente';
-            else if (rLow.includes('teacher') || rLow.includes('docente') || rLow.includes('admin') || rLow === 'prof') displayRole = 'Docente';
+            if (isAdminRole) displayRole = 'Amministratore';
+            else if (rLow.includes('student') || rLow === 'studente') displayRole = 'Studente';
+            else if (rLow.includes('teacher') || rLow.includes('docente') || rLow === 'prof') displayRole = 'Docente';
             else displayRole = 'Viandante';
 
-            const userPlan = normalizePlanKey(user.plan);
+            const userPlan = isAdminRole ? 'docente_ecosistema' : normalizePlanKey(user.plan);
             const isAdminOverride = !!user.admin_override;
-            const isSuperAdmin = (user.email || '').toLowerCase() === SUPER_ADMIN_EMAIL;
             const isChecked = window.UsersUI.selectedUsers.has(user.id) ? 'checked' : '';
 
             // Scadenza
             let scadenzaCell = '';
-            if (isSuperAdmin) {
-                scadenzaCell = '<span title="Super Admin" style="color:#f59e0b; font-weight:700;">👑 Mai</span>';
+            if (isAdminRole) {
+                scadenzaCell = '<span title="Super Admin / Accesso Completo" style="color:#f59e0b; font-weight:700;">👑 Mai</span>';
             } else if (isAdminOverride) {
                 scadenzaCell = '<span title="Piano assegnato da Admin" style="color:#6366f1; font-weight:700;">⚙️ Mai</span>';
             } else if (userPlan !== 'base') {
@@ -107,7 +110,7 @@ const UsersUI = {
 
             // Badge piano
             const overrideBadge = isAdminOverride ? ' <span title="Piano assegnato da Admin" style="font-size:0.75rem; background:#ede9fe; color:#6366f1; border-radius:4px; padding:1px 5px;">⚙️ Admin</span>' : '';
-            const superBadge = isSuperAdmin ? ' <span style="font-size:0.75rem; background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px;">👑</span>' : '';
+            const superBadge = isAdminRole ? ' <span style="font-size:0.75rem; background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px;">👑</span>' : '';
 
             tr.innerHTML = `
                 <td style="text-align: center;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>

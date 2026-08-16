@@ -111,7 +111,7 @@
         <label style="display:block; font-size:0.8rem; color:#94a3b8; margin-bottom:4px;">Password</label>
         <input type="password" id="adminPwd" placeholder="Password account Hub">
       </div>
-      <div style="margin-top: 18px;">
+      <div style="margin-top: 18px; display: flex; gap: 10px;">
         <button id="btnConnect" onclick="connectAdmin()">1. Connetti come Admin</button>
       </div>
     </div>
@@ -119,15 +119,15 @@
     <!-- Pannello Azioni Migrazione -->
     <div id="migrationActions" style="display: none; margin-bottom: 25px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h2 style="font-size: 1.3rem; margin: 0;">2. Seleziona il Gioco da migrare</h2>
-        <button class="btn-all" onclick="migrateAll()">⚡ Migra Tutti i Giochi</button>
+        <h2 style="font-size: 1.3rem; margin: 0;">2. Seleziona i Dati da migrare</h2>
+        <button class="btn-all" onclick="migrateAll()">⚡ MIGRA TUTTI I GIOCHI NELL'HUB</button>
       </div>
 
       <!-- Rotta degli Eroi -->
       <div class="game-card-action">
         <div>
           <h3>🚢 La Rotta degli Eroi</h3>
-          <span>Sorgente: <code>la-rotta-degli-eroi</code> &rarr; Destinazione: <code>eroi_*</code></span>
+          <span>Sorgente: <code>la-rotta-degli-eroi</code> &rarr; Destinazione Hub: <code>eroi_*</code></span>
         </div>
         <button onclick="migrateGame('eroi')">Avvia Migrazione Rotta</button>
       </div>
@@ -136,7 +136,7 @@
       <div class="game-card-action">
         <div>
           <h3>🧠 Palestra di Riflessione</h3>
-          <span>Sorgente: <code>palestra-riflessione</code> &rarr; Destinazione: <code>palestra_*</code></span>
+          <span>Sorgente: <code>palestra-riflessione</code> &rarr; Destinazione Hub: <code>palestra_*</code></span>
         </div>
         <button onclick="migrateGame('palestra')">Avvia Migrazione Palestra</button>
       </div>
@@ -145,7 +145,7 @@
       <div class="game-card-action">
         <div>
           <h3>⚖️ La Corte della Commedia</h3>
-          <span>Sorgente: <code>la-corte-della-commedia</code> &rarr; Destinazione: <code>corte_*</code></span>
+          <span>Sorgente: <code>la-corte-della-commedia</code> &rarr; Destinazione Hub: <code>corte_*</code></span>
         </div>
         <button onclick="migrateGame('corte')">Avvia Migrazione Corte</button>
       </div>
@@ -154,9 +154,18 @@
       <div class="game-card-action">
         <div>
           <h3>📜 FantaLetteratura</h3>
-          <span>Sorgente: <code>fantaletteratura-a7ff1</code> &rarr; Destinazione: <code>fanta_*</code></span>
+          <span>Sorgente: <code>fantaletteratura-a7ff1</code> &rarr; Destinazione Hub: <code>fanta_*</code></span>
         </div>
         <button onclick="migrateGame('fanta')">Avvia Migrazione Fanta</button>
+      </div>
+
+      <!-- Ops! Operazione Storia -->
+      <div class="game-card-action">
+        <div>
+          <h3>⏳ Ops! Operazione Storia</h3>
+          <span>Sorgente: <code>ops-storia</code> &rarr; Destinazione Hub: <code>ops_*</code></span>
+        </div>
+        <button onclick="migrateGame('ops')">Avvia Migrazione Ops</button>
       </div>
     </div>
 
@@ -181,42 +190,57 @@
       eroi: {
         name: "OldEroiApp",
         prefix: "eroi_",
+        projectId: "la-rotta-degli-eroi",
         config: {
           apiKey: "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A",
           authDomain: "la-rotta-degli-eroi.firebaseapp.com",
           projectId: "la-rotta-degli-eroi"
         },
-        collections: ['users', 'classes', 'pending_requests', 'archives', 'settings']
+        collections: ['users', 'classes', 'progress', 'pending_requests', 'archives', 'settings', 'games_status']
       },
       palestra: {
         name: "OldPalestraApp",
         prefix: "palestra_",
+        projectId: "palestra-riflessione",
         config: {
           apiKey: "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo",
           authDomain: "palestra-riflessione.firebaseapp.com",
           projectId: "palestra-riflessione"
         },
-        collections: ['users', 'classes', 'progress', 'history', 'test_assignments', 'archives', 'settings']
+        collections: ['users', 'classes', 'progress', 'history', 'test_assignments', 'archives', 'settings', 'games_status']
       },
       corte: {
         name: "OldCorteApp",
         prefix: "corte_",
+        projectId: "la-corte-della-commedia",
         config: {
           apiKey: "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls",
           authDomain: "la-corte-della-commedia.firebaseapp.com",
           projectId: "la-corte-della-commedia"
         },
-        collections: ['users', 'classes', 'courts', 'sentences', 'xpLogs', 'progress', 'campaigns', 'cases', 'missions_completed', 'activities', 'badges', 'levels', 'questions', 'characters', 'cantos', 'missions', 'settings']
+        collections: ['users', 'classes', 'courts', 'cases', 'sentences', 'verdicts', 'xpLogs', 'progress', 'campaigns', 'missions_completed', 'activities', 'badges', 'levels', 'questions', 'characters', 'cantos', 'missions', 'settings', 'games_status', 'corte_cases', 'corte_verdicts', 'corte_archives']
       },
       fanta: {
         name: "OldFantaApp",
         prefix: "fanta_",
+        projectId: "fantaletteratura-a7ff1",
         config: {
-          apiKey: "AIzaSyCX_...", // Se presente
+          apiKey: "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ",
           authDomain: "fantaletteratura-a7ff1.firebaseapp.com",
           projectId: "fantaletteratura-a7ff1"
         },
-        collections: ['users', 'teams', 'missions', 'tournaments', 'invites', 'pending_requests', 'archives', 'minigame_logs', 'games_status', 'settings']
+        collections: ['users', 'teams', 'missions', 'tournaments', 'invites', 'pending_requests', 'archives', 'minigame_logs', 'games_status', 'calendar', 'settings']
+      },
+      ops: {
+        name: "OldOpsApp",
+        prefix: "ops_",
+        projectId: "ops-storia",
+        config: {
+          apiKey: "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY",
+          authDomain: "ops-storia.firebaseapp.com",
+          projectId: "ops-storia"
+        },
+        collections: ['users', 'classes', 'progress', 'archives', 'settings', 'game_sessions']
       }
     };
 
@@ -234,6 +258,16 @@
       hubApp = firebase.initializeApp(hubConfig, "HubApp");
       hubAuth = hubApp.auth();
       hubDb = hubApp.firestore();
+
+      // Auto-detect auth se già memorizzata
+      hubAuth.onAuthStateChanged(user => {
+        if (user && user.email === 'prof.memmo@gmail.com') {
+          log(`⚡ Sessione Super-Admin rilevata: ${user.email}`);
+          document.getElementById('migrationActions').style.display = 'block';
+          document.getElementById('btnConnect').innerText = "✓ Connesso (" + user.email + ")";
+          document.getElementById('btnConnect').disabled = true;
+        }
+      });
     } catch(e) {
       console.error(e);
     }
@@ -256,43 +290,104 @@
       }
     }
 
-    async function copyCollection(sourceDb, targetDb, sourceColl, targetColl) {
+    // Helper per estrarre valori da formato REST JSON Firestore
+    function parseRestFields(fields) {
+      const result = {};
+      if (!fields) return result;
+      for (const [key, valObj] of Object.entries(fields)) {
+        if (valObj.stringValue !== undefined) result[key] = valObj.stringValue;
+        else if (valObj.integerValue !== undefined) result[key] = parseInt(valObj.integerValue);
+        else if (valObj.doubleValue !== undefined) result[key] = parseFloat(valObj.doubleValue);
+        else if (valObj.booleanValue !== undefined) result[key] = valObj.booleanValue;
+        else if (valObj.timestampValue !== undefined) result[key] = valObj.timestampValue;
+        else if (valObj.nullValue !== undefined) result[key] = null;
+        else if (valObj.arrayValue !== undefined) {
+          result[key] = (valObj.arrayValue.values || []).map(v => {
+            if (v.stringValue !== undefined) return v.stringValue;
+            if (v.integerValue !== undefined) return parseInt(v.integerValue);
+            if (v.booleanValue !== undefined) return v.booleanValue;
+            if (v.mapValue !== undefined) return parseRestFields(v.mapValue.fields);
+            return v;
+          });
+        }
+        else if (valObj.mapValue !== undefined) {
+          result[key] = parseRestFields(valObj.mapValue.fields);
+        }
+      }
+      return result;
+    }
+
+    async function copyCollection(g, sourceColl, targetColl) {
       log(`🔄 Lettura collezione sorgente '${sourceColl}'...`);
+      let docsToMigrate = [];
+
+      // 1. Prova lettura via SDK
       try {
-        const snap = await sourceDb.collection(sourceColl).get();
-        if (snap.empty) {
-          log(`   - '${sourceColl}' è vuota, saltata.`);
-          return 0;
+        let oldApp;
+        try { oldApp = firebase.initializeApp(g.config, g.name); }
+        catch(e) { oldApp = firebase.app(g.name); }
+        const oldDb = oldApp.firestore();
+        const snap = await oldDb.collection(sourceColl).get();
+        if (!snap.empty) {
+          snap.forEach(d => {
+            docsToMigrate.push({ id: d.id, data: d.data() });
+          });
         }
+      } catch(sdkErr) {
+        log(`   - SDK non ha risposto (${sdkErr.message}), tentativo via REST API autenticata...`);
+      }
 
-        log(`   - Trovati ${snap.size} documenti. Scrittura in '${targetColl}'...`);
-        let count = 0;
-        const batchSize = 100;
-        let batch = targetDb.batch();
-
-        for (let i = 0; i < snap.docs.length; i++) {
-          const d = snap.docs[i];
-          const targetRef = targetDb.collection(targetColl).doc(d.id);
-          batch.set(targetRef, d.data(), { merge: true });
-          count++;
-
-          if (count % batchSize === 0) {
-            await batch.commit();
-            log(`   - Salvati ${count}/${snap.size} doc...`);
-            batch = targetDb.batch();
+      // 2. Se vuoto o errore, fallback su REST API
+      if (docsToMigrate.length === 0) {
+        try {
+          const token = await hubAuth.currentUser.getIdToken(true).catch(() => null);
+          const res = await fetch(`https://firestore.googleapis.com/v1/projects/${g.projectId}/databases/(default)/documents/${sourceColl}?pageSize=1000`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json.documents && Array.isArray(json.documents)) {
+              json.documents.forEach(d => {
+                const docId = d.name.split('/').pop();
+                const docData = parseRestFields(d.fields);
+                docsToMigrate.push({ id: docId, data: docData });
+              });
+            }
           }
+        } catch(restErr) {
+          log(`   ⚠️ Errore REST su '${sourceColl}': ${restErr.message}`);
         }
+      }
 
-        if (count % batchSize !== 0) {
-          await batch.commit();
-        }
-
-        log(`   ✅ '${targetColl}' completata con successo (${count} doc).`);
-        return count;
-      } catch (err) {
-        log(`   ⚠️ Errore su '${sourceColl}': ${err.message}`);
+      if (docsToMigrate.length === 0) {
+        log(`   - '${sourceColl}' è vuota o non presente.`);
         return 0;
       }
+
+      log(`   - Trovati ${docsToMigrate.length} documenti. Scrittura in '${targetColl}'...`);
+      let count = 0;
+      const batchSize = 100;
+      let batch = hubDb.batch();
+
+      for (let i = 0; i < docsToMigrate.length; i++) {
+        const item = docsToMigrate[i];
+        const targetRef = hubDb.collection(targetColl).doc(item.id);
+        batch.set(targetRef, item.data, { merge: true });
+        count++;
+
+        if (count % batchSize === 0) {
+          await batch.commit();
+          log(`   - Salvati ${count}/${docsToMigrate.length} doc in '${targetColl}'...`);
+          batch = hubDb.batch();
+        }
+      }
+
+      if (count % batchSize !== 0) {
+        await batch.commit();
+      }
+
+      log(`   ✅ '${targetColl}' completata con successo (${count} doc).`);
+      return count;
     }
 
     async function migrateGame(gameKey) {
@@ -303,31 +398,29 @@
       log(`🚀 AVVIO MIGRAZIONE [${g.name.toUpperCase()}] -> Prefisso '${g.prefix}'`);
       log(`=======================================================`);
 
-      let oldApp;
-      try {
-        oldApp = firebase.initializeApp(g.config, g.name);
-      } catch(e) {
-        oldApp = firebase.app(g.name);
-      }
-      const oldDb = oldApp.firestore();
-
       let totalGameDocs = 0;
       for (const coll of g.collections) {
         const targetColl = `${g.prefix}${coll}`;
-        const count = await copyCollection(oldDb, hubDb, coll, targetColl);
+        const count = await copyCollection(g, coll, targetColl);
         totalGameDocs += count;
       }
 
       log(`\n🏁 MIGRAZIONE [${g.name.toUpperCase()}] TERMINATA. Totale doc migrati: ${totalGameDocs}`);
       log(`=======================================================\n`);
+      return totalGameDocs;
     }
 
     async function migrateAll() {
-      if (!confirm("Vuoi avviare la migrazione sequenziale di TUTTI i giochi nel database Hub?")) return;
-      await migrateGame('eroi');
-      await migrateGame('palestra');
-      await migrateGame('corte');
-      log("🎉🎉 MIGRAZIONE COMPLETA DI TUTTI I GIOCHI TERMINATA! 🎉🎉");
+      if (!confirm("Vuoi avviare la migrazione sequenziale di TUTTI i 5 giochi nel database Hub?")) return;
+      log("\n🚀🚀 AVVIO MIGRAZIONE GENERALE DI TUTTI I GIOCHI NELL'HUB 🚀🚀\n");
+      let total = 0;
+      total += await migrateGame('eroi');
+      total += await migrateGame('palestra');
+      total += await migrateGame('corte');
+      total += await migrateGame('fanta');
+      total += await migrateGame('ops');
+      log(`\n🎉🎉 MIGRAZIONE COMPLETA TERMINATA! Totale complessivo documenti migrati: ${total} 🎉🎉`);
+      alert(`Migrazione completata! Totale documenti copiati nell'Hub: ${total}`);
     }
   </script>
 </body>
