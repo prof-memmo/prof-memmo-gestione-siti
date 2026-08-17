@@ -114,14 +114,14 @@ const UsersUI = {
             const superBadge = isAdminRole ? ' <span style="font-size:0.75rem; background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px;">👑</span>' : '';
 
             const safeAvatar = (user.avatar && (user.avatar.includes('/') || user.avatar.includes('.png'))) 
-                ? (user.avatar.startsWith('http') ? user.avatar : `https://prof-memmo.github.io/prof-memmo-gestione-siti/${user.avatar}`) 
-                : 'https://prof-memmo.github.io/prof-memmo-gestione-siti/assets/avatars/6.png';
+                ? (user.avatar.startsWith('http') ? user.avatar : `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/${user.avatar}`) 
+                : 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
 
             tr.innerHTML = `
                 <td style="text-align: center;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
                 <td style="padding: 10px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="${safeAvatar}" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <img src="${safeAvatar}" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; background: #ffffff; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                         <div>
                             <strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span>
                         </div>

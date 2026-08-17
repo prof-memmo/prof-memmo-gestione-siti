@@ -497,19 +497,29 @@
         var overlayId = 'pmMaintenanceOverlay';
         var existing = document.getElementById(overlayId);
         if (!existing) {
+          // Carica Google Font 'Julius Sans One' se non presente
+          if (!document.getElementById('pm-julius-font')) {
+            var fLink = document.createElement('link');
+            fLink.id = 'pm-julius-font';
+            fLink.rel = 'stylesheet';
+            fLink.href = 'https://fonts.googleapis.com/css2?family=Julius+Sans+One&display=swap';
+            document.head.appendChild(fLink);
+          }
+
           var mOverlay = document.createElement('div');
           mOverlay.id = overlayId;
-          mOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:9999999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;font-family:sans-serif;';
+          mOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:9999999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;font-family:\'Julius Sans One\', sans-serif;';
           
           var msg = (data.manutenzione_testo || "🔧 Sito temporaneamente in manutenzione.\n\nStiamo migliorando l'ecosistema. Torna tra poco!").replace(/\n/g, '<br>');
           
-          mOverlay.innerHTML = '<div style="background:#ffffff;border-radius:24px;max-width:520px;width:100%;padding:35px 25px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.4);animation:pmFadeIn 0.3s ease;">' +
-            '<div style="margin-bottom:18px;display:flex;justify-content:center;">' +
-              '<img src="https://prof-memmo.github.io/prof-memmo-gestione-siti/assets/avatars/16.png" alt="Capibara in manutenzione" style="width:140px;height:140px;object-fit:cover;border-radius:50%;box-shadow:0 10px 25px rgba(0,0,0,0.15);background:#fef3c7;padding:6px;border:3px solid #f59e0b;">' +
+          mOverlay.innerHTML = '<div style="background:#ffffff;border-radius:28px;max-width:540px;width:100%;padding:40px 30px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.4);position:relative;animation:pmFadeIn 0.3s ease;font-family:\'Julius Sans One\', sans-serif !important;">' +
+            '<button type="button" onclick="document.getElementById(\'pmMaintenanceOverlay\').remove(); document.body.style.overflow=\'auto\';" style="position:absolute; top:18px; right:18px; width:34px; height:34px; border-radius:50%; background:#f1f5f9; border:none; color:#64748b; font-size:1.2rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.05); transition:all 0.2s;" onmouseover="this.style.background=\'#e2e8f0\'; this.style.color=\'#0f172a\';" onmouseout="this.style.background=\'#f1f5f9\'; this.style.color=\'#64748b\';" title="Chiudi">&times;</button>' +
+            '<div style="margin-bottom:20px;display:flex;justify-content:center;">' +
+              '<img src="https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/16.png" alt="Capibara in manutenzione" style="width:140px;height:140px;object-fit:cover;border-radius:50%;box-shadow:0 10px 25px rgba(0,0,0,0.15);background:#fef3c7;padding:6px;border:3px solid #f59e0b;">' +
             '</div>' +
-            '<h2 style="font-size:1.6rem;color:#0f172a;margin:0 0 12px;font-weight:800;">Lavori in Corso 🔧</h2>' +
-            '<p style="font-size:1.02rem;line-height:1.6;color:#475569;margin:0 0 20px;">' + msg + '</p>' +
-            '<div style="font-size:0.85rem;color:#94a3b8;font-weight:600;">Ecosistema Didattico Prof. Memmo</div>' +
+            '<h2 style="font-family:\'Julius Sans One\', sans-serif !important;font-size:1.7rem;color:#0f172a;margin:0 0 16px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center !important;">Lavori in Corso 🔧</h2>' +
+            '<div style="font-family:\'Julius Sans One\', sans-serif !important;font-size:1.05rem;line-height:1.8;color:#334155;margin:0 0 25px;text-transform:uppercase;letter-spacing:1px;text-align:center !important;">' + msg + '</div>' +
+            '<div style="font-family:\'Julius Sans One\', sans-serif !important;font-size:0.95rem;color:#94a3b8;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:20px;text-align:center !important;">Prof. Memmo</div>' +
           '</div>';
           
           document.body.appendChild(mOverlay);
