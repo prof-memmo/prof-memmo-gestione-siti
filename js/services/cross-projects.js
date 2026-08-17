@@ -107,42 +107,101 @@ const CrossProjectsService = {
         let fantaUsers = [];
         let palestraUsers = [];
         let opsUsers = [];
-
-        // Fetch da La Rotta degli Eroi
-        try {
-            const eroiRestUsers = await this.fetchUsersREST("la-rotta-degli-eroi", "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A", "Eroi");
-            eroiRestUsers.forEach(u => { eroiUsers.push({ ...u, gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship' }); });
-        } catch(e) { console.warn("Eroi REST error:", e); }
-
-        // Fetch da La Corte della Commedia
-        try {
-            const commediaRestUsers = await this.fetchUsersREST("la-corte-della-commedia", "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls", "Commedia");
-            commediaRestUsers.forEach(u => { commediaUsers.push({ ...u, gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open' }); });
-        } catch(e) { console.warn("Commedia REST error:", e); }
-
-        // Fetch da Fantaletteratura
-        try {
-            const fantaRestUsers = await this.fetchUsersREST("fantaletteratura-a7ff1", "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ", "Fanta");
-            fantaRestUsers.forEach(u => { fantaUsers.push({ ...u, gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon' }); });
-        } catch(e) { console.warn("Fanta REST error:", e); }
-
-        // Fetch da Palestra di Riflessione
-        try {
-            const palestraRestUsers = await this.fetchUsersREST("palestra-riflessione", "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo", "Palestra");
-            palestraRestUsers.forEach(u => { palestraUsers.push({ ...u, gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain' }); });
-        } catch(e) { console.warn("Palestra REST error:", e); }
-
-        // Fetch da Ops! Operazione Storia
-        try {
-            // Ops non ha un'app inizializzata separatamente in firebase-init.js (usa il default o fallisce se non c'è),
-            // ma passiamo "[DEFAULT]" implicitamente omettendolo se non c'è un'app "Ops".
-            const opsRestUsers = await this.fetchUsersREST("ops-storia", "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY", "Ops"); // Aggiungo "Ops" caso mai venga inizializzata
-            opsRestUsers.forEach(u => { opsUsers.push({ ...u, gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left' }); });
-        } catch(e) { console.warn("Ops REST error:", e); }
-
-        // Fetch da Hub Centrale
         let hubUsers = [];
+
+        // 1. Fetch diretto dalle collezioni già presenti in Hub Centrale
         if (window.fbDb && window.fbDb.hub) {
+            // FantaLetteratura
+            try {
+                const snapFanta = await window.fbDb.hub.collection("fanta_users").get();
+                snapFanta.forEach(doc => {
+                    const data = doc.data();
+                    fantaUsers.push({
+                        id: doc.id,
+                        nome: (data.name || data.nome || data.displayName || data.username || 'Utente Fanta'),
+                        email: data.email || (doc.id.includes('@') ? doc.id : ''),
+                        ruolo: data.role || data.ruolo || 'studente',
+                        classe: data.teamId || data.classe || data.class || 'N/A',
+                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
+                        gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon',
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
+                    });
+                });
+            } catch(e) { console.warn("Fanta Hub fetch error:", e); }
+
+            // La Rotta degli Eroi
+            try {
+                const snapEroi = await window.fbDb.hub.collection("eroi_users").get();
+                snapEroi.forEach(doc => {
+                    const data = doc.data();
+                    eroiUsers.push({
+                        id: doc.id,
+                        nome: (data.name || data.nome || data.displayName || 'Utente Eroi'),
+                        email: data.email || (doc.id.includes('@') ? doc.id : ''),
+                        ruolo: data.role || data.ruolo || 'studente',
+                        classe: data.classId || data.classe || data.class || 'N/A',
+                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
+                        gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship',
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
+                    });
+                });
+            } catch(e) { console.warn("Eroi Hub fetch error:", e); }
+
+            // Palestra di Riflessione
+            try {
+                const snapPal = await window.fbDb.hub.collection("palestra_users").get();
+                snapPal.forEach(doc => {
+                    const data = doc.data();
+                    palestraUsers.push({
+                        id: doc.id,
+                        nome: (data.name || data.nome || data.displayName || 'Utente Palestra'),
+                        email: data.email || (doc.id.includes('@') ? doc.id : ''),
+                        ruolo: data.role || data.ruolo || 'studente',
+                        classe: data.classId || data.classe || data.class || 'N/A',
+                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
+                        gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain',
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
+                    });
+                });
+            } catch(e) { console.warn("Palestra Hub fetch error:", e); }
+
+            // La Corte della Commedia
+            try {
+                const snapCommedia = await window.fbDb.hub.collection("corte_users").get();
+                snapCommedia.forEach(doc => {
+                    const data = doc.data();
+                    commediaUsers.push({
+                        id: doc.id,
+                        nome: (data.name || data.nome || data.displayName || 'Utente Commedia'),
+                        email: data.email || (doc.id.includes('@') ? doc.id : ''),
+                        ruolo: data.role || data.ruolo || 'studente',
+                        classe: data.classId || data.classe || data.class || 'N/A',
+                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
+                        gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open',
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
+                    });
+                });
+            } catch(e) { console.warn("Commedia Hub fetch error:", e); }
+
+            // Ops! Operazione Storia
+            try {
+                const snapOps = await window.fbDb.hub.collection("ops_users").get();
+                snapOps.forEach(doc => {
+                    const data = doc.data();
+                    opsUsers.push({
+                        id: doc.id,
+                        nome: (data.name || data.nome || data.displayName || 'Utente Ops'),
+                        email: data.email || (doc.id.includes('@') ? doc.id : ''),
+                        ruolo: data.role || data.ruolo || 'studente',
+                        classe: data.classId || data.classe || data.class || 'N/A',
+                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
+                        gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left',
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
+                    });
+                });
+            } catch(e) { console.warn("Ops Hub fetch error:", e); }
+
+            // Hub Users
             try {
                 const snapHub = await window.fbDb.hub.collection("hub_users").get();
                 snapHub.forEach(doc => {
@@ -160,7 +219,39 @@ const CrossProjectsService = {
                         plan: data.subscription || data.abbonamento || (data.role === 'studente' ? 'studente' : 'base')
                     });
                 });
-            } catch(e) { console.warn("Hub auth error:", e); }
+            } catch(e) { console.warn("Hub users fetch error:", e); }
+        }
+
+        // 2. Fallback REST dai vecchi server solo se il conteggio è 0
+        if (eroiUsers.length === 0) {
+            try {
+                const eroiRestUsers = await this.fetchUsersREST("la-rotta-degli-eroi", "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A", "Eroi");
+                eroiRestUsers.forEach(u => { eroiUsers.push({ ...u, gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship' }); });
+            } catch(e) {}
+        }
+        if (commediaUsers.length === 0) {
+            try {
+                const commediaRestUsers = await this.fetchUsersREST("la-corte-della-commedia", "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls", "Commedia");
+                commediaRestUsers.forEach(u => { commediaUsers.push({ ...u, gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open' }); });
+            } catch(e) {}
+        }
+        if (fantaUsers.length === 0) {
+            try {
+                const fantaRestUsers = await this.fetchUsersREST("fantaletteratura-a7ff1", "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ", "Fanta");
+                fantaRestUsers.forEach(u => { fantaUsers.push({ ...u, gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon' }); });
+            } catch(e) {}
+        }
+        if (palestraUsers.length === 0) {
+            try {
+                const palestraRestUsers = await this.fetchUsersREST("palestra-riflessione", "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo", "Palestra");
+                palestraRestUsers.forEach(u => { palestraUsers.push({ ...u, gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain' }); });
+            } catch(e) {}
+        }
+        if (opsUsers.length === 0) {
+            try {
+                const opsRestUsers = await this.fetchUsersREST("ops-storia", "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY", "Ops");
+                opsRestUsers.forEach(u => { opsUsers.push({ ...u, gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left' }); });
+            } catch(e) {}
         }
 
         const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers, ...opsUsers, ...hubUsers];
