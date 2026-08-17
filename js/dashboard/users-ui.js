@@ -390,7 +390,7 @@ const UsersUI = {
     },
 
     /**
-     * Filtro rapido tramite le "card" superiori (Studenti, Docenti, ecc.)
+     * Filtro rapido tramite le "card" superiori (Studenti, Docenti, Scuole, ecc.)
      */
     filterIscrittiByCard: function(roleType) {
         this.activeRoleFilter = roleType;
@@ -404,9 +404,196 @@ const UsersUI = {
     },
 
     /**
+     * Renderizza la vista dedicata a Scuole & Istituti
+     */
+    renderSchoolsTable: function() {
+        const thead = document.querySelector('#hub-iscritti-table thead');
+        const tbody = document.querySelector('#hub-iscritti-table tbody');
+        const bulkContainer = document.getElementById('bulk-actions-container');
+        if (bulkContainer) bulkContainer.classList.add('hidden');
+
+        if (thead) {
+            thead.innerHTML = `
+                <tr>
+                    <th style="padding: 12px 15px;">🏫 Istituto / Scuola</th>
+                    <th style="padding: 12px 15px;">📍 Città / Sede</th>
+                    <th style="padding: 12px 15px;">👨‍🏫 Docente Referente</th>
+                    <th style="padding: 12px 15px; text-align: center;">📁 Classi Attive</th>
+                    <th style="padding: 12px 15px; text-align: center;">🎒 Studenti Iscritti</th>
+                    <th style="padding: 12px 15px;">🎮 Piattaforme</th>
+                    <th style="padding: 12px 15px; text-align: center;">✉️ Contatta</th>
+                </tr>
+            `;
+        }
+
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        const searchInput = document.getElementById('search-iscritti') ? document.getElementById('search-iscritti').value.toLowerCase() : '';
+
+        // Estrai e raggruppa le scuole da tutti gli utenti registrati
+        const schoolsMap = new Map();
+
+        (this.allUsers || []).forEach(u => {
+            let schoolName = (u.scuola || u.school || (u.anagrafica && u.anagrafica.scuola) || '').trim();
+            let className = (u.classe || u.className || '').trim();
+            
+            if (!schoolName && className.includes(' - ')) {
+                const parts = className.split(' - ');
+                if (parts.length > 1) schoolName = parts[1].trim();
+            }
+
+            if (!schoolName || schoolName.toUpperCase() === 'N/A' || schoolName.toUpperCase() === 'N/D') return;
+
+            const key = schoolName.toLowerCase();
+            if (!schoolsMap.has(key)) {
+                schoolsMap.set(key, {
+                    name: schoolName,
+                    city: (u.citta || u.city || (u.anagrafica && u.anagrafica.citta) || 'Sede Principale').trim(),
+                    teachers: new Map(),
+                    classes: new Set(),
+                    studentCount: 0,
+                    games: new Set()
+                });
+            }
+
+            const item = schoolsMap.get(key);
+            if (u.citta || u.city) item.city = (u.citta || u.city).trim();
+            if (u.gioco) item.games.add(u.gioco);
+            if (className && className !== 'N/A' && className !== 'N/D') item.classes.add(className);
+
+            const role = (u.ruolo || '').toLowerCase();
+            const isDoc = role.includes('docente') || role.includes('teacher') || role.includes('prof') || role.includes('admin');
+            if (isDoc) {
+                const docEmail = u.email || u.id;
+                const docName = u.nome || u.displayName || 'Docente Referente';
+                item.teachers.set(docEmail, docName);
+            } else {
+                item.studentCount++;
+            }
+        });
+
+        const schoolsList = Array.from(schoolsMap.values()).filter(s => {
+            return s.name.toLowerCase().includes(searchInput) || s.city.toLowerCase().includes(searchInput);
+        });
+
+        if (schoolsList.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align:center; padding: 40px; color: var(--text-muted);">
+                        <i class="fa-solid fa-school" style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 12px; display: block;"></i>
+                        Nessun istituto scolastico trovato ${searchInput ? 'con questo criterio di ricerca.' : 'registrato.'}
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        schoolsList.sort((a, b) => a.name.localeCompare(b.name)).forEach(s => {
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid #edf2f7';
+
+            // Docenti referenti
+            let teachersHtml = '';
+            if (s.teachers.size > 0) {
+                teachersHtml = Array.from(s.teachers.entries()).map(([email, name]) => {
+                    return `<div style="font-size: 0.85rem; font-weight: 600; color: #1e293b;">
+                        👨‍🏫 ${name} <span style="font-size: 0.75rem; color: #64748b;">(${email})</span>
+                    </div>`;
+                }).join('');
+            } else {
+                teachersHtml = `<span style="font-size: 0.8rem; color: #94a3b8; font-style: italic;">Nessun docente registrato</span>`;
+            }
+
+            // Badge classi
+            let classesHtml = '';
+            if (s.classes.size > 0) {
+                classesHtml = Array.from(s.classes).map(c => {
+                    return `<span style="display: inline-block; background: #e0e7ff; color: #4338ca; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin: 2px;">${c}</span>`;
+                }).join(' ');
+            } else {
+                classesHtml = `<span style="font-size: 0.8rem; color: #94a3b8;">--</span>`;
+            }
+
+            // Piattaforme badge
+            let gamesHtml = Array.from(s.games).map(g => {
+                let color = '#6366f1';
+                if (g.includes('Palestra')) color = '#8b5cf6';
+                if (g.includes('Rotta')) color = '#d97706';
+                if (g.includes('Fanta')) color = '#dc2626';
+                if (g.includes('Commedia')) color = '#b45309';
+                if (g.includes('Ops')) color = '#0284c7';
+                return `<span style="display: inline-block; background: #f8fafc; border: 1px solid #e2e8f0; color: ${color}; padding: 2px 7px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; margin: 2px;">${g}</span>`;
+            }).join(' ');
+
+            // Email primo docente referente
+            const firstEmail = s.teachers.size > 0 ? Array.from(s.teachers.keys())[0] : '';
+            const emailBtn = firstEmail ? `
+                <a href="mailto:${firstEmail}" title="Scrivi al referente" style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: #e0f2fe; color: #0284c7; text-decoration: none; font-size: 0.9rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-envelope"></i>
+                </a>
+            ` : `<span style="color: #cbd5e1;">-</span>`;
+
+            tr.innerHTML = `
+                <td style="padding: 14px 15px; font-weight: 800; color: #1e293b;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 1.2rem;">🏫</span>
+                        <span>${s.name}</span>
+                    </div>
+                </td>
+                <td style="padding: 14px 15px; color: #475569; font-size: 0.9rem;">
+                    📍 ${s.city}
+                </td>
+                <td style="padding: 14px 15px;">
+                    ${teachersHtml}
+                </td>
+                <td style="padding: 14px 15px; text-align: center;">
+                    ${classesHtml}
+                </td>
+                <td style="padding: 14px 15px; text-align: center;">
+                    <span style="display: inline-block; background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.85rem;">
+                        ${s.studentCount} studenti
+                    </span>
+                </td>
+                <td style="padding: 14px 15px;">
+                    ${gamesHtml || '--'}
+                </td>
+                <td style="padding: 14px 15px; text-align: center;">
+                    ${emailBtn}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    },
+
+    /**
      * Applica tutti i filtri (Testuale, Gioco, Ruolo, e futuri filtri Piano/Piattaforma)
      */
     filterIscritti: function() {
+        if (this.activeRoleFilter === 'scuole') {
+            this.renderSchoolsTable();
+            return;
+        }
+
+        // Ripristina l'intestazione standard degli utenti se si era su scuole
+        const thead = document.querySelector('#hub-iscritti-table thead');
+        if (thead && !thead.querySelector('#select-all-users')) {
+            thead.innerHTML = `
+                <tr>
+                    <th style="width: 40px; text-align: center;">
+                        <input type="checkbox" id="select-all-users" onclick="window.UsersUI.toggleSelectAll(this.checked)">
+                    </th>
+                    <th onclick="window.UsersUI.sortTable('nome')" class="sortable-th">Nome e Cognome</th>
+                    <th onclick="window.UsersUI.sortTable('ruolo')" class="sortable-th">Ruolo</th>
+                    <th onclick="window.UsersUI.sortTable('data')" class="sortable-th">Iscritto il</th>
+                    <th>Piattaforma</th>
+                    <th>Piano Abbonamento</th>
+                    <th>Scadenza</th>
+                    <th style="text-align: right;">Azioni</th>
+                </tr>
+            `;
+        }
+
         const searchInput = document.getElementById('search-iscritti') ? document.getElementById('search-iscritti').value.toLowerCase() : '';
         const filterGioco = document.getElementById('filter-gioco') ? document.getElementById('filter-gioco').value : 'all';
         const filterOverride = document.getElementById('filter-admin-override') ? document.getElementById('filter-admin-override').value : 'all';
@@ -421,7 +608,6 @@ const UsersUI = {
             let matchesRole = true;
             if (this.activeRoleFilter !== 'tutti') {
                 const r = (user.ruolo || '').toLowerCase();
-                const c = (user.classe || '').toUpperCase().trim();
                 
                 if (this.activeRoleFilter === 'studenti') {
                     matchesRole = r.includes('student') || r === 'studente';
@@ -429,8 +615,6 @@ const UsersUI = {
                     matchesRole = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r === 'prof';
                 } else if (this.activeRoleFilter === 'viandanti') {
                     matchesRole = !r.includes('student') && !r.includes('teacher') && !r.includes('admin') && !r.includes('docente') && r !== 'studente' && r !== 'prof';
-                } else if (this.activeRoleFilter === 'scuole') {
-                    matchesRole = (c && c !== 'N/A' && c !== '' && c !== 'TEST' && c !== 'N/D');
                 }
             }
 
