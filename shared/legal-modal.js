@@ -518,8 +518,10 @@
               '<img src="https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/16.png" alt="Capibara in manutenzione" style="width:140px;height:140px;object-fit:cover;border-radius:50%;box-shadow:0 10px 25px rgba(0,0,0,0.15);background:#fef3c7;padding:6px;border:3px solid #f59e0b;">' +
             '</div>' +
             '<h2 style="font-family:\'Julius Sans One\', sans-serif !important;font-size:1.7rem;color:#0f172a;margin:0 0 16px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center !important;">Lavori in Corso 🔧</h2>' +
-            '<div style="font-family:\'Julius Sans One\', sans-serif !important;font-size:1.05rem;line-height:1.8;color:#334155;margin:0 0 25px;text-transform:uppercase;letter-spacing:1px;text-align:center !important;">' + msg + '</div>' +
-            '<div style="font-family:\'Julius Sans One\', sans-serif !important;font-size:0.95rem;color:#94a3b8;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:20px;text-align:center !important;">Prof. Memmo</div>' +
+            '<div style="font-family:\'Julius Sans One\', sans-serif !important;font-size:1.05rem;line-height:1.8;color:#334155;margin:0 0 20px;text-transform:uppercase;letter-spacing:1px;text-align:center !important;">' + msg + '</div>' +
+            '<div style="display:flex;justify-content:center;align-items:center;margin-top:15px;">' +
+              '<img src="https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/branding/prof-memmo/firma-prof-memmo.png" alt="Firma Prof. Memmo" style="height:70px;max-width:220px;width:auto;object-fit:contain;opacity:0.85;">' +
+            '</div>' +
           '</div>';
           
           document.body.appendChild(mOverlay);
