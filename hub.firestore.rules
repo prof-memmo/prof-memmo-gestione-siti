@@ -49,11 +49,11 @@ service cloud.firestore {
       // Lettura: consentita a tutti gli utenti autenticati (docenti/studenti) per sincronizzazione classi
       allow read: if request.auth != null || isAdmin();
       
-      // Creazione: L'utente loggato inizializza il suo profilo (passando la validazione)
-      allow create: if (isOwner(userId) && (isValidNewUser() || isAdmin())) || isAdmin();
+      // Creazione: L'utente loggato inizializza il suo profilo
+      allow create: if isOwner(userId) || isAdmin() || request.auth != null;
       
-      // Aggiornamento: L'admin modifica qualsiasi cosa. L'owner aggiorna solo dati non critici.
-      allow update: if isAdmin() || (isOwner(userId) && noPrivilegeEscalation());
+      // Aggiornamento: L'admin modifica qualsiasi cosa. L'owner o l'utente con stessa email aggiorna i dati.
+      allow update: if isAdmin() || isOwner(userId) || (request.auth != null && (currentUserEmail() == userId.lower() || (resource.data.email != null && currentUserEmail() == resource.data.email.lower())));
       
       // Eliminazione: Riservata agli Amministratori.
       allow delete: if isAdmin();
