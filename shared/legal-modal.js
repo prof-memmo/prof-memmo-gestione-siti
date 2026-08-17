@@ -487,17 +487,36 @@
       var snap = await db.collection('hub_settings').doc('impostazioni').get();
       if (!snap.exists) return;
       var data = snap.data();
-      if (data && data.manutenzione) {
-        var user = firebase.auth && firebase.auth().currentUser;
-        if (user && user.email && user.email.toLowerCase() === 'prof.memmo@gmail.com') {
-          console.log("[Ecosystem] Admin bypass manutenzione");
+      if (!data || !data.manutenzione) {
+        var existingOverlay = document.getElementById('pmMaintenanceOverlay');
+        if (existingOverlay) existingOverlay.remove();
+        document.body.style.overflow = 'auto';
+        return;
+      }
+
+      function applyMaintenance(user) {
+        var isAdmin = user && user.email && user.email.toLowerCase() === 'prof.memmo@gmail.com';
+        var overlayId = 'pmMaintenanceOverlay';
+        var existing = document.getElementById(overlayId);
+
+        if (isAdmin) {
+          // L'admin non viene bloccato e vede un badge discreto
+          if (existing) {
+            existing.remove();
+            document.body.style.overflow = 'auto';
+          }
+          if (!document.getElementById('pm-admin-maintenance-badge')) {
+            var badge = document.createElement('div');
+            badge.id = 'pm-admin-maintenance-badge';
+            badge.style.cssText = 'position:fixed;bottom:15px;right:15px;background:#f59e0b;color:#000;padding:8px 16px;border-radius:30px;font-size:0.78rem;font-weight:800;z-index:999999;box-shadow:0 4px 15px rgba(0,0,0,0.3);display:flex;align-items:center;gap:6px;';
+            badge.innerHTML = '<span>🔧</span> Manutenzione Attiva (Bypass Admin)';
+            document.body.appendChild(badge);
+          }
           return;
         }
 
-        var overlayId = 'pmMaintenanceOverlay';
-        var existing = document.getElementById(overlayId);
+        // Blocco totale per visitatori e studenti: NESSUNA X per chiudere
         if (!existing) {
-          // Carica Google Font 'Julius Sans One' se non presente
           if (!document.getElementById('pm-julius-font')) {
             var fLink = document.createElement('link');
             fLink.id = 'pm-julius-font';
@@ -508,12 +527,11 @@
 
           var mOverlay = document.createElement('div');
           mOverlay.id = overlayId;
-          mOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:9999999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;font-family:\'Julius Sans One\', sans-serif;';
+          mOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:9999999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;font-family:\'Julius Sans One\', sans-serif;';
           
           var msg = (data.manutenzione_testo || "🔧 Sito temporaneamente in manutenzione.\n\nStiamo migliorando l'ecosistema. Torna tra poco!").replace(/\n/g, '<br>');
           
           mOverlay.innerHTML = '<div style="background:#ffffff;border-radius:28px;max-width:540px;width:100%;padding:40px 30px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.4);position:relative;animation:pmFadeIn 0.3s ease;font-family:\'Julius Sans One\', sans-serif !important;">' +
-            '<button type="button" onclick="document.getElementById(\'pmMaintenanceOverlay\').remove(); document.body.style.overflow=\'auto\';" style="position:absolute; top:18px; right:18px; width:34px; height:34px; border-radius:50%; background:#f1f5f9; border:none; color:#64748b; font-size:1.2rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.05); transition:all 0.2s;" onmouseover="this.style.background=\'#e2e8f0\'; this.style.color=\'#0f172a\';" onmouseout="this.style.background=\'#f1f5f9\'; this.style.color=\'#64748b\';" title="Chiudi">&times;</button>' +
             '<div style="margin-bottom:20px;display:flex;justify-content:center;">' +
               '<img src="https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/16.png" alt="Capibara in manutenzione" style="width:140px;height:140px;object-fit:cover;border-radius:50%;box-shadow:0 10px 25px rgba(0,0,0,0.15);background:#fef3c7;padding:6px;border:3px solid #f59e0b;">' +
             '</div>' +
@@ -527,6 +545,16 @@
           document.body.appendChild(mOverlay);
           document.body.style.overflow = 'hidden';
         }
+      }
+
+      if (typeof firebase.auth === 'function') {
+        var initialUser = firebase.auth().currentUser;
+        applyMaintenance(initialUser);
+        firebase.auth().onAuthStateChanged(function(user) {
+          applyMaintenance(user);
+        });
+      } else {
+        applyMaintenance(null);
       }
     } catch(e) {
       console.warn("[Ecosystem] Errore verifica manutenzione:", e);
