@@ -37,13 +37,15 @@ const ImpostazioniUI = {
 
         if (btn && statusText) {
             if (isManutenzione) {
+                btn.classList.add('on');
                 btn.classList.add('active');
                 statusText.textContent = 'ON';
-                statusText.style.color = '#ef4444';
+                statusText.style.color = 'white';
             } else {
+                btn.classList.remove('on');
                 btn.classList.remove('active');
                 statusText.textContent = 'OFF';
-                statusText.style.color = 'var(--text-muted)';
+                statusText.style.color = '#b91c1c';
             }
         }
 

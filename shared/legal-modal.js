@@ -503,10 +503,12 @@
           
           var msg = (data.manutenzione_testo || "🔧 Sito temporaneamente in manutenzione.\n\nStiamo migliorando l'ecosistema. Torna tra poco!").replace(/\n/g, '<br>');
           
-          mOverlay.innerHTML = '<div style="background:#ffffff;border-radius:24px;max-width:540px;width:100%;padding:40px 30px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.4);animation:pmFadeIn 0.3s ease;">' +
-            '<div style="font-size:3.5rem;margin-bottom:15px;">🔧</div>' +
-            '<h2 style="font-size:1.6rem;color:#0f172a;margin:0 0 15px;font-weight:800;">Lavori in Corso</h2>' +
-            '<p style="font-size:1.05rem;line-height:1.6;color:#475569;margin:0 0 25px;">' + msg + '</p>' +
+          mOverlay.innerHTML = '<div style="background:#ffffff;border-radius:24px;max-width:520px;width:100%;padding:35px 25px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.4);animation:pmFadeIn 0.3s ease;">' +
+            '<div style="margin-bottom:18px;display:flex;justify-content:center;">' +
+              '<img src="https://prof-memmo.github.io/prof-memmo-gestione-siti/assets/avatars/16.png" alt="Capibara in manutenzione" style="width:140px;height:140px;object-fit:cover;border-radius:50%;box-shadow:0 10px 25px rgba(0,0,0,0.15);background:#fef3c7;padding:6px;border:3px solid #f59e0b;">' +
+            '</div>' +
+            '<h2 style="font-size:1.6rem;color:#0f172a;margin:0 0 12px;font-weight:800;">Lavori in Corso 🔧</h2>' +
+            '<p style="font-size:1.02rem;line-height:1.6;color:#475569;margin:0 0 20px;">' + msg + '</p>' +
             '<div style="font-size:0.85rem;color:#94a3b8;font-weight:600;">Ecosistema Didattico Prof. Memmo</div>' +
           '</div>';
           
