@@ -225,9 +225,15 @@ const PortalApp = {
             // Handle URL auto-redirect (SSO Flow)
             const urlParams = new URLSearchParams(window.location.search);
             const redirectTarget = urlParams.get('redirect');
-            if (redirectTarget && this.profile.platforms && this.profile.platforms[redirectTarget] && this.profile.platforms[redirectTarget].enabled) {
-                this.openPlatform(redirectTarget);
-                return;
+            if (redirectTarget) {
+                const isAdmin = (this.profile.role === 'admin' || (this.user.email && this.user.email.toLowerCase() === 'prof.memmo@gmail.com'));
+                const isGeneralRole = (this.profile.role === 'studente' || this.profile.role === 'viandante' || this.profile.role === 'forestiero');
+                const isExplicitlyEnabled = (this.profile.platforms && this.profile.platforms[redirectTarget] && this.profile.platforms[redirectTarget].enabled);
+                
+                if (isAdmin || isGeneralRole || isExplicitlyEnabled) {
+                    this.openPlatform(redirectTarget);
+                    return;
+                }
             }
             
             this.renderPlatforms();
