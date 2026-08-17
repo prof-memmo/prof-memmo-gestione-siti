@@ -1970,43 +1970,55 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
         </div>
       </div>
 
-      <!-- Strumento Migrazione Database Unico Hub -->
-      <div class="glass-panel" style="margin-bottom:24px; border-left:4px solid #10b981;">
-        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+      <!-- 1. Diagnostica & Sistema Ecosistema -->
+      <div class="glass-panel" style="margin-bottom:24px; border: 1px solid rgba(99, 102, 241, 0.3); background: #ffffff;">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
           <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa-solid fa-database" style="font-size:1.4rem; color:#10b981;"></i>
+            <i class="fa-solid fa-satellite-dish" style="font-size:1.4rem; color:#6366f1;"></i>
             <div>
-              <h3 style="margin:0; color:var(--text-main);">Database Unico & Migrazione Dati Ecosistema</h3>
-              <p style="color:var(--text-muted); font-size:0.85rem; margin:4px 0 0 0;">Copia tutti i dati storici (utenti, classi, progressi, punteggi, squadre, sentenze) dai singoli database al database centrale <code>prof-memmo-hub</code>.</p>
+              <h3 style="margin:0; color:var(--text-main);">Diagnostica &amp; Salute Database Centrale</h3>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin:4px 0 0 0;">Verifica in tempo reale la connessione e lo stato di tutte le collezioni del database <code>prof-memmo-hub</code>.</p>
             </div>
           </div>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button onclick="window.openHubMigrationModal()" class="btn" style="background:#10b981; color:white; font-weight:700; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">
-              <i class="fa-solid fa-bolt"></i> ⚡ Avvia Migrazione Dati (1 Click)
+            <button onclick="ImpostazioniUI.testConnessioneGlobale()" class="btn" style="background:#6366f1; color:white; font-weight:700; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">
+              <i class="fa-solid fa-satellite-dish"></i> Test Connessione Ecosistema
             </button>
-            <a href="ecosistema_migration_tool.html" target="_blank" class="btn outline" style="border-color:#10b981; color:#10b981; font-weight:600; text-decoration:none; padding:10px 16px; border-radius:8px;">
-              <i class="fa-solid fa-arrow-up-right-from-square"></i> Scheda Separata
-            </a>
+            <button onclick="ImpostazioniUI.resetNotificheGlobali()" class="btn" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; font-weight:700; padding:10px 18px; border-radius:8px; cursor:pointer;">
+              <i class="fa-solid fa-bell-slash"></i> Reset Notifiche Globali
+            </button>
           </div>
+        </div>
+        <div id="diagnostica-global-result" style="display:none; padding: 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem;"></div>
+      </div>
+
+      <!-- 2. Danger Zone: Reset Stagione Centralizzato -->
+      <div class="glass-panel" style="margin-bottom:24px; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(254, 242, 242, 0.6);">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:15px;">
+          <div>
+            <h3 style="margin:0 0 6px 0; color:#dc2626;"><i class="fa-solid fa-rotate-left"></i> Reset Validazioni &amp; Punteggi Stagione (Globale)</h3>
+            <p style="color:#64748b; font-size:0.85rem; margin:0; max-width: 700px;">
+              Azzera contemporaneamente tutti i verdetti emessi, le missioni e i punteggi stagionali su tutti i 5 giochi dell'Ecosistema (*Rotta, Commedia, Fanta, Palestra, Ops*) per inaugurare il nuovo anno scolastico. <strong>Studenti, docenti e classi rimangono intatti e preservati.</strong>
+            </p>
+          </div>
+          <button onclick="ImpostazioniUI.resetStagioneGlobale()" class="btn" style="background:#ef4444; color:white; font-weight:800; border:none; padding:10px 22px; border-radius:8px; cursor:pointer; box-shadow: 0 4px 12px rgba(239,68,68,0.25);">
+            <i class="fa-solid fa-rotate-left"></i> Azzera Stagione per Tutti i Siti
+          </button>
         </div>
       </div>
 
-      <!-- Link rapidi siti -->
-      <div class="glass-panel" style="margin-bottom:24px;">
-        <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-link" style="color:#6366f1;"></i> Link Rapidi Siti</h3>
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px; margin-top:12px;">
-          <a href="https://prof-memmo.github.io/games/" target="_blank" style="display:flex; align-items:center; gap:10px; padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; text-decoration:none; color:#334155; font-weight:600; font-size:0.9rem; transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
-            <i class="fa-solid fa-globe" style="color:#2563eb; font-size:1.2rem;"></i> Sito Vetrina
-          </a>
-          <a href="https://prof-memmo.github.io/Fantaletteratura" target="_blank" style="display:flex; align-items:center; gap:10px; padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; text-decoration:none; color:#334155; font-weight:600; font-size:0.9rem; transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
-            <i class="fa-solid fa-gamepad" style="color:#10b981; font-size:1.2rem;"></i> FantaLetteratura
-          </a>
-          <a href="https://prof-memmo.github.io/rotta-eroi" target="_blank" style="display:flex; align-items:center; gap:10px; padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; text-decoration:none; color:#334155; font-weight:600; font-size:0.9rem; transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
-            <i class="fa-solid fa-compass" style="color:#f59e0b; font-size:1.2rem;"></i> Rotta degli Eroi
-          </a>
-          <a href="https://prof-memmo.github.io/corte-commedia" target="_blank" style="display:flex; align-items:center; gap:10px; padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; text-decoration:none; color:#334155; font-weight:600; font-size:0.9rem; transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
-            <i class="fa-solid fa-masks-theater" style="color:#8b5cf6; font-size:1.2rem;"></i> Corte della Commedia
-          </a>
+      <!-- 3. Archiviazione Annuale Centralizzata -->
+      <div class="glass-panel" style="margin-bottom:24px; border: 1px solid rgba(217, 119, 6, 0.3); background: rgba(254, 252, 232, 0.6);">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:15px;">
+          <div>
+            <h3 style="margin:0 0 6px 0; color:#d97706;"><i class="fa-solid fa-box-archive"></i> Archiviazione Annuale Centralizzata Ecosistema</h3>
+            <p style="color:#64748b; font-size:0.85rem; margin:0; max-width: 700px;">
+              Scatta una "fotografia storica" completa della classifica finale, delle statistiche e dei verdetti di tutti i giochi per l'anno scolastico in corso e la salva nell'<strong>Archivio Storico dell'Hub</strong>, consultabile o ripristinabile in qualsiasi momento.
+            </p>
+          </div>
+          <button onclick="ImpostazioniUI.archiviaAnnoGlobale()" class="btn" style="background:#d97706; color:white; font-weight:800; border:none; padding:10px 22px; border-radius:8px; cursor:pointer; box-shadow: 0 4px 12px rgba(217,119,6,0.25);">
+            <i class="fa-solid fa-box-archive"></i> Esegui Archiviazione Anno
+          </button>
         </div>
       </div>
     </div>
