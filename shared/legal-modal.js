@@ -415,11 +415,20 @@
     }
   }
 
+  function getFirestoreInstance() {
+    try {
+      if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length && typeof firebase.app === 'function') {
+        return firebase.app().firestore();
+      }
+    } catch(e) {}
+    return null;
+  }
+
   // Sincronizzazione dinamica di Copyright e Dati Fiscali nel Footer di qualsiasi sito
   async function syncEcosystemFooterLegalData() {
-    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
+    var db = getFirestoreInstance();
+    if (!db) return;
     try {
-      var db = firebase.app().firestore();
       var snap = await db.collection('ecosistema_settings').doc('legal').get();
       if (!snap.exists) return;
       var data = snap.data();
@@ -481,9 +490,9 @@
 
   // Controllo Modalità Manutenzione Globale
   async function checkEcosystemMaintenanceMode() {
-    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
+    var db = getFirestoreInstance();
+    if (!db) return;
     try {
-      var db = firebase.app().firestore();
       var snap = await db.collection('hub_settings').doc('impostazioni').get();
       if (!snap.exists) return;
       var data = snap.data();
@@ -694,16 +703,18 @@
     checkEcosystemMaintenanceMode();
     syncEcosystemMenuLinks();
 
-    if (typeof firebase !== 'undefined' && firebase.auth) {
-      firebase.auth().onAuthStateChanged(function(user) {
-        checkEcosystemMaintenanceMode();
-        syncEcosystemMenuLinks();
-        syncAuthProfileLink(user);
-        if (user) {
-          checkEcosystemNotificationsAndExpiration();
-        }
-      });
-    }
+    try {
+      if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length && typeof firebase.auth === 'function') {
+        firebase.auth().onAuthStateChanged(function(user) {
+          checkEcosystemMaintenanceMode();
+          syncEcosystemMenuLinks();
+          syncAuthProfileLink(user);
+          if (user) {
+            checkEcosystemNotificationsAndExpiration();
+          }
+        });
+      }
+    } catch(e) {}
   });
 
 })();
