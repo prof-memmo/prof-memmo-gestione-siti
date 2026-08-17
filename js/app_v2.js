@@ -190,6 +190,28 @@ const HubApp = {
     sortIscritti: function(column) { if(window.UsersUI) window.UsersUI.sortIscritti(column); },
     filterIscrittiByCard: function(roleType) { if(window.UsersUI) window.UsersUI.filterIscrittiByCard(roleType); },
     filterIscritti: function() { if(window.UsersUI) window.UsersUI.filterIscritti(); },
+    filterByGameCard: function(gameName) {
+        const select = document.getElementById('filter-gioco');
+        if (select) {
+            select.value = gameName;
+        }
+        document.querySelectorAll('.hub-game-filter').forEach(c => c.classList.remove('active'));
+        
+        let targetId = 'game-filter-all';
+        if (gameName !== 'all') {
+            if (gameName.includes('Eroi')) targetId = 'game-filter-eroi';
+            else if (gameName.includes('Commedia')) targetId = 'game-filter-commedia';
+            else if (gameName.includes('Fanta')) targetId = 'game-filter-fanta';
+            else if (gameName.includes('Palestra')) targetId = 'game-filter-palestra';
+            else if (gameName.includes('Ops')) targetId = 'game-filter-ops';
+        }
+        const activeCard = document.getElementById(targetId);
+        if (activeCard) activeCard.classList.add('active');
+
+        if (window.UsersUI) window.UsersUI.filterIscritti();
+        const table = document.getElementById('hub-iscritti-table');
+        if (table) table.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
     
     // --- BRIDGE NEWSLETTER (Richiamati da HTML via HubApp.*) ---
     sortNews: function(column) { if(window.NewsletterUI) window.NewsletterUI.sortNews(column); },

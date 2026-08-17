@@ -46,6 +46,7 @@ const UsersUI = {
         setHtml('counter-scuole', stats.scuoleSetSize);
         setHtml('counter-tutti', stats.total);
         setHtml('counter-total', stats.total);
+        setHtml('counter-total-games', stats.total);
     },
 
     /**
@@ -594,28 +595,50 @@ const UsersUI = {
             `;
         }
 
-        const searchInput = document.getElementById('search-iscritti') ? document.getElementById('search-iscritti').value.toLowerCase() : '';
+        const searchInput = document.getElementById('search-iscritti') ? document.getElementById('search-iscritti').value.toLowerCase().trim() : '';
         const filterGioco = document.getElementById('filter-gioco') ? document.getElementById('filter-gioco').value : 'all';
         const filterOverride = document.getElementById('filter-admin-override') ? document.getElementById('filter-admin-override').value : 'all';
 
         if (!this.allUsers) return;
 
         const filtered = this.allUsers.filter(user => {
-            const matchesSearch = user.nome.toLowerCase().includes(searchInput) || (user.email && user.email.toLowerCase().includes(searchInput));
-            const matchesGioco = filterGioco === 'all' || user.gioco === filterGioco;
+            const matchesSearch = !searchInput || 
+                (user.nome || '').toLowerCase().includes(searchInput) || 
+                (user.email || '').toLowerCase().includes(searchInput) ||
+                (user.scuola || '').toLowerCase().includes(searchInput) ||
+                (user.classe || '').toLowerCase().includes(searchInput);
+
+            // Corretto controllo gioco (supporta multi-gioco es. "Palestra / Rotta")
+            let matchesGioco = true;
+            if (filterGioco && filterGioco !== 'all') {
+                const g = (user.gioco || '').toLowerCase();
+                const fg = filterGioco.toLowerCase();
+                if (fg.includes('eroi')) matchesGioco = g.includes('eroi');
+                else if (fg.includes('commedia')) matchesGioco = g.includes('commedia');
+                else if (fg.includes('fanta')) matchesGioco = g.includes('fanta');
+                else if (fg.includes('palestra')) matchesGioco = g.includes('palestra');
+                else if (fg.includes('ops')) matchesGioco = g.includes('ops');
+                else matchesGioco = g.includes(fg);
+            }
+
             const matchesOverride = filterOverride === 'all' || (filterOverride === 'override' && !!user.admin_override);
-            
+
+            // Riconoscimento accurato e universale dei ruoli
+            const r = (user.ruolo || '').toLowerCase();
+            const p = (user.plan || '').toLowerCase();
+            const e = (user.email || '').toLowerCase();
+
+            const isDoc = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r.includes('prof') || r.includes('judge') || p.includes('docente') || p.includes('didattic') || p.includes('ecosistema') || e === 'prof.memmo@gmail.com';
+            const isViand = !isDoc && (r.includes('viandante') || r.includes('forestiero') || r.includes('amico') || r.includes('guest') || r.includes('pellegrino') || p.includes('viandante'));
+            const isStud = !isDoc && !isViand;
+
             let matchesRole = true;
-            if (this.activeRoleFilter !== 'tutti') {
-                const r = (user.ruolo || '').toLowerCase();
-                
-                if (this.activeRoleFilter === 'studenti') {
-                    matchesRole = r.includes('student') || r === 'studente';
-                } else if (this.activeRoleFilter === 'docenti') {
-                    matchesRole = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r === 'prof';
-                } else if (this.activeRoleFilter === 'viandanti') {
-                    matchesRole = !r.includes('student') && !r.includes('teacher') && !r.includes('admin') && !r.includes('docente') && r !== 'studente' && r !== 'prof';
-                }
+            if (this.activeRoleFilter === 'studenti') {
+                matchesRole = isStud;
+            } else if (this.activeRoleFilter === 'docenti') {
+                matchesRole = isDoc;
+            } else if (this.activeRoleFilter === 'viandanti') {
+                matchesRole = isViand;
             }
 
             return matchesSearch && matchesGioco && matchesRole && matchesOverride;

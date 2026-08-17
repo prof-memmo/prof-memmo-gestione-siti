@@ -266,11 +266,17 @@ const CrossProjectsService = {
                     if (!existing.gioco.includes(u.gioco)) {
                         existing.gioco += " / " + u.gioco;
                     }
-                    if ((existing.nome === 'Anonimo' || existing.nome === '') && u.nome !== 'Anonimo' && u.nome !== '') {
+                    if ((existing.nome === 'Anonimo' || existing.nome === '' || existing.nome.startsWith('Utente')) && u.nome && u.nome !== 'Anonimo' && !u.nome.startsWith('Utente')) {
                         existing.nome = u.nome;
                     }
                     if (u.plan && u.plan !== 'base') {
                         existing.plan = u.plan;
+                    }
+                    // Se l'utente è docente in uno dei giochi o ha piano docente, impostalo come docente
+                    const uRole = (u.ruolo || '').toLowerCase();
+                    const uPlan = (u.plan || '').toLowerCase();
+                    if (uRole.includes('teacher') || uRole.includes('admin') || uRole.includes('docente') || uRole.includes('prof') || uRole.includes('judge') || uPlan.includes('docente')) {
+                        existing.ruolo = 'docente';
                     }
                 } else {
                     uniqueUsersMap.set(emailKey, {...u});
@@ -287,13 +293,22 @@ const CrossProjectsService = {
         const scuoleSet = new Set();
         deduplicatedUsers.forEach(u => {
             const r = (u.ruolo || '').toLowerCase();
-            if (r.includes('student')) cStudenti++;
-            else if (r.includes('teacher') || r.includes('admin') || r.includes('docente')) cDocenti++;
-            else cViandanti++;
+            const p = (u.plan || '').toLowerCase();
+            const e = (u.email || '').toLowerCase();
+
+            const isDoc = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r.includes('prof') || r.includes('judge') || p.includes('docente') || p.includes('didattic') || p.includes('ecosistema') || e === 'prof.memmo@gmail.com';
+            const isViand = !isDoc && (r.includes('viandante') || r.includes('forestiero') || r.includes('amico') || r.includes('guest') || r.includes('pellegrino') || p.includes('viandante'));
+
+            if (isDoc) cDocenti++;
+            else if (isViand) cViandanti++;
+            else cStudenti++;
 
             let c = (u.classe || '').toUpperCase().trim();
-            if (c && c !== 'N/A' && c !== '' && c !== 'TEST' && c !== 'N/D') {
-                scuoleSet.add(c);
+            let s = (u.scuola || u.school || '').trim();
+            if (s && s.toUpperCase() !== 'N/A' && s.toUpperCase() !== 'N/D') {
+                scuoleSet.add(s.toLowerCase());
+            } else if (c && c !== 'N/A' && c !== '' && c !== 'TEST' && c !== 'N/D') {
+                scuoleSet.add(c.toLowerCase());
             }
         });
 
