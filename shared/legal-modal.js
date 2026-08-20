@@ -517,8 +517,12 @@
           if (!document.getElementById('pm-admin-maintenance-badge')) {
             var badge = document.createElement('div');
             badge.id = 'pm-admin-maintenance-badge';
-            badge.style.cssText = 'position:fixed;bottom:15px;right:15px;background:#f59e0b;color:#000;padding:8px 16px;border-radius:30px;font-size:0.78rem;font-weight:800;z-index:999999;box-shadow:0 4px 15px rgba(0,0,0,0.3);display:flex;align-items:center;gap:6px;';
-            badge.innerHTML = '<span>🔧</span> Manutenzione Attiva (Bypass Admin)';
+            badge.title = 'Clicca per nascondere';
+            badge.style.cssText = 'position:fixed;top:75px;right:10px;background:#f59e0b;color:#000;padding:5px 12px;border-radius:20px;font-size:0.72rem;font-weight:800;z-index:500;box-shadow:0 3px 10px rgba(0,0,0,0.2);display:flex;align-items:center;gap:5px;cursor:pointer;opacity:0.88;transition:opacity 0.2s;user-select:none;';
+            badge.innerHTML = '<span>🔧</span> Manutenzione Attiva';
+            badge.addEventListener('click', function() { badge.remove(); });
+            badge.addEventListener('mouseenter', function() { badge.style.opacity = '1'; });
+            badge.addEventListener('mouseleave', function() { badge.style.opacity = '0.88'; });
             document.body.appendChild(badge);
           }
           return;
