@@ -31,15 +31,11 @@ service cloud.firestore {
     function isValidNewUser() {
       let data = request.resource.data;
       let isAllowedRole = data.role in ['studente', 'docente', 'viandante'];
+      let isValidStatus = (data.statusAccount == 'active');
+      let hasDefaultSub = (data.subscription == 'base' || data.subscription == 'studente');
+      let hasNoAdminOverrides = !('adminOverrides' in data) || data.adminOverrides == null || data.adminOverrides == {};
       
-      // Controllo di coerenza iniziale
-      let isValidTeacher = (data.role == 'docente' && data.statusAccount == 'pending');
-      let isValidNormalUser = (data.role != 'docente' && data.statusAccount == 'active');
-      
-      // Assicura che non si nasca con subscription premium o adminOverrides alterati
-      let hasDefaultSub = data.subscription == 'base' || data.subscription == 'studente';
-      
-      return isAllowedRole && (isValidTeacher || isValidNormalUser) && hasDefaultSub;
+      return isAllowedRole && isValidStatus && hasDefaultSub && hasNoAdminOverrides;
     }
 
     // ==============================================================
@@ -49,11 +45,11 @@ service cloud.firestore {
       // Lettura: consentita a tutti gli utenti autenticati (docenti/studenti) per sincronizzazione classi
       allow read: if request.auth != null || isAdmin();
       
-      // Creazione: L'utente loggato inizializza il suo profilo
-      allow create: if isOwner(userId) || isAdmin() || request.auth != null;
+      // Creazione: L'utente loggato inizializza il suo profilo validato, oppure l'admin
+      allow create: if (isOwner(userId) && isValidNewUser()) || isAdmin();
       
-      // Aggiornamento: L'admin modifica qualsiasi cosa. L'owner o l'utente con stessa email aggiorna i dati.
-      allow update: if isAdmin() || isOwner(userId) || (request.auth != null && (currentUserEmail() == userId.lower() || (resource.data.email != null && currentUserEmail() == resource.data.email.lower())));
+      // Aggiornamento: L'admin modifica qualsiasi cosa. L'owner aggiorna solo dati anagrafici/non privilegiati.
+      allow update: if isAdmin() || (isOwner(userId) && noPrivilegeEscalation());
       
       // Eliminazione: Riservata agli Amministratori.
       allow delete: if isAdmin();

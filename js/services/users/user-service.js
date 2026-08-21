@@ -23,7 +23,7 @@ const UserService = {
                 avatar: fotoProfilo || '👤'
             },
             role: ruoloIniziale,
-            statusAccount: ruoloIniziale === 'docente' ? 'pending' : 'active',
+            statusAccount: 'active',
             subscription: ruoloIniziale === 'studente' ? 'studente' : 'base',
             newsletter: !!newsletterConsent,
             consents: {

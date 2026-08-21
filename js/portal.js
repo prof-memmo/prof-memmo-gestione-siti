@@ -204,24 +204,20 @@ const PortalApp = {
             
             document.getElementById('user-greeting').textContent = `Ciao, ${this.profile.anagrafica.nome.split(' ')[0]}!`;
             
-            // Gestione blocchi account
+            // Gestione blocchi account (sospeso o rifiutato)
             const isRejected = (this.profile.statusAccount === 'rejected' || this.profile.statusAccount === 'suspended');
             
             if (isRejected) {
                 document.getElementById('account-blocked-banner').style.display = 'block';
-                document.getElementById('teacher-pending-banner').style.display = 'none';
+                const pBanner = document.getElementById('teacher-pending-banner');
+                if (pBanner) pBanner.style.display = 'none';
                 document.getElementById('platforms-container').style.display = 'none';
                 return; // Non renderizza le piattaforme
             } else {
                 document.getElementById('account-blocked-banner').style.display = 'none';
+                const pBanner = document.getElementById('teacher-pending-banner');
+                if (pBanner) pBanner.style.display = 'none';
                 document.getElementById('platforms-container').style.display = 'grid';
-            }
-
-            // Handle Teacher Pending state
-            if (this.profile.role === 'docente' && this.profile.statusAccount === 'pending') {
-                document.getElementById('teacher-pending-banner').style.display = 'block';
-            } else {
-                document.getElementById('teacher-pending-banner').style.display = 'none';
             }
             
             // Handle URL auto-redirect (SSO Flow)
