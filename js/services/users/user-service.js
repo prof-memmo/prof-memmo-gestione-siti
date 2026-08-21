@@ -13,7 +13,7 @@ const UserService = {
     /**
      * Struttura base per un nuovo utente centrale dell'Hub
      */
-    getDefaultProfile: function(uid, nome, email, ruoloIniziale = 'studente', fotoProfilo = '', surveyData = null) {
+    getDefaultProfile: function(uid, nome, email, ruoloIniziale = 'studente', fotoProfilo = '', surveyData = null, newsletterConsent = false) {
         return {
             uid: uid,
             email: email,
@@ -25,6 +25,14 @@ const UserService = {
             role: ruoloIniziale,
             statusAccount: ruoloIniziale === 'docente' ? 'pending' : 'active',
             subscription: ruoloIniziale === 'studente' ? 'studente' : 'base',
+            newsletter: !!newsletterConsent,
+            consents: {
+                terms: true,
+                privacy: true,
+                newsletter: !!newsletterConsent,
+                newsletterTimestamp: newsletterConsent ? new Date().toISOString() : null,
+                source: 'portal_registration'
+            },
             platforms: {
                 fantaletteratura: { enabled: true, permissions: [] },
                 palestra_riflessione: { enabled: true, permissions: [] },
@@ -43,7 +51,7 @@ const UserService = {
     /**
      * Crea un nuovo profilo utente centrale nell'Hub
      */
-    createUserProfile: async function(uid, nome, email, ruolo, surveyData = null) {
+    createUserProfile: async function(uid, nome, email, ruolo, surveyData = null, newsletterConsent = false) {
         if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
         
         // I ruoli ammessi sono: studente, docente, viandante, admin
@@ -52,7 +60,7 @@ const UserService = {
             ruolo = 'studente'; // fallback
         }
 
-        const newUser = this.getDefaultProfile(uid, nome, email, ruolo, '', surveyData);
+        const newUser = this.getDefaultProfile(uid, nome, email, ruolo, '', surveyData, newsletterConsent);
         await window.fbDb.hub.collection("hub_users").doc(uid).set(newUser, { merge: true });
         return newUser;
     },

@@ -355,10 +355,10 @@
       <i class="fa-solid fa-envelope-open-text" style="color:#10b981;"></i> Richieste Iscrizione
     </div>
     <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
-      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter Manager
+      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter & Brevo
     </div>
     <div class="nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')">
-      <i class="fa-solid fa-file-signature" style="color:#f43f5e;"></i> Modelli Email
+      <i class="fa-solid fa-bolt" style="color:#f43f5e;"></i> Comunicazioni Automatiche
     </div>
     <div class="nav-item" data-target="view-notifiche-admin" onclick="switchView('view-notifiche-admin')">
       <i class="fa-solid fa-bell" style="color:#f59e0b;"></i> Notifiche Ecosistema
@@ -416,7 +416,7 @@
     <div class="nav-dock-sep"></div>
 
     <!-- Gruppo 3: Strumenti & Comunicazioni -->
-    <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')" title="Newsletter Manager">
+    <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')" title="Newsletter & Brevo">
       <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i><span>News</span>
     </div>
     <div class="mobile-nav-item" data-target="view-posta" onclick="switchView('view-posta')" title="Casella Postale">
@@ -428,8 +428,8 @@
     <div class="mobile-nav-item" data-target="view-notifiche-admin" onclick="switchView('view-notifiche-admin')" title="Notifiche Ecosistema">
       <i class="fa-solid fa-bell" style="color:#f59e0b;"></i><span>Notifiche</span>
     </div>
-    <div class="mobile-nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')" title="Modelli Email">
-      <i class="fa-solid fa-file-signature" style="color:#f43f5e;"></i><span>Modelli</span>
+    <div class="mobile-nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')" title="Comunicazioni Automatiche">
+      <i class="fa-solid fa-bolt" style="color:#f43f5e;"></i><span>Email</span>
     </div>
     <div class="mobile-nav-item" data-target="view-esperienze" onclick="switchView('view-esperienze')" title="Esperienze Ricevute">
       <i class="fa-solid fa-star" style="color:#f59e0b;"></i><span>Esperienze</span>
@@ -1001,36 +1001,105 @@
       </div>
     </div>
 
-    <!-- View: Modelli Email -->
+    <!-- View: Comunicazioni Automatiche (Brevo Transactional) -->
     <div id="view-email-templates" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-file-signature"></i> Modelli Email di Approvazione</h2>
+        <h2><i class="fa-solid fa-bolt" style="color:#f43f5e;"></i> Centro Comunicazioni Automatiche (Brevo Transactional)</h2>
       </div>
+
+      <!-- Overview Cards Comunicazioni Attive -->
       <div class="glass-panel" style="margin-bottom: 20px;">
-        <p style="color:var(--text-muted); margin-bottom: 20px;">
-          Gestisci i testi completi e statici delle email inviate ai docenti quando vengono approvati. Quello che scrivi qui è esattamente ciò che verrà inviato. Non sono necessari segnaposti.
+        <div style="margin-bottom: 15px;">
+          <h3 style="color:var(--text-main); margin:0 0 5px 0;">Comunicazioni Transazionali dell'Ecosistema</h3>
+          <p style="color:var(--text-muted); font-size:0.88rem; margin:0;">
+            Le comunicazioni transazionali sono inviate automaticamente tramite <strong>Brevo Transactional (API/SMTP)</strong> al verificarsi di eventi applicativi. Non richiedono consenso marketing e raggiungono sempre il destinatario.
+          </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+          
+          <!-- Card 1: Benvenuto Ecosistema -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; border-left: 4px solid #3b82f6;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <strong style="color: #1e293b; font-size: 0.95rem;">1. Benvenuto & Attivazione Ecosistema</strong>
+              <span style="background: #eff6ff; color: #2563eb; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;">ATTIVO</span>
+            </div>
+            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 6px;"><strong>Evento:</strong> Nuova registrazione / Attivazione profilo</div>
+            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 8px;"><strong>Destinatario:</strong> Nuovo Utente / Docente</div>
+            <div style="font-size: 0.78rem; background: #ffffff; padding: 6px 8px; border-radius: 6px; border: 1px solid #e2e8f0; color: #475569; font-family: monospace;">
+              Variabili: {{ params.NOME }}, {{ params.RUOLO }}, {{ params.LINK_PROFILO }}
+            </div>
+          </div>
+
+          <!-- Card 2: Attivazione Piano -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; border-left: 4px solid #10b981;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <strong style="color: #1e293b; font-size: 0.95rem;">2. Attivazione Piano & Piattaforme</strong>
+              <span style="background: #ecfdf5; color: #059669; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;">ATTIVO</span>
+            </div>
+            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 6px;"><strong>Evento:</strong> Checkout Stripe completato / Attivazione Admin</div>
+            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 8px;"><strong>Destinatario:</strong> Utente con Piano sbloccato</div>
+            <div style="font-size: 0.78rem; background: #ffffff; padding: 6px 8px; border-radius: 6px; border: 1px solid #e2e8f0; color: #475569; font-family: monospace;">
+              Variabili: {{ params.NOME }}, {{ params.PIANO }}, {{ params.LINK_PROFILO }}
+            </div>
+          </div>
+
+          <!-- Card 3: Promemoria Scadenza -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; border-left: 4px solid #f59e0b;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <strong style="color: #1e293b; font-size: 0.95rem;">3. Promemoria Scadenza Abbonamento</strong>
+              <span style="background: #fffbeb; color: #d97706; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;">ATTIVO</span>
+            </div>
+            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 6px;"><strong>Evento:</strong> 15 giorni prima della scadenza annuale</div>
+            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 8px;"><strong>Destinatario:</strong> Abbonato in scadenza</div>
+            <div style="font-size: 0.78rem; background: #ffffff; padding: 6px 8px; border-radius: 6px; border: 1px solid #e2e8f0; color: #475569; font-family: monospace;">
+              Variabili: {{ params.NOME }}, {{ params.PIANO }}, {{ params.DATA_SCADENZA }}
+            </div>
+          </div>
+
+          <!-- Card 4: Risposta Contatti -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; border-left: 4px solid #8b5cf6;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <strong style="color: #1e293b; font-size: 0.95rem;">4. Risposta Modulo Contatti</strong>
+              <span style="background: #f5f3ff; color: #7c3aed; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;">ATTIVO</span>
+            </div>
+            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 6px;"><strong>Evento:</strong> Risposta dell'admin da Casella Postale Hub</div>
+            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 8px;"><strong>Destinatario:</strong> Richiedente</div>
+            <div style="font-size: 0.78rem; background: #ffffff; padding: 6px 8px; border-radius: 6px; border: 1px solid #e2e8f0; color: #475569; font-family: monospace;">
+              Variabili: {{ params.NOME }}, {{ params.OGGETTO }}, {{ params.MESSAGGIO }}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Editor Testi / Fallback Template -->
+      <div class="glass-panel" style="margin-bottom: 20px;">
+        <h3 style="color:var(--text-main); margin-top:0; margin-bottom:10px;">Configurazione e Testo di Fallback</h3>
+        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom: 15px;">
+          Seleziona una comunicazione per visualizzarne o personalizzarne il testo predefinito di fallback:
         </p>
         <div style="margin-bottom: 15px;">
-          <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Seleziona Gioco</label>
-          <select id="email-template-select" class="input-form" onchange="HubApp.loadEmailTemplateForSelected()" style="width: 100%; max-width: 400px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <optgroup label="Email Approvazione Giochi">
+          <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Seleziona Comunicazione</label>
+          <select id="email-template-select" class="input-form" onchange="HubApp.loadEmailTemplateForSelected()" style="width: 100%; max-width: 450px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <optgroup label="Comunicazioni Transazionali Ecosistema">
+              <option value="abbonamento_attivo">🎉 Benvenuto & Attivazione Ecosistema</option>
+              <option value="abbonamento_pagamento">💳 Attivazione Piano & Piattaforme</option>
+              <option value="abbonamento_in_scadenza">⏰ Promemoria Scadenza Abbonamento</option>
+            </optgroup>
+            <optgroup label="Approvazione Docenti Giochi (In dismissione a favore del Benvenuto Unico)">
               <option value="Fantaletteratura">Fantaletteratura</option>
               <option value="La Rotta degli Eroi">La Rotta degli Eroi</option>
               <option value="La Corte della Commedia">La Corte della Commedia</option>
               <option value="Palestra di Riflessione">Palestra di Riflessione</option>
               <option value="Ops! Operazione Storia">Ops! Operazione Storia</option>
             </optgroup>
-            <optgroup label="Email Abbonamenti">
-              <option value="abbonamento_attivo">✅ Abbonamento Attivato (da Admin)</option>
-              <option value="abbonamento_pagamento">💳 Abbonamento da Pagamento</option>
-              <option value="abbonamento_in_scadenza">⏰ Abbonamento in Scadenza</option>
-            </optgroup>
           </select>
         </div>
         <div style="margin-bottom: 15px;">
-          <textarea id="email-template-text" class="input-form" style="width: 100%; height: 350px; padding: 15px; font-family: monospace; font-size: 0.9rem; border-radius: 8px; border: 1px solid var(--border-color);"></textarea>
+          <textarea id="email-template-text" class="input-form" style="width: 100%; height: 280px; padding: 15px; font-family: monospace; font-size: 0.9rem; border-radius: 8px; border: 1px solid var(--border-color);"></textarea>
         </div>
-        <button class="btn" onclick="HubApp.saveEmailTemplate()"><i class="fa-solid fa-floppy-disk"></i> Salva Modello per questo gioco</button>
+        <button class="btn" onclick="HubApp.saveEmailTemplate()"><i class="fa-solid fa-floppy-disk"></i> Salva Testo Predefinito</button>
       </div>
     </div>
 
@@ -1365,61 +1434,89 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
       </div>
     </div>
 
-    <!-- View: Newsletter Manager -->
+    <!-- View: Centro Newsletter & Segmentazione (Brevo) -->
     <div id="view-newsletter" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-paper-plane"></i> Newsletter Manager</h2>
-      </div>
-      
-      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-        <!-- Editor -->
-        <div class="glass-panel" style="flex: 2; min-width: 300px;">
-          <h3 style="color:var(--text-main); margin-top:0; margin-bottom:20px;">Nuova Newsletter</h3>
-          
-          <input type="text" id="news-oggetto" class="input-field" placeholder="Oggetto dell'email" style="margin-bottom: 15px;">
-          
-          <textarea id="news-corpo" class="input-field" rows="12" placeholder="Scrivi qui il corpo dell'email... (supporta il testo che poi incollerai in Gmail o Mailchimp)" style="resize: vertical;"></textarea>
-          
-          <div style="margin-top: 20px; display: flex; gap: 10px;">
-            <button class="btn" onclick="salvaBozzaNewsletter()"><i class="fa-solid fa-floppy-disk"></i> Salva Bozza</button>
-            <button class="btn outline" onclick="preparaInvioGmail()" style="border-color: #ea4335; color: #ea4335;"><i class="fa-brands fa-google"></i> Prepara per Gmail (BCC)</button>
-          </div>
-        </div>
-
-        <!-- Bozze Salvate -->
-        <div class="glass-panel" style="flex: 1; min-width: 250px;">
-          <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 15px;">Bozze Salvate</h3>
-          <div id="newsletter-lista-bozze" style="max-height: 400px; overflow-y: auto;">
-            <p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Caricamento bozze...</p>
-          </div>
-        </div>
+        <h2><i class="fa-solid fa-paper-plane" style="color: #38bdf8;"></i> Centro Newsletter & Segmentazione (Brevo)</h2>
       </div>
 
-      <!-- Tabella Destinatari Full-Width -->
-      <div class="glass-panel" style="margin-top: 20px;">
+      <!-- KPI Summary Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+        <div class="glass-panel" style="padding: 16px; border-left: 4px solid #6366f1;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Utenti Totali</div>
+          <div id="news-stat-totale" style="font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">0</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Tutti gli account registrati</div>
+        </div>
+        <div class="glass-panel" style="padding: 16px; border-left: 4px solid #10b981;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: #059669; text-transform: uppercase;">Consensi Newsletter (GDPR)</div>
+          <div id="news-stat-consensi" style="font-size: 1.8rem; font-weight: 800; color: #059669; margin-top: 4px;">0</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Sincronizzati su Lista Brevo</div>
+        </div>
+        <div class="glass-panel" style="padding: 16px; border-left: 4px solid #0284c7;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: #0284c7; text-transform: uppercase;">Docenti Registrati</div>
+          <div id="news-stat-docenti" style="font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">0</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Target Didattico Scuole</div>
+        </div>
+        <div class="glass-panel" style="padding: 16px; border-left: 4px solid #f59e0b;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: #d97706; text-transform: uppercase;">Abbonati con Piano</div>
+          <div id="news-stat-abbonati" style="font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">0</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Piani a Pagamento Attivi</div>
+        </div>
+      </div>
+
+      <!-- Banner Canva -> Brevo Campaigns -->
+      <div class="glass-panel" style="margin-bottom: 20px; background: linear-gradient(135deg, #f0f9ff, #f5f3ff); border: 1px solid #c7d2fe; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 20px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: #6366f1; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+          <div>
+            <h4 style="margin: 0 0 4px 0; color: #1e1b4b; font-size: 1.05rem; font-weight: 800;">Flusso Campagne: Canva ➔ Brevo Campaigns</h4>
+            <p style="margin: 0; font-size: 0.88rem; color: #475569; max-width: 650px;">
+              Progetta graficamente le tue newsletter con <strong>Canva</strong> e gestisci invii, programmazione e deliverability direttamente da <strong>Brevo</strong>. L'Hub mantiene sincronizzati automaticamente i contatti, i consensi e i segmenti in tempo reale.
+            </p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <a href="https://app.brevo.com/campaigns" target="_blank" class="btn" style="background: #0284c7; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 10px 18px; border-radius: 10px;">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Apri Brevo Campaigns
+          </a>
+        </div>
+      </div>
+
+      <!-- Tabella Segmentazione e Gestione Destinatari -->
+      <div class="glass-panel">
         <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <div>
               <h3 style="color:var(--text-main); margin:0; display:flex; align-items:center; gap:10px;">
-                <i class="fa-solid fa-users" style="color:var(--accent);"></i> Destinatari Newsletter 
-                <span id="news-dest-badge" style="background:#e0e7ff; color:#4338ca; font-size:0.8rem; font-weight:700; padding:4px 10px; border-radius:20px;">0 selezionati</span>
+                <i class="fa-solid fa-users" style="color:var(--accent);"></i> Segmenti e Destinatari 
+                <span id="news-dest-badge" style="background:#e0e7ff; color:#4338ca; font-size:0.8rem; font-weight:700; padding:4px 10px; border-radius:20px;">Caricamento...</span>
               </h3>
               <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px; margin-bottom:0;">
-                Filtra gli iscritti dell'Ecosistema per ruolo, piano o gioco. Solo gli utenti selezionati con la spunta riceveranno l'email.
+                Filtra gli iscritti per verificare consensi, ruoli e piani. I contatti con consenso attivo sono sincronizzati automaticamente con la lista <em>Newsletter Prof. Memmo</em> su Brevo.
               </p>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px;" onclick="window.NewsletterUI.toggleFiltered(true)"><i class="fa-solid fa-check-double"></i> Seleziona Visibili</button>
-               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:#94a3b8; color:#64748b;" onclick="window.NewsletterUI.toggleAllNews(false)"><i class="fa-solid fa-xmark"></i> Deseleziona Tutti</button>
-               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:#10b981; color:#059669;" onclick="window.NewsletterUI.selectByRole('docente')"><i class="fa-solid fa-chalkboard-user"></i> Solo Docenti</button>
-               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:#8b5cf6; color:#7c3aed;" onclick="window.NewsletterUI.selectSubscribersOnly()"><i class="fa-solid fa-credit-card"></i> Solo Abbonati</button>
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:#10b981; color:#059669;" onclick="window.NewsletterUI.selectFilterByTag('consenso')"><i class="fa-solid fa-circle-check"></i> Solo Iscritti (GDPR)</button>
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:#0284c7; color:#0284c7;" onclick="window.NewsletterUI.selectFilterByTag('docenti')"><i class="fa-solid fa-chalkboard-user"></i> Solo Docenti</button>
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:#8b5cf6; color:#7c3aed;" onclick="window.NewsletterUI.selectFilterByTag('abbonati')"><i class="fa-solid fa-crown"></i> Solo Abbonati</button>
+               <button class="btn outline" style="font-size: 0.8rem; padding: 6px 12px; border-color:#94a3b8; color:#64748b;" onclick="window.NewsletterUI.selectFilterByTag('all')"><i class="fa-solid fa-rotate-left"></i> Mostra Tutti</button>
             </div>
         </div>
 
         <!-- Barra Filtri Avanzati -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 15px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 15px;">
           <div>
             <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Cerca Utente</label>
             <input type="text" id="search-news-iscritti" class="input-field" placeholder="Nome o email..." style="margin:0; padding: 8px 10px; font-size: 0.85rem;" onkeyup="window.NewsletterUI.filterNews()">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Consenso Newsletter</label>
+            <select id="filter-news-consenso" class="input-field" style="margin:0; padding: 8px 10px; font-size: 0.85rem;" onchange="window.NewsletterUI.filterNews()">
+              <option value="all">Tutti (Con e Senza)</option>
+              <option value="consent_only" selected>✅ Solo con Consenso Attivo (GDPR)</option>
+              <option value="no_consent">❌ Senza Consenso / Non Iscritti</option>
+            </select>
           </div>
           <div>
             <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Filtro Ruolo</label>
@@ -1431,10 +1528,10 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
             </select>
           </div>
           <div>
-            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Filtro Piano / Abbonamento</label>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Filtro Piano</label>
             <select id="filter-news-piano" class="input-field" style="margin:0; padding: 8px 10px; font-size: 0.85rem;" onchange="window.NewsletterUI.filterNews()">
               <option value="all">Tutti i Piani</option>
-              <option value="paid_only">⭐ Solo a Pagamento (Tutti gli Abbonati)</option>
+              <option value="paid_only">⭐ Solo a Pagamento</option>
               <option value="base">Piano Base (Gratuito)</option>
               <option value="viandante">Piano Viandante</option>
               <option value="docente_didattico">Docente Didattico</option>
@@ -1442,7 +1539,7 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
             </select>
           </div>
           <div>
-            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Filtro Gioco / Sito</label>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Filtro Gioco</label>
             <select id="filter-news-gioco" class="input-field" style="margin:0; padding: 8px 10px; font-size: 0.85rem;" onchange="window.NewsletterUI.filterNews()">
               <option value="all">Tutti i Giochi</option>
               <option value="Fantaletteratura">FantaLetteratura</option>
@@ -1454,11 +1551,10 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
           </div>
         </div>
         
-        <div class="table-responsive" style="overflow-x:auto; max-height: 450px;">
+        <div class="table-responsive" style="overflow-x:auto; max-height: 500px;">
           <table class="game-table" id="newsletter-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>
               <tr>
-                <th style="width: 45px; text-align:center;">Invia</th>
                 <th style="cursor:pointer;" onclick="window.NewsletterUI.sortNews('nome')">
                   <div style="display: flex; align-items: center; white-space: nowrap;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
@@ -1468,19 +1564,19 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
                 <th>
                   <div style="display: flex; align-items: center; white-space: nowrap;">Piano Attivo</div>
                 </th>
+                <th style="cursor:pointer;" onclick="window.NewsletterUI.sortNews('consenso')">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Stato Newsletter <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
                 <th style="cursor:pointer;" onclick="window.NewsletterUI.sortNews('data')">
                   <div style="display: flex; align-items: center; white-space: nowrap;">Data Iscrizione <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
                 <th style="cursor:pointer;" onclick="window.NewsletterUI.sortNews('gioco')">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Gioco / Sito <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                </th>
-                <th style="text-align:center;">
-                  <div style="display: flex; align-items: center; justify-content: center; white-space: nowrap;">Contatta</div>
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Piattaforma <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr><td colspan="7" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento iscritti in corso...</td></tr>
+              <tr><td colspan="6" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento iscritti in corso...</td></tr>
             </tbody>
           </table>
         </div>

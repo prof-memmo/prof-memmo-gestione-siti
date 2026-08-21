@@ -325,3 +325,220 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
         return res.status(500).json({ error: "Errore interno elaborazione webhook" });
     }
 });
+
+// ============================================================================
+// BREVO INTEGRATION — SINCRONIZZAZIONE AUTOMATICA, WEBHOOK & EMAIL TRANSAZIONALI
+// ============================================================================
+
+const brevoApiKey = process.env.BREVO_API_KEY || (functions.config().brevo && functions.config().brevo.api_key);
+
+/**
+ * Funzione helper per effettuare chiamate sicure alle API REST di Brevo (v3)
+ */
+async function callBrevoApi(endpoint, method, payload) {
+    if (!brevoApiKey || brevoApiKey === "dummy_brevo_key") {
+        console.warn(`[Brevo API Mock] Chiamata a ${endpoint} non eseguita: API Key Brevo non configurata.`);
+        return { success: false, reason: "BREVO_API_KEY_NOT_SET" };
+    }
+
+    try {
+        const response = await fetch(`https://api.brevo.com/v3${endpoint}`, {
+            method: method,
+            headers: {
+                "api-key": brevoApiKey,
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: payload ? JSON.stringify(payload) : undefined
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            console.error(`❌ Errore risposta Brevo API (${response.status}) su ${endpoint}:`, data);
+            return { success: false, status: response.status, error: data };
+        }
+        return { success: true, data: data };
+    } catch (err) {
+        console.error(`❌ Errore chiamata Brevo API su ${endpoint}:`, err);
+        return { success: false, error: err.message };
+    }
+}
+
+/**
+ * 1. Cloud Function Trigger: Sincronizzazione automatica Hub -> Brevo su modifica hub_users
+ * Quando cambia un utente (o il suo consenso newsletter / piano / ruolo), aggiorna il contatto su Brevo
+ */
+exports.syncHubUserToBrevo = functions.firestore
+    .document("hub_users/{userId}")
+    .onWrite(async (change, context) => {
+        const userId = context.params.userId;
+        const afterData = change.after.exists ? change.after.data() : null;
+        const beforeData = change.before.exists ? change.before.data() : null;
+
+        // Se l'utente è stato eliminato dall'Hub
+        if (!afterData) {
+            if (beforeData && beforeData.email) {
+                console.log(`🗑️ Utente eliminato dall'Hub: ${beforeData.email}. Disiscrizione da Brevo...`);
+                await callBrevoApi(`/contacts/${encodeURIComponent(beforeData.email.toLowerCase().trim())}`, "DELETE", null);
+            }
+            return null;
+        }
+
+        const email = (afterData.email || "").toLowerCase().trim();
+        if (!email || !email.includes("@")) {
+            return null;
+        }
+
+        // Verifica se ci sono state modifiche rilevanti
+        const nome = (afterData.anagrafica && afterData.anagrafica.nome) || afterData.nome || "";
+        const cognome = (afterData.anagrafica && afterData.anagrafica.cognome) || afterData.cognome || "";
+        const ruolo = afterData.role || afterData.ruolo || "studente";
+        const piano = afterData.abbonamento || afterData.subscription || "base";
+        const hasNewsletterConsent = afterData.newsletter === true || (afterData.consents && afterData.consents.newsletter === true);
+        const scadenza = afterData.abbonamento_scadenza || (afterData.subscription && afterData.subscription.expiresAt) || "";
+
+        // Piattaforme attive come stringa per segmentazione
+        const activePlatforms = [];
+        if (afterData.platforms) {
+            for (const [pKey, pVal] of Object.entries(afterData.platforms)) {
+                if (pVal && pVal.enabled) activePlatforms.push(pKey);
+            }
+        }
+
+        const attributes = {
+            FIRSTNAME: nome,
+            LASTNAME: cognome,
+            RUOLO: ruolo,
+            PIANO: typeof piano === "string" ? piano : (piano.planId || "base"),
+            GIOCHI: activePlatforms.join(", "),
+            CONSENSO_NEWSLETTER: hasNewsletterConsent,
+            SCADENZA: scadenza
+        };
+
+        const brevoListId = process.env.BREVO_LIST_ID || (functions.config().brevo && functions.config().brevo.list_id);
+
+        const contactPayload = {
+            email: email,
+            attributes: attributes,
+            updateEnabled: true
+        };
+
+        if (brevoListId) {
+            const listIdNum = parseInt(brevoListId, 10);
+            if (hasNewsletterConsent) {
+                contactPayload.listIds = [listIdNum];
+            } else {
+                contactPayload.unlinkListIds = [listIdNum];
+            }
+        }
+
+        console.log(`🔄 Sincronizzazione automatica contatto con Brevo per ${email}:`, attributes);
+
+        // Chiamata POST per creare o aggiornare (updateEnabled: true fa upsert automatico su Brevo)
+        const result = await callBrevoApi("/contacts", "POST", contactPayload);
+
+        // Se il contatto esiste già con status 400 (duplicate), aggiorna con PUT
+        if (!result.success && result.status === 400) {
+            const putPayload = { attributes: attributes };
+            if (brevoListId) {
+                const listIdNum = parseInt(brevoListId, 10);
+                if (hasNewsletterConsent) putPayload.listIds = [listIdNum];
+                else putPayload.unlinkListIds = [listIdNum];
+            }
+            await callBrevoApi(`/contacts/${encodeURIComponent(email)}`, "PUT", putPayload);
+        }
+
+        return null;
+    });
+
+/**
+ * 2. Webhook Brevo -> Hub: Riceve notifiche di disiscrizione da Brevo
+ * Endpoint: POST /brevoWebhook
+ * Quando un utente clicca 'Disiscriviti' in calce a una newsletter Brevo,
+ * aggiorna ESCLUSIVAMENTE newsletter = false su hub_users (senza toccare account, piano o accessi).
+ */
+exports.brevoWebhook = functions.https.onRequest(async (req, res) => {
+    if (req.method !== "POST") {
+        return res.status(405).send("Method Not Allowed");
+    }
+
+    try {
+        const payload = req.body || {};
+        console.log("📬 Evento Webhook Brevo ricevuto:", JSON.stringify(payload));
+
+        const eventType = (payload.event || "").toLowerCase();
+        const targetEmail = (payload.email || "").toLowerCase().trim();
+
+        // Eventi di disiscrizione: unsubscribe, unsubscribed, list_unsubscription, spam, complaint
+        if (targetEmail && (eventType.includes("unsub") || eventType.includes("spam") || eventType.includes("complaint"))) {
+            console.log(`⚠️ Disiscrizione Newsletter richiesta da Brevo per email: ${targetEmail}`);
+
+            const snap = await db.collection("hub_users")
+                .where("email", "==", targetEmail)
+                .limit(1)
+                .get();
+
+            if (!snap.empty) {
+                const userDoc = snap.docs[0];
+                await userDoc.ref.set({
+                    newsletter: false,
+                    "consents.newsletter": false,
+                    "consents.unsubscribedAt": new Date().toISOString(),
+                    "consents.unsubscribeSource": "brevo_webhook"
+                }, { merge: true });
+
+                console.log(`✅ Consenso newsletter rimosso con successo per utente ${userDoc.id} (${targetEmail}). Account e Piano rimangono intatti.`);
+            } else {
+                console.warn(`Utente ${targetEmail} non trovato in hub_users.`);
+            }
+        }
+
+        return res.status(200).json({ received: true });
+    } catch (err) {
+        console.error("❌ Errore elaborazione webhook Brevo:", err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * 3. Helper / Endpoint per invio Email Transazionali tramite Brevo API (v3)
+ */
+exports.sendBrevoTransactional = functions.https.onCall(async (data, context) => {
+    // Verifica autenticazione
+    if (!context.auth) {
+        throw new functions.https.HttpsError("unauthenticated", "Richiesta non autorizzata.");
+    }
+
+    const { toEmail, toName, templateId, params, subject, htmlContent } = data;
+
+    if (!toEmail || !toEmail.includes("@")) {
+        throw new functions.https.HttpsError("invalid-argument", "Indirizzo email destinatario non valido.");
+    }
+
+    const emailPayload = {
+        to: [{ email: toEmail.toLowerCase().trim(), name: toName || "" }]
+    };
+
+    if (templateId) {
+        emailPayload.templateId = parseInt(templateId, 10);
+    }
+    if (params) {
+        emailPayload.params = params;
+    }
+    if (subject) {
+        emailPayload.subject = subject;
+    }
+    if (htmlContent) {
+        emailPayload.htmlContent = htmlContent;
+    }
+
+    console.log(`📤 Invio email transazionale Brevo a ${toEmail} (Template: ${templateId || 'custom'})`);
+    const result = await callBrevoApi("/smtp/email", "POST", emailPayload);
+
+    if (!result.success) {
+        throw new functions.https.HttpsError("internal", "Errore invio tramite Brevo: " + JSON.stringify(result.error));
+    }
+
+    return { success: true, messageId: result.data ? result.data.messageId : null };
+});
+

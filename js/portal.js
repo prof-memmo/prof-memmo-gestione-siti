@@ -97,6 +97,8 @@ const PortalApp = {
                 // Forse è un nuovo utente! Controlliamo se ha compilato i dati obbligatori per registrarsi.
                 const terms = document.getElementById('reg-terms').checked;
                 const age = document.getElementById('reg-age').checked;
+                const newsConsent = document.getElementById('reg-newsletter') ? document.getElementById('reg-newsletter').checked : false;
+                this.pendingNewsletterConsent = newsConsent;
                 
                 if (!terms || !age) {
                     this.showError("Credenziali errate oppure account inesistente. Se sei un nuovo utente, accetta i Termini e conferma l'Età per poterti registrare.");
@@ -288,7 +290,14 @@ const PortalApp = {
             const surveyEl = document.getElementById('portal-survey');
             if (surveyEl) surveyEl.style.display = 'none';
 
-            await window.UserService.createUserProfile(this.user.uid, nome, email, this.pendingRole || 'studente', surveyData);
+            await window.UserService.createUserProfile(
+                this.user.uid, 
+                nome, 
+                email, 
+                this.pendingRole || 'studente', 
+                surveyData, 
+                this.pendingNewsletterConsent || false
+            );
             
             // Ricarica il profilo adesso che esiste
             await this.loadUserProfile();
