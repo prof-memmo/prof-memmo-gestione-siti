@@ -351,9 +351,6 @@
     <div class="nav-item" data-target="view-posta" onclick="switchView('view-posta')">
       <i class="fa-solid fa-envelope" style="color:#64748b;"></i> Casella Postale
     </div>
-    <div class="nav-item" data-target="view-richieste" onclick="switchView('view-richieste')">
-      <i class="fa-solid fa-envelope-open-text" style="color:#10b981;"></i> Richieste Iscrizione
-    </div>
     <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
       <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter & Brevo
     </div>
@@ -421,9 +418,6 @@
     </div>
     <div class="mobile-nav-item" data-target="view-posta" onclick="switchView('view-posta')" title="Casella Postale">
       <i class="fa-solid fa-envelope" style="color:#64748b;"></i><span>Posta</span>
-    </div>
-    <div class="mobile-nav-item" data-target="view-richieste" onclick="switchView('view-richieste')" title="Richieste Iscrizione">
-      <i class="fa-solid fa-envelope-open-text" style="color:#10b981;"></i><span>Richieste</span>
     </div>
     <div class="mobile-nav-item" data-target="view-notifiche-admin" onclick="switchView('view-notifiche-admin')" title="Notifiche Ecosistema">
       <i class="fa-solid fa-bell" style="color:#f59e0b;"></i><span>Notifiche</span>
@@ -954,52 +948,6 @@
       </div>
     </div>
 
-    <!-- View: Richieste Iscrizione -->
-    <div id="view-richieste" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-envelope-open-text" style="color:#10b981;"></i> Richieste Iscrizione in Sospeso</h2>
-      </div>
-      <div class="glass-panel">
-        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-          <h3 style="color:var(--text-main); margin:0;">Tabella Richieste Multi-Sito</h3>
-          <button class="btn" onclick="HubApp.loadRichiesteIscrizione()"><i class="fa-solid fa-arrows-rotate"></i> Aggiorna Dati Ora</button>
-        </div>
-        <div class="table-responsive" style="overflow-x:auto;">
-          <table class="game-table" id="hub-richieste-table" style="width: 100%; text-align: left; border-collapse: collapse;">
-            <thead>
-              <tr>
-                <th style="cursor:pointer;" onclick="HubApp.sortRichieste('nome')">
-                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                  <input type="text" id="search-richieste" class="input-field" placeholder="Cerca..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="HubApp.filterRichieste()">
-                </th>
-                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortRichieste('ruolo')">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Ruolo Richiesto <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                </th>
-                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortRichieste('data')">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Data Richiesta <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                </th>
-                <th style="cursor:pointer;" onclick="HubApp.sortRichieste('gioco')">
-                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                  <select id="filter-richieste-gioco" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterRichieste()">
-                    <option value="all">Tutti</option>
-                    <option value="La Rotta degli Eroi">Eroi</option>
-                    <option value="La Corte della Commedia">Commedia</option>
-                    <option value="Fantaletteratura">Fanta</option>
-                    <option value="Palestra di Riflessione">Palestra</option>
-                  </select>
-                </th>
-                <th style="vertical-align: top;">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Azione</div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="5" style="text-align:center; padding: 20px; color:var(--text-muted);">Clicca "Aggiorna Dati Ora" per caricare.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
     <!-- View: Comunicazioni Automatiche (Brevo Transactional) -->
     <div id="view-email-templates" class="hub-view">
@@ -1075,31 +1023,30 @@
 
       <!-- Editor Testi / Fallback Template -->
       <div class="glass-panel" style="margin-bottom: 20px;">
-        <h3 style="color:var(--text-main); margin-top:0; margin-bottom:10px;">Configurazione e Testo di Fallback</h3>
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; color: #92400e; font-size: 0.88rem; line-height: 1.5;">
+          <i class="fa-solid fa-triangle-exclamation" style="color: #d97706; margin-right: 6px; font-size: 1rem;"></i>
+          <strong>ATTENZIONE:</strong> questi testi sono solo di riferimento. Le email automatiche effettivamente inviate vengono gestite tramite i template di Brevo. Dopo aver modificato un testo qui, ricordati di aggiornare anche il relativo template in Brevo.
+        </div>
+
+        <h3 style="color:var(--text-main); margin-top:0; margin-bottom:10px;">Configurazione e Testo di Riferimento</h3>
         <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom: 15px;">
-          Seleziona una comunicazione per visualizzarne o personalizzarne il testo predefinito di fallback:
+          Seleziona una comunicazione per visualizzarne o personalizzarne il testo predefinito di riferimento locale:
         </p>
         <div style="margin-bottom: 15px;">
           <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Seleziona Comunicazione</label>
           <select id="email-template-select" class="input-form" onchange="HubApp.loadEmailTemplateForSelected()" style="width: 100%; max-width: 450px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
             <optgroup label="Comunicazioni Transazionali Ecosistema">
-              <option value="abbonamento_attivo">🎉 Benvenuto & Attivazione Ecosistema</option>
-              <option value="abbonamento_pagamento">💳 Attivazione Piano & Piattaforme</option>
-              <option value="abbonamento_in_scadenza">⏰ Promemoria Scadenza Abbonamento</option>
-            </optgroup>
-            <optgroup label="Approvazione Docenti Giochi (In dismissione a favore del Benvenuto Unico)">
-              <option value="Fantaletteratura">Fantaletteratura</option>
-              <option value="La Rotta degli Eroi">La Rotta degli Eroi</option>
-              <option value="La Corte della Commedia">La Corte della Commedia</option>
-              <option value="Palestra di Riflessione">Palestra di Riflessione</option>
-              <option value="Ops! Operazione Storia">Ops! Operazione Storia</option>
+              <option value="abbonamento_attivo">🎉 1. Benvenuto & Attivazione Ecosistema</option>
+              <option value="abbonamento_pagamento">💳 2. Attivazione Piano & Piattaforme</option>
+              <option value="abbonamento_in_scadenza">⏰ 3. Promemoria Scadenza Abbonamento</option>
+              <option value="risposta_contatti">✉️ 4. Risposta Modulo Contatti</option>
             </optgroup>
           </select>
         </div>
         <div style="margin-bottom: 15px;">
           <textarea id="email-template-text" class="input-form" style="width: 100%; height: 280px; padding: 15px; font-family: monospace; font-size: 0.9rem; border-radius: 8px; border: 1px solid var(--border-color);"></textarea>
         </div>
-        <button class="btn" onclick="HubApp.saveEmailTemplate()"><i class="fa-solid fa-floppy-disk"></i> Salva Testo Predefinito</button>
+        <button class="btn" onclick="HubApp.saveEmailTemplate()"><i class="fa-solid fa-floppy-disk"></i> Salva Testo di Riferimento</button>
       </div>
     </div>
 
