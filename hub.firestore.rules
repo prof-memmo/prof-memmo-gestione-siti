@@ -66,6 +66,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    match /ecosistema_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
     
     match /hub_newsletters/{docId} {
       allow read, write: if isAdmin();
