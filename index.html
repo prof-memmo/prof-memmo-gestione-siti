@@ -1194,10 +1194,14 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 20px;">
           <div>
             <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Titolare / Intestatario</label>
             <input type="text" id="legal-fiscal-name" class="input-form" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);" value="Guglielmo Piersanti">
+          </div>
+          <div>
+            <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Denominazione Sociale</label>
+            <input type="text" id="legal-fiscal-company" class="input-form" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);" placeholder="es: Prof. Memmo - Games&Co." value="Prof. Memmo - Games&Co.">
           </div>
           <div>
             <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Codice Fiscale / P.IVA</label>
@@ -1289,45 +1293,53 @@ Redatta in conformità al GDPR (Regolamento UE 2016/679) e alla normativa italia
           Modifica il contenuto dei Termini e Condizioni in testo semplice.
         </p>
         <div style="margin-bottom: 15px;">
-          <textarea id="legal-terms-text" class="input-form" style="width: 100%; height: 350px; padding: 14px; border-radius: 10px; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.92rem; line-height: 1.6;">Ultimo aggiornamento: 11/08/2026
+          <textarea id="legal-terms-text" class="input-form" style="width: 100%; height: 380px; padding: 14px; border-radius: 10px; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.92rem; line-height: 1.6;">1. Titolare del sito e Denominazione Sociale
+L'Ecosistema Prof. Memmo è gestito da Prof. Memmo - Games&Co. di Guglielmo Piersanti. Email di contatto: prof.memmo@gmail.com
 
-1. Titolare del sito
-Ecosistema gestito da Guglielmo Piersanti — prof.memmo@gmail.com
+2. Accettazione dei Termini
+L'accesso e l'utilizzo dell'Ecosistema Prof. Memmo e delle relative piattaforme didattiche implicano l'accettazione integrale dei presenti Termini e Condizioni. Se l'utente non intende accettare tali condizioni, è invitato a non utilizzare i servizi.
 
-2. Accettazione dei termini
-L'accesso e l'utilizzo dell'ecosistema Prof. Memmo implicano l'accettazione dei presenti Termini. Se non si accettano, si invita a non utilizzare i servizi.
+3. Descrizione dell'attività: Prof. Memmo
+Prof. Memmo è un progetto educativo digitale dedicato alla scuola secondaria di primo grado. Il progetto offre risorse, attività didattiche, giochi educativi e ambienti digitali interattivi destinati principalmente a docenti e studenti. Attraverso l'Ecosistema Prof. Memmo è possibile accedere, in base al piano scelto, a piattaforme e strumenti didattici quali giochi educativi, attività interattive, simulazioni, missioni e materiali per l'apprendimento. I servizi a pagamento sono forniti attraverso abbonamenti annuali e consentono l'accesso alle funzionalità e ai contenuti previsti dal relativo piano.
 
-3. Descrizione del servizio
-L'Ecosistema Prof. Memmo è un insieme di piattaforme didattiche e ludiche (FantaLetteratura, La Rotta degli Eroi, La Palestra di Riflessione, La Corte della Commedia e altri) accessibili tramite un unico account Hub. Il servizio ha finalità educative.
+4. Piani e prezzi
+Gli abbonamenti a pagamento hanno durata annuale e si rinnovano automaticamente alla scadenza, salvo disdetta. Il rinnovo viene effettuato tramite il metodo di pagamento associato all'abbonamento. È possibile disdire l'abbonamento prima della successiva data di rinnovo. In caso di disdetta, l'accesso alle funzionalità del piano rimane attivo fino alla conclusione del periodo già pagato, salvo quanto previsto dai Termini e condizioni. I prezzi e le caratteristiche dei singoli piani sono indicati nella pagina dedicata "Prezzi e Piani". Gli studenti inseriti in una classe didattica creata da un docente non sono soggetti a costi aggiuntivi.
 
-4. Utilizzo del servizio
-L'utente si impegna a evitare di:
-- Inviare messaggi offensivi, illeciti o spam
-- Tentare di compromettere la sicurezza delle piattaforme
-- Utilizzare il servizio per scopi fraudolenti
-- Condividere credenziali di accesso con terzi
-- Eludere i sistemi di pagamento o accedere a funzionalità non incluse nel proprio piano
+5. Pagamenti
+I pagamenti degli abbonamenti sono gestiti tramite Stripe, piattaforma di pagamento sicura e indipendente. Prof. Memmo non gestisce né memorizza direttamente i dati completi delle carte di pagamento. Al momento del pagamento l'utente viene reindirizzato alla pagina di pagamento sicura e protetta di Stripe.
 
-5. Modulo di contatto e posta interna
-L'utente è responsabile dei contenuti inviati. È vietato inserire dati falsi o inviare contenuti illeciti o non pertinenti.
+6. Rinnovo e disdetta dell'abbonamento
+Gli abbonamenti annuali si rinnovano automaticamente per un ulteriore periodo di un anno alla relativa data di scadenza. L'utente può disdire il rinnovo del proprio abbonamento prima della successiva scadenza. La disdetta impedisce il rinnovo successivo, mentre l'accesso ai contenuti e alle funzionalità del piano rimane disponibile fino al termine del periodo già pagato, secondo quanto previsto dai Termini e condizioni. Le modalità di gestione dell'abbonamento e dei pagamenti sono indicate nell'area personale e nei servizi messi a disposizione da Stripe.
 
-6. Proprietà intellettuale
-Tutti i contenuti (testi, materiali didattici, grafica, giochi, meccaniche) sono di proprietà del titolare e protetti da diritto d'autore. Distribuiti con licenza CC BY-NC-ND 4.0. Vietata la copia, distribuzione, modifica o utilizzo commerciale senza autorizzazione scritta.
+7. Assistenza
+Per informazioni sui servizi, sui piani di abbonamento, sugli acquisti o per ricevere assistenza tecnica e didattica è possibile contattare il supporto ufficiale:
+Email: prof.memmo@gmail.com
 
-7. Abbonamenti e pagamenti
-Alcune funzionalità sono disponibili solo con piani a pagamento (Piano Viandante, Piano Docente, Ecosistema Completo). I prezzi sono indicati nella pagina dedicata. Gli studenti inseriti in una classe da un docente non sono soggetti a costi aggiuntivi.
+8. Utilizzo del servizio e regole di condotta
+L'utente si impegna a utilizzare la piattaforma in modo corretto e conforme alle finalità educative, evitando di:
+- Inviare messaggi offensivi, illeciti, diffamatori o spam;
+- Tentare di compromettere o eludere la sicurezza e l'integrità delle piattaforme;
+- Utilizzare il servizio per scopi fraudolenti o commerciali non autorizzati;
+- Condividere le credenziali del proprio account con terzi;
+- Eludere i sistemi di abbonamento o accedere a funzionalità non previste dal proprio piano.
 
-8. Limitazione di responsabilità
-Il servizio è fornito "così com'è". Il titolare non garantisce l'assenza di errori o interruzioni e non è responsabile per danni derivanti dall'utilizzo.
+9. Modulo di contatto e posta interna
+L'utente è l'unico responsabile dei contenuti, dei messaggi e dei testi inviati tramite i moduli di contatto, le bacheche o la posta interna dei giochi. È severamente vietato inserire dati falsi o contenuti non pertinenti.
 
-9. Link esterni
-L'ecosistema può contenere link a siti esterni. Il titolare non è responsabile del loro contenuto.
+10. Proprietà intellettuale e Licenza Didattica
+Tutti i contenuti presenti nell'ecosistema (testi, narrazioni, schede didattiche, grafiche, marchi, meccaniche di gioco e software) sono di proprietà esclusiva dell'autore e sono protetti tramite deposito e marcatura temporale presso Patamu. I contenuti sono inoltre distribuiti con licenza Creative Commons Attribuzione - Non commerciale - Non opere derivate 4.0 Internazionale (CC BY-NC-ND 4.0). È vietata qualsiasi riproduzione, distribuzione, modifica o utilizzo commerciale non preventivamente autorizzato per iscritto.
 
-10. Modifiche ai termini
-Il titolare si riserva il diritto di modificare i presenti Termini in qualsiasi momento, con avviso sulla piattaforma.
+11. Limitazione di responsabilità
+I servizi sono forniti "così come sono". Il titolare adotta le migliori pratiche per garantire la continuità e la sicurezza della piattaforma, ma non risponde per eventuali temporanee interruzioni di rete, cause di forza maggiore o anomalie indipendenti dalla propria infrastruttura.
 
-11. Legge applicabile
-Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro competente: quello del luogo di residenza del titolare.</textarea>
+12. Link esterni
+L'ecosistema può contenere collegamenti a siti o servizi esterni di terze parti. Il titolare non esercita alcun controllo e non assume responsabilità per contenuti, privacy policy o pratiche di siti terzi.
+
+13. Modifiche ai Termini
+Il titolare si riserva il diritto di aggiornare o modificare i presenti Termini e Condizioni a seguito di evoluzioni normative o tecniche, dandone tempestiva comunicazione agli utenti sulla piattaforma.
+
+14. Legge applicabile e Foro competente
+I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/679 (GDPR). Per qualsiasi controversia civile derivante dall'interpretazione o esecuzione del servizio, il foro competente è quello previsto dalla legge applicabile.</textarea>
         </div>
         <button type="button" class="btn" style="background: var(--accent); color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 8px; cursor: pointer;" onclick="window.LegalAdminUI.saveTermsText()"><i class="fa-solid fa-floppy-disk"></i> Salva Termini e Condizioni</button>
       </div>
@@ -1801,7 +1813,7 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
 
       <div class="glass-panel">
         <h3 style="margin-top:0; color:var(--text-main);"><i class="fa-solid fa-tags"></i> Prezzi e Piani</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Modifica nome, descrizione, funzionalità e prezzo di ogni piano. Le modifiche appaiono in tempo reale su <strong>prezzi.html</strong>. Usa <code>+</code> per feature incluse e <code>-</code> per escluse.</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Modifica nome, descrizione, funzionalità e prezzo di ogni piano. I testi appaiono in tempo reale su <strong>prezzi.html</strong>. Per ciascun piano a pagamento puoi associare il rispettivo <strong>Stripe Price ID</strong> (es. <code>price_...</code>) creato nella Dashboard Stripe.</p>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 20px;">
           
@@ -1821,10 +1833,11 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
             </div>
             <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
               <span style="font-weight:bold; font-size: 1.2rem;">0,00 €</span>
-              <span>/ anno</span>
+              <span>/ anno (Gratuito Permanente)</span>
             </div>
           </div>
 
+          <!-- Piano Viandante -->
           <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <strong style="font-size: 1.1rem; color: var(--text-main);">Piano Viandante</strong>
             <div style="margin-top:10px;">
@@ -1840,12 +1853,17 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
 + Accesso ai futuri giochi narrativi
 - Strumenti docente (creazione classi, tornei, dashboard)</textarea>
             </div>
-            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
-              <input type="number" id="price-viandante" class="input-field" style="width: 90px; margin:0;" value="9.99" step="0.01">
+            <div style="display:flex; align-items:center; gap:10px; margin-top:5px; margin-bottom:10px;">
+              <input type="number" id="price-viandante" class="input-field" style="width: 90px; margin:0;" value="14.99" step="0.01">
               <span>€ / anno</span>
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#6366f1; display:block; margin-bottom:2px;">STRIPE PRICE ID (ricorrente annuale)</label>
+              <input type="text" id="stripe-price-viandante" class="input-field" style="margin:0; font-size:0.82rem; font-family:monospace;" placeholder="price_...">
             </div>
           </div>
           
+          <!-- Piano Docente -->
           <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <strong style="font-size: 1.1rem; color: var(--text-main);">Docente Didattico</strong>
             <div style="margin-top:10px;">
@@ -1861,12 +1879,17 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
 + Strumenti Docente e Dashboard avanzata
 - Non include La Rotta degli Eroi o Travel Agency</textarea>
             </div>
-            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
-              <input type="number" id="price-docente" class="input-field" style="width: 90px; margin:0;" value="19.99" step="0.01">
+            <div style="display:flex; align-items:center; gap:10px; margin-top:5px; margin-bottom:10px;">
+              <input type="number" id="price-docente" class="input-field" style="width: 90px; margin:0;" value="24.99" step="0.01">
               <span>€ / anno</span>
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#15803d; display:block; margin-bottom:2px;">STRIPE PRICE ID (ricorrente annuale)</label>
+              <input type="text" id="stripe-price-docente" class="input-field" style="margin:0; font-size:0.82rem; font-family:monospace;" placeholder="price_...">
             </div>
           </div>
           
+          <!-- Piano Completo -->
           <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border: 1px solid #bfdbfe; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <strong style="font-size: 1.1rem; color: var(--text-main);">Ecosistema Completo</strong>
             <div style="margin-top:10px;">
@@ -1881,14 +1904,21 @@ Regolati dalla normativa italiana e dal GDPR (Regolamento UE 2016/679). Foro com
 + Tutti i futuri giochi completi in anteprima
 + Assistenza dedicata</textarea>
             </div>
-            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
-              <input type="number" id="price-ecosistema" class="input-field" style="width: 90px; margin:0;" value="24.99" step="0.01">
+            <div style="display:flex; align-items:center; gap:10px; margin-top:5px; margin-bottom:10px;">
+              <input type="number" id="price-ecosistema" class="input-field" style="width: 90px; margin:0;" value="34.99" step="0.01">
               <span>€ / anno</span>
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#1d4ed8; display:block; margin-bottom:2px;">STRIPE PRICE ID (ricorrente annuale)</label>
+              <input type="text" id="stripe-price-ecosistema" class="input-field" style="margin:0; font-size:0.82rem; font-family:monospace;" placeholder="price_...">
             </div>
           </div>
         </div>
         
-        <button class="btn" onclick="EcosistemaUI.savePrices()"><i class="fa-solid fa-floppy-disk"></i> Salva Prezzi e Diciture</button>
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+          <button class="btn" onclick="EcosistemaUI.savePrices()"><i class="fa-solid fa-floppy-disk"></i> Salva Prezzi, Diciture e ID Stripe</button>
+          <span id="piani-save-status" style="font-size:0.85rem; color:#10b981; font-weight:700; display:none;">✅ Salvato!</span>
+        </div>
       </div>
     </div>
 

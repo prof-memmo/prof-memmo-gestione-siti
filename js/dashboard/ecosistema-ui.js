@@ -39,16 +39,24 @@ const EcosistemaUI = {
         if (elTestoFuturo) elTestoFuturo.value = sostieni.testo_futuro || "❤️ Sostieni Prof. Memmo.\nGli abbonamenti permettono di mantenere attive le piattaforme e sviluppare nuove funzionalità.\nSe vuoi contribuire ulteriormente alla crescita del progetto educativo, puoi sostenere liberamente Prof. Memmo con una donazione.";
         if (elRingraziamento) elRingraziamento.value = sostieni.ringraziamento || '';
 
-        // Prezzi piani
+        // Prezzi piani (Definitivi: Viandante €14.99, Docente €24.99, Completo €34.99)
         const monet = data.monetizzazione_config || {};
+        const stripePiani = data.stripe_piani_config || {};
         const elPriceViandante = document.getElementById('price-viandante');
         const elPriceDocente = document.getElementById('price-docente');
         const elPriceEcosistema = document.getElementById('price-ecosistema');
+        const elStripePriceViandante = document.getElementById('stripe-price-viandante');
+        const elStripePriceDocente = document.getElementById('stripe-price-docente');
+        const elStripePriceEcosistema = document.getElementById('stripe-price-ecosistema');
         const elMassimale = document.getElementById('hub-massimale-incassi');
         
-        if (elPriceViandante) elPriceViandante.value = monet.price_viandante || '9.99';
-        if (elPriceDocente) elPriceDocente.value = monet.price_docente || '19.99';
-        if (elPriceEcosistema) elPriceEcosistema.value = monet.price_ecosistema || '24.99';
+        if (elPriceViandante) elPriceViandante.value = monet.price_viandante || '14.99';
+        if (elPriceDocente) elPriceDocente.value = monet.price_docente || '24.99';
+        if (elPriceEcosistema) elPriceEcosistema.value = monet.price_ecosistema || '34.99';
+
+        if (elStripePriceViandante) elStripePriceViandante.value = stripePiani.viandante || '';
+        if (elStripePriceDocente) elStripePriceDocente.value = stripePiani.docente || '';
+        if (elStripePriceEcosistema) elStripePriceEcosistema.value = stripePiani.completo || '';
         
         // Diciture piani
         const piani = data.piani_config || {};
@@ -219,6 +227,11 @@ const EcosistemaUI = {
             price_docente: g('price-docente'),
             price_ecosistema: g('price-ecosistema'),
         };
+        const stripePianiConfig = {
+            viandante: g('stripe-price-viandante').trim(),
+            docente: g('stripe-price-docente').trim(),
+            completo: g('stripe-price-ecosistema').trim(),
+        };
         const pianiConfig = {
             'desc-base': g('desc-base'),
             'btn-base': g('btn-base'),
@@ -236,14 +249,22 @@ const EcosistemaUI = {
         try {
             await window.EcosystemService.saveEcosystemSettings({
                 monetizzazione_config: monetConfig,
+                stripe_piani_config: stripePianiConfig,
                 piani_config: pianiConfig
             });
             this.settingsData.monetizzazione_config = monetConfig;
+            this.settingsData.stripe_piani_config = stripePianiConfig;
             this.settingsData.piani_config = pianiConfig;
-            alert('✅ Prezzi e diciture piani salvati!');
+            
+            const statusLabel = document.getElementById('piani-save-status');
+            if (statusLabel) {
+                statusLabel.style.display = 'inline';
+                setTimeout(() => { statusLabel.style.display = 'none'; }, 3000);
+            }
+            alert('✅ Prezzi, diciture e Stripe Price ID salvati con successo!');
         } catch (e) {
             console.error('Errore salvataggio prezzi:', e);
-            alert('Errore durante il salvataggio.');
+            alert('Errore durante il salvataggio: ' + e.message);
         }
     },
 
@@ -253,9 +274,5 @@ const EcosistemaUI = {
     }
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-    // Il caricamento è gestito dall'orchestratore HubApp che chiama EcosistemaUI.init()
-    // per assicurarsi che l'EcosystemService sia pronto.
-});
-
 window.EcosistemaUI = EcosistemaUI;
+
