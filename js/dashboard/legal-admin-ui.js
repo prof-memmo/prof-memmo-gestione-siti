@@ -15,11 +15,11 @@ const LegalAdminUI = {
         const db = this.getDb();
         if (!db) return;
         try {
-            let snap = await db.collection('ecosistema_settings').doc('legal').get();
+            let snap = await db.collection('hub_settings').doc('legal').get();
             if (!snap.exists) {
-                snap = await db.collection('hub_settings').doc('legal').get();
+                try { snap = await db.collection('ecosistema_settings').doc('legal').get(); } catch(_) {}
             }
-            let data = snap.exists ? snap.data() : {};
+            let data = (snap && snap.exists) ? snap.data() : {};
 
             // Set default Copyright text if empty
             const defaultCopyright = "© 2026 Guglielmo Piersanti. Tutti i contenuti presenti su questo sito sono di proprietà dell'autore e sono protetti tramite deposito e marcatura temporale presso Patamu. I contenuti sono inoltre distribuiti con licenza Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0).";
@@ -68,10 +68,7 @@ const LegalAdminUI = {
         this.updateFiscalSwitchUI();
 
         try {
-            await Promise.all([
-                db.collection('ecosistema_settings').doc('legal').set({ showFiscalInFooter: this.fiscalEnabled }, { merge: true }),
-                db.collection('hub_settings').doc('legal').set({ showFiscalInFooter: this.fiscalEnabled }, { merge: true })
-            ]);
+            await db.collection('hub_settings').doc('legal').set({ showFiscalInFooter: this.fiscalEnabled }, { merge: true });
             console.log("Visibilità dati fiscali salvata:", this.fiscalEnabled);
         } catch(e) {
             console.error("Errore salvataggio visibilità dati fiscali:", e);
@@ -90,20 +87,12 @@ const LegalAdminUI = {
         const code = document.getElementById('legal-fiscal-code').value.trim();
         const email = document.getElementById('legal-fiscal-email').value.trim();
         try {
-            await Promise.all([
-                db.collection('ecosistema_settings').doc('legal').set({
-                    fiscalName: name,
-                    fiscalCompany: company,
-                    fiscalCode: code,
-                    fiscalEmail: email
-                }, { merge: true }),
-                db.collection('hub_settings').doc('legal').set({
-                    fiscalName: name,
-                    fiscalCompany: company,
-                    fiscalCode: code,
-                    fiscalEmail: email
-                }, { merge: true })
-            ]);
+            await db.collection('hub_settings').doc('legal').set({
+                fiscalName: name,
+                fiscalCompany: company,
+                fiscalCode: code,
+                fiscalEmail: email
+            }, { merge: true });
             alert("Dati Fiscali salvati con successo!");
         } catch(e) {
             console.error("Errore salvataggio dati fiscali:", e);
@@ -119,10 +108,7 @@ const LegalAdminUI = {
         }
         const text = document.getElementById('legal-copyright-text').value.trim();
         try {
-            await Promise.all([
-                db.collection('ecosistema_settings').doc('legal').set({ copyrightText: text }, { merge: true }),
-                db.collection('hub_settings').doc('legal').set({ copyrightText: text }, { merge: true })
-            ]);
+            await db.collection('hub_settings').doc('legal').set({ copyrightText: text }, { merge: true });
             alert("Testo Copyright salvato con successo!");
         } catch(e) {
             console.error("Errore salvataggio copyright:", e);
@@ -138,10 +124,7 @@ const LegalAdminUI = {
         }
         const text = document.getElementById('legal-privacy-text').value.trim();
         try {
-            await Promise.all([
-                db.collection('ecosistema_settings').doc('legal').set({ privacyText: text }, { merge: true }),
-                db.collection('hub_settings').doc('legal').set({ privacyText: text }, { merge: true })
-            ]);
+            await db.collection('hub_settings').doc('legal').set({ privacyText: text }, { merge: true });
             alert("Privacy Policy salvata con successo! I nuovi contenuti saranno visibili su tutti i siti.");
         } catch(e) {
             console.error("Errore salvataggio privacy:", e);
@@ -157,10 +140,7 @@ const LegalAdminUI = {
         }
         const text = document.getElementById('legal-terms-text').value.trim();
         try {
-            await Promise.all([
-                db.collection('ecosistema_settings').doc('legal').set({ termsText: text }, { merge: true }),
-                db.collection('hub_settings').doc('legal').set({ termsText: text }, { merge: true })
-            ]);
+            await db.collection('hub_settings').doc('legal').set({ termsText: text }, { merge: true });
             alert("Termini e Condizioni salvati con successo!");
         } catch(e) {
             console.error("Errore salvataggio termini:", e);

@@ -14,7 +14,7 @@ const NotificationsUI = {
             if (window.GamesService && window.GamesService.getGames) {
                 games = await window.GamesService.getGames();
             } else if (window.fbDb && window.fbDb.hub) {
-                const snap = await window.fbDb.hub.collection('ecosistema_settings').doc('games').get();
+                const snap = await window.fbDb.hub.collection('hub_settings').doc('games').get();
                 if (snap.exists) games = Object.values(snap.data());
             }
 

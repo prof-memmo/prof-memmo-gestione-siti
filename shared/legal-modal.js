@@ -258,8 +258,11 @@
     try {
       if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
         var db = firebase.app().firestore();
-        var legalSnap = await db.collection('ecosistema_settings').doc('legal').get();
-        if (legalSnap.exists) {
+        var legalSnap = await db.collection('hub_settings').doc('legal').get();
+        if (!legalSnap.exists) {
+          try { legalSnap = await db.collection('ecosistema_settings').doc('legal').get(); } catch(_) {}
+        }
+        if (legalSnap && legalSnap.exists) {
           var legData = legalSnap.data();
           if (legData.privacyText) dynamicPrivacy = legData.privacyText;
           if (legData.termsText) dynamicTerms = legData.termsText;
@@ -429,8 +432,11 @@
     var db = getFirestoreInstance();
     if (!db) return;
     try {
-      var snap = await db.collection('ecosistema_settings').doc('legal').get();
-      if (!snap.exists) return;
+      var snap = await db.collection('hub_settings').doc('legal').get();
+      if (!snap.exists) {
+        try { snap = await db.collection('ecosistema_settings').doc('legal').get(); } catch(_) {}
+      }
+      if (!snap || !snap.exists) return;
       var data = snap.data();
 
       // Trova o crea il contenitore dedicato nel footer
