@@ -1341,7 +1341,10 @@ Il titolare si riserva il diritto di aggiornare o modificare i presenti Termini 
 14. Legge applicabile e Foro competente
 I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/679 (GDPR). Per qualsiasi controversia civile derivante dall'interpretazione o esecuzione del servizio, il foro competente è quello previsto dalla legge applicabile.</textarea>
         </div>
-        <button type="button" class="btn" style="background: var(--accent); color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 8px; cursor: pointer;" onclick="window.LegalAdminUI.saveTermsText()"><i class="fa-solid fa-floppy-disk"></i> Salva Termini e Condizioni</button>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button" class="btn" style="background: var(--accent); color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 8px; cursor: pointer;" onclick="window.LegalAdminUI.saveTermsText()"><i class="fa-solid fa-floppy-disk"></i> Salva Termini e Condizioni</button>
+          <button type="button" class="btn" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 10px 16px; font-weight: 600; border-radius: 8px; cursor: pointer;" onclick="window.LegalAdminUI.resetToDefaultTerms()"><i class="fa-solid fa-rotate-left"></i> Carica Schema Standard (14 Articoli)</button>
+        </div>
       </div>
     </div>
 
