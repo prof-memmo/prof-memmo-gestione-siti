@@ -1,16 +1,232 @@
 // js/dashboard/diagnostics-ui.js
-// Gestione UI della sezione CONTROLLO E DIAGNOSTICA + VISUALIZZA COME (Modalità Anteprima)
+// Gestione UI della sezione CONTROLLO E DIAGNOSTICA + REGISTRO DINAMICO PROGETTI + VISUALIZZA COME
 // Stile coerente con l'Hub, isolamento completo, nessuna modifica automatica a dati o database.
 
 const DiagnosticsUI = {
     isRunning: false,
     activePreviewRole: null,
+    currentProjects: [],
 
-    init: function() {
+    init: async function() {
+        await this.loadProjectsRegistry();
         this.renderInitialState();
+        this.populatePreviewTargets();
     },
 
-    // Carica lo stato iniziale dal localStorage o mostra placeholder fino al primo test
+    // =========================================================================
+    // REGISTRO DINAMICO DEI PROGETTI (UI & GESTIONE)
+    // =========================================================================
+
+    loadProjectsRegistry: async function() {
+        if (!window.DiagnosticsService) return;
+        try {
+            this.currentProjects = await window.DiagnosticsService.getProjects();
+            this.renderProjectsRegistryList();
+        } catch (e) {
+            console.error("Errore caricamento registro progetti:", e);
+        }
+    },
+
+    renderProjectsRegistryList: function() {
+        const container = document.getElementById('diag-projects-registry-list');
+        if (!container) return;
+
+        if (!this.currentProjects || this.currentProjects.length === 0) {
+            container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 10px;">Nessun progetto registrato.</div>';
+            return;
+        }
+
+        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px;">';
+
+        for (const p of this.currentProjects) {
+            const isDiagActive = p.diagnostics_active !== false;
+            const isSiteActive = p.active !== false;
+            const typeBadges = {
+                'vetrina': '<span style="background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700;">VETRINA</span>',
+                'admin': '<span style="background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700;">ADMIN</span>',
+                'gioco': '<span style="background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700;">GIOCO</span>',
+                'servizio': '<span style="background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700;">SERVIZIO</span>'
+            };
+
+            html += `
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid ${p.icon || 'fa-globe'}" style="color: #6366f1; font-size: 1.1rem;"></i>
+                                <strong style="font-size: 0.9rem; color: var(--text-main);">${p.name}</strong>
+                            </div>
+                            ${typeBadges[p.type] || typeBadges['servizio']}
+                        </div>
+
+                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all;">
+                            <i class="fa-solid fa-link"></i> <a href="${p.url}" target="_blank" style="color: #6366f1; text-decoration: none;">${p.url}</a>
+                        </div>
+
+                        ${p.description ? `<div style="font-size: 0.8rem; color: #475569; margin-bottom: 8px; line-height: 1.35;">${p.description}</div>` : ''}
+
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.73rem; color: #64748b; margin-bottom: 10px;">
+                            <span><b>ID:</b> <code>${p.id}</code></span>
+                            ${p.repo ? `<span>&bull; <b>Repo:</b> <code>${p.repo}</code></span>` : ''}
+                            ${p.db_collection ? `<span>&bull; <b>DB:</b> <code>${p.db_collection}</code></span>` : ''}
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid #f1f5f9;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; color: ${isDiagActive ? '#15803d' : '#94a3b8'};">
+                            <input type="checkbox" ${isDiagActive ? 'checked' : ''} onchange="DiagnosticsUI.toggleProjectDiagnostics('${p.id}', this.checked)" style="cursor: pointer;">
+                            Diagnostica ${isDiagActive ? 'Attiva' : 'Disattivata'}
+                        </label>
+
+                        <div style="display: flex; gap: 6px;">
+                            <button onclick="DiagnosticsUI.openEditProjectModal('${p.id}')" class="btn btn-sm" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; padding: 3px 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer;" title="Modifica Progetto">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            ${!window.DiagnosticsService.DEFAULT_PROJECTS.some(dp => dp.id === p.id) ? `
+                                <button onclick="DiagnosticsUI.deleteProject('${p.id}')" class="btn btn-sm" style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 3px 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer;" title="Rimuovi dal Registro">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
+    },
+
+    toggleProjectDiagnostics: async function(projectId, enabled) {
+        try {
+            await window.DiagnosticsService.toggleProjectDiagnostics(projectId, enabled);
+            await this.loadProjectsRegistry();
+        } catch (e) {
+            console.error("Errore toggle diagnostica:", e);
+            alert("Errore salvataggio: " + e.message);
+        }
+    },
+
+    openAddProjectModal: function() {
+        document.getElementById('form-project-id').value = '';
+        document.getElementById('form-project-id').readOnly = false;
+        document.getElementById('form-project-name').value = '';
+        document.getElementById('form-project-url').value = '';
+        document.getElementById('form-project-repo').value = '';
+        document.getElementById('form-project-type').value = 'gioco';
+        document.getElementById('form-project-collection').value = '';
+        document.getElementById('form-project-icon').value = 'fa-globe';
+        document.getElementById('form-project-desc').value = '';
+        document.getElementById('form-project-active').checked = true;
+        document.getElementById('form-project-diag-active').checked = true;
+
+        document.getElementById('modal-project-title').innerHTML = '<i class="fa-solid fa-plus-circle" style="color: #6366f1;"></i> Aggiungi Nuovo Progetto al Registro';
+        document.getElementById('modal-manage-project').style.display = 'flex';
+    },
+
+    openEditProjectModal: function(projectId) {
+        const p = this.currentProjects.find(item => item.id === projectId);
+        if (!p) return;
+
+        document.getElementById('form-project-id').value = p.id;
+        document.getElementById('form-project-id').readOnly = true;
+        document.getElementById('form-project-name').value = p.name;
+        document.getElementById('form-project-url').value = p.url;
+        document.getElementById('form-project-repo').value = p.repo || '';
+        document.getElementById('form-project-type').value = p.type || 'gioco';
+        document.getElementById('form-project-collection').value = p.db_collection || '';
+        document.getElementById('form-project-icon').value = p.icon || 'fa-globe';
+        document.getElementById('form-project-desc').value = p.description || '';
+        document.getElementById('form-project-active').checked = p.active !== false;
+        document.getElementById('form-project-diag-active').checked = p.diagnostics_active !== false;
+
+        document.getElementById('modal-project-title').innerHTML = `<i class="fa-solid fa-pen-to-square" style="color: #6366f1;"></i> Modifica: ${p.name}`;
+        document.getElementById('modal-manage-project').style.display = 'flex';
+    },
+
+    closeProjectModal: function() {
+        document.getElementById('modal-manage-project').style.display = 'none';
+    },
+
+    saveProjectFromModal: async function() {
+        const id = document.getElementById('form-project-id').value.trim();
+        const name = document.getElementById('form-project-name').value.trim();
+        const url = document.getElementById('form-project-url').value.trim();
+        const repo = document.getElementById('form-project-repo').value.trim();
+        const type = document.getElementById('form-project-type').value;
+        const db_collection = document.getElementById('form-project-collection').value.trim();
+        const icon = document.getElementById('form-project-icon').value.trim();
+        const description = document.getElementById('form-project-desc').value.trim();
+        const active = document.getElementById('form-project-active').checked;
+        const diagnostics_active = document.getElementById('form-project-diag-active').checked;
+
+        if (!id || !name || !url) {
+            alert("Compila i campi obbligatori: Identificativo ID, Nome e URL del progetto.");
+            return;
+        }
+
+        try {
+            await window.DiagnosticsService.saveProject({
+                id,
+                name,
+                url,
+                repo,
+                type,
+                db_collection,
+                icon,
+                description,
+                active,
+                diagnostics_active
+            });
+
+            this.closeProjectModal();
+            await this.loadProjectsRegistry();
+            this.populatePreviewTargets();
+            alert(`✅ Progetto "${name}" registrato con successo nell'Ecosistema!`);
+        } catch (e) {
+            console.error("Errore salvataggio progetto:", e);
+            alert("Errore salvataggio progetto: " + e.message);
+        }
+    },
+
+    deleteProject: async function(projectId) {
+        if (!confirm(`Sei sicuro di voler rimuovere il progetto "${projectId}" dal registro centrale?`)) return;
+        try {
+            await window.DiagnosticsService.deleteProject(projectId);
+            await this.loadProjectsRegistry();
+            this.populatePreviewTargets();
+            alert("✅ Progetto rimosso dal registro con successo.");
+        } catch (e) {
+            console.error("Errore eliminazione progetto:", e);
+            alert("Errore eliminazione: " + e.message);
+        }
+    },
+
+    // Popola dinamicamente il menu a tendina "Destinazione" in Modalità Anteprima
+    populatePreviewTargets: function() {
+        const select = document.getElementById('preview-target-select');
+        if (!select) return;
+
+        let optionsHtml = '';
+        for (const p of this.currentProjects) {
+            if (p.active === false) continue;
+            optionsHtml += `<option value="${p.id}">${p.name} (${p.type})</option>`;
+        }
+        // Aggiungi destinazioni secondarie note se non già presenti
+        if (!this.currentProjects.some(p => p.id === 'profilo')) {
+            optionsHtml += `<option value="profilo">👤 Profilo Utente / Area Riservata (profilo.html)</option>`;
+        }
+        if (!this.currentProjects.some(p => p.id === 'giochi_hub')) {
+            optionsHtml += `<option value="giochi_hub">🎮 Catalogo Completo Giochi (giochi.html)</option>`;
+        }
+
+        select.innerHTML = optionsHtml;
+    },
+
+    // =========================================================================
+    // CONTROLLO COMPLETO E RENDERING RISULTATI
+    // =========================================================================
+
     renderInitialState: function() {
         const lastReport = window.DiagnosticsService ? window.DiagnosticsService.getLastReport() : null;
         if (lastReport) {
@@ -34,7 +250,7 @@ const DiagnosticsUI = {
             gridEl.innerHTML = `
                 <div style="text-align: center; padding: 30px 20px; color: var(--text-muted);">
                     <i class="fa-solid fa-shield-heart" style="font-size: 2.5rem; color: #94a3b8; margin-bottom: 12px; display: block;"></i>
-                    <p style="margin: 0 0 12px 0; font-size: 0.95rem; font-weight: 500;">Il sistema di diagnostica verificherà l'integrità di tutti i 6 repository, database, auth e servizi collegati.</p>
+                    <p style="margin: 0 0 12px 0; font-size: 0.95rem; font-weight: 500;">Il sistema di diagnostica verificherà dinamicamente tutti i progetti registrati, database, auth e servizi collegati.</p>
                     <button onclick="DiagnosticsUI.runFullCheck()" class="btn" style="background: #6366f1; color: white; font-weight: 700; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(99,102,241,0.25);">
                         <i class="fa-solid fa-play"></i> Esegui Controllo Completo
                     </button>
@@ -43,7 +259,6 @@ const DiagnosticsUI = {
         }
     },
 
-    // Esecuzione controllo completo asincrono
     runFullCheck: async function() {
         if (this.isRunning) return;
         this.isRunning = true;
@@ -67,8 +282,8 @@ const DiagnosticsUI = {
             gridEl.innerHTML = `
                 <div style="text-align: center; padding: 40px 20px;">
                     <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: #6366f1; margin-bottom: 12px; display: block;"></i>
-                    <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem;">Verifica in tempo reale di tutti i componenti dell'ecosistema...</div>
-                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Controllo raggiungibilità 6 repository, Firebase Auth, Firestore, Stripe e Brevo</div>
+                    <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem;">Verifica dinamica di tutti i componenti registrati nell'ecosistema...</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Controllo raggiungibilità progetti, Firebase Auth, Firestore, Stripe e Brevo</div>
                 </div>
             `;
         }
@@ -76,6 +291,7 @@ const DiagnosticsUI = {
         try {
             const report = await window.DiagnosticsService.runFullCheck();
             this.renderReport(report);
+            await this.loadProjectsRegistry();
         } catch (e) {
             console.error('Errore durante la diagnostica:', e);
             alert('Errore durante l\'esecuzione del controllo: ' + e.message);
@@ -89,7 +305,6 @@ const DiagnosticsUI = {
         }
     },
 
-    // Rendering del report diagnostico
     renderReport: function(report) {
         if (!report) return;
 
@@ -100,19 +315,16 @@ const DiagnosticsUI = {
         const kpiWarnEl = document.getElementById('diag-kpi-warn');
         const kpiErrEl = document.getElementById('diag-kpi-err');
 
-        // Aggiorna data e ora dinamiche
         if (timestampEl && report.timestamp) {
             timestampEl.innerHTML = `
                 <strong>Data:</strong> ${report.timestamp.date} &nbsp;|&nbsp; <strong>Ora:</strong> ${report.timestamp.time}
             `;
         }
 
-        // Aggiorna KPI
         if (kpiOkEl) kpiOkEl.textContent = report.summary.working;
         if (kpiWarnEl) kpiWarnEl.textContent = report.summary.warnings;
         if (kpiErrEl) kpiErrEl.textContent = report.summary.errors;
 
-        // Aggiorna Badge Stato Complessivo
         if (statusSummaryEl) {
             if (report.overallStatus === 'ok') {
                 statusSummaryEl.className = 'diag-status-badge diag-status-ok';
@@ -126,11 +338,9 @@ const DiagnosticsUI = {
             }
         }
 
-        // Render Griglia Risultati
         if (gridEl && report.items) {
             let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
 
-            // Separa eventuali errori / warning in cima per massima visibilità
             const sortedItems = [...report.items].sort((a, b) => {
                 const weight = { 'error': 0, 'warning': 1, 'ok': 2 };
                 return (weight[a.status] || 99) - (weight[b.status] || 99);
@@ -138,18 +348,15 @@ const DiagnosticsUI = {
 
             for (const item of sortedItems) {
                 let badgeClass = 'diag-badge-ok';
-                let badgeIcon = '✓';
                 let borderStyle = 'border-left: 4px solid #10b981;';
                 let cardBg = '#ffffff';
 
                 if (item.status === 'warning') {
                     badgeClass = 'diag-badge-warn';
-                    badgeIcon = '⚠';
                     borderStyle = 'border-left: 4px solid #f59e0b;';
                     cardBg = '#fffbeb';
                 } else if (item.status === 'error') {
                     badgeClass = 'diag-badge-err';
-                    badgeIcon = '✕';
                     borderStyle = 'border-left: 4px solid #ef4444;';
                     cardBg = '#fef2f2';
                 }
@@ -202,25 +409,21 @@ const DiagnosticsUI = {
     // =========================================================================
 
     openPreviewModal: function() {
+        this.populatePreviewTargets();
         const modal = document.getElementById('modal-preview-role');
-        if (modal) {
-            modal.style.display = 'flex';
-        }
+        if (modal) modal.style.display = 'flex';
     },
 
     closePreviewModal: function() {
         const modal = document.getElementById('modal-preview-role');
-        if (modal) {
-            modal.style.display = 'none';
-        }
+        if (modal) modal.style.display = 'none';
     },
 
-    // Avvia la simulazione anteprima senza alterare ruoli o permessi nel DB
     launchRolePreview: function() {
         const roleSelect = document.getElementById('preview-role-select');
         const targetSelect = document.getElementById('preview-target-select');
         const selectedRole = roleSelect ? roleSelect.value : 'visitatore';
-        const selectedTarget = targetSelect ? targetSelect.value : 'vetrina';
+        const selectedTargetId = targetSelect ? targetSelect.value : 'hub_vetrina';
 
         const roleLabels = {
             'visitatore': 'Visitatore (Non Autenticato)',
@@ -230,31 +433,25 @@ const DiagnosticsUI = {
             'amministratore': 'Amministratore (Super Admin)'
         };
 
-        const targetUrls = {
-            'vetrina': 'https://prof-memmo.github.io/prof-memmo-gestione-siti/index.html',
-            'profilo': 'https://prof-memmo.github.io/prof-memmo-gestione-siti/profilo.html',
-            'giochi_hub': 'https://prof-memmo.github.io/prof-memmo-gestione-siti/giochi.html',
-            'rotta_eroi': 'https://prof-memmo.github.io/la-rotta-degli-eroi/index.html',
-            'corte_commedia': 'https://prof-memmo.github.io/la-corte-della-commedia/index.html',
-            'fantaletteratura': 'https://prof-memmo.github.io/fantaletteratura/index.html',
-            'palestra_riflessione': 'https://prof-memmo.github.io/palestra-di-riflessione/index.html',
-            'ops_storia': 'https://prof-memmo.github.io/ops-storia/index.html'
-        };
+        // Trova l'URL corrispondente dal registro dinamico
+        let baseUrl = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/index.html';
+        const found = this.currentProjects.find(p => p.id === selectedTargetId);
+        if (found) {
+            baseUrl = found.url;
+        } else if (selectedTargetId === 'profilo') {
+            baseUrl = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/profilo.html';
+        } else if (selectedTargetId === 'giochi_hub') {
+            baseUrl = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/giochi.html';
+        }
 
-        let baseUrl = targetUrls[selectedTarget] || targetUrls['vetrina'];
         const previewParam = `previewRole=${encodeURIComponent(selectedRole)}&previewMode=true&timestamp=${Date.now()}`;
         const finalUrl = baseUrl.includes('?') ? `${baseUrl}&${previewParam}` : `${baseUrl}?${previewParam}`;
 
-        // Salva stato anteprima non invasivo in sessionStorage
         sessionStorage.setItem('hub_active_preview_role', selectedRole);
         sessionStorage.setItem('hub_preview_active', 'true');
 
         this.closePreviewModal();
-
-        // Mostra banner anteprima in cima all'Hub Admin
         this.showActivePreviewBanner(selectedRole, roleLabels[selectedRole] || selectedRole, finalUrl);
-
-        // Apri l'anteprima in una nuova scheda sicura
         window.open(finalUrl, '_blank');
     },
 

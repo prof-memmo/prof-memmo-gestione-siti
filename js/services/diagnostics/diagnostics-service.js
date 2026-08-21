@@ -1,18 +1,22 @@
 // js/services/diagnostics/diagnostics-service.js
-// Servizio centralizzato di controllo, analisi e diagnostica dell'Ecosistema Prof. Memmo
+// Servizio centralizzato dinamico di controllo, analisi e diagnostica dell'Ecosistema Prof. Memmo
+// Architettura scalabile con Registro Progetti Dinamico su Cloud Firestore (hub_settings/registro_progetti)
 // Rispetta i principi di isolamento e regole anti-regressione (CONTROLLA -> ANALIZZA -> SEGNALA).
 
 const DiagnosticsService = {
-    // 6 Repository di baseline + Servizi Terzi
-    SITES_BASELINE: [
+    // 7 Progetti dell'Ecosistema Attuale (Baseline Congelata STABLE-BEFORE-HUB-EXPANSION)
+    DEFAULT_PROJECTS: [
         {
             id: 'hub_vetrina',
             name: 'Hub & Vetrina Giochi (prof-memmo-games)',
             repo: 'prof-memmo-games',
             url: 'https://prof-memmo.github.io/prof-memmo-gestione-siti/',
-            altUrl: 'https://prof-memmo.github.io/games/',
             type: 'vetrina',
-            icon: 'fa-house'
+            active: true,
+            diagnostics_active: true,
+            db_collection: 'hub_users',
+            icon: 'fa-house',
+            description: 'Vetrina pubblica principale, catalogo giochi e portale di accesso.'
         },
         {
             id: 'hub_admin',
@@ -20,49 +24,182 @@ const DiagnosticsService = {
             repo: 'prof-memmo-admin-gestione-generale',
             url: 'https://prof-memmo.github.io/prof-memmo-gestione-siti/portal.html',
             type: 'admin',
-            icon: 'fa-shield-halved'
+            active: true,
+            diagnostics_active: true,
+            db_collection: 'hub_settings',
+            icon: 'fa-shield-halved',
+            description: 'Console di amministrazione centrale, gestione iscritti, notifiche e impostazioni.'
         },
         {
             id: 'rotta_eroi',
             name: 'La Rotta degli Eroi',
             repo: 'la-rotta-degli-eroi',
             url: 'https://prof-memmo.github.io/la-rotta-degli-eroi/',
-            type: 'game',
-            icon: 'fa-ship'
+            type: 'gioco',
+            active: true,
+            diagnostics_active: true,
+            db_collection: 'eroi_users',
+            icon: 'fa-ship',
+            description: 'Gioco di ruolo didattico su epica classica e letteratura.'
         },
         {
             id: 'corte_commedia',
             name: 'La Corte della Commedia',
             repo: 'la-corte-della-commedia',
             url: 'https://prof-memmo.github.io/la-corte-della-commedia/',
-            type: 'game',
-            icon: 'fa-masks-theater'
+            type: 'gioco',
+            active: true,
+            diagnostics_active: true,
+            db_collection: 'corte_users',
+            icon: 'fa-masks-theater',
+            description: 'Gioco didattico sulla Divina Commedia di Dante Alighieri.'
         },
         {
             id: 'fantaletteratura',
             name: 'FantaLetteratura',
             repo: 'fantaletteratura',
             url: 'https://prof-memmo.github.io/fantaletteratura/',
-            type: 'game',
-            icon: 'fa-feather-pointed'
+            type: 'gioco',
+            active: true,
+            diagnostics_active: true,
+            db_collection: 'fanta_users',
+            icon: 'fa-feather-pointed',
+            description: 'Lega letteraria e sfide narrative per studenti e classi.'
         },
         {
             id: 'palestra_riflessione',
             name: 'La Palestra di Riflessione',
             repo: 'palestra-di-riflessione',
             url: 'https://prof-memmo.github.io/palestra-di-riflessione/',
-            type: 'game',
-            icon: 'fa-brain'
+            type: 'gioco',
+            active: true,
+            diagnostics_active: true,
+            db_collection: 'palestra_users',
+            icon: 'fa-brain',
+            description: 'Palestra di logica, comprensione del testo e pensiero critico.'
         },
         {
             id: 'ops_storia',
             name: 'Ops! Operazione Storia',
             repo: 'ops-storia',
             url: 'https://prof-memmo.github.io/ops-storia/',
-            type: 'game',
-            icon: 'fa-landmark'
+            type: 'gioco',
+            active: true,
+            diagnostics_active: true,
+            db_collection: 'ops_users',
+            icon: 'fa-landmark',
+            description: 'Gioco storico per la scuola secondaria di primo grado.'
         }
     ],
+
+    // =========================================================================
+    // GESTIONE REGISTRO DINAMICO DEI PROGETTI (Firestore + Fallback Locale)
+    // =========================================================================
+
+    // Recupera la lista dinamica dei progetti dal database centrale
+    getProjects: async function() {
+        if (!window.fbDb || !window.fbDb.hub) {
+            console.warn("DB Hub non pronto, uso registro progetti di default.");
+            return this.DEFAULT_PROJECTS;
+        }
+
+        try {
+            const doc = await window.fbDb.hub.collection('hub_settings').doc('registro_progetti').get();
+            if (doc.exists && doc.data() && Array.isArray(doc.data().projects) && doc.data().projects.length > 0) {
+                const storedProjects = doc.data().projects;
+                // Merge intelligente con i default per garantire che i progetti di sistema non vengano persi
+                const merged = [...storedProjects];
+                for (const def of this.DEFAULT_PROJECTS) {
+                    if (!merged.some(p => p.id === def.id)) {
+                        merged.push(def);
+                    }
+                }
+                return merged;
+            } else {
+                // Primo bootstrap automatico nel database
+                await window.fbDb.hub.collection('hub_settings').doc('registro_progetti').set({
+                    projects: this.DEFAULT_PROJECTS,
+                    lastUpdated: new Date().toISOString(),
+                    version: '2.0.0'
+                }, { merge: true });
+                return this.DEFAULT_PROJECTS;
+            }
+        } catch (e) {
+            console.error("Errore recupero registro progetti da Firestore:", e);
+            return this.DEFAULT_PROJECTS;
+        }
+    },
+
+    // Salva o aggiorna un progetto nel registro centralizzato
+    saveProject: async function(projectData) {
+        if (!window.fbDb || !window.fbDb.hub) throw new Error("Database non connesso");
+        if (!projectData.id || !projectData.name || !projectData.url) {
+            throw new Error("Campi obbligatori mancanti: Nome, Identificativo o URL");
+        }
+
+        const currentProjects = await this.getProjects();
+        const index = currentProjects.findIndex(p => p.id === projectData.id);
+
+        const projectPayload = {
+            id: projectData.id.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'),
+            name: projectData.name.trim(),
+            url: projectData.url.trim(),
+            repo: (projectData.repo || '').trim(),
+            type: projectData.type || 'gioco',
+            active: projectData.active !== false,
+            diagnostics_active: projectData.diagnostics_active !== false,
+            db_collection: (projectData.db_collection || '').trim(),
+            icon: projectData.icon || 'fa-globe',
+            description: (projectData.description || '').trim(),
+            updatedAt: new Date().toISOString()
+        };
+
+        if (index >= 0) {
+            currentProjects[index] = { ...currentProjects[index], ...projectPayload };
+        } else {
+            currentProjects.push(projectPayload);
+        }
+
+        await window.fbDb.hub.collection('hub_settings').doc('registro_progetti').set({
+            projects: currentProjects,
+            lastUpdated: new Date().toISOString()
+        }, { merge: true });
+
+        return currentProjects;
+    },
+
+    // Rimuove un progetto dal registro
+    deleteProject: async function(projectId) {
+        if (!window.fbDb || !window.fbDb.hub) throw new Error("Database non connesso");
+        const currentProjects = await this.getProjects();
+        const updatedProjects = currentProjects.filter(p => p.id !== projectId);
+
+        await window.fbDb.hub.collection('hub_settings').doc('registro_progetti').set({
+            projects: updatedProjects,
+            lastUpdated: new Date().toISOString()
+        }, { merge: true });
+
+        return updatedProjects;
+    },
+
+    // Attiva/disattiva la diagnostica per un singolo progetto
+    toggleProjectDiagnostics: async function(projectId, enabled) {
+        const currentProjects = await this.getProjects();
+        const target = currentProjects.find(p => p.id === projectId);
+        if (!target) return;
+
+        target.diagnostics_active = enabled;
+        await window.fbDb.hub.collection('hub_settings').doc('registro_progetti').set({
+            projects: currentProjects,
+            lastUpdated: new Date().toISOString()
+        }, { merge: true });
+
+        return currentProjects;
+    },
+
+    // =========================================================================
+    // CONTROLLO DIAGNOSTICO DINAMICO & ANALISI DI SALUTE
+    // =========================================================================
 
     // Recupera l'ultimo controllo salvato in locale
     getLastReport: function() {
@@ -91,7 +228,6 @@ const DiagnosticsService = {
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
-            // Nota: su GitHub Pages e server web no-cors risolve lo status se il server è raggiungibile
             await fetch(url, {
                 method: 'HEAD',
                 mode: 'no-cors',
@@ -103,7 +239,6 @@ const DiagnosticsService = {
             return { ok: true, latency, error: null };
         } catch (err) {
             clearTimeout(timeoutId);
-            // Fallback con GET se HEAD fosse bloccato
             try {
                 const ctrl2 = new AbortController();
                 const tid2 = setTimeout(() => ctrl2.abort(), timeoutMs);
@@ -126,7 +261,7 @@ const DiagnosticsService = {
         }
     },
 
-    // Esegue il controllo diagnostico asincrono completo
+    // Esegue il controllo diagnostico asincrono completo leggendo DINAMICAMENTE il registro
     runFullCheck: async function() {
         const now = new Date();
         const timestamp = {
@@ -158,7 +293,7 @@ const DiagnosticsService = {
                     id: 'hub_core',
                     category: 'Hub Principale',
                     name: 'Hub Console & Motore Core',
-                    status: 'ok', // 'ok' | 'warning' | 'error'
+                    status: 'ok',
                     badge: '✓ FUNZIONANTE',
                     details: 'Struttura Hub caricata, SDK Firebase integrato, sessione attiva.',
                     actionNeeded: null,
@@ -392,45 +527,52 @@ const DiagnosticsService = {
         }
 
         // -------------------------------------------------------------
-        // 7. SITI COLLEGATI (Tutti i 6 Repository della Baseline)
+        // 7. SITI & PROGETTI REGISTRATI (CONTROLLO DINAMICO DAL REGISTRO)
         // -------------------------------------------------------------
-        for (const site of this.SITES_BASELINE) {
+        const projects = await this.getProjects();
+
+        for (const project of projects) {
+            // Salta i progetti con diagnostica disattivata o non attivi
+            if (project.active === false || project.diagnostics_active === false) {
+                continue;
+            }
+
             // Se siamo già nell'admin, il ping locale dell'admin è immediato
-            if (site.id === 'hub_admin') {
+            if (project.id === 'hub_admin') {
                 results.items.push({
-                    id: site.id,
+                    id: project.id,
                     category: 'Siti & Repository Ecosistema',
-                    name: site.name,
+                    name: project.name,
                     status: 'ok',
                     badge: '✓ FUNZIONANTE',
-                    details: `Console Amministrativa Hub online e attiva sulla sessione corrente.`,
+                    details: `Console Amministrativa Hub online e attiva sulla sessione corrente. Repository: ${project.repo || 'N/A'}.`,
                     actionNeeded: null,
                     timestamp: `${timestamp.date} ${timestamp.time}`
                 });
                 continue;
             }
 
-            const ping = await this.pingUrl(site.url);
+            const ping = await this.pingUrl(project.url);
             if (ping.ok) {
                 results.items.push({
-                    id: site.id,
+                    id: project.id,
                     category: 'Siti & Repository Ecosistema',
-                    name: site.name,
+                    name: project.name,
                     status: 'ok',
                     badge: '✓ FUNZIONANTE',
-                    details: `Servizio raggiungibile e operativo online (Tempo risposta: ${ping.latency}ms). Repository: ${site.repo}.`,
+                    details: `Servizio raggiungibile e operativo online (Tempo risposta: ${ping.latency}ms). Repository: ${project.repo || 'N/A'}. URL: ${project.url}`,
                     actionNeeded: null,
                     timestamp: `${timestamp.date} ${timestamp.time}`
                 });
             } else {
                 results.items.push({
-                    id: site.id,
+                    id: project.id,
                     category: 'Siti & Repository Ecosistema',
-                    name: site.name,
+                    name: project.name,
                     status: 'error',
                     badge: '✕ ERRORE',
-                    details: `${site.name} — ${ping.error || 'Impossibile raggiungere il servizio'}. URL: ${site.url}`,
-                    actionNeeded: `Verificare che la build su GitHub Pages del repository ${site.repo} sia completata con esito positivo.`,
+                    details: `${project.name} — ${ping.error || 'Impossibile raggiungere il servizio'}. URL: ${project.url}`,
+                    actionNeeded: `Verificare che la build su GitHub Pages del repository ${project.repo || project.name} sia completata con esito positivo.`,
                     timestamp: `${timestamp.date} ${timestamp.time}`
                 });
             }
@@ -441,21 +583,23 @@ const DiagnosticsService = {
         // -------------------------------------------------------------
         try {
             if (window.fbDb && window.fbDb.hub) {
-                const gameCollections = [
-                    { coll: 'eroi_users', name: 'La Rotta degli Eroi' },
-                    { coll: 'corte_users', name: 'La Corte della Commedia' },
-                    { coll: 'fanta_users', name: 'FantaLetteratura' },
-                    { coll: 'palestra_users', name: 'La Palestra di Riflessione' },
-                    { coll: 'ops_users', name: 'Ops! Operazione Storia' }
-                ];
+                // Raccoglie dinamicamente tutte le collezioni DB dei progetti registrati
+                const collectionsToCheck = [];
+                for (const p of projects) {
+                    if (p.db_collection && !collectionsToCheck.some(c => c.coll === p.db_collection)) {
+                        collectionsToCheck.push({ coll: p.db_collection, name: p.name });
+                    }
+                }
 
                 let allAccessible = true;
-                for (const g of gameCollections) {
+                const inaccessibleColls = [];
+
+                for (const g of collectionsToCheck) {
                     try {
                         await window.fbDb.hub.collection(g.coll).limit(1).get();
                     } catch (e) {
                         allAccessible = false;
-                        break;
+                        inaccessibleColls.push(g.name);
                     }
                 }
 
@@ -466,7 +610,7 @@ const DiagnosticsService = {
                         name: 'Collegamenti Hub ↔ Siti (Bridge Database)',
                         status: 'ok',
                         badge: '✓ FUNZIONANTE',
-                        details: 'Tutte le 5 collezioni di gioco dialogano correttamente con l\'Hub centrale senza restrizioni o blocchi di sicurezza.',
+                        details: `Tutte le ${collectionsToCheck.length} collezioni di gioco registrate dialogano correttamente con l'Hub centrale senza blocchi di sicurezza.`,
                         actionNeeded: null,
                         timestamp: `${timestamp.date} ${timestamp.time}`
                     });
@@ -477,7 +621,7 @@ const DiagnosticsService = {
                         name: 'Collegamenti Hub ↔ Siti (Bridge Database)',
                         status: 'warning',
                         badge: '⚠ DA VERIFICARE',
-                        details: 'Alcune collezioni di gioco hanno risposto con accesso limitato.',
+                        details: `Alcune collezioni di gioco hanno risposto con accesso limitato: ${inaccessibleColls.join(', ')}.`,
                         actionNeeded: 'Controllare le regole di sicurezza Firestore in hub.firestore.rules.',
                         timestamp: `${timestamp.date} ${timestamp.time}`
                     });
