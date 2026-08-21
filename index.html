@@ -263,6 +263,34 @@
         color: var(--accent);
         margin-top: 5px;
     }
+
+    /* Diagnostics Badges & Cards (Prompt 1) */
+    .diag-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+    .diag-status-ok { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .diag-status-warn { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .diag-status-err { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .diag-status-neutral { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+    .diag-status-running { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+
+    .diag-status-pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .diag-badge-ok { background: #dcfce7; color: #15803d; }
+    .diag-badge-warn { background: #fef3c7; color: #b45309; }
+    .diag-badge-err { background: #fee2e2; color: #b91c1c; }
   </style>
 
   <!-- Icone per Safari e Dispositivi Mobili -->
@@ -1970,26 +1998,120 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
         </div>
       </div>
 
-      <!-- 1. Diagnostica & Sistema Ecosistema -->
+      <!-- 1. CONTROLLO E DIAGNOSTICA DELL'ECOSISTEMA (Prompt 1) -->
       <div class="glass-panel" style="margin-bottom:24px; border: 1px solid rgba(99, 102, 241, 0.3); background: #ffffff;">
-        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa-solid fa-satellite-dish" style="font-size:1.4rem; color:#6366f1;"></i>
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-bottom:16px; border-bottom: 1px solid #e2e8f0; padding-bottom:14px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:44px; height:44px; border-radius:12px; background:rgba(99, 102, 241, 0.1); color:#6366f1; display:flex; align-items:center; justify-content:center; font-size:1.3rem;">
+              <i class="fa-solid fa-satellite-dish"></i>
+            </div>
             <div>
-              <h3 style="margin:0; color:var(--text-main);">Diagnostica &amp; Salute Database Centrale</h3>
-              <p style="color:var(--text-muted); font-size:0.85rem; margin:4px 0 0 0;">Verifica in tempo reale la connessione e lo stato di tutte le collezioni del database <code>prof-memmo-hub</code>.</p>
+              <h3 style="margin:0; color:var(--text-main); font-size:1.15rem; font-weight:800;">Controllo e Diagnostica Ecosistema</h3>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin:4px 0 0 0;">
+                Monitoraggio continuo dei 6 repository di baseline, Firebase Auth, Database Centrale, Stripe e Brevo.
+              </p>
             </div>
           </div>
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button onclick="ImpostazioniUI.testConnessioneGlobale()" class="btn" style="background:#6366f1; color:white; font-weight:700; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">
-              <i class="fa-solid fa-satellite-dish"></i> Test Connessione Ecosistema
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <button id="btn-run-full-diagnostics" onclick="DiagnosticsUI.runFullCheck()" class="btn" style="background:#6366f1; color:white; font-weight:700; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow: 0 4px 12px rgba(99,102,241,0.25);">
+              <i class="fa-solid fa-rotate"></i> Esegui Controllo Completo
             </button>
-            <button onclick="ImpostazioniUI.resetNotificheGlobali()" class="btn" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; font-weight:700; padding:10px 18px; border-radius:8px; cursor:pointer;">
-              <i class="fa-solid fa-bell-slash"></i> Reset Notifiche Globali
+            <button onclick="ImpostazioniUI.testConnessioneGlobale()" class="btn" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; font-weight:700; padding:10px 16px; border-radius:8px; cursor:pointer;" title="Verifica rapida delle 7 collezioni database">
+              <i class="fa-solid fa-database"></i> Test Latenza DB
+            </button>
+            <button onclick="ImpostazioniUI.resetNotificheGlobali()" class="btn" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; font-weight:700; padding:10px 16px; border-radius:8px; cursor:pointer;">
+              <i class="fa-solid fa-bell-slash"></i> Reset Notifiche
             </button>
           </div>
         </div>
-        <div id="diagnostica-global-result" style="display:none; padding: 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem;"></div>
+
+        <!-- Banner Ultimo Controllo & KPI -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px 20px; margin-bottom:18px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+              <div style="font-size:0.75rem; text-transform:uppercase; font-weight:800; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">
+                ULTIMO CONTROLLO
+              </div>
+              <div id="diag-timestamp-text" style="font-size:0.92rem; color:var(--text-main);">
+                In attesa del primo controllo...
+              </div>
+            </div>
+
+            <div id="diag-status-summary" class="diag-status-badge diag-status-neutral">
+              <i class="fa-solid fa-circle-info"></i> In attesa
+            </div>
+          </div>
+
+          <!-- Mini KPI counters -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid #e2e8f0;">
+            <div style="background:white; padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0; text-align:center;">
+              <span style="font-size:0.75rem; font-weight:700; color:#16a34a; display:block;">✓ FUNZIONANTI</span>
+              <span id="diag-kpi-ok" style="font-size:1.2rem; font-weight:800; color:#16a34a;">-</span>
+            </div>
+            <div style="background:white; padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0; text-align:center;">
+              <span style="font-size:0.75rem; font-weight:700; color:#d97706; display:block;">⚠ DA VERIFICARE</span>
+              <span id="diag-kpi-warn" style="font-size:1.2rem; font-weight:800; color:#d97706;">-</span>
+            </div>
+            <div style="background:white; padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0; text-align:center;">
+              <span style="font-size:0.75rem; font-weight:700; color:#dc2626; display:block;">✕ ERRORI</span>
+              <span id="diag-kpi-err" style="font-size:1.2rem; font-weight:800; color:#dc2626;">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risultati test rapido collezioni DB (se invocato) -->
+        <div id="diagnostica-global-result" style="display:none; padding:12px; background:#f8fafc; border-radius:8px; font-size:0.85rem; margin-bottom:16px;"></div>
+
+        <!-- Elenco Componenti e Risultati Diagnostica Completa -->
+        <div id="diag-results-grid"></div>
+      </div>
+
+      <!-- 2. VISUALIZZA COME (Modalità Anteprima Ruoli) (Prompt 1) -->
+      <div class="glass-panel" style="margin-bottom:24px; border: 1px solid rgba(14, 165, 233, 0.3); background: #ffffff;">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-bottom:16px; border-bottom: 1px solid #e2e8f0; padding-bottom:14px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:44px; height:44px; border-radius:12px; background:rgba(14, 165, 233, 0.1); color:#0284c7; display:flex; align-items:center; justify-content:center; font-size:1.3rem;">
+              <i class="fa-solid fa-street-view"></i>
+            </div>
+            <div>
+              <h3 style="margin:0; color:var(--text-main); font-size:1.15rem; font-weight:800;">Visualizza Come (Modalità Anteprima)</h3>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin:4px 0 0 0;">
+                Simula l'esperienza utente dei differenti ruoli in modalità protetta di sola lettura, senza alterare il tuo account, i tuoi dati o i permessi nel database.
+              </p>
+            </div>
+          </div>
+          <button onclick="DiagnosticsUI.openPreviewModal()" class="btn" style="background:#0284c7; color:white; font-weight:700; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow: 0 4px 12px rgba(2,132,199,0.25);">
+            <i class="fa-solid fa-up-right-from-square"></i> Apri Anteprima
+          </button>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px;">
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:center;">
+            <div style="font-size:1.6rem; margin-bottom:6px;">👤</div>
+            <div style="font-weight:700; color:var(--text-main); font-size:0.9rem;">Visitatore</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">Anonimo, accesso vetrina e navigazione pubblica</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:center;">
+            <div style="font-size:1.6rem; margin-bottom:6px;">🧭</div>
+            <div style="font-weight:700; color:var(--text-main); font-size:0.9rem;">Viandante</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">Utente base registrato, senza abbonamento</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:center;">
+            <div style="font-size:1.6rem; margin-bottom:6px;">👩‍🏫</div>
+            <div style="font-weight:700; color:var(--text-main); font-size:0.9rem;">Docente</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">Gestione classi, compiti, guide didattiche</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:center;">
+            <div style="font-size:1.6rem; margin-bottom:6px;">🎒</div>
+            <div style="font-weight:700; color:var(--text-main); font-size:0.9rem;">Studente</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">Iscritto con codice classe, missioni e punteggi</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:center;">
+            <div style="font-size:1.6rem; margin-bottom:6px;">👑</div>
+            <div style="font-weight:700; color:var(--text-main); font-size:0.9rem;">Amministratore</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">Controllo totale e configurazione globale</div>
+          </div>
+        </div>
       </div>
 
       <!-- 2. Danger Zone: Reset Stagione Centralizzato -->
@@ -2120,6 +2242,54 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
     </div>
   </div>
 
+  <!-- MODAL: ANTEPRIMA RUOLO (VISUALIZZA COME) (Prompt 1) -->
+  <div id="modal-preview-role" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
+    <div class="glass-panel" style="background: #ffffff; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; padding: 25px; border-radius: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+        <h3 style="margin: 0; color: var(--text-main); font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-street-view" style="color: #0284c7;"></i> Visualizza Come (Anteprima)
+        </h3>
+        <button onclick="DiagnosticsUI.closePreviewModal()" style="background: none; border: none; font-size: 1.4rem; color: #94a3b8; cursor: pointer;">&times;</button>
+      </div>
+
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; font-size: 0.82rem; color: #166534;">
+        <i class="fa-solid fa-shield-halved"></i> <strong>Sicurezza garantita:</strong> Questa modalità è una pura simulazione di interfaccia. Nessun account, permesso o dato nel database Firebase verrà alterato.
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); display: block; margin-bottom: 6px;">Seleziona il Ruolo da simulare:</label>
+        <select id="preview-role-select" class="input-field" style="width: 100%; box-sizing: border-box; font-size: 0.95rem; padding: 10px;">
+          <option value="visitatore">👤 Visitatore (Anonimo / Senza Login)</option>
+          <option value="viandante">🧭 Viandante (Utente Registrato Standard)</option>
+          <option value="docente" selected>👩‍🏫 Docente (Insegnante con Classi)</option>
+          <option value="studente">🎒 Studente (Associato a Codice Classe)</option>
+          <option value="amministratore">👑 Amministratore (Super Admin)</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 22px;">
+        <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); display: block; margin-bottom: 6px;">Seleziona la Destinazione:</label>
+        <select id="preview-target-select" class="input-field" style="width: 100%; box-sizing: border-box; font-size: 0.95rem; padding: 10px;">
+          <option value="vetrina">🏛️ Hub Vetrina Principale (prof-memmo-games)</option>
+          <option value="profilo">👤 Area Personale / Profilo (profilo.html)</option>
+          <option value="giochi_hub">🎮 Catalogo Tutti i Giochi (giochi.html)</option>
+          <option value="rotta_eroi">🚢 La Rotta degli Eroi</option>
+          <option value="corte_commedia">🎭 La Corte della Commedia</option>
+          <option value="fantaletteratura">🪶 FantaLetteratura</option>
+          <option value="palestra_riflessione">🧠 La Palestra di Riflessione</option>
+          <option value="ops_storia">🏛️ Ops! Operazione Storia</option>
+        </select>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="DiagnosticsUI.closePreviewModal()" style="padding: 10px 18px;">Annulla</button>
+        <button type="button" class="btn" onclick="DiagnosticsUI.launchRolePreview()" style="background: #0284c7; color: white; font-weight: 700; padding: 10px 22px; border: none; border-radius: 8px; cursor: pointer;">
+          <i class="fa-solid fa-up-right-from-square"></i> Apri Anteprima
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="js/firebase-init.js?v=20260815_2210"></script>
   <script src="js/services/auth/auth-service.js?v=20260815_2210"></script>
@@ -2135,6 +2305,7 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   <script src="js/services/newsletter/newsletter-service.js?v=20260815_2210"></script>
   <script src="js/services/ecosystem/ecosystem-service.js?v=20260815_2210"></script>
   <script src="js/services/archive/archive-service.js?v=20260815_2210"></script>
+  <script src="js/services/diagnostics/diagnostics-service.js?v=20260815_2210"></script>
   
   <!-- UI Modules -->
   <script src="js/dashboard/messages-ui.js?v=20260815_2210"></script>
@@ -2149,6 +2320,7 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   <script src="js/dashboard/notifications-ui.js?v=20260815_2210"></script>
   <script src="js/dashboard/legal-admin-ui.js?v=20260815_2210"></script>
   <script src="js/dashboard/impostazioni-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/diagnostics-ui.js?v=20260815_2210"></script>
   
   <script src="js/app_v2.js?v=20260815_2210"></script>
   <script>
@@ -2190,8 +2362,9 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
       if (targetId === 'view-email-templates' && window.RequestsUI) {
         window.RequestsUI.loadEmailTemplateForSelected();
       }
-      if (targetId === 'view-impostazioni' && window.ImpostazioniUI) {
-        window.ImpostazioniUI.init();
+      if (targetId === 'view-impostazioni') {
+        if (window.ImpostazioniUI) window.ImpostazioniUI.init();
+        if (window.DiagnosticsUI) window.DiagnosticsUI.init();
       }
       if ((targetId === 'view-monetizzazione' || targetId === 'view-come-funziona' || targetId === 'view-sostieni') && window.EcosistemaUI) {
         window.EcosistemaUI.renderUI();
