@@ -123,17 +123,21 @@ const EcosistemaUI = {
             black_week: { id: 'black_week', titolo: '🖤 Black Week', stripe_coupon_id: '', percentuale: 25, data_inizio: '2026-11-20', data_fine: '2026-11-30', attivo: true }
         };
 
-        const configToRender = (promoConfig && Object.keys(promoConfig).length > 0) ? promoConfig : defaultPromos;
+        const config = promoConfig || {};
+        // Unione di tutte le chiavi: i 5 preset + eventuali promozioni personalizzate create dall'utente
+        const allKeys = Array.from(new Set([...Object.keys(defaultPromos), ...Object.keys(config)]));
 
-        Object.entries(configToRender).forEach(([key, p]) => {
+        allKeys.forEach(key => {
+            const def = defaultPromos[key] || { id: key, titolo: '✨ Nuova Promozione', stripe_coupon_id: '', percentuale: 20, data_inizio: '', data_fine: '', attivo: true };
+            const saved = config[key] || {};
             const promoData = {
                 id: key,
-                titolo: p.titolo || 'Promozione',
-                stripe_coupon_id: p.stripe_coupon_id || '',
-                percentuale: p.percentuale !== undefined ? p.percentuale : 20,
-                data_inizio: p.data_inizio || '',
-                data_fine: p.data_fine || '',
-                attivo: p.attivo !== false
+                titolo: saved.titolo !== undefined ? saved.titolo : def.titolo,
+                stripe_coupon_id: saved.stripe_coupon_id !== undefined ? saved.stripe_coupon_id : (def.stripe_coupon_id || ''),
+                percentuale: saved.percentuale !== undefined ? saved.percentuale : def.percentuale,
+                data_inizio: saved.data_inizio !== undefined ? saved.data_inizio : def.data_inizio,
+                data_fine: saved.data_fine !== undefined ? saved.data_fine : def.data_fine,
+                attivo: saved.attivo !== undefined ? saved.attivo : def.attivo
             };
             container.insertAdjacentHTML('beforeend', this.createPromoCardHTML(promoData));
         });
