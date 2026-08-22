@@ -1,10 +1,14 @@
-// --- Newsletter UI Service (Brevo Segmentation & Consent Center) ---
-// Gestisce l'interfaccia della newsletter (iscritti, consensi GDPR, segmenti e collegamento a Brevo)
+// --- Newsletter UI Service (Hub -> Gmail CCN with Automated Grouping) ---
+// Gestisce l'interfaccia della newsletter (iscritti, consensi GDPR, segmenti e composizione Gmail CCN)
 
 const NewsletterUI = {
+    // Configurazione del limite massimo di destinatari per ciascun gruppo Gmail CCN
+    MAX_RECIPIENTS_PER_GROUP: 100,
+
     users: [],
     newsSortCol: 'data',
     newsSortAsc: false,
+    currentGroups: [],
 
     init: function() {
         this.updateStats();
@@ -52,6 +56,136 @@ const NewsletterUI = {
         if (elCons) elCons.textContent = withConsent;
         if (elDoc) elDoc.textContent = docenti;
         if (elAbb) elAbb.textContent = abbonati;
+    },
+
+    /**
+     * Suddivide gli iscritti filtrati in gruppi da massimo MAX_RECIPIENTS_PER_GROUP
+     * Garantisce che nessun destinatario sia duplicato o escluso.
+     */
+    computeGroups: function(filteredUsers) {
+        if (!filteredUsers) return [];
+
+        // Preleva solo le email uniche e valide con consenso attivo
+        const consentedEmails = [];
+        const seen = new Set();
+
+        filteredUsers.forEach(u => {
+            if (this.hasConsent(u) && u.email && u.email.includes('@')) {
+                const emailClean = u.email.toLowerCase().trim();
+                if (!seen.has(emailClean)) {
+                    seen.add(emailClean);
+                    consentedEmails.push(emailClean);
+                }
+            }
+        });
+
+        const groups = [];
+        const limit = this.MAX_RECIPIENTS_PER_GROUP || 100;
+
+        for (let i = 0; i < consentedEmails.length; i += limit) {
+            groups.push(consentedEmails.slice(i, i + limit));
+        }
+
+        this.currentGroups = groups;
+        return groups;
+    },
+
+    /**
+     * Apre Gmail per comporre una newsletter verso un gruppo specifico con destinatari in CCN
+     */
+    openGmailGroup: function(groupIndex) {
+        if (!this.currentGroups || !this.currentGroups[groupIndex]) {
+            alert("Nessun destinatario valido trovato in questo gruppo.");
+            return;
+        }
+
+        const emails = this.currentGroups[groupIndex];
+        if (emails.length === 0) {
+            alert("Nessun destinatario in questo gruppo.");
+            return;
+        }
+
+        const bccParam = encodeURIComponent(emails.join(','));
+        const subjectParam = encodeURIComponent("Newsletter Prof. Memmo");
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&bcc=${bccParam}&su=${subjectParam}`;
+
+        window.open(gmailUrl, '_blank');
+    },
+
+    /**
+     * Renderizza i pulsanti e le informazioni dei gruppi nell'interfaccia Admin
+     */
+    renderGroupsUI: function(filteredUsers) {
+        const container = document.getElementById('newsletter-groups-container');
+        if (!container) return;
+
+        const groups = this.computeGroups(filteredUsers);
+        const totalConsented = groups.reduce((acc, g) => acc + g.length, 0);
+
+        if (totalConsented === 0) {
+            container.innerHTML = `
+                <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 18px; text-align: center; color: var(--text-muted);">
+                    <i class="fa-solid fa-envelope-circle-check" style="font-size: 1.6rem; color: #94a3b8; margin-bottom: 8px;"></i>
+                    <p style="margin: 0; font-size: 0.9rem;">Nessun iscritto con consenso newsletter attivo presente nei filtri attuali.</p>
+                </div>
+            `;
+            return;
+        }
+
+        if (groups.length === 1) {
+            // Caso 1 gruppo (fino a 100 iscritti)
+            container.innerHTML = `
+                <div style="background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border: 1px solid #a7f3d0; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                            <span style="background: #059669; color: white; font-weight: 800; font-size: 0.8rem; padding: 3px 10px; border-radius: 20px;">1 GRUPPO</span>
+                            <h4 style="margin: 0; color: #065f46; font-size: 1.1rem; font-weight: 800;">${totalConsented} ${totalConsented === 1 ? 'destinatario pronto' : 'destinatari pronti'} in CCN</h4>
+                        </div>
+                        <p style="margin: 0; font-size: 0.88rem; color: #047857;">Gli indirizzi verranno inseriti automaticamente nel campo <strong>CCN (Copia Nascosta)</strong> di Gmail per proteggere la privacy.</p>
+                    </div>
+                    <button class="btn" style="background: #ea4335; color: white; font-weight: 700; padding: 12px 22px; font-size: 0.95rem; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(234, 67, 53, 0.25);" onclick="window.NewsletterUI.openGmailGroup(0)">
+                        <i class="fa-brands fa-google"></i> ✉️ Componi Newsletter con Gmail (CCN)
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        // Caso con più di 1 gruppo (> 100 iscritti)
+        let groupsHtml = `
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                        <span style="background: #6366f1; color: white; font-weight: 800; font-size: 0.8rem; padding: 3px 10px; border-radius: 20px;">${groups.length} GRUPPI</span>
+                        <h4 style="margin: 0; color: var(--text-main); font-size: 1.1rem; font-weight: 800;">${totalConsented} iscritti con consenso</h4>
+                    </div>
+                    <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                        La newsletter è suddivisa automaticamente in <strong>${groups.length} gruppi</strong> da massimo ${this.MAX_RECIPIENTS_PER_GROUP} destinatari ciascuno per garantire l'affidabilità di invio in Gmail. Clicca su ciascun gruppo per aprire Gmail con i relativi destinatari in CCN.
+                    </p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+        `;
+
+        groups.forEach((group, idx) => {
+            groupsHtml += `
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                    <div>
+                        <strong style="color: var(--text-main); font-size: 0.95rem;">Gruppo ${idx + 1}</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">${group.length} destinatari CCN</div>
+                    </div>
+                    <button class="btn" style="background: #ea4335; color: white; font-size: 0.85rem; font-weight: 700; padding: 8px 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;" onclick="window.NewsletterUI.openGmailGroup(${idx})">
+                        <i class="fa-brands fa-google"></i> ✉️ Apri in Gmail
+                    </button>
+                </div>
+            `;
+        });
+
+        groupsHtml += `
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = groupsHtml;
     },
 
     renderNewsTable: function(usersArray) {
@@ -183,6 +317,7 @@ const NewsletterUI = {
     filterNews: function() {
         const filtered = this.getFilteredUsers();
         this.renderNewsTable(filtered);
+        this.renderGroupsUI(filtered);
         
         const badge = document.getElementById('news-dest-badge');
         if (badge) {

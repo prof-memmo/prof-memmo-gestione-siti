@@ -352,7 +352,7 @@
       <i class="fa-solid fa-envelope" style="color:#64748b;"></i> Casella Postale
     </div>
     <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
-      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter & Brevo
+      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter & Consensi
     </div>
     <div class="nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')">
       <i class="fa-solid fa-bolt" style="color:#f43f5e;"></i> Comunicazioni Automatiche
@@ -413,8 +413,8 @@
     <div class="nav-dock-sep"></div>
 
     <!-- Gruppo 3: Strumenti & Comunicazioni -->
-    <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')" title="Newsletter & Brevo">
-      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i><span>News</span>
+    <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')" title="Newsletter & Consensi">
+      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i><span>Newsletter & Consensi</span>
     </div>
     <div class="mobile-nav-item" data-target="view-posta" onclick="switchView('view-posta')" title="Casella Postale">
       <i class="fa-solid fa-envelope" style="color:#64748b;"></i><span>Posta</span>
@@ -1025,7 +1025,7 @@
       <div class="glass-panel" style="margin-bottom: 20px;">
         <div style="background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; color: #92400e; font-size: 0.88rem; line-height: 1.5;">
           <i class="fa-solid fa-triangle-exclamation" style="color: #d97706; margin-right: 6px; font-size: 1rem;"></i>
-          <strong>ATTENZIONE:</strong> questi testi sono solo di riferimento. Le email automatiche effettivamente inviate vengono gestite tramite i template di Brevo. Dopo aver modificato un testo qui, ricordati di aggiornare anche il relativo template in Brevo.
+          <strong>ATTENZIONE:</strong> questi testi sono modelli di riferimento per le comunicazioni dirette. Puoi utilizzarli o personalizzarli al momento della composizione dei messaggi.
         </div>
 
         <h3 style="color:var(--text-main); margin-top:0; margin-bottom:10px;">Configurazione e Testo di Riferimento</h3>
@@ -1381,10 +1381,10 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
       </div>
     </div>
 
-    <!-- View: Centro Newsletter & Segmentazione (Brevo) -->
+    <!-- View: Newsletter & Consensi -->
     <div id="view-newsletter" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-paper-plane" style="color: #38bdf8;"></i> Centro Newsletter & Segmentazione (Brevo)</h2>
+        <h2><i class="fa-solid fa-paper-plane" style="color: #38bdf8;"></i> Newsletter & Consensi</h2>
       </div>
 
       <!-- KPI Summary Cards -->
@@ -1397,7 +1397,7 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
         <div class="glass-panel" style="padding: 16px; border-left: 4px solid #10b981;">
           <div style="font-size: 0.8rem; font-weight: 700; color: #059669; text-transform: uppercase;">Consensi Newsletter (GDPR)</div>
           <div id="news-stat-consensi" style="font-size: 1.8rem; font-weight: 800; color: #059669; margin-top: 4px;">0</div>
-          <div style="font-size: 0.75rem; color: var(--text-muted);">Sincronizzati su Lista Brevo</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Iscritti con Consenso Attivo</div>
         </div>
         <div class="glass-panel" style="padding: 16px; border-left: 4px solid #0284c7;">
           <div style="font-size: 0.8rem; font-weight: 700; color: #0284c7; text-transform: uppercase;">Docenti Registrati</div>
@@ -1411,22 +1411,25 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
         </div>
       </div>
 
-      <!-- Banner Canva -> Brevo Campaigns -->
-      <div class="glass-panel" style="margin-bottom: 20px; background: linear-gradient(135deg, #f0f9ff, #f5f3ff); border: 1px solid #c7d2fe; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 20px;">
+      <!-- Container Dinamico: Gruppi Gmail CCN & Pulsanti Componi -->
+      <div id="newsletter-groups-container" style="margin-bottom: 20px;"></div>
+
+      <!-- Banner Workflow: Canva ➔ Gmail CCN -->
+      <div class="glass-panel" style="margin-bottom: 20px; background: linear-gradient(135deg, #f0fdf4, #f8fafc); border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 20px;">
         <div style="display: flex; align-items: center; gap: 15px;">
-          <div style="width: 48px; height: 48px; border-radius: 12px; background: #6366f1; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: #059669; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
           </div>
           <div>
-            <h4 style="margin: 0 0 4px 0; color: #1e1b4b; font-size: 1.05rem; font-weight: 800;">Flusso Campagne: Canva ➔ Brevo Campaigns</h4>
-            <p style="margin: 0; font-size: 0.88rem; color: #475569; max-width: 650px;">
-              Progetta graficamente le tue newsletter con <strong>Canva</strong> e gestisci invii, programmazione e deliverability direttamente da <strong>Brevo</strong>. L'Hub mantiene sincronizzati automaticamente i contatti, i consensi e i segmenti in tempo reale.
+            <h4 style="margin: 0 0 4px 0; color: var(--text-main); font-size: 1.05rem; font-weight: 800;">Flusso Newsletter: Grafica con Canva ➔ Invio con Gmail (CCN)</h4>
+            <p style="margin: 0; font-size: 0.88rem; color: #475569; max-width: 750px;">
+              Prepara la newsletter in Gmail utilizzando gli iscritti che hanno dato il consenso. Gli iscritti vengono suddivisi automaticamente in gruppi da massimo 100 destinatari. L'invio resta sempre sotto il tuo controllo.
             </p>
           </div>
         </div>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <a href="https://app.brevo.com/campaigns" target="_blank" class="btn" style="background: #0284c7; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 10px 18px; border-radius: 10px;">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Apri Brevo Campaigns
+          <a href="https://www.canva.com" target="_blank" class="btn outline" style="border-color: #059669; color: #059669; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 10px 18px; border-radius: 10px;">
+            <i class="fa-solid fa-palette"></i> Apri Canva
           </a>
         </div>
       </div>
@@ -1440,7 +1443,7 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
                 <span id="news-dest-badge" style="background:#e0e7ff; color:#4338ca; font-size:0.8rem; font-weight:700; padding:4px 10px; border-radius:20px;">Caricamento...</span>
               </h3>
               <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px; margin-bottom:0;">
-                Filtra gli iscritti per verificare consensi, ruoli e piani. I contatti con consenso attivo sono sincronizzati automaticamente con la lista <em>Newsletter Prof. Memmo</em> su Brevo.
+                Filtra gli iscritti per verificare consensi, ruoli e piani. I pulsanti di invio in alto si aggiornano automaticamente in base ai filtri selezionati.
               </p>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">

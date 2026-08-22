@@ -489,7 +489,7 @@ const DiagnosticsService = {
         }
 
         // -------------------------------------------------------------
-        // 6. BREVO & NEWSLETTER CONSENSI
+        // 6. NEWSLETTER & CONSENSI GDPR
         // -------------------------------------------------------------
         try {
             let countConsents = 0;
@@ -504,20 +504,20 @@ const DiagnosticsService = {
             }
 
             results.items.push({
-                id: 'brevo_service',
+                id: 'newsletter_service',
                 category: 'Comunicazioni',
-                name: 'Brevo & Newsletter Ecosistema',
+                name: 'Newsletter & Consensi GDPR',
                 status: 'ok',
                 badge: '✓ FUNZIONANTE',
-                details: `Modulo newsletter pronto. Trovati ${countConsents} iscritti con consenso GDPR esplicito pronti per l'invio e l'esportazione verso Brevo.`,
+                details: `Modulo newsletter pronto. Trovati ${countConsents} iscritti con consenso GDPR esplicito pronti per l'invio via Gmail (CCN).`,
                 actionNeeded: null,
                 timestamp: `${timestamp.date} ${timestamp.time}`
             });
         } catch (e) {
             results.items.push({
-                id: 'brevo_service',
+                id: 'newsletter_service',
                 category: 'Comunicazioni',
-                name: 'Brevo & Newsletter Ecosistema',
+                name: 'Newsletter & Consensi GDPR',
                 status: 'warning',
                 badge: '⚠ DA VERIFICARE',
                 details: `Verifica iscritti newsletter incompleta: ${e.message}`,
