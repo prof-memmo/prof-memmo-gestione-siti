@@ -1,11 +1,12 @@
-// --- Newsletter UI Service (Hub -> Gmail CCN with Automated Grouping & Manual Opt-in/Opt-out Management) ---
-// Gestisce l'interfaccia della newsletter (iscritti, consensi GDPR, segmenti, gestione manuale e composizione Gmail CCN)
+// --- Newsletter UI Service (Hub -> Gmail CCN with Automated Grouping, Checkboxes & Instant Admin Toggle) ---
+// Gestisce l'interfaccia della newsletter (iscritti, consensi GDPR, selezione a caselle, gestione rapida senza popup e composizione Gmail CCN)
 
 const NewsletterUI = {
     // Configurazione del limite massimo di destinatari per ciascun gruppo Gmail CCN
     MAX_RECIPIENTS_PER_GROUP: 100,
 
     users: [],
+    selectedUids: new Set(),
     newsSortCol: 'data',
     newsSortAsc: false,
     currentGroups: [],
@@ -57,6 +58,132 @@ const NewsletterUI = {
         if (elCons) elCons.textContent = withConsent;
         if (elDoc) elDoc.textContent = docenti;
         if (elAbb) elAbb.textContent = abbonati;
+    },
+
+    /**
+     * Gestione Selezione Checkbox (Singola e Tutti)
+     */
+    toggleUserSelection: function(uid, isChecked) {
+        if (!uid) return;
+        if (isChecked) {
+            this.selectedUids.add(uid);
+        } else {
+            this.selectedUids.delete(uid);
+        }
+        this.updateSelectionToolbar();
+    },
+
+    toggleAllSelected: function(isChecked) {
+        const filtered = this.getFilteredUsers();
+        if (isChecked) {
+            filtered.forEach(u => {
+                const uId = u.id || u.uid;
+                if (uId) this.selectedUids.add(uId);
+            });
+        } else {
+            this.selectedUids.clear();
+        }
+
+        // Aggiorna tutte le checkbox visualizzate
+        const checkboxes = document.querySelectorAll('.news-user-cb');
+        checkboxes.forEach(cb => cb.checked = isChecked);
+        this.updateSelectionToolbar();
+    },
+
+    updateSelectionToolbar: function() {
+        const count = this.selectedUids.size;
+        const tb = document.getElementById('news-select-all');
+        if (tb) {
+            const filtered = this.getFilteredUsers();
+            tb.checked = filtered.length > 0 && filtered.every(u => this.selectedUids.has(u.id || u.uid));
+        }
+
+        const badge = document.getElementById('news-dest-badge');
+        if (badge) {
+            const filteredCount = this.getFilteredUsers().length;
+            if (count > 0) {
+                badge.textContent = `${filteredCount} visualizzati (${count} selezionati)`;
+                badge.style.background = '#dbeafe';
+                badge.style.color = '#1d4ed8';
+            } else {
+                badge.textContent = `${filteredCount} visualizzati`;
+                badge.style.background = '#e0e7ff';
+                badge.style.color = '#4338ca';
+            }
+        }
+    },
+
+    /**
+     * Iscrizione o Disiscrizione Massiva per gli utenti selezionati con le checkbox
+     */
+    bulkSetConsent: async function(newConsentState) {
+        if (this.selectedUids.size === 0) {
+            alert("Seleziona almeno un utente tramite le caselle di controllo.");
+            return;
+        }
+
+        const uidsArray = Array.from(this.selectedUids);
+        try {
+            if (window.fbDb && window.fbDb.hub) {
+                const batch = window.fbDb.hub.batch();
+                uidsArray.forEach(uid => {
+                    const ref = window.fbDb.hub.collection('hub_users').doc(uid);
+                    batch.set(ref, {
+                        newsletter: !!newConsentState,
+                        "consents.newsletter": !!newConsentState,
+                        "consents.lastAdminActionAt": new Date().toISOString(),
+                        "consents.adminActionSource": "hub_admin_bulk"
+                    }, { merge: true });
+
+                    // Aggiorna localmente
+                    const user = this.users.find(u => (u.id === uid || u.uid === uid));
+                    if (user) {
+                        user.newsletter = !!newConsentState;
+                        if (!user.consents) user.consents = {};
+                        user.consents.newsletter = !!newConsentState;
+                    }
+                });
+
+                await batch.commit();
+                this.updateStats();
+                this.filterNews();
+            }
+        } catch (e) {
+            console.error("Errore modifica massiva consensi:", e);
+            alert("Errore durante l'operazione: " + e.message);
+        }
+    },
+
+    /**
+     * Gestione manuale del consenso Newsletter (Iscrizione / Disiscrizione istantanea a 1 clic, senza popup)
+     */
+    toggleConsent: async function(userId, newConsentState) {
+        if (!userId) return;
+
+        try {
+            if (window.fbDb && window.fbDb.hub) {
+                // Aggiornamento Firestore
+                await window.fbDb.hub.collection('hub_users').doc(userId).set({
+                    newsletter: !!newConsentState,
+                    "consents.newsletter": !!newConsentState,
+                    "consents.lastAdminActionAt": new Date().toISOString(),
+                    "consents.adminActionSource": "hub_admin_manual"
+                }, { merge: true });
+
+                // Aggiorna localmente l'utente nella memoria per feedback istantaneo
+                const user = this.users.find(u => (u.id === userId || u.uid === userId));
+                if (user) {
+                    user.newsletter = !!newConsentState;
+                    if (!user.consents) user.consents = {};
+                    user.consents.newsletter = !!newConsentState;
+                }
+                this.updateStats();
+                this.filterNews();
+            }
+        } catch(err) {
+            console.error("Errore aggiornamento consenso newsletter:", err);
+            alert("Errore durante l'aggiornamento: " + err.message);
+        }
     },
 
     /**
@@ -114,50 +241,6 @@ const NewsletterUI = {
     },
 
     /**
-     * Gestione manuale del consenso Newsletter da parte dell'Admin (Iscrizione / Disiscrizione)
-     */
-    toggleConsent: async function(userId, newConsentState) {
-        if (!userId) {
-            alert("ID utente non trovato.");
-            return;
-        }
-
-        const user = this.users.find(u => (u.id === userId || u.uid === userId));
-        const userDesc = user ? `${user.nome || ''} ${user.cognome || ''} (${user.email || ''})`.trim() : userId;
-
-        const confirmMsg = newConsentState 
-            ? `Vuoi iscrivere manualmente alla Newsletter:\n${userDesc}?`
-            : `Vuoi disiscrivere dalla Newsletter:\n${userDesc}?`;
-        
-        if (!confirm(confirmMsg)) return;
-
-        try {
-            if (window.fbDb && window.fbDb.hub) {
-                await window.fbDb.hub.collection('hub_users').doc(userId).set({
-                    newsletter: !!newConsentState,
-                    "consents.newsletter": !!newConsentState,
-                    "consents.lastAdminActionAt": new Date().toISOString(),
-                    "consents.adminActionSource": "hub_admin_manual"
-                }, { merge: true });
-
-                // Aggiorna localmente l'utente nella memoria per feedback istantaneo
-                if (user) {
-                    user.newsletter = !!newConsentState;
-                    if (!user.consents) user.consents = {};
-                    user.consents.newsletter = !!newConsentState;
-                }
-                this.updateStats();
-                this.filterNews();
-            } else {
-                alert("Database Firebase non raggiungibile.");
-            }
-        } catch(err) {
-            console.error("Errore aggiornamento consenso newsletter:", err);
-            alert("Errore durante l'aggiornamento: " + err.message);
-        }
-    },
-
-    /**
      * Renderizza i pulsanti e le informazioni dei gruppi nell'interfaccia Admin
      */
     renderGroupsUI: function(filteredUsers) {
@@ -175,7 +258,7 @@ const NewsletterUI = {
                             <span style="background: #64748b; color: white; font-weight: 800; font-size: 0.8rem; padding: 3px 10px; border-radius: 20px;">GMAIL CCN</span>
                             <h4 style="margin: 0; color: var(--text-main); font-size: 1.1rem; font-weight: 800;">Componi Newsletter con Gmail</h4>
                         </div>
-                        <p style="margin: 0; font-size: 0.88rem; color: #475569;">Al momento ci sono <strong>0 iscritti con consenso</strong> nei filtri attuali. Puoi iscrivere manualmente gli utenti dalla tabella in basso cliccando su <strong>[+ Iscrivi]</strong>.</p>
+                        <p style="margin: 0; font-size: 0.88rem; color: #475569;">Al momento ci sono <strong>0 iscritti con consenso</strong> nei filtri attuali. Puoi iscrivere gli utenti dalla tabella in basso cliccando sul pulsante <strong>[+ Iscrivi]</strong> o selezionando le caselle.</p>
                     </div>
                     <button class="btn" style="background: #ea4335; color: white; font-weight: 700; padding: 12px 22px; font-size: 0.95rem; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(234, 67, 53, 0.25); cursor: pointer;" onclick="alert('Nessun iscritto con consenso attivo trovato nei filtri correnti. Per inviare una newsletter è necessario almeno 1 iscritto.')">
                         <i class="fa-brands fa-google"></i> ✉️ Componi Newsletter con Gmail (CCN)
@@ -247,7 +330,7 @@ const NewsletterUI = {
         tbody.innerHTML = '';
         
         if (!usersArray || usersArray.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 25px; color:var(--text-muted);">Nessun utente trovato con i filtri selezionati.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 25px; color:var(--text-muted);">Nessun utente trovato con i filtri selezionati.</td></tr>';
             return;
         }
 
@@ -258,6 +341,7 @@ const NewsletterUI = {
             const planInfo = this.getPlanLabelAndBadge(user);
             const isConsented = this.hasConsent(user);
             const uId = user.id || user.uid || '';
+            const isChecked = this.selectedUids.has(uId);
             
             // Badge Ruolo
             const rRaw = (user.ruolo || user.role || 'viandante').toLowerCase();
@@ -276,12 +360,15 @@ const NewsletterUI = {
                 ? `<span style="background:#ecfdf5; color:#059669; padding:4px 10px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid #a7f3d0; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-circle-check"></i> Iscritto (GDPR)</span>`
                 : `<span style="background:#f1f5f9; color:#64748b; padding:4px 10px; border-radius:20px; font-size:0.78rem; font-weight:600; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-circle-xmark"></i> Non Iscritto</span>`;
 
-            // Pulsante di Azione Manuale per l'Amministratore
+            // Pulsante di Azione Manuale per l'Amministratore (senza popup di conferma)
             const actionBtn = isConsented
-                ? `<button class="btn outline" style="border-color:#f43f5e; color:#e11d48; padding:5px 10px; font-size:0.78rem; font-weight:700; border-radius:6px; display:inline-flex; align-items:center; gap:5px; cursor:pointer;" onclick="window.NewsletterUI.toggleConsent('${uId}', false)" title="Disiscrivi manualmente questo utente dalla Newsletter"><i class="fa-solid fa-user-minus"></i> Disiscrivi</button>`
-                : `<button class="btn outline" style="border-color:#10b981; color:#059669; padding:5px 10px; font-size:0.78rem; font-weight:700; border-radius:6px; display:inline-flex; align-items:center; gap:5px; cursor:pointer;" onclick="window.NewsletterUI.toggleConsent('${uId}', true)" title="Iscrivi manualmente questo utente alla Newsletter"><i class="fa-solid fa-user-plus"></i> Iscrivi</button>`;
+                ? `<button class="btn outline" style="border-color:#f43f5e; color:#e11d48; padding:5px 10px; font-size:0.78rem; font-weight:700; border-radius:6px; display:inline-flex; align-items:center; gap:5px; cursor:pointer;" onclick="window.NewsletterUI.toggleConsent('${uId}', false)" title="Disiscrivi all'istante dalla Newsletter"><i class="fa-solid fa-user-minus"></i> Disiscrivi</button>`
+                : `<button class="btn outline" style="border-color:#10b981; color:#059669; padding:5px 10px; font-size:0.78rem; font-weight:700; border-radius:6px; display:inline-flex; align-items:center; gap:5px; cursor:pointer;" onclick="window.NewsletterUI.toggleConsent('${uId}', true)" title="Iscrivi all'istante alla Newsletter"><i class="fa-solid fa-user-plus"></i> Iscrivi</button>`;
 
             tr.innerHTML = `
+                <td style="padding: 12px 10px; text-align:center;">
+                    <input type="checkbox" class="news-user-cb" ${isChecked ? 'checked' : ''} onchange="window.NewsletterUI.toggleUserSelection('${uId}', this.checked)" style="cursor:pointer; width:16px; height:16px;">
+                </td>
                 <td style="padding: 12px 10px;">
                     <strong style="color:var(--text-main); font-size:0.95rem;">${user.nome || ''} ${user.cognome || ''}</strong><br>
                     <span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span>
@@ -295,6 +382,8 @@ const NewsletterUI = {
             `;
             tbody.appendChild(tr);
         });
+
+        this.updateSelectionToolbar();
     },
 
     sortNews: function(column) {
@@ -378,11 +467,7 @@ const NewsletterUI = {
         const filtered = this.getFilteredUsers();
         this.renderNewsTable(filtered);
         this.renderGroupsUI(filtered);
-        
-        const badge = document.getElementById('news-dest-badge');
-        if (badge) {
-            badge.textContent = `${filtered.length} visualizzati`;
-        }
+        this.updateSelectionToolbar();
     },
 
     selectFilterByTag: function(tagType) {

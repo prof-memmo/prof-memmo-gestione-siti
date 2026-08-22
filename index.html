@@ -1518,6 +1518,9 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
           <table class="game-table" id="newsletter-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>
               <tr>
+                <th style="width: 40px; text-align: center;">
+                  <input type="checkbox" id="news-select-all" onchange="window.NewsletterUI.toggleAllSelected(this.checked)" title="Seleziona/Deseleziona tutti visualizzati" style="cursor:pointer; width:16px; height:16px;">
+                </th>
                 <th style="cursor:pointer;" onclick="window.NewsletterUI.sortNews('nome')">
                   <div style="display: flex; align-items: center; white-space: nowrap;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
@@ -1542,7 +1545,7 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
               </tr>
             </thead>
             <tbody>
-              <tr><td colspan="7" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento iscritti in corso...</td></tr>
+              <tr><td colspan="8" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento iscritti in corso...</td></tr>
             </tbody>
           </table>
         </div>
