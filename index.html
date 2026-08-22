@@ -2073,6 +2073,59 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
         <!-- Grid Promozioni -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-bottom: 22px;">
           
+          <!-- Promo Lancio -->
+          <div class="promo-card" id="promo-card-lancio" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; box-shadow:0 2px 4px rgba(0,0,0,0.04); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                <div>
+                  <strong style="font-size:1.1rem; color:var(--text-main); display:block;" id="label-title-lancio">🚀 Promo Lancio</strong>
+                  <span id="badge-status-lancio" style="font-size:0.72rem; padding:2px 8px; border-radius:999px; font-weight:700; background:#f1f5f9; color:#64748b; display:inline-block; margin-top:4px;">CALCOLO IN CORSO...</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px; background:#f8fafc; border:1px solid #cbd5e1;" onclick="EcosistemaUI.copyPromoTitle('🚀 Promo Lancio')" title="Copia titolo per Stripe">
+                  <i class="fa-solid fa-copy"></i> Copia Titolo
+                </button>
+              </div>
+
+              <!-- Switch ON/OFF Promo -->
+              <div style="display:flex; align-items:center; justify-content:space-between; background:#f8fafc; padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid #f1f5f9;">
+                <span style="font-size:0.8rem; font-weight:600; color:#475569;">Stato Campagna:</span>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+                  <input type="checkbox" id="promo-active-lancio" onchange="EcosistemaUI.updatePromoStatusBadges()" style="width:18px; height:18px; cursor:pointer; accent-color:#3b82f6;">
+                  <span style="font-size:0.82rem; font-weight:700;" id="promo-active-label-lancio">Attiva</span>
+                </label>
+              </div>
+
+              <!-- Campo ID Coupon Stripe -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">
+                  STRIPE COUPON ID <span style="font-weight:normal; font-size:0.72rem; color:#64748b;">(Test o Live)</span>
+                </label>
+                <input type="text" id="promo-id-lancio" class="input-field" style="margin:0; font-family:monospace; font-size:0.82rem;" placeholder="es. LANCIO30 o Coupon ID" value="">
+              </div>
+
+              <!-- % Sconto -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">PERCENTUALE DI SCONTO (%)</label>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <input type="number" id="promo-pct-lancio" class="input-field" style="width:90px; margin:0;" value="30" min="1" max="100" oninput="EcosistemaUI.updatePromoStatusBadges()">
+                  <span style="font-size:0.85rem; color:#64748b; font-weight:600;">% per una volta</span>
+                </div>
+              </div>
+
+              <!-- Date Inizio / Fine -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA INIZIO</label>
+                  <input type="date" id="promo-start-lancio" class="input-field" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="2026-09-01" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA FINE</label>
+                  <input type="date" id="promo-end-lancio" class="input-field" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="2026-10-31" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Promo 1: Back to School -->
           <div class="promo-card" id="promo-card-back_to_school" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; box-shadow:0 2px 4px rgba(0,0,0,0.04); display:flex; flex-direction:column; justify-content:space-between;">
             <div>

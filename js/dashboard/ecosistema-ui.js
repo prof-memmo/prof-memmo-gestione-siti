@@ -112,13 +112,14 @@ const EcosistemaUI = {
 
     renderPromozioniUI: function(promoConfig) {
         const defaultPromos = {
+            lancio: { titolo: '🚀 Promo Lancio', stripe_coupon_id: '', percentuale: 30, data_inizio: '2026-09-01', data_fine: '2026-10-31', attivo: true },
             back_to_school: { titolo: '📚 Back to School', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-09-01', data_fine: '2026-09-30', attivo: true },
             summer: { titolo: '⛱️ Summer', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-06-01', data_fine: '2026-07-31', attivo: true },
             natale: { titolo: '🎄 Natale', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-12-01', data_fine: '2027-01-06', attivo: true },
             black_week: { titolo: '🖤 Black Week', stripe_coupon_id: '', percentuale: 25, data_inizio: '2026-11-20', data_fine: '2026-11-30', attivo: true }
         };
 
-        const keys = ['back_to_school', 'summer', 'natale', 'black_week'];
+        const keys = ['lancio', 'back_to_school', 'summer', 'natale', 'black_week'];
         keys.forEach(key => {
             const p = promoConfig[key] || defaultPromos[key];
             const elActive = document.getElementById('promo-active-' + key);
@@ -138,7 +139,7 @@ const EcosistemaUI = {
     },
 
     updatePromoStatusBadges: function() {
-        const keys = ['back_to_school', 'summer', 'natale', 'black_week'];
+        const keys = ['lancio', 'back_to_school', 'summer', 'natale', 'black_week'];
         const now = new Date();
         const todayStr = now.toISOString().slice(0, 10);
 
@@ -217,6 +218,7 @@ const EcosistemaUI = {
         if (!window.EcosystemService) return;
 
         const keys = [
+            { key: 'lancio', titolo: '🚀 Promo Lancio' },
             { key: 'back_to_school', titolo: '📚 Back to School' },
             { key: 'summer', titolo: '⛱️ Summer' },
             { key: 'natale', titolo: '🎄 Natale' },
