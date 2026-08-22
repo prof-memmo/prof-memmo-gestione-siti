@@ -1994,6 +1994,305 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
           <span id="piani-save-status" style="font-size:0.85rem; color:#10b981; font-weight:700; display:none;">✅ Salvato!</span>
         </div>
       </div>
+
+      <!-- Pannello: Promozioni & Coupon Stripe -->
+      <div class="glass-panel" style="margin-top: 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+          <div>
+            <h3 style="margin:0; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+              <span>🎉</span> Promozioni & Coupon Stripe
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 4px 0 0 0;">
+              Collega i <strong>Coupon Stripe</strong> creati nel tuo catalogo alle finestre temporali automatiche. La Vetrina applicherà lo sconto alla cassa solo nel periodo programmato.
+            </p>
+          </div>
+          <button class="btn btn-secondary" style="font-size:0.82rem; padding:7px 14px; background:#f1f5f9; border:1px solid #cbd5e1; color:#334155;" onclick="EcosistemaUI.toggleGuidaStripe()">
+            <i class="fa-solid fa-book-open"></i> <span id="btn-guida-text">Apri Guida Passo-Passo</span>
+          </button>
+        </div>
+
+        <!-- Guida Passo-Passo Pieghevole -->
+        <div id="guida-stripe-box" style="display:none; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #cbd5e1; border-radius: 12px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <strong style="color:#0f172a; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-circle-question" style="color:#3b82f6;"></i> Guida: Come Gestire i Coupon su Stripe (Test & Live)
+            </strong>
+            <span style="font-size:0.75rem; background:#e0e7ff; color:#3730a3; padding:3px 8px; border-radius:999px; font-weight:700;">STRIPE INTEGRATION</span>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; font-size:0.85rem; line-height:1.5; color:#334155;">
+            
+            <!-- Step 1 -->
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:14px;">
+              <div style="font-weight:700; color:#1e293b; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                <span style="background:#3b82f6; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem;">1</span>
+                Crea il Coupon su Stripe
+              </div>
+              <p style="margin:0; color:#64748b;">
+                Vai nella dashboard di Stripe in <strong>Catalogo prodotti &rarr; Coupon &rarr; Crea coupon</strong>.<br>
+                Usa il pulsante <em>"Copia Titolo"</em> qui sotto per incollare il nome con l'emoji esatta (es. <code>📚 Back to School</code>).
+              </p>
+            </div>
+
+            <!-- Step 2 -->
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:14px;">
+              <div style="font-weight:700; color:#1e293b; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                <span style="background:#3b82f6; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem;">2</span>
+                Imposta la % e Prendi l'ID
+              </div>
+              <p style="margin:0; color:#64748b;">
+                Imposta la percentuale (es. <strong>20%</strong>) e durata <em>"Una volta"</em>. Una volta salvato, Stripe ti mostrerà il <strong>Coupon ID</strong> (es. <code>F3w2K9xz</code> o l'ID personalizzato che hai scelto).
+              </p>
+            </div>
+
+            <!-- Step 3 -->
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:14px;">
+              <div style="font-weight:700; color:#1e293b; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                <span style="background:#3b82f6; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem;">3</span>
+                Incolla l'ID & Imposta le Date
+              </div>
+              <p style="margin:0; color:#64748b;">
+                Incolla l'ID nel campo corrispondente qui nell'Hub e imposta <strong>Data Inizio</strong> e <strong>Data Fine</strong>. Quando l'interruttore è su ON, la Vetrina gestirà l'apertura e la chiusura in totale autonomia!
+              </p>
+            </div>
+
+            <!-- Step 4 -->
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:14px;">
+              <div style="font-weight:700; color:#1e293b; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                <span style="background:#10b981; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem;">4</span>
+                Passaggio da TEST a LIVE
+              </div>
+              <p style="margin:0; color:#64748b;">
+                Al momento i tuoi Coupon sono in modalità <strong>TEST</strong>. Quando passerai all'ambiente <strong>LIVE</strong>, ti basterà ricreare i coupon in Live e aggiornare gli ID in questa pagina in 2 secondi, senza modificare codice!
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Grid Promozioni -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-bottom: 22px;">
+          
+          <!-- Promo 1: Back to School -->
+          <div class="promo-card" id="promo-card-back_to_school" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; box-shadow:0 2px 4px rgba(0,0,0,0.04); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                <div>
+                  <strong style="font-size:1.1rem; color:var(--text-main); display:block;" id="label-title-back_to_school">📚 Back to School</strong>
+                  <span id="badge-status-back_to_school" style="font-size:0.72rem; padding:2px 8px; border-radius:999px; font-weight:700; background:#f1f5f9; color:#64748b; display:inline-block; margin-top:4px;">CALCOLO IN CORSO...</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px; background:#f8fafc; border:1px solid #cbd5e1;" onclick="EcosistemaUI.copyPromoTitle('📚 Back to School')" title="Copia titolo per Stripe">
+                  <i class="fa-solid fa-copy"></i> Copia Titolo
+                </button>
+              </div>
+
+              <!-- Switch ON/OFF Promo -->
+              <div style="display:flex; align-items:center; justify-content:space-between; background:#f8fafc; padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid #f1f5f9;">
+                <span style="font-size:0.8rem; font-weight:600; color:#475569;">Stato Campagna:</span>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+                  <input type="checkbox" id="promo-active-back_to_school" onchange="EcosistemaUI.updatePromoStatusBadges()" style="width:18px; height:18px; cursor:pointer; accent-color:#3b82f6;">
+                  <span style="font-size:0.82rem; font-weight:700;" id="promo-active-label-back_to_school">Attiva</span>
+                </label>
+              </div>
+
+              <!-- Campo ID Coupon Stripe -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">
+                  STRIPE COUPON ID <span style="font-weight:normal; font-size:0.72rem; color:#64748b;">(Test o Live)</span>
+                </label>
+                <input type="text" id="promo-id-back_to_school" class="input-field" style="margin:0; font-family:monospace; font-size:0.82rem;" placeholder="es. F3w2K9xz o BACK20" value="">
+              </div>
+
+              <!-- % Sconto -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">PERCENTUALE DI SCONTO (%)</label>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <input type="number" id="promo-pct-back_to_school" class="input-field" style="width:90px; margin:0;" value="20" min="1" max="100" oninput="EcosistemaUI.updatePromoStatusBadges()">
+                  <span style="font-size:0.85rem; color:#64748b; font-weight:600;">% per una volta</span>
+                </div>
+              </div>
+
+              <!-- Date Inizio / Fine -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA INIZIO</label>
+                  <input type="date" id="promo-start-back_to_school" class="input-field" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="2026-09-01" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA FINE</label>
+                  <input type="date" id="promo-end-back_to_school" class="input-field" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="2026-09-30" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Promo 2: Summer -->
+          <div class="promo-card" id="promo-card-summer" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; box-shadow:0 2px 4px rgba(0,0,0,0.04); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                <div>
+                  <strong style="font-size:1.1rem; color:var(--text-main); display:block;" id="label-title-summer">⛱️ Summer</strong>
+                  <span id="badge-status-summer" style="font-size:0.72rem; padding:2px 8px; border-radius:999px; font-weight:700; background:#f1f5f9; color:#64748b; display:inline-block; margin-top:4px;">CALCOLO IN CORSO...</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px; background:#f8fafc; border:1px solid #cbd5e1;" onclick="EcosistemaUI.copyPromoTitle('⛱️ Summer')" title="Copia titolo per Stripe">
+                  <i class="fa-solid fa-copy"></i> Copia Titolo
+                </button>
+              </div>
+
+              <!-- Switch ON/OFF Promo -->
+              <div style="display:flex; align-items:center; justify-content:space-between; background:#f8fafc; padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid #f1f5f9;">
+                <span style="font-size:0.8rem; font-weight:600; color:#475569;">Stato Campagna:</span>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+                  <input type="checkbox" id="promo-active-summer" onchange="EcosistemaUI.updatePromoStatusBadges()" style="width:18px; height:18px; cursor:pointer; accent-color:#3b82f6;">
+                  <span style="font-size:0.82rem; font-weight:700;" id="promo-active-label-summer">Attiva</span>
+                </label>
+              </div>
+
+              <!-- Campo ID Coupon Stripe -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">
+                  STRIPE COUPON ID <span style="font-weight:normal; font-size:0.72rem; color:#64748b;">(Test o Live)</span>
+                </label>
+                <input type="text" id="promo-id-summer" class="input-field" style="margin:0; font-family:monospace; font-size:0.82rem;" placeholder="es. 4Zkl98Qw o SUMMER20" value="">
+              </div>
+
+              <!-- % Sconto -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">PERCENTUALE DI SCONTO (%)</label>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <input type="number" id="promo-pct-summer" class="input-field" style="width:90px; margin:0;" value="20" min="1" max="100" oninput="EcosistemaUI.updatePromoStatusBadges()">
+                  <span style="font-size:0.85rem; color:#64748b; font-weight:600;">% per una volta</span>
+                </div>
+              </div>
+
+              <!-- Date Inizio / Fine -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA INIZIO</label>
+                  <input type="date" id="promo-start-summer" class="input-field" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="2026-06-01" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA FINE</label>
+                  <input type="date" id="promo-end-summer" class="input-field" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="2026-07-31" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Promo 3: Natale -->
+          <div class="promo-card" id="promo-card-natale" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; box-shadow:0 2px 4px rgba(0,0,0,0.04); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                <div>
+                  <strong style="font-size:1.1rem; color:var(--text-main); display:block;" id="label-title-natale">🎄 Natale</strong>
+                  <span id="badge-status-natale" style="font-size:0.72rem; padding:2px 8px; border-radius:999px; font-weight:700; background:#f1f5f9; color:#64748b; display:inline-block; margin-top:4px;">CALCOLO IN CORSO...</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px; background:#f8fafc; border:1px solid #cbd5e1;" onclick="EcosistemaUI.copyPromoTitle('🎄 Natale')" title="Copia titolo per Stripe">
+                  <i class="fa-solid fa-copy"></i> Copia Titolo
+                </button>
+              </div>
+
+              <!-- Switch ON/OFF Promo -->
+              <div style="display:flex; align-items:center; justify-content:space-between; background:#f8fafc; padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid #f1f5f9;">
+                <span style="font-size:0.8rem; font-weight:600; color:#475569;">Stato Campagna:</span>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+                  <input type="checkbox" id="promo-active-natale" onchange="EcosistemaUI.updatePromoStatusBadges()" style="width:18px; height:18px; cursor:pointer; accent-color:#3b82f6;">
+                  <span style="font-size:0.82rem; font-weight:700;" id="promo-active-label-natale">Attiva</span>
+                </label>
+              </div>
+
+              <!-- Campo ID Coupon Stripe -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">
+                  STRIPE COUPON ID <span style="font-weight:normal; font-size:0.72rem; color:#64748b;">(Test o Live)</span>
+                </label>
+                <input type="text" id="promo-id-natale" class="input-field" style="margin:0; font-family:monospace; font-size:0.82rem;" placeholder="es. 87BvX12m o XMAS20" value="">
+              </div>
+
+              <!-- % Sconto -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">PERCENTUALE DI SCONTO (%)</label>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <input type="number" id="promo-pct-natale" class="input-field" style="width:90px; margin:0;" value="20" min="1" max="100" oninput="EcosistemaUI.updatePromoStatusBadges()">
+                  <span style="font-size:0.85rem; color:#64748b; font-weight:600;">% per una volta</span>
+                </div>
+              </div>
+
+              <!-- Date Inizio / Fine -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA INIZIO</label>
+                  <input type="date" id="promo-start-natale" class="input-field" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="2026-12-01" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA FINE</label>
+                  <input type="date" id="promo-end-natale" class="input-field" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="2027-01-06" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Promo 4: Black Week -->
+          <div class="promo-card" id="promo-card-black_week" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; box-shadow:0 2px 4px rgba(0,0,0,0.04); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                <div>
+                  <strong style="font-size:1.1rem; color:var(--text-main); display:block;" id="label-title-black_week">🖤 Black Week</strong>
+                  <span id="badge-status-black_week" style="font-size:0.72rem; padding:2px 8px; border-radius:999px; font-weight:700; background:#f1f5f9; color:#64748b; display:inline-block; margin-top:4px;">CALCOLO IN CORSO...</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px; background:#f8fafc; border:1px solid #cbd5e1;" onclick="EcosistemaUI.copyPromoTitle('🖤 Black Week')" title="Copia titolo per Stripe">
+                  <i class="fa-solid fa-copy"></i> Copia Titolo
+                </button>
+              </div>
+
+              <!-- Switch ON/OFF Promo -->
+              <div style="display:flex; align-items:center; justify-content:space-between; background:#f8fafc; padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid #f1f5f9;">
+                <span style="font-size:0.8rem; font-weight:600; color:#475569;">Stato Campagna:</span>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+                  <input type="checkbox" id="promo-active-black_week" onchange="EcosistemaUI.updatePromoStatusBadges()" style="width:18px; height:18px; cursor:pointer; accent-color:#3b82f6;">
+                  <span style="font-size:0.82rem; font-weight:700;" id="promo-active-label-black_week">Attiva</span>
+                </label>
+              </div>
+
+              <!-- Campo ID Coupon Stripe -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">
+                  STRIPE COUPON ID <span style="font-weight:normal; font-size:0.72rem; color:#64748b;">(Test o Live)</span>
+                </label>
+                <input type="text" id="promo-id-black_week" class="input-field" style="margin:0; font-family:monospace; font-size:0.82rem;" placeholder="es. 90NmK31q o BLACK25" value="">
+              </div>
+
+              <!-- % Sconto -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">PERCENTUALE DI SCONTO (%)</label>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <input type="number" id="promo-pct-black_week" class="input-field" style="width:90px; margin:0;" value="25" min="1" max="100" oninput="EcosistemaUI.updatePromoStatusBadges()">
+                  <span style="font-size:0.85rem; color:#64748b; font-weight:600;">% per una volta</span>
+                </div>
+              </div>
+
+              <!-- Date Inizio / Fine -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA INIZIO</label>
+                  <input type="date" id="promo-start-black_week" class="input-field" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="2026-11-20" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA FINE</label>
+                  <input type="date" id="promo-end-black_week" class="input-field" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="2026-11-30" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Barra di Salvataggio Promozioni -->
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; border-top:1px solid #e2e8f0; padding-top:16px;">
+          <button class="btn" onclick="EcosistemaUI.savePromozioni()"><i class="fa-solid fa-floppy-disk"></i> Salva Promozioni e Coupon Stripe</button>
+          <span id="promo-save-status" style="font-size:0.85rem; color:#10b981; font-weight:700; display:none;">✅ Promozioni salvate con successo!</span>
+        </div>
+      </div>
     </div>
 
     <!-- Vista: Come Funziona -->

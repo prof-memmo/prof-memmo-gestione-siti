@@ -87,6 +87,10 @@ const EcosistemaUI = {
         this.updateSwitchVisuals('scheda1', cf.scheda1_visibile !== false);
         this.updateSwitchVisuals('scheda2', cf.scheda2_visibile !== false);
 
+        // Promozioni & Coupon Stripe
+        const promoConfig = data.promozioni_config || {};
+        this.renderPromozioniUI(promoConfig);
+
         // Massimale
         const massimale = data.massimale_incassi || 4500;
         const incassato = data.totale_incassato_anno || 0;
@@ -104,6 +108,154 @@ const EcosistemaUI = {
         if (elDispIncassato) elDispIncassato.textContent = fmt(incassato);
         if (elDispResiduo) elDispResiduo.textContent = fmt(residuo);
         if (elHubIncassato) elHubIncassato.textContent = fmt(incassato);
+    },
+
+    renderPromozioniUI: function(promoConfig) {
+        const defaultPromos = {
+            back_to_school: { titolo: '📚 Back to School', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-09-01', data_fine: '2026-09-30', attivo: true },
+            summer: { titolo: '⛱️ Summer', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-06-01', data_fine: '2026-07-31', attivo: true },
+            natale: { titolo: '🎄 Natale', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-12-01', data_fine: '2027-01-06', attivo: true },
+            black_week: { titolo: '🖤 Black Week', stripe_coupon_id: '', percentuale: 25, data_inizio: '2026-11-20', data_fine: '2026-11-30', attivo: true }
+        };
+
+        const keys = ['back_to_school', 'summer', 'natale', 'black_week'];
+        keys.forEach(key => {
+            const p = promoConfig[key] || defaultPromos[key];
+            const elActive = document.getElementById('promo-active-' + key);
+            const elId = document.getElementById('promo-id-' + key);
+            const elPct = document.getElementById('promo-pct-' + key);
+            const elStart = document.getElementById('promo-start-' + key);
+            const elEnd = document.getElementById('promo-end-' + key);
+
+            if (elActive) elActive.checked = p.attivo !== false;
+            if (elId) elId.value = p.stripe_coupon_id || '';
+            if (elPct) elPct.value = p.percentuale !== undefined ? p.percentuale : defaultPromos[key].percentuale;
+            if (elStart) elStart.value = p.data_inizio || defaultPromos[key].data_inizio;
+            if (elEnd) elEnd.value = p.data_fine || defaultPromos[key].data_fine;
+        });
+
+        this.updatePromoStatusBadges();
+    },
+
+    updatePromoStatusBadges: function() {
+        const keys = ['back_to_school', 'summer', 'natale', 'black_week'];
+        const now = new Date();
+        const todayStr = now.toISOString().slice(0, 10);
+
+        keys.forEach(key => {
+            const elActive = document.getElementById('promo-active-' + key);
+            const elStart = document.getElementById('promo-start-' + key);
+            const elEnd = document.getElementById('promo-end-' + key);
+            const elBadge = document.getElementById('badge-status-' + key);
+            const elLabel = document.getElementById('promo-active-label-' + key);
+            const elCard = document.getElementById('promo-card-' + key);
+
+            if (!elBadge) return;
+
+            const isActive = elActive ? elActive.checked : false;
+            const start = elStart ? elStart.value : '';
+            const end = elEnd ? elEnd.value : '';
+
+            if (elLabel) {
+                elLabel.textContent = isActive ? 'Attiva' : 'Spenta';
+                elLabel.style.color = isActive ? '#0f172a' : '#94a3b8';
+            }
+
+            if (!isActive) {
+                elBadge.textContent = '⚪ DISATTIVATA (OFF)';
+                elBadge.style.background = '#f1f5f9';
+                elBadge.style.color = '#64748b';
+                if (elCard) elCard.style.borderColor = '#e2e8f0';
+                return;
+            }
+
+            if (start && todayStr < start) {
+                elBadge.textContent = `🟡 PROGRAMMATA (dal ${this.formatDateIT(start)})`;
+                elBadge.style.background = '#fef3c7';
+                elBadge.style.color = '#b45309';
+                if (elCard) elCard.style.borderColor = '#fde68a';
+            } else if (end && todayStr > end) {
+                elBadge.textContent = `🔴 SCADUTA (il ${this.formatDateIT(end)})`;
+                elBadge.style.background = '#fee2e2';
+                elBadge.style.color = '#b91c1c';
+                if (elCard) elCard.style.borderColor = '#fca5a5';
+            } else {
+                elBadge.textContent = `🟢 ATTIVA ADESSO (fino al ${this.formatDateIT(end)})`;
+                elBadge.style.background = '#dcfce7';
+                elBadge.style.color = '#15803d';
+                if (elCard) elCard.style.borderColor = '#86efac';
+            }
+        });
+    },
+
+    formatDateIT: function(dateStr) {
+        if (!dateStr) return '';
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    },
+
+    toggleGuidaStripe: function() {
+        const box = document.getElementById('guida-stripe-box');
+        const txt = document.getElementById('btn-guida-text');
+        if (!box) return;
+        const isHidden = box.style.display === 'none' || !box.style.display;
+        box.style.display = isHidden ? 'block' : 'none';
+        if (txt) txt.textContent = isHidden ? 'Chiudi Guida Passo-Passo' : 'Apri Guida Passo-Passo';
+    },
+
+    copyPromoTitle: function(title) {
+        navigator.clipboard.writeText(title).then(() => {
+            alert(`📋 Titolo "${title}" copiato negli appunti!\nPuoi incollarlo direttamente come nome del coupon su Stripe.`);
+        }).catch(err => {
+            console.error("Errore copia appunti:", err);
+            prompt("Copia manualmente il titolo per Stripe:", title);
+        });
+    },
+
+    savePromozioni: async function() {
+        if (!window.EcosystemService) return;
+
+        const keys = [
+            { key: 'back_to_school', titolo: '📚 Back to School' },
+            { key: 'summer', titolo: '⛱️ Summer' },
+            { key: 'natale', titolo: '🎄 Natale' },
+            { key: 'black_week', titolo: '🖤 Black Week' }
+        ];
+
+        const promoConfig = {};
+        keys.forEach(({ key, titolo }) => {
+            const elActive = document.getElementById('promo-active-' + key);
+            const elId = document.getElementById('promo-id-' + key);
+            const elPct = document.getElementById('promo-pct-' + key);
+            const elStart = document.getElementById('promo-start-' + key);
+            const elEnd = document.getElementById('promo-end-' + key);
+
+            promoConfig[key] = {
+                titolo: titolo,
+                stripe_coupon_id: elId ? elId.value.trim() : '',
+                percentuale: elPct ? parseFloat(elPct.value) || 0 : 0,
+                data_inizio: elStart ? elStart.value : '',
+                data_fine: elEnd ? elEnd.value : '',
+                attivo: elActive ? elActive.checked : false
+            };
+        });
+
+        try {
+            await window.EcosystemService.saveEcosystemSettings({ promozioni_config: promoConfig });
+            this.settingsData.promozioni_config = promoConfig;
+            this.updatePromoStatusBadges();
+
+            const statusLabel = document.getElementById('promo-save-status');
+            if (statusLabel) {
+                statusLabel.style.display = 'inline';
+                setTimeout(() => { statusLabel.style.display = 'none'; }, 3000);
+            }
+            alert("✅ Promozioni e Coupon Stripe salvati con successo!");
+        } catch (e) {
+            console.error("Errore salvataggio promozioni:", e);
+            alert("Errore durante il salvataggio delle promozioni: " + e.message);
+        }
     },
 
     saveMassimaleConfig: async function() {
