@@ -237,7 +237,17 @@ const NewsletterUI = {
         const subjectParam = encodeURIComponent("Newsletter Prof. Memmo");
         const gmailUrl = `https://mail.google.com/mail/?view=cm&bcc=${bccParam}&su=${subjectParam}`;
 
-        window.open(gmailUrl, '_blank');
+        // Apre Gmail in una finestra separata dedicata per non sovrascrivere l'Hub
+        const width = 1050;
+        const height = 750;
+        const left = (window.screen.width - width) / 2;
+        const top = (window.screen.height - height) / 2;
+
+        window.open(
+            gmailUrl, 
+            `GmailCompose_${groupIndex}`, 
+            `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`
+        );
     },
 
     /**
