@@ -169,9 +169,17 @@ const NewsletterUI = {
 
         if (totalConsented === 0) {
             container.innerHTML = `
-                <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 18px; text-align: center; color: var(--text-muted);">
-                    <i class="fa-solid fa-envelope-circle-check" style="font-size: 1.6rem; color: #94a3b8; margin-bottom: 8px;"></i>
-                    <p style="margin: 0; font-size: 0.9rem;">Nessun iscritto con consenso newsletter attivo presente nei filtri attuali.</p>
+                <div style="background: linear-gradient(135deg, #f0fdf4, #f8fafc); border: 1px solid #cbd5e1; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                            <span style="background: #64748b; color: white; font-weight: 800; font-size: 0.8rem; padding: 3px 10px; border-radius: 20px;">GMAIL CCN</span>
+                            <h4 style="margin: 0; color: var(--text-main); font-size: 1.1rem; font-weight: 800;">Componi Newsletter con Gmail</h4>
+                        </div>
+                        <p style="margin: 0; font-size: 0.88rem; color: #475569;">Al momento ci sono <strong>0 iscritti con consenso</strong> nei filtri attuali. Puoi iscrivere manualmente gli utenti dalla tabella in basso cliccando su <strong>[+ Iscrivi]</strong>.</p>
+                    </div>
+                    <button class="btn" style="background: #ea4335; color: white; font-weight: 700; padding: 12px 22px; font-size: 0.95rem; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(234, 67, 53, 0.25); cursor: pointer;" onclick="alert('Nessun iscritto con consenso attivo trovato nei filtri correnti. Per inviare una newsletter è necessario almeno 1 iscritto.')">
+                        <i class="fa-brands fa-google"></i> ✉️ Componi Newsletter con Gmail (CCN)
+                    </button>
                 </div>
             `;
             return;
