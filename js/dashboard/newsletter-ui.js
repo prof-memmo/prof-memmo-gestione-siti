@@ -1,5 +1,5 @@
-// --- Newsletter UI Service (Hub -> Gmail CCN with Automated Grouping) ---
-// Gestisce l'interfaccia della newsletter (iscritti, consensi GDPR, segmenti e composizione Gmail CCN)
+// --- Newsletter UI Service (Hub -> Gmail CCN with Automated Grouping & Manual Opt-in/Opt-out Management) ---
+// Gestisce l'interfaccia della newsletter (iscritti, consensi GDPR, segmenti, gestione manuale e composizione Gmail CCN)
 
 const NewsletterUI = {
     // Configurazione del limite massimo di destinatari per ciascun gruppo Gmail CCN
@@ -114,6 +114,50 @@ const NewsletterUI = {
     },
 
     /**
+     * Gestione manuale del consenso Newsletter da parte dell'Admin (Iscrizione / Disiscrizione)
+     */
+    toggleConsent: async function(userId, newConsentState) {
+        if (!userId) {
+            alert("ID utente non trovato.");
+            return;
+        }
+
+        const user = this.users.find(u => (u.id === userId || u.uid === userId));
+        const userDesc = user ? `${user.nome || ''} ${user.cognome || ''} (${user.email || ''})`.trim() : userId;
+
+        const confirmMsg = newConsentState 
+            ? `Vuoi iscrivere manualmente alla Newsletter:\n${userDesc}?`
+            : `Vuoi disiscrivere dalla Newsletter:\n${userDesc}?`;
+        
+        if (!confirm(confirmMsg)) return;
+
+        try {
+            if (window.fbDb && window.fbDb.hub) {
+                await window.fbDb.hub.collection('hub_users').doc(userId).set({
+                    newsletter: !!newConsentState,
+                    "consents.newsletter": !!newConsentState,
+                    "consents.lastAdminActionAt": new Date().toISOString(),
+                    "consents.adminActionSource": "hub_admin_manual"
+                }, { merge: true });
+
+                // Aggiorna localmente l'utente nella memoria per feedback istantaneo
+                if (user) {
+                    user.newsletter = !!newConsentState;
+                    if (!user.consents) user.consents = {};
+                    user.consents.newsletter = !!newConsentState;
+                }
+                this.updateStats();
+                this.filterNews();
+            } else {
+                alert("Database Firebase non raggiungibile.");
+            }
+        } catch(err) {
+            console.error("Errore aggiornamento consenso newsletter:", err);
+            alert("Errore durante l'aggiornamento: " + err.message);
+        }
+    },
+
+    /**
      * Renderizza i pulsanti e le informazioni dei gruppi nell'interfaccia Admin
      */
     renderGroupsUI: function(filteredUsers) {
@@ -144,7 +188,7 @@ const NewsletterUI = {
                         </div>
                         <p style="margin: 0; font-size: 0.88rem; color: #047857;">Gli indirizzi verranno inseriti automaticamente nel campo <strong>CCN (Copia Nascosta)</strong> di Gmail per proteggere la privacy.</p>
                     </div>
-                    <button class="btn" style="background: #ea4335; color: white; font-weight: 700; padding: 12px 22px; font-size: 0.95rem; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(234, 67, 53, 0.25);" onclick="window.NewsletterUI.openGmailGroup(0)">
+                    <button class="btn" style="background: #ea4335; color: white; font-weight: 700; padding: 12px 22px; font-size: 0.95rem; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(234, 67, 53, 0.25); cursor: pointer;" onclick="window.NewsletterUI.openGmailGroup(0)">
                         <i class="fa-brands fa-google"></i> ✉️ Componi Newsletter con Gmail (CCN)
                     </button>
                 </div>
@@ -174,7 +218,7 @@ const NewsletterUI = {
                         <strong style="color: var(--text-main); font-size: 0.95rem;">Gruppo ${idx + 1}</strong>
                         <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">${group.length} destinatari CCN</div>
                     </div>
-                    <button class="btn" style="background: #ea4335; color: white; font-size: 0.85rem; font-weight: 700; padding: 8px 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;" onclick="window.NewsletterUI.openGmailGroup(${idx})">
+                    <button class="btn" style="background: #ea4335; color: white; font-size: 0.85rem; font-weight: 700; padding: 8px 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" onclick="window.NewsletterUI.openGmailGroup(${idx})">
                         <i class="fa-brands fa-google"></i> ✉️ Apri in Gmail
                     </button>
                 </div>
@@ -195,7 +239,7 @@ const NewsletterUI = {
         tbody.innerHTML = '';
         
         if (!usersArray || usersArray.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 25px; color:var(--text-muted);">Nessun utente trovato con i filtri selezionati.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 25px; color:var(--text-muted);">Nessun utente trovato con i filtri selezionati.</td></tr>';
             return;
         }
 
@@ -205,6 +249,7 @@ const NewsletterUI = {
             const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
             const planInfo = this.getPlanLabelAndBadge(user);
             const isConsented = this.hasConsent(user);
+            const uId = user.id || user.uid || '';
             
             // Badge Ruolo
             const rRaw = (user.ruolo || user.role || 'viandante').toLowerCase();
@@ -223,6 +268,11 @@ const NewsletterUI = {
                 ? `<span style="background:#ecfdf5; color:#059669; padding:4px 10px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid #a7f3d0; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-circle-check"></i> Iscritto (GDPR)</span>`
                 : `<span style="background:#f1f5f9; color:#64748b; padding:4px 10px; border-radius:20px; font-size:0.78rem; font-weight:600; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-circle-xmark"></i> Non Iscritto</span>`;
 
+            // Pulsante di Azione Manuale per l'Amministratore
+            const actionBtn = isConsented
+                ? `<button class="btn outline" style="border-color:#f43f5e; color:#e11d48; padding:5px 10px; font-size:0.78rem; font-weight:700; border-radius:6px; display:inline-flex; align-items:center; gap:5px; cursor:pointer;" onclick="window.NewsletterUI.toggleConsent('${uId}', false)" title="Disiscrivi manualmente questo utente dalla Newsletter"><i class="fa-solid fa-user-minus"></i> Disiscrivi</button>`
+                : `<button class="btn outline" style="border-color:#10b981; color:#059669; padding:5px 10px; font-size:0.78rem; font-weight:700; border-radius:6px; display:inline-flex; align-items:center; gap:5px; cursor:pointer;" onclick="window.NewsletterUI.toggleConsent('${uId}', true)" title="Iscrivi manualmente questo utente alla Newsletter"><i class="fa-solid fa-user-plus"></i> Iscrivi</button>`;
+
             tr.innerHTML = `
                 <td style="padding: 12px 10px;">
                     <strong style="color:var(--text-main); font-size:0.95rem;">${user.nome || ''} ${user.cognome || ''}</strong><br>
@@ -233,6 +283,7 @@ const NewsletterUI = {
                 <td style="padding: 12px 10px;">${consentBadge}</td>
                 <td style="padding: 12px 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
                 <td style="padding: 12px 10px; font-size:0.88rem; color:${user.giocoColor || '#334155'};"><i class="fa-solid ${user.giocoIcon || 'fa-gamepad'}"></i> ${user.gioco || 'Ecosistema'}</td>
+                <td style="padding: 12px 10px; text-align:center;">${actionBtn}</td>
             `;
             tbody.appendChild(tr);
         });

@@ -352,7 +352,7 @@
       <i class="fa-solid fa-envelope" style="color:#64748b;"></i> Casella Postale
     </div>
     <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
-      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter & Consensi
+      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter
     </div>
     <div class="nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')">
       <i class="fa-solid fa-bolt" style="color:#f43f5e;"></i> Comunicazioni Automatiche
@@ -413,8 +413,8 @@
     <div class="nav-dock-sep"></div>
 
     <!-- Gruppo 3: Strumenti & Comunicazioni -->
-    <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')" title="Newsletter & Consensi">
-      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i><span>Newsletter & Consensi</span>
+    <div class="mobile-nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')" title="Newsletter">
+      <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i><span>Newsletter</span>
     </div>
     <div class="mobile-nav-item" data-target="view-posta" onclick="switchView('view-posta')" title="Casella Postale">
       <i class="fa-solid fa-envelope" style="color:#64748b;"></i><span>Posta</span>
@@ -1381,10 +1381,10 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
       </div>
     </div>
 
-    <!-- View: Newsletter & Consensi -->
+    <!-- View: Newsletter -->
     <div id="view-newsletter" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-paper-plane" style="color: #38bdf8;"></i> Newsletter & Consensi</h2>
+        <h2><i class="fa-solid fa-paper-plane" style="color: #38bdf8;"></i> Newsletter</h2>
       </div>
 
       <!-- KPI Summary Cards -->
@@ -1536,10 +1536,13 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
                 <th style="cursor:pointer;" onclick="window.NewsletterUI.sortNews('gioco')">
                   <div style="display: flex; align-items: center; white-space: nowrap;">Piattaforma <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
+                <th style="text-align:center;">
+                  <div style="display: flex; align-items: center; justify-content: center; white-space: nowrap;">Gestione Consenso</div>
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr><td colspan="6" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento iscritti in corso...</td></tr>
+              <tr><td colspan="7" style="text-align:center; padding: 20px; color:var(--text-muted);">Caricamento iscritti in corso...</td></tr>
             </tbody>
           </table>
         </div>
