@@ -111,45 +111,160 @@ const EcosistemaUI = {
     },
 
     renderPromozioniUI: function(promoConfig) {
+        const container = document.getElementById('promozioni-cards-container');
+        if (!container) return;
+        container.innerHTML = '';
+
         const defaultPromos = {
-            lancio: { titolo: '🚀 Promo Lancio', stripe_coupon_id: '', percentuale: 30, data_inizio: '2026-09-01', data_fine: '2026-10-31', attivo: true },
-            back_to_school: { titolo: '📚 Back to School', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-09-01', data_fine: '2026-09-30', attivo: true },
-            summer: { titolo: '⛱️ Summer', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-06-01', data_fine: '2026-07-31', attivo: true },
-            natale: { titolo: '🎄 Natale', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-12-01', data_fine: '2027-01-06', attivo: true },
-            black_week: { titolo: '🖤 Black Week', stripe_coupon_id: '', percentuale: 25, data_inizio: '2026-11-20', data_fine: '2026-11-30', attivo: true }
+            lancio: { id: 'lancio', titolo: '🚀 Promo Lancio', stripe_coupon_id: '', percentuale: 30, data_inizio: '2026-08-01', data_fine: '2026-10-31', attivo: true },
+            back_to_school: { id: 'back_to_school', titolo: '📚 Back to School', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-09-01', data_fine: '2026-09-30', attivo: true },
+            summer: { id: 'summer', titolo: '⛱️ Summer', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-06-01', data_fine: '2026-07-31', attivo: true },
+            natale: { id: 'natale', titolo: '🎄 Natale', stripe_coupon_id: '', percentuale: 20, data_inizio: '2026-12-01', data_fine: '2027-01-06', attivo: true },
+            black_week: { id: 'black_week', titolo: '🖤 Black Week', stripe_coupon_id: '', percentuale: 25, data_inizio: '2026-11-20', data_fine: '2026-11-30', attivo: true }
         };
 
-        const keys = ['lancio', 'back_to_school', 'summer', 'natale', 'black_week'];
-        keys.forEach(key => {
-            const p = promoConfig[key] || defaultPromos[key];
-            const elActive = document.getElementById('promo-active-' + key);
-            const elId = document.getElementById('promo-id-' + key);
-            const elPct = document.getElementById('promo-pct-' + key);
-            const elStart = document.getElementById('promo-start-' + key);
-            const elEnd = document.getElementById('promo-end-' + key);
+        const configToRender = (promoConfig && Object.keys(promoConfig).length > 0) ? promoConfig : defaultPromos;
 
-            if (elActive) elActive.checked = p.attivo !== false;
-            if (elId) elId.value = p.stripe_coupon_id || '';
-            if (elPct) elPct.value = p.percentuale !== undefined ? p.percentuale : defaultPromos[key].percentuale;
-            if (elStart) elStart.value = p.data_inizio || defaultPromos[key].data_inizio;
-            if (elEnd) elEnd.value = p.data_fine || defaultPromos[key].data_fine;
+        Object.entries(configToRender).forEach(([key, p]) => {
+            const promoData = {
+                id: key,
+                titolo: p.titolo || 'Promozione',
+                stripe_coupon_id: p.stripe_coupon_id || '',
+                percentuale: p.percentuale !== undefined ? p.percentuale : 20,
+                data_inizio: p.data_inizio || '',
+                data_fine: p.data_fine || '',
+                attivo: p.attivo !== false
+            };
+            container.insertAdjacentHTML('beforeend', this.createPromoCardHTML(promoData));
         });
 
         this.updatePromoStatusBadges();
     },
 
+    createPromoCardHTML: function(p) {
+        const isPreset = ['lancio', 'back_to_school', 'summer', 'natale', 'black_week'].includes(p.id);
+        return `
+          <div class="promo-card" id="promo-card-${p.id}" data-promo-id="${p.id}" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; box-shadow:0 2px 4px rgba(0,0,0,0.04); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <!-- Header Card con Titolo Modificabile -->
+              <div style="margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">
+                  <label style="font-size:0.75rem; font-weight:700; color:#475569; margin:0; text-transform:uppercase;">Titolo & Emoji Promo</label>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <button type="button" class="btn-promo-action" onclick="EcosistemaUI.copyPromoTitle('${p.id}')" title="Copia titolo per Stripe">
+                      <i class="fa-solid fa-copy"></i> Copia Titolo
+                    </button>
+                    ${!isPreset ? `
+                    <button type="button" class="btn-promo-delete" onclick="EcosistemaUI.deletePromoCard('${p.id}')" title="Elimina questa promozione">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>` : ''}
+                  </div>
+                </div>
+                <input type="text" id="promo-title-${p.id}" class="input-field promo-field-title" style="margin:0; font-size:0.98rem; font-weight:700; color:#0f172a;" value="${p.titolo}" placeholder="es. 🚀 Promo Lancio o ⚡ Flash Sale" oninput="EcosistemaUI.updatePromoStatusBadges()">
+                <div style="margin-top:6px;">
+                  <span id="badge-status-${p.id}" style="font-size:0.72rem; padding:3px 9px; border-radius:999px; font-weight:700; background:#f1f5f9; color:#64748b; display:inline-block;">CALCOLO IN CORSO...</span>
+                </div>
+              </div>
+
+              <!-- Switch ON/OFF Promo -->
+              <div style="display:flex; align-items:center; justify-content:space-between; background:#f8fafc; padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid #f1f5f9;">
+                <span style="font-size:0.8rem; font-weight:600; color:#475569;">Stato Campagna:</span>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+                  <input type="checkbox" id="promo-active-${p.id}" class="promo-field-active" onchange="EcosistemaUI.updatePromoStatusBadges()" style="width:18px; height:18px; cursor:pointer; accent-color:#3b82f6;" ${p.attivo ? 'checked' : ''}>
+                  <span style="font-size:0.82rem; font-weight:700;" id="promo-active-label-${p.id}">${p.attivo ? 'Attiva' : 'Spenta'}</span>
+                </label>
+              </div>
+
+              <!-- Campo ID Coupon Stripe -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">
+                  STRIPE COUPON ID <span style="font-weight:normal; font-size:0.72rem; color:#64748b;">(Test o Live)</span>
+                </label>
+                <input type="text" id="promo-id-${p.id}" class="input-field promo-field-id" style="margin:0; font-family:monospace; font-size:0.82rem;" placeholder="es. LANCIO30 o Coupon ID" value="${p.stripe_coupon_id}">
+              </div>
+
+              <!-- % Sconto -->
+              <div style="margin-bottom:10px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:3px;">PERCENTUALE DI SCONTO (%)</label>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <input type="number" id="promo-pct-${p.id}" class="input-field promo-field-pct" style="width:90px; margin:0;" value="${p.percentuale}" min="1" max="100" oninput="EcosistemaUI.updatePromoStatusBadges()">
+                  <span style="font-size:0.85rem; color:#64748b; font-weight:600;">% per una volta</span>
+                </div>
+              </div>
+
+              <!-- Date Inizio / Fine -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA INIZIO</label>
+                  <input type="date" id="promo-start-${p.id}" class="input-field promo-field-start" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="${p.data_inizio}" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600; color:#64748b; display:block; margin-bottom:2px;">DATA FINE</label>
+                  <input type="date" id="promo-end-${p.id}" class="input-field promo-field-end" style="margin:0; font-size:0.8rem; padding:6px 8px;" value="${p.data_fine}" onchange="EcosistemaUI.updatePromoStatusBadges()">
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+    },
+
+    addNewPromoCard: function() {
+        const container = document.getElementById('promozioni-cards-container');
+        if (!container) return;
+
+        const newId = 'promo_' + Date.now();
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const nextMonth = new Date();
+        nextMonth.setDate(nextMonth.getDate() + 30);
+        const nextMonthStr = nextMonth.toISOString().slice(0, 10);
+
+        const newPromo = {
+            id: newId,
+            titolo: '✨ Nuova Promozione Speciale',
+            stripe_coupon_id: '',
+            percentuale: 20,
+            data_inizio: todayStr,
+            data_fine: nextMonthStr,
+            attivo: true
+        };
+
+        container.insertAdjacentHTML('beforeend', this.createPromoCardHTML(newPromo));
+        this.updatePromoStatusBadges();
+
+        const newCard = document.getElementById('promo-card-' + newId);
+        if (newCard) {
+            newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const titleInput = document.getElementById('promo-title-' + newId);
+            if (titleInput) {
+                titleInput.focus();
+                titleInput.select();
+            }
+        }
+    },
+
+    deletePromoCard: function(promoId) {
+        const card = document.getElementById('promo-card-' + promoId);
+        if (!card) return;
+        const titleEl = document.getElementById('promo-title-' + promoId);
+        const title = titleEl ? titleEl.value : promoId;
+        if (confirm(`Sei sicuro di voler eliminare la promozione "${title}"?`)) {
+            card.remove();
+            this.updatePromoStatusBadges();
+        }
+    },
+
     updatePromoStatusBadges: function() {
-        const keys = ['lancio', 'back_to_school', 'summer', 'natale', 'black_week'];
+        const cards = document.querySelectorAll('#promozioni-cards-container .promo-card');
         const now = new Date();
         const todayStr = now.toISOString().slice(0, 10);
 
-        keys.forEach(key => {
-            const elActive = document.getElementById('promo-active-' + key);
-            const elStart = document.getElementById('promo-start-' + key);
-            const elEnd = document.getElementById('promo-end-' + key);
-            const elBadge = document.getElementById('badge-status-' + key);
-            const elLabel = document.getElementById('promo-active-label-' + key);
-            const elCard = document.getElementById('promo-card-' + key);
+        cards.forEach(card => {
+            const id = card.dataset.promoId;
+            const elActive = document.getElementById('promo-active-' + id);
+            const elStart = document.getElementById('promo-start-' + id);
+            const elEnd = document.getElementById('promo-end-' + id);
+            const elBadge = document.getElementById('badge-status-' + id);
+            const elLabel = document.getElementById('promo-active-label-' + id);
 
             if (!elBadge) return;
 
@@ -166,7 +281,7 @@ const EcosistemaUI = {
                 elBadge.textContent = '⚪ DISATTIVATA (OFF)';
                 elBadge.style.background = '#f1f5f9';
                 elBadge.style.color = '#64748b';
-                if (elCard) elCard.style.borderColor = '#e2e8f0';
+                card.style.borderColor = '#e2e8f0';
                 return;
             }
 
@@ -174,17 +289,17 @@ const EcosistemaUI = {
                 elBadge.textContent = `🟡 PROGRAMMATA (dal ${this.formatDateIT(start)})`;
                 elBadge.style.background = '#fef3c7';
                 elBadge.style.color = '#b45309';
-                if (elCard) elCard.style.borderColor = '#fde68a';
+                card.style.borderColor = '#fde68a';
             } else if (end && todayStr > end) {
                 elBadge.textContent = `🔴 SCADUTA (il ${this.formatDateIT(end)})`;
                 elBadge.style.background = '#fee2e2';
                 elBadge.style.color = '#b91c1c';
-                if (elCard) elCard.style.borderColor = '#fca5a5';
+                card.style.borderColor = '#fca5a5';
             } else {
                 elBadge.textContent = `🟢 ATTIVA ADESSO (fino al ${this.formatDateIT(end)})`;
                 elBadge.style.background = '#dcfce7';
                 elBadge.style.color = '#15803d';
-                if (elCard) elCard.style.borderColor = '#86efac';
+                card.style.borderColor = '#86efac';
             }
         });
     },
@@ -205,7 +320,10 @@ const EcosistemaUI = {
         if (txt) txt.textContent = isHidden ? 'Chiudi Guida Passo-Passo' : 'Apri Guida Passo-Passo';
     },
 
-    copyPromoTitle: function(title) {
+    copyPromoTitle: function(promoId) {
+        const input = document.getElementById('promo-title-' + promoId);
+        const title = input ? input.value : promoId;
+        if (!title) return;
         navigator.clipboard.writeText(title).then(() => {
             alert(`📋 Titolo "${title}" copiato negli appunti!\nPuoi incollarlo direttamente come nome del coupon su Stripe.`);
         }).catch(err => {
@@ -217,24 +335,21 @@ const EcosistemaUI = {
     savePromozioni: async function() {
         if (!window.EcosystemService) return;
 
-        const keys = [
-            { key: 'lancio', titolo: '🚀 Promo Lancio' },
-            { key: 'back_to_school', titolo: '📚 Back to School' },
-            { key: 'summer', titolo: '⛱️ Summer' },
-            { key: 'natale', titolo: '🎄 Natale' },
-            { key: 'black_week', titolo: '🖤 Black Week' }
-        ];
-
+        const cards = document.querySelectorAll('#promozioni-cards-container .promo-card');
         const promoConfig = {};
-        keys.forEach(({ key, titolo }) => {
-            const elActive = document.getElementById('promo-active-' + key);
-            const elId = document.getElementById('promo-id-' + key);
-            const elPct = document.getElementById('promo-pct-' + key);
-            const elStart = document.getElementById('promo-start-' + key);
-            const elEnd = document.getElementById('promo-end-' + key);
 
-            promoConfig[key] = {
-                titolo: titolo,
+        cards.forEach(card => {
+            const id = card.dataset.promoId;
+            const elTitle = document.getElementById('promo-title-' + id);
+            const elActive = document.getElementById('promo-active-' + id);
+            const elId = document.getElementById('promo-id-' + id);
+            const elPct = document.getElementById('promo-pct-' + id);
+            const elStart = document.getElementById('promo-start-' + id);
+            const elEnd = document.getElementById('promo-end-' + id);
+
+            promoConfig[id] = {
+                id: id,
+                titolo: elTitle ? elTitle.value.trim() : 'Promozione',
                 stripe_coupon_id: elId ? elId.value.trim() : '',
                 percentuale: elPct ? parseFloat(elPct.value) || 0 : 0,
                 data_inizio: elStart ? elStart.value : '',
@@ -253,7 +368,7 @@ const EcosistemaUI = {
                 statusLabel.style.display = 'inline';
                 setTimeout(() => { statusLabel.style.display = 'none'; }, 3000);
             }
-            alert("✅ Promozioni e Coupon Stripe salvati con successo!");
+            alert("✅ Tutte le promozioni e i coupon Stripe sono stati salvati con successo!");
         } catch (e) {
             console.error("Errore salvataggio promozioni:", e);
             alert("Errore durante il salvataggio delle promozioni: " + e.message);
