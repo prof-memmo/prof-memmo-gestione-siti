@@ -1412,7 +1412,20 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
       </div>
 
       <!-- Container Dinamico: Gruppi Gmail CCN & Pulsanti Componi -->
-      <div id="newsletter-groups-container" style="margin-bottom: 20px;"></div>
+      <div id="newsletter-groups-container" style="margin-bottom: 20px;">
+        <div style="background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border: 1px solid #a7f3d0; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+              <span style="background: #059669; color: white; font-weight: 800; font-size: 0.8rem; padding: 3px 10px; border-radius: 20px;">GMAIL CCN</span>
+              <h4 style="margin: 0; color: #065f46; font-size: 1.1rem; font-weight: 800;">Componi Newsletter con Gmail</h4>
+            </div>
+            <p style="margin: 0; font-size: 0.88rem; color: #047857;">Gli indirizzi degli iscritti verranno inseriti automaticamente nel campo <strong>CCN (Copia Nascosta)</strong> di Gmail per proteggere la privacy.</p>
+          </div>
+          <button class="btn" style="background: #ea4335; color: white; font-weight: 700; padding: 12px 22px; font-size: 0.95rem; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(234, 67, 53, 0.25);" onclick="window.NewsletterUI.openGmailGroup(0)">
+            <i class="fa-brands fa-google"></i> ✉️ Componi Newsletter con Gmail (CCN)
+          </button>
+        </div>
+      </div>
 
       <!-- Banner Workflow: Canva ➔ Gmail CCN -->
       <div class="glass-panel" style="margin-bottom: 20px; background: linear-gradient(135deg, #f0fdf4, #f8fafc); border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 20px;">
@@ -2500,7 +2513,7 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   <script src="js/dashboard/users-ui.js?v=20260815_2210"></script>
   <script src="js/dashboard/vetrina-ui.js?v=20260815_2210"></script>
   
-  <script src="js/dashboard/newsletter-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/newsletter-ui.js?v=20260822_1500"></script>
   <script src="js/dashboard/analytics-ui.js?v=20260815_2210"></script>
   <script src="js/dashboard/notifications-ui.js?v=20260815_2210"></script>
   <script src="js/dashboard/legal-admin-ui.js?v=20260815_2210"></script>

@@ -12,6 +12,7 @@ const NewsletterUI = {
 
     init: function() {
         this.updateStats();
+        this.filterNews();
     },
 
     setUsers: function(usersArray) {
