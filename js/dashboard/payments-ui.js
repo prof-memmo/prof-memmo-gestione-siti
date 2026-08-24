@@ -10,6 +10,7 @@ const PaymentsUI = {
         plan: 'all',
         status: 'all',
         type: 'all',
+        refundReason: 'all',
         search: ''
     },
 
@@ -72,6 +73,7 @@ const PaymentsUI = {
         const elPlan = document.getElementById('payments-filter-plan');
         const elStatus = document.getElementById('payments-filter-status');
         const elType = document.getElementById('payments-filter-type');
+        const elReason = document.getElementById('payments-filter-reason');
         const elSearch = document.getElementById('payments-search-input');
 
         this.filters.dateFrom = elFrom ? elFrom.value : '';
@@ -79,6 +81,7 @@ const PaymentsUI = {
         this.filters.plan = elPlan ? elPlan.value : 'all';
         this.filters.status = elStatus ? elStatus.value : 'all';
         this.filters.type = elType ? elType.value : 'all';
+        this.filters.refundReason = elReason ? elReason.value : 'all';
         this.filters.search = elSearch ? elSearch.value.trim().toLowerCase() : '';
 
         this.applyFilters();
@@ -88,11 +91,13 @@ const PaymentsUI = {
         const elPlan = document.getElementById('payments-filter-plan');
         const elStatus = document.getElementById('payments-filter-status');
         const elType = document.getElementById('payments-filter-type');
+        const elReason = document.getElementById('payments-filter-reason');
         const elSearch = document.getElementById('payments-search-input');
 
         if (elPlan) elPlan.value = 'all';
         if (elStatus) elStatus.value = 'all';
         if (elType) elType.value = 'all';
+        if (elReason) elReason.value = 'all';
         if (elSearch) elSearch.value = '';
 
         this.setupDefaultDates();
@@ -149,7 +154,15 @@ const PaymentsUI = {
             });
         }
 
-        // 5. Ricerca Testuale (Email, Nome, UID, Stripe IDs)
+        // 4b. Filtro Motivo Rimborso
+        if (this.filters.refundReason !== 'all') {
+            list = list.filter(item => {
+                const r = (item.refundReason || 'non_specificato').toLowerCase();
+                return r.includes(this.filters.refundReason.toLowerCase());
+            });
+        }
+
+        // 5. Ricerca Testuale (Email, Nome, UID, Stripe IDs, Motivi)
         if (this.filters.search) {
             const q = this.filters.search;
             list = list.filter(item => {
@@ -161,10 +174,11 @@ const PaymentsUI = {
                 const customer = (item.stripeCustomerId || '').toLowerCase();
                 const pi = (item.stripePaymentIntentId || '').toLowerCase();
                 const docId = (item.id || '').toLowerCase();
+                const reason = (item.refundReason || '').toLowerCase();
 
                 return email.includes(q) || name.includes(q) || uid.includes(q) ||
                        session.includes(q) || invoice.includes(q) || customer.includes(q) ||
-                       pi.includes(q) || docId.includes(q);
+                       pi.includes(q) || docId.includes(q) || reason.includes(q);
             });
         }
 
@@ -205,6 +219,7 @@ const PaymentsUI = {
             }
         });
 
+        // Incasso Netto = Incassi lordi - rimborsi
         const netEarnings = totalGross - totalRefunds;
 
         const setVal = (id, val) => {
@@ -267,24 +282,38 @@ const PaymentsUI = {
                 planBadge = `<span style="background:#fffbeb; color:#d97706; padding:3px 8px; border-radius:6px; font-weight:700; font-size:0.75rem; text-transform:uppercase;">🧭 Viandante</span>`;
             }
 
-            // 4. Tipo Operazione
+            // 4. Tipo Operazione & Motivo Rimborso
             const typeKey = (tx.type || 'initial_purchase').toLowerCase();
             let typeLabel = 'Primo Acquisto';
             let typeIcon = '<i class="fa-solid fa-cart-shopping" style="color:#10b981; margin-right:4px;"></i>';
+            let reasonSubtext = '';
+
             if (typeKey === 'annual_renewal' || typeKey === 'rinnovo_annuale') {
                 typeLabel = 'Rinnovo Annuale';
                 typeIcon = '<i class="fa-solid fa-rotate" style="color:#3b82f6; margin-right:4px;"></i>';
             } else if (typeKey === 'rimborso' || typeKey === 'refund') {
-                typeLabel = 'Rimborso';
+                const isFull = tx.refundType === 'totale' || tx.status === 'rimborsato';
+                typeLabel = isFull ? 'Rimborso Totale' : 'Rimborso Parziale';
                 typeIcon = '<i class="fa-solid fa-arrow-rotate-left" style="color:#f59e0b; margin-right:4px;"></i>';
+
+                let rName = 'Motivo non specificato';
+                const rCode = (tx.refundReason || 'non_specificato').toLowerCase();
+                if (rCode === 'recesso') rName = 'Diritto di recesso';
+                else if (rCode === 'commerciale') rName = 'Accordo commerciale';
+                else if (rCode === 'errore_anomalia') rName = 'Errore / Anomalia';
+                else if (tx.refundReason && tx.refundReason !== 'non_specificato') rName = tx.refundReason;
+
+                reasonSubtext = `<div style="font-size:0.72rem; color:#b45309; margin-top:2px;"><strong>Motivo:</strong> ${rName}</div>`;
             } else if (typeKey === 'pagamento_fallito' || typeKey === 'payment_failed') {
                 typeLabel = 'Pagamento Fallito';
                 typeIcon = '<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-right:4px;"></i>';
+                if (tx.failureReason) {
+                    reasonSubtext = `<div style="font-size:0.72rem; color:#dc2626; margin-top:2px;">${tx.failureReason}</div>`;
+                }
             }
 
             // 5. Importo
             const amountVal = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount || 0);
-            const currency = tx.currency || 'EUR';
             let amountDisplay = `${amountVal >= 0 ? '+' : ''}${amountVal.toFixed(2)} €`;
             let amountColor = '#10b981';
             if (typeKey === 'rimborso' || amountVal < 0) {
@@ -336,7 +365,10 @@ const PaymentsUI = {
                     ${uid !== '-' ? `<div style="font-size:0.72rem; color:#94a3b8;">UID: ${uid}</div>` : ''}
                 </td>
                 <td style="padding:12px 14px;">${planBadge}</td>
-                <td style="padding:12px 14px; font-size:0.82rem; color:#334155;">${typeIcon} ${typeLabel}</td>
+                <td style="padding:12px 14px; font-size:0.82rem; color:#334155;">
+                    <div>${typeIcon} <strong>${typeLabel}</strong></div>
+                    ${reasonSubtext}
+                </td>
                 <td style="padding:12px 14px; font-weight:800; font-size:0.95rem; color:${amountColor}; text-align:right;">
                     ${amountDisplay}
                 </td>
@@ -362,13 +394,15 @@ const PaymentsUI = {
             "Ora",
             "Tipo Operazione",
             "Stato Pagamento",
+            "Motivo Rimborso (Amministrativo)",
+            "Tipo Rimborso (Totale/Parziale)",
             "Cliente Intestatario",
             "Cliente Email",
             "UID Utente Hub",
             "Piano Abbonamento",
             "Importo Lordo (€)",
             "Importo Rimborsato (€)",
-            "Importo Netto (€)",
+            "Incasso Netto (€)",
             "Valuta",
             "Codice Sconto",
             "Valore Sconto (€)",
@@ -398,19 +432,31 @@ const PaymentsUI = {
 
             const amount = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount || 0);
             const refund = typeof tx.refundAmount === 'number' ? tx.refundAmount : parseFloat(tx.refundAmount || 0);
-            const net = amount - refund;
+            const net = amount >= 0 ? (amount - refund) : amount;
+
+            let rName = '';
+            if (tx.refundReason) {
+                const rCode = tx.refundReason.toLowerCase();
+                if (rCode === 'recesso') rName = 'Diritto di recesso';
+                else if (rCode === 'commerciale') rName = 'Accordo commerciale';
+                else if (rCode === 'errore_anomalia') rName = 'Errore / Anomalia';
+                else if (rCode !== 'non_specificato') rName = tx.refundReason;
+                else rName = 'Motivo non specificato';
+            }
 
             const row = [
                 dateStr,
                 timeStr,
                 tx.type || 'primo_acquisto',
                 tx.status || (tx.type === 'pagamento_fallito' ? 'fallito' : 'completato'),
+                rName,
+                tx.refundType || (tx.type === 'rimborso' ? 'totale' : ''),
                 tx.customerName || tx.nome || '',
                 tx.customerEmail || tx.email || '',
                 tx.userId || '',
                 tx.planId || tx.plan || tx.abbonamento || 'completo',
-                amount.toFixed(2),
-                refund.toFixed(2),
+                amount >= 0 ? amount.toFixed(2) : '0.00',
+                refund > 0 ? refund.toFixed(2) : (amount < 0 ? Math.abs(amount).toFixed(2) : '0.00'),
                 net.toFixed(2),
                 tx.currency || 'EUR',
                 tx.discountCode || (tx.promoApplied ? 'Promo Applicata' : ''),

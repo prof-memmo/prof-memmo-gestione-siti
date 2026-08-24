@@ -1690,12 +1690,12 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
         <div>
           <h2><i class="fa-solid fa-receipt" style="color:#059669;"></i> Registro Pagamenti &amp; Contabilità</h2>
           <p style="color:var(--text-muted); font-size:0.9rem; margin:4px 0 0 0;">
-            Giornale cronologico delle transazioni Stripe reali (incassi, rinnovi, rimborsi e tentativi falliti) utile a fini contabili e fiscali.
+            Giornale cronologico delle transazioni Stripe reali (incassi, rinnovi, rimborsi e tentativi falliti) utile a fini contabili.
           </p>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn" onclick="PaymentsUI.exportCSV()" style="background:#059669; color:white; font-weight:700; display:flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(5,150,105,0.25);">
-            <i class="fa-solid fa-file-csv"></i> Esporta Registro CSV
+            <i class="fa-solid fa-file-csv"></i> Esporta Registro (CSV)
           </button>
         </div>
       </div>
@@ -1703,9 +1703,9 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
       <!-- KPI Summary Cards -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
         <div class="glass-panel" style="padding: 16px 20px; border-left: 4px solid #059669;">
-          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Incasso Netto Effettivo</div>
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Incasso Netto</div>
           <div id="kpi-pay-netto" style="font-size: 1.6rem; font-weight: 900; color: #059669; margin-top: 4px;">0,00 €</div>
-          <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Incassi lordi meno rimborsi</div>
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Incassi lordi − rimborsi</div>
         </div>
 
         <div class="glass-panel" style="padding: 16px 20px; border-left: 4px solid #3b82f6;">
@@ -1748,7 +1748,7 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
           <div>
             <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Da Data</label>
             <input type="date" id="payments-date-from" class="input-field" style="margin: 0; width: 100%; padding: 8px 10px; font-size: 0.85rem;" onchange="PaymentsUI.onFilterChange()">
@@ -1777,6 +1777,16 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
             </select>
           </div>
           <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Motivo Rimborso</label>
+            <select id="payments-filter-reason" class="input-field" style="margin: 0; width: 100%; padding: 8px 10px; font-size: 0.85rem;" onchange="PaymentsUI.onFilterChange()">
+              <option value="all">Tutti i Motivi</option>
+              <option value="recesso">Diritto di Recesso</option>
+              <option value="commerciale">Accordo Commerciale</option>
+              <option value="errore_anomalia">Errore / Anomalia</option>
+              <option value="non_specificato">Motivo non specificato</option>
+            </select>
+          </div>
+          <div>
             <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Stato</label>
             <select id="payments-filter-status" class="input-field" style="margin: 0; width: 100%; padding: 8px 10px; font-size: 0.85rem;" onchange="PaymentsUI.onFilterChange()">
               <option value="all">Tutti gli Stati</option>
@@ -1787,8 +1797,8 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
             </select>
           </div>
           <div style="grid-column: span 2;">
-            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Cerca Cliente / ID Stripe</label>
-            <input type="text" id="payments-search-input" class="input-field" placeholder="Email, nome, UID, cus_, sub_, in_, pi_..." style="margin: 0; width: 100%; padding: 8px 10px; font-size: 0.85rem;" oninput="PaymentsUI.onFilterChange()">
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Cerca Cliente / ID Stripe / Motivo</label>
+            <input type="text" id="payments-search-input" class="input-field" placeholder="Email, nome, UID, cus_, sub_, in_, pi_, motivo..." style="margin: 0; width: 100%; padding: 8px 10px; font-size: 0.85rem;" oninput="PaymentsUI.onFilterChange()">
           </div>
         </div>
       </div>

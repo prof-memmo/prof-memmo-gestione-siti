@@ -318,14 +318,31 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
                 const totalCharged = charge.amount ? charge.amount / 100 : 0;
                 const isFullRefund = charge.refunded === true || amountRefunded >= totalCharged;
                 const refundStatus = isFullRefund ? "rimborsato" : "rimborsato_parziale";
-                const refundId = (charge.refunds && charge.refunds.data && charge.refunds.data[0]) ? charge.refunds.data[0].id : charge.id + "_refund";
+                const refundType = isFullRefund ? "totale" : "parziale";
+                
+                const latestRefund = (charge.refunds && charge.refunds.data && charge.refunds.data[0]) ? charge.refunds.data[0] : null;
+                const refundId = latestRefund ? latestRefund.id : charge.id + "_refund";
+                
+                // Estrazione motivazione amministrativa del rimborso (se presente in Stripe metadata o reason, altrimenti fallback)
+                let rawReason = (latestRefund && (latestRefund.metadata?.refundReason || latestRefund.reason)) || charge.metadata?.refundReason || null;
+                let refundReason = "non_specificato";
+                if (rawReason) {
+                    const rLower = String(rawReason).toLowerCase();
+                    if (rLower.includes("recesso")) refundReason = "recesso";
+                    else if (rLower.includes("commerciale") || rLower.includes("customer")) refundReason = "commerciale";
+                    else if (rLower.includes("errore") || rLower.includes("anomalia") || rLower.includes("duplicate")) refundReason = "errore_anomalia";
+                    else refundReason = rawReason;
+                }
+
+                const refundDate = latestRefund && latestRefund.created ? new Date(latestRefund.created * 1000).toISOString() : new Date().toISOString();
 
                 // Se rimborso totale, revoca abbonamento in hub_users
                 if (userId && isFullRefund) {
                     await db.collection("hub_users").doc(userId).set({
                         abbonamento: "base",
                         "subscription.status": "refunded",
-                        "subscription.refundedAt": new Date().toISOString(),
+                        "subscription.refundedAt": refundDate,
+                        "subscription.refundReason": refundReason,
                         "subscription.lastEvent": event.type,
                         "subscription.lastEventAt": new Date().toISOString()
                     }, { merge: true });
@@ -340,8 +357,10 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
                     currency: (charge.currency || "eur").toUpperCase(),
                     status: refundStatus,
                     type: "rimborso",
+                    refundType: refundType,
+                    refundReason: refundReason,
                     refundAmount: amountRefunded,
-                    refundDate: new Date().toISOString(),
+                    refundDate: refundDate,
                     stripeChargeId: charge.id,
                     stripePaymentIntentId: charge.payment_intent || null,
                     stripeCustomerId: customerId || null,
@@ -349,7 +368,7 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
                     createdAt: new Date().toISOString()
                 }, { merge: true });
 
-                console.log(`↩️ Rimborso ${refundStatus} registrato (€${amountRefunded}) per cliente ${customerEmail || customerId}`);
+                console.log(`↩️ Rimborso ${refundType} (${refundReason}) registrato (€${amountRefunded}) per cliente ${customerEmail || customerId}`);
                 break;
             }
 
