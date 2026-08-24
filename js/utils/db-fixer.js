@@ -13,8 +13,8 @@ const DBFixer = {
             ];
 
             for (let p of projects) {
-                // Utilizza il metodo esportato da HubApp
-                const tokenManager = await window.HubApp.getAuthTokenFromDB(p.key);
+                if (!window.CrossProjectsService || !window.CrossProjectsService.getAuthTokenFromDB) continue;
+                const tokenManager = await window.CrossProjectsService.getAuthTokenFromDB(p.key);
                 if (!tokenManager || !tokenManager.refreshToken) continue;
                 
                 const refreshRes = await fetch(`https://securetoken.googleapis.com/v1/token?key=${p.key}`, {

@@ -266,15 +266,19 @@ const CrossProjectsService = {
         // Deduplicazione
         const uniqueUsersMap = new Map();
         allUsers.forEach(u => {
-            if (u.email && u.email.trim() !== '') {
-                const emailKey = u.email.trim().toLowerCase();
+            if (u.email && String(u.email).trim() !== '') {
+                const emailKey = String(u.email).trim().toLowerCase();
                 if (uniqueUsersMap.has(emailKey)) {
                     let existing = uniqueUsersMap.get(emailKey);
-                    if (!existing.gioco.includes(u.gioco)) {
-                        existing.gioco += " / " + u.gioco;
+                    const curGioco = String(existing.gioco || '');
+                    const newGioco = String(u.gioco || '');
+                    if (!curGioco.includes(newGioco)) {
+                        existing.gioco = curGioco ? (curGioco + " / " + newGioco) : newGioco;
                     }
-                    if ((existing.nome === 'Anonimo' || existing.nome === '' || existing.nome.startsWith('Utente')) && u.nome && u.nome !== 'Anonimo' && !u.nome.startsWith('Utente')) {
-                        existing.nome = u.nome;
+                    const exNome = String(existing.nome || '');
+                    const uNome = String(u.nome || '');
+                    if ((exNome === 'Anonimo' || exNome === '' || exNome.startsWith('Utente')) && uNome && uNome !== 'Anonimo' && !uNome.startsWith('Utente')) {
+                        existing.nome = uNome;
                     }
                     if (!existing.avatar && u.avatar) {
                         existing.avatar = u.avatar;
@@ -283,8 +287,8 @@ const CrossProjectsService = {
                         existing.plan = u.plan;
                     }
                     // Se l'utente è docente in uno dei giochi o ha piano docente, impostalo come docente
-                    const uRole = (u.ruolo || '').toLowerCase();
-                    const uPlan = (u.plan || '').toLowerCase();
+                    const uRole = String(u.ruolo || '').toLowerCase();
+                    const uPlan = String(u.plan || '').toLowerCase();
                     if (uRole.includes('teacher') || uRole.includes('admin') || uRole.includes('docente') || uRole.includes('prof') || uRole.includes('judge') || uPlan.includes('docente')) {
                         existing.ruolo = 'docente';
                     }
@@ -297,14 +301,14 @@ const CrossProjectsService = {
         });
         
         const deduplicatedUsers = Array.from(uniqueUsersMap.values());
-        deduplicatedUsers.sort((a, b) => b.dataValue - a.dataValue);
+        deduplicatedUsers.sort((a, b) => (b.dataValue || 0) - (a.dataValue || 0));
 
         let cStudenti = 0, cDocenti = 0, cViandanti = 0;
         const scuoleSet = new Set();
         deduplicatedUsers.forEach(u => {
-            const r = (u.ruolo || '').toLowerCase();
-            const p = (u.plan || '').toLowerCase();
-            const e = (u.email || '').toLowerCase();
+            const r = String(u.ruolo || '').toLowerCase();
+            const p = String(u.plan || '').toLowerCase();
+            const e = String(u.email || '').toLowerCase();
 
             const isDoc = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r.includes('prof') || r.includes('judge') || p.includes('docente') || p.includes('didattic') || p.includes('ecosistema') || e === 'prof.memmo@gmail.com';
             const isViand = !isDoc && (r.includes('viandante') || r.includes('forestiero') || r.includes('amico') || r.includes('guest') || r.includes('pellegrino') || p.includes('viandante'));
@@ -313,8 +317,8 @@ const CrossProjectsService = {
             else if (isViand) cViandanti++;
             else cStudenti++;
 
-            let c = (u.classe || '').toUpperCase().trim();
-            let s = (u.scuola || u.school || '').trim();
+            let c = String(u.classe || '').toUpperCase().trim();
+            let s = String(u.scuola || u.school || '').trim();
             if (s && s.toUpperCase() !== 'N/A' && s.toUpperCase() !== 'N/D') {
                 scuoleSet.add(s.toLowerCase());
             } else if (c && c !== 'N/A' && c !== '' && c !== 'TEST' && c !== 'N/D') {
