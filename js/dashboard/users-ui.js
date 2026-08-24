@@ -113,9 +113,21 @@ const UsersUI = {
             const overrideBadge = isAdminOverride ? ' <span title="Piano assegnato da Admin" style="font-size:0.75rem; background:#ede9fe; color:#6366f1; border-radius:4px; padding:1px 5px;">⚙️ Admin</span>' : '';
             const superBadge = isAdminRole ? ' <span style="font-size:0.75rem; background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px;">👑</span>' : '';
 
-            const safeAvatar = (user.avatar && (user.avatar.includes('/') || user.avatar.includes('.png'))) 
-                ? (user.avatar.startsWith('http') ? user.avatar : `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/${user.avatar}`) 
-                : 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
+            function getSafeAvatarUrl(avatar) {
+                if (!avatar) return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
+                const aStr = String(avatar).trim();
+                if (aStr.startsWith('http://') || aStr.startsWith('https://') || aStr.startsWith('data:')) return aStr;
+                if (/^\d+$/.test(aStr)) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/${aStr}.png`;
+                if (aStr.startsWith('assets/avatars/')) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/${aStr}`;
+                if (aStr.startsWith('shared/')) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/${aStr}`;
+                if (aStr.includes('.png') || aStr.includes('.jpg') || aStr.includes('.jpeg')) {
+                    const cleanName = aStr.split('/').pop();
+                    return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/${cleanName}`;
+                }
+                return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
+            }
+
+            const safeAvatar = getSafeAvatarUrl(user.avatar);
 
             tr.innerHTML = `
                 <td style="text-align: center;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>

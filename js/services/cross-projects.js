@@ -122,6 +122,7 @@ const CrossProjectsService = {
                         email: data.email || (doc.id.includes('@') ? doc.id : ''),
                         ruolo: data.role || data.ruolo || 'studente',
                         classe: data.teamId || data.classe || data.class || 'N/A',
+                        avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon',
                         plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
@@ -140,6 +141,7 @@ const CrossProjectsService = {
                         email: data.email || (doc.id.includes('@') ? doc.id : ''),
                         ruolo: data.role || data.ruolo || 'studente',
                         classe: data.classId || data.classe || data.class || 'N/A',
+                        avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship',
                         plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
@@ -158,6 +160,7 @@ const CrossProjectsService = {
                         email: data.email || (doc.id.includes('@') ? doc.id : ''),
                         ruolo: data.role || data.ruolo || 'studente',
                         classe: data.classId || data.classe || data.class || 'N/A',
+                        avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain',
                         plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
@@ -176,6 +179,7 @@ const CrossProjectsService = {
                         email: data.email || (doc.id.includes('@') ? doc.id : ''),
                         ruolo: data.role || data.ruolo || 'studente',
                         classe: data.classId || data.classe || data.class || 'N/A',
+                        avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open',
                         plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
@@ -194,6 +198,7 @@ const CrossProjectsService = {
                         email: data.email || (doc.id.includes('@') ? doc.id : ''),
                         ruolo: data.role || data.ruolo || 'studente',
                         classe: data.classId || data.classe || data.class || 'N/A',
+                        avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left',
                         plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
@@ -214,6 +219,7 @@ const CrossProjectsService = {
                         ruolo: data.role || data.ruolo || 'studente',
                         statusAccount: data.statusAccount || data.statoAccount || 'active',
                         classe: data.classId || data.class || 'N/A',
+                        avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
                         gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe',
                         plan: data.subscription || data.abbonamento || (data.role === 'studente' ? 'studente' : 'base')
@@ -268,6 +274,9 @@ const CrossProjectsService = {
                     }
                     if ((existing.nome === 'Anonimo' || existing.nome === '' || existing.nome.startsWith('Utente')) && u.nome && u.nome !== 'Anonimo' && !u.nome.startsWith('Utente')) {
                         existing.nome = u.nome;
+                    }
+                    if (!existing.avatar && u.avatar) {
+                        existing.avatar = u.avatar;
                     }
                     if (u.plan && u.plan !== 'base') {
                         existing.plan = u.plan;
