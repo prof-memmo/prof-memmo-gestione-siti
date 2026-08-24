@@ -1455,84 +1455,25 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
 
     <!-- View: Analytics -->
     <div id="view-analytics" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-chart-line"></i> Analytics Ecosistema</h2>
-      </div>
-
-      <!-- Pannello Unico: Massimale Fiscale + Filtro Date + Export CSV -->
-      <div class="glass-panel" style="margin-bottom: 25px; background: linear-gradient(135deg, #ffffff, #f8fafc); border: 1px solid var(--border-color);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
-          <div>
-            <h3 style="margin: 0 0 5px 0; color: var(--text-main);"><i class="fa-solid fa-scale-balanced" style="color: var(--accent);"></i> Controllo Incassi &amp; Massimale Fiscale (Anno Solare)</h3>
-            <p style="margin: 0; color: var(--text-muted); font-size: 0.88rem;">Monitoraggio entrate da abbonamenti rispetto al tetto fiscale. Il filtro date aggiorna tutti i grafici e i KPI.</p>
-          </div>
-          <button class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 14px;" onclick="switchView('view-monetizzazione')"><i class="fa-solid fa-sliders"></i> Modifica Massimale</button>
+      <div class="hub-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+          <h2><i class="fa-solid fa-chart-line" style="color: #6366f1;"></i> Analytics &amp; Statistiche Ecosistema</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin: 4px 0 0 0;">Metriche di utilizzo, crescita iscritti, ruoli e suddivisione per singolo gioco didattico.</p>
         </div>
-
-        <!-- Metriche Fiscali -->
-        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 16px;">
-          <div style="flex: 1; min-width: 180px; background: #f8fafc; padding: 15px 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.05em;">TETTO MASSIMO</div>
-            <div style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);" id="analytics-massimale-display">4.500,00 €</div>
-          </div>
-          <div style="flex: 1; min-width: 180px; background: #f0fdf4; padding: 15px 20px; border-radius: 12px; border: 1px solid #bbf7d0;">
-            <div style="font-size: 0.78rem; color: #059669; font-weight: 600; letter-spacing: 0.05em;">INCASSATO ANNO CORRENTE</div>
-            <div style="font-size: 1.6rem; font-weight: 800; color: #10b981;" id="analytics-incassato-display">0,00 €</div>
-          </div>
-          <div style="flex: 1; min-width: 180px; background: #f5f3ff; padding: 15px 20px; border-radius: 12px; border: 1px solid #ddd6fe;">
-            <div style="font-size: 0.78rem; color: #6d28d9; font-weight: 600; letter-spacing: 0.05em;">DISPONIBILITÀ RESIDUA</div>
-            <div style="font-size: 1.6rem; font-weight: 800; color: #6366f1;" id="analytics-residuo-display">4.500,00 €</div>
-          </div>
-        </div>
-
-        <!-- Sezione Spese & Guadagno Effettivo (Incasso - Spese) -->
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-receipt" style="color: #f59e0b; font-size: 1.1rem;"></i>
-              <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Spese &amp; Guadagno</span>
-              <span style="font-size: 0.8rem; color: var(--text-muted);">(le spese sottraggono dal guadagno senza intaccare il tetto massimo)</span>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn btn-sm" style="background: #f59e0b; color: white; border: none; padding: 7px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;" onclick="AnalyticsUI.openAddExpenseModal()">
-                <i class="fa-solid fa-plus"></i> Nuova Spesa
-              </button>
-              <button class="btn btn-sm btn-secondary" style="font-size: 0.85rem; padding: 7px 14px; border-radius: 8px;" onclick="AnalyticsUI.openExpensesListModal()">
-                <i class="fa-solid fa-list-check"></i> Elenco Spese (<span id="analytics-spese-count">0</span>)
-              </button>
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 180px; background: #fffbeb; padding: 14px 18px; border-radius: 10px; border: 1px solid #fef3c7;">
-              <div style="font-size: 0.75rem; color: #b45309; font-weight: 700; letter-spacing: 0.05em;">SPESE NEL PERIODO</div>
-              <div style="font-size: 1.4rem; font-weight: 800; color: #d97706;" id="analytics-spese-display">0,00 €</div>
-            </div>
-            <div style="flex: 1; min-width: 180px; background: #ecfdf5; padding: 14px 18px; border-radius: 10px; border: 1px solid #a7f3d0;">
-              <div style="font-size: 0.75rem; color: #047857; font-weight: 700; letter-spacing: 0.05em;">GUADAGNO (INCASSO - SPESE)</div>
-              <div style="font-size: 1.4rem; font-weight: 800; color: #059669;" id="analytics-guadagno-display">0,00 €</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Filtro Date + Export -->
-        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; background: var(--bg-color); padding: 16px 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-          <div style="flex: 1; min-width: 140px;">
-            <label style="font-weight: 600; font-size: 0.82rem; color: var(--text-muted); display: block; margin-bottom: 5px;">DATA INIZIO</label>
-            <input type="date" id="analytics-date-from" class="input-field" style="margin:0;" onchange="AnalyticsUI.updateDateFilter()">
-          </div>
-          <div style="flex: 1; min-width: 140px;">
-            <label style="font-weight: 600; font-size: 0.82rem; color: var(--text-muted); display: block; margin-bottom: 5px;">DATA FINE</label>
-            <input type="date" id="analytics-date-to" class="input-field" style="margin:0;" onchange="AnalyticsUI.updateDateFilter()">
-          </div>
-          <div>
-            <button class="btn" style="background: #3b82f6; color: white; padding: 10px 20px; white-space: nowrap;" onclick="AnalyticsUI.downloadEarningsCSV()">
-              <i class="fa-solid fa-download"></i> Scarica CSV
-            </button>
-          </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">Filtro Piattaforma:</label>
+          <select id="analytics-filter-game" class="input-field" style="margin: 0; padding: 7px 14px; font-size: 0.88rem; font-weight: 700; border-radius: 8px;" onchange="AnalyticsUI.filterByGame(this.value)">
+            <option value="all">📊 Tutti i Giochi (Dati Separati)</option>
+            <option value="Fantaletteratura">🐉 Fantaletteratura</option>
+            <option value="La Rotta degli Eroi">⛵ La Rotta degli Eroi</option>
+            <option value="Palestra di Riflessione">🧠 Palestra di Riflessione</option>
+            <option value="La Corte della Commedia">📖 La Corte della Commedia</option>
+            <option value="Ops! Operazione Storia">⏳ Ops! Operazione Storia</option>
+            <option value="Hub">🌐 Hub Centrale</option>
+          </select>
         </div>
       </div>
-      
+
       <!-- KPI Grid -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
         
@@ -1697,6 +1638,62 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
           <button class="btn" onclick="PaymentsUI.exportCSV()" style="background:#059669; color:white; font-weight:700; display:flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(5,150,105,0.25);">
             <i class="fa-solid fa-file-csv"></i> Esporta Registro (CSV)
           </button>
+        </div>
+      </div>
+      <!-- Pannello Fiscale & Spese: Massimale + Spese & Guadagno -->
+      <div class="glass-panel" style="margin-bottom: 25px; background: linear-gradient(135deg, #ffffff, #f8fafc); border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+          <div>
+            <h3 style="margin: 0 0 5px 0; color: var(--text-main);"><i class="fa-solid fa-scale-balanced" style="color: var(--accent);"></i> Controllo Incassi &amp; Massimale Fiscale (Anno Solare)</h3>
+            <p style="margin: 0; color: var(--text-muted); font-size: 0.88rem;">Monitoraggio entrate da abbonamenti rispetto al tetto fiscale. Il filtro date aggiorna tutti i grafici e i KPI contabili.</p>
+          </div>
+          <button class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 14px;" onclick="switchView('view-monetizzazione')"><i class="fa-solid fa-sliders"></i> Modifica Massimale</button>
+        </div>
+
+        <!-- Metriche Fiscali -->
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 16px;">
+          <div style="flex: 1; min-width: 180px; background: #f8fafc; padding: 15px 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+            <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.05em;">TETTO MASSIMO</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);" id="analytics-massimale-display">4.500,00 €</div>
+          </div>
+          <div style="flex: 1; min-width: 180px; background: #f0fdf4; padding: 15px 20px; border-radius: 12px; border: 1px solid #bbf7d0;">
+            <div style="font-size: 0.78rem; color: #059669; font-weight: 600; letter-spacing: 0.05em;">INCASSATO ANNO CORRENTE</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #10b981;" id="analytics-incassato-display">0,00 €</div>
+          </div>
+          <div style="flex: 1; min-width: 180px; background: #f5f3ff; padding: 15px 20px; border-radius: 12px; border: 1px solid #ddd6fe;">
+            <div style="font-size: 0.78rem; color: #6d28d9; font-weight: 600; letter-spacing: 0.05em;">DISPONIBILITÀ RESIDUA</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #6366f1;" id="analytics-residuo-display">4.500,00 €</div>
+          </div>
+        </div>
+
+        <!-- Sezione Spese & Guadagno Effettivo (Incasso - Spese) -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-receipt" style="color: #f59e0b; font-size: 1.1rem;"></i>
+              <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Spese &amp; Guadagno</span>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">(le spese sottraggono dal guadagno senza intaccare il tetto massimo)</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-sm" style="background: #f59e0b; color: white; border: none; padding: 7px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;" onclick="AnalyticsUI.openAddExpenseModal()">
+                <i class="fa-solid fa-plus"></i> Nuova Spesa
+              </button>
+              <button class="btn btn-sm btn-secondary" style="font-size: 0.85rem; padding: 7px 14px; border-radius: 8px;" onclick="AnalyticsUI.openExpensesListModal()">
+                <i class="fa-solid fa-list-check"></i> Elenco Spese (<span id="analytics-spese-count">0</span>)
+              </button>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 180px; background: #fffbeb; padding: 14px 18px; border-radius: 10px; border: 1px solid #fef3c7;">
+              <div style="font-size: 0.75rem; color: #b45309; font-weight: 700; letter-spacing: 0.05em;">SPESE NEL PERIODO</div>
+              <div style="font-size: 1.4rem; font-weight: 800; color: #d97706;" id="analytics-spese-display">0,00 €</div>
+            </div>
+            <div style="flex: 1; min-width: 180px; background: #ecfdf5; padding: 14px 18px; border-radius: 10px; border: 1px solid #a7f3d0;">
+              <div style="font-size: 0.75rem; color: #047857; font-weight: 700; letter-spacing: 0.05em;">GUADAGNO (INCASSO - SPESE)</div>
+              <div style="font-size: 1.4rem; font-weight: 800; color: #059669;" id="analytics-guadagno-display">0,00 €</div>
+            </div>
+          </div>
         </div>
       </div>
 

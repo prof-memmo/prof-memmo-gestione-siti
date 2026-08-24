@@ -10,8 +10,18 @@ const AnalyticsUI = {
     chartFasceEta: null,
     chartMaterie: null,
 
+    activeGameFilter: 'all',
     expensesList: [],
     expensesListenerAttached: false,
+
+    GAME_META: {
+        'Fantaletteratura': { color: '#a855f7', bg: 'rgba(168, 85, 247, 0.15)', icon: 'fa-dragon' },
+        'La Rotta degli Eroi': { color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', icon: 'fa-ship' },
+        'Palestra di Riflessione': { color: '#22c55e', bg: 'rgba(34, 197, 94, 0.15)', icon: 'fa-brain' },
+        'La Corte della Commedia': { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', icon: 'fa-book-open' },
+        'Ops! Operazione Storia': { color: '#eab308', bg: 'rgba(234, 179, 8, 0.15)', icon: 'fa-clock-rotate-left' },
+        'Hub': { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.15)', icon: 'fa-globe' }
+    },
 
     render: function(iscrittiAggregati) {
         if (!iscrittiAggregati || iscrittiAggregati.length === 0) {
@@ -24,18 +34,6 @@ const AnalyticsUI = {
         // Inizializza listener spese (se non ancora agganciato)
         this.initExpenses();
 
-        // Imposta le date di default all'anno solare corrente (se non già impostate dall'utente)
-        const elFrom = document.getElementById('analytics-date-from');
-        const elTo = document.getElementById('analytics-date-to');
-        if (elFrom && !elFrom.value) {
-            const currentYear = new Date().getFullYear();
-            elFrom.value = `${currentYear}-01-01`;
-        }
-        if (elTo && !elTo.value) {
-            const currentYear = new Date().getFullYear();
-            elTo.value = `${currentYear}-12-31`;
-        }
-
         // 1. Elaborazione dati
         const stats = this.processData(iscrittiAggregati);
 
@@ -46,7 +44,31 @@ const AnalyticsUI = {
         this.renderRuoliChart(stats.ruoli);
         this.renderPianiChart(stats.piani);
         this.renderGiochiChart(stats.giochi);
-        this.renderAndamentoChart(stats.timeline);
+        this.renderAndamentoChart(stats.timelineByGame, stats.timeline);
+        this.renderCanaliChart(stats.canali);
+        this.renderFasceEtaChart(stats.fasceEta);
+        this.renderMaterieChart(stats.materie);
+    },
+
+    filterByGame: function(gameName) {
+        this.activeGameFilter = gameName;
+        if (!this.iscrittiAggregati) return;
+
+        let filtered = this.iscrittiAggregati;
+        if (gameName && gameName !== 'all') {
+            filtered = this.iscrittiAggregati.filter(u => {
+                const g = (u.gioco || '').toLowerCase();
+                const target = gameName.toLowerCase();
+                return g.includes(target);
+            });
+        }
+
+        const stats = this.processData(filtered);
+        this.updateKPIs(stats, filtered.length);
+        this.renderRuoliChart(stats.ruoli);
+        this.renderPianiChart(stats.piani);
+        this.renderGiochiChart(stats.giochi);
+        this.renderAndamentoChart(stats.timelineByGame, stats.timeline);
         this.renderCanaliChart(stats.canali);
         this.renderFasceEtaChart(stats.fasceEta);
         this.renderMaterieChart(stats.materie);
@@ -96,7 +118,7 @@ const AnalyticsUI = {
         this.renderRuoliChart(stats.ruoli);
         this.renderPianiChart(stats.piani);
         this.renderGiochiChart(stats.giochi);
-        this.renderAndamentoChart(stats.timeline);
+        this.renderAndamentoChart(stats.timelineByGame, stats.timeline);
         this.renderCanaliChart(stats.canali);
         this.renderFasceEtaChart(stats.fasceEta);
         this.renderMaterieChart(stats.materie);
@@ -114,6 +136,14 @@ const AnalyticsUI = {
                 totaleAbbonati: 0
             },
             giochi: {},
+            timelineByGame: {
+                'Fantaletteratura': {},
+                'La Rotta degli Eroi': {},
+                'Palestra di Riflessione': {},
+                'La Corte della Commedia': {},
+                'Ops! Operazione Storia': {},
+                'Hub': {}
+            },
             timeline: {},
             canali: {},
             fasceEta: {},
@@ -159,16 +189,24 @@ const AnalyticsUI = {
 
             stats.piani[pianoLabel] = (stats.piani[pianoLabel] || 0) + 1;
 
-            // Conta Giochi
-            const gioco = user.gioco || 'Sconosciuto';
-            stats.giochi[gioco] = (stats.giochi[gioco] || 0) + 1;
+            // Conta Giochi separatamente (senza fonderli in un'unica stringa)
+            const rawGames = user.gioco || 'Hub';
+            const userGames = rawGames.split(' / ').map(g => g.trim()).filter(Boolean);
+            userGames.forEach(g => {
+                stats.giochi[g] = (stats.giochi[g] || 0) + 1;
+            });
 
-            // Elabora andamento temporale (mese-anno)
+            // Elabora andamento temporale per singolo gioco e complessivo
             if (user.dataValue && user.dataValue > 0) {
                 const d = new Date(user.dataValue);
                 const month = String(d.getMonth() + 1).padStart(2, '0');
                 const key = `${d.getFullYear()}-${month}`;
                 stats.timeline[key] = (stats.timeline[key] || 0) + 1;
+
+                userGames.forEach(g => {
+                    if (!stats.timelineByGame[g]) stats.timelineByGame[g] = {};
+                    stats.timelineByGame[g][key] = (stats.timelineByGame[g][key] || 0) + 1;
+                });
             }
 
             // Elabora dati Questionario (Survey)
@@ -229,30 +267,22 @@ const AnalyticsUI = {
         const calcPct = (count) => totalUsers > 0 ? Math.round((count / totalUsers) * 100) : 0;
         const pc = stats.pianiCounts || { base: 0, viandante: 0, docente_didattico: 0, docente_ecosistema: 0, totaleAbbonati: 0 };
 
-        const elBase = document.getElementById('kpi-piano-base');
-        const elBasePct = document.getElementById('kpi-piano-base-pct');
-        if (elBase) elBase.textContent = pc.base;
-        if (elBasePct) elBasePct.textContent = `${calcPct(pc.base)}% del totale`;
+        const setP = (idCount, idPct, val) => {
+            const elC = document.getElementById(idCount);
+            const elP = document.getElementById(idPct);
+            if (elC) elC.textContent = val;
+            if (elP) elP.textContent = `${calcPct(val)}% del totale`;
+        };
 
-        const elVian = document.getElementById('kpi-piano-viandante');
-        const elVianPct = document.getElementById('kpi-piano-viandante-pct');
-        if (elVian) elVian.textContent = pc.viandante;
-        if (elVianPct) elVianPct.textContent = `${calcPct(pc.viandante)}% del totale`;
+        setP('kpi-piano-base', 'kpi-piano-base-pct', pc.base);
+        setP('kpi-piano-viandante', 'kpi-piano-viandante-pct', pc.viandante);
+        setP('kpi-piano-docente-didattico', 'kpi-piano-docente-didattico-pct', pc.docente_didattico);
+        setP('kpi-piano-docente-ecosistema', 'kpi-piano-docente-ecosistema-pct', pc.docente_ecosistema);
 
-        const elDid = document.getElementById('kpi-piano-docente-didattico');
-        const elDidPct = document.getElementById('kpi-piano-docente-didattico-pct');
-        if (elDid) elDid.textContent = pc.docente_didattico;
-        if (elDidPct) elDidPct.textContent = `${calcPct(pc.docente_didattico)}% del totale`;
-
-        const elEco = document.getElementById('kpi-piano-docente-ecosistema');
-        const elEcoPct = document.getElementById('kpi-piano-docente-ecosistema-pct');
-        if (elEco) elEco.textContent = pc.docente_ecosistema;
-        if (elEcoPct) elEcoPct.textContent = `${calcPct(pc.docente_ecosistema)}% del totale`;
-
-        const elAbbTot = document.getElementById('kpi-abbonati-totali');
-        const elAbbTotPct = document.getElementById('kpi-abbonati-totali-pct');
-        if (elAbbTot) elAbbTot.textContent = pc.totaleAbbonati;
-        if (elAbbTotPct) elAbbTotPct.textContent = `${calcPct(pc.totaleAbbonati)}% a pagamento`;
+        const elTotAbb = document.getElementById('kpi-abbonati-totali');
+        const elTotAbbPct = document.getElementById('kpi-abbonati-totali-pct');
+        if (elTotAbb) elTotAbb.textContent = pc.totaleAbbonati;
+        if (elTotAbbPct) elTotAbbPct.textContent = `${calcPct(pc.totaleAbbonati)}% a pagamento`;
 
         // Aggiorna il pannello Incassato Anno Corrente (rispettando il filtro date attivo)
         const dateFrom = document.getElementById('analytics-date-from') ? document.getElementById('analytics-date-from').value : '';
@@ -273,61 +303,53 @@ const AnalyticsUI = {
         }
     },
 
-    getPrices: function() {
-        let prices = { viandante: 9.99, docente_didattico: 19.99, docente_ecosistema: 24.99 };
-        if (window.EcosistemaUI && window.EcosistemaUI.settingsData && window.EcosistemaUI.settingsData.monetizzazione_config) {
-            const c = window.EcosistemaUI.settingsData.monetizzazione_config;
-            prices.viandante = parseFloat(c.price_viandante) || prices.viandante;
-            prices.docente_didattico = parseFloat(c.price_docente_didattico) || prices.docente_didattico;
-            prices.docente_ecosistema = parseFloat(c.price_docente_ecosistema) || prices.docente_ecosistema;
-        }
-        return prices;
-    },
-
-    calculateEarnings: function(users, fromDate, toDate) {
-        const prices = this.getPrices();
+    calculateEarnings: function(iscritti, dateFrom, dateTo) {
         let total = 0;
-        let detailedList = [];
-        
-        let startTimestamp = fromDate ? new Date(fromDate).getTime() : 0;
-        let endTimestamp = toDate ? new Date(toDate).getTime() : Date.now();
-        // Sposta endTimestamp alla fine del giorno selezionato (23:59:59)
-        if (toDate) endTimestamp += 86400000;
+        const detailedList = [];
+        let startTs = dateFrom ? new Date(dateFrom).getTime() : 0;
+        let endTs = dateTo ? (new Date(dateTo).getTime() + 86400000) : Infinity;
 
-        users.forEach(user => {
-            if (user.dataValue && user.dataValue >= startTimestamp && user.dataValue <= endTimestamp) {
-                let piano = user.abbonamento ? user.abbonamento.toLowerCase() : (user.piano ? user.piano.toLowerCase() : 'base');
-                let userPrice = 0;
-                
-                if (piano.includes('viandante')) userPrice = prices.viandante;
-                else if (piano.includes('docente_didattico')) userPrice = prices.docente_didattico;
-                else if (piano.includes('docente_ecosistema')) userPrice = prices.docente_ecosistema;
-                
-                if (userPrice > 0) {
-                    total += userPrice;
-                    detailedList.push({
-                        nome: user.nome || 'N/A',
-                        cognome: user.cognome || '',
-                        email: user.email || 'N/A',
-                        dataIscrizione: new Date(user.dataValue).toLocaleDateString('it-IT'),
-                        piano: piano,
-                        importo: userPrice
-                    });
-                }
+        const prices = {
+            viandante: 14.99,
+            docente_didattico: 24.99,
+            docente_ecosistema: 34.99
+        };
+
+        iscritti.forEach(user => {
+            const t = user.dataValue || 0;
+            if (startTs && t < startTs) return;
+            if (endTs && t > endTs) return;
+
+            const p = (user.abbonamento || user.subscription || user.piano || user.plan || 'base').toLowerCase();
+            let amount = 0;
+            if (p.includes('viandante')) amount = prices.viandante;
+            else if (p.includes('didattic') || p === 'docente_didattico') amount = prices.docente_didattico;
+            else if (p.includes('ecosistema') || p === 'docente_ecosistema') amount = prices.docente_ecosistema;
+
+            if (amount > 0) {
+                total += amount;
+                detailedList.push({
+                    nome: user.nome || 'Utente',
+                    cognome: user.cognome || '',
+                    email: user.email || 'N/D',
+                    dataIscrizione: user.dataValue ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D',
+                    piano: p,
+                    importo: amount
+                });
             }
         });
-        
+
         return { total, detailedList, prices };
     },
 
     downloadEarningsCSV: function() {
-        if (!this.iscrittiAggregati) {
-            alert("Dati non ancora caricati.");
+        if (!this.iscrittiAggregati || this.iscrittiAggregati.length === 0) {
+            alert("Nessun dato da esportare.");
             return;
         }
 
-        const dateFrom = document.getElementById('analytics-date-from').value;
-        const dateTo = document.getElementById('analytics-date-to').value;
+        const dateFrom = document.getElementById('analytics-date-from') ? document.getElementById('analytics-date-from').value : '';
+        const dateTo = document.getElementById('analytics-date-to') ? document.getElementById('analytics-date-to').value : '';
         
         const data = this.calculateEarnings(this.iscrittiAggregati, dateFrom, dateTo);
         const expensesData = this.calculateExpenses(dateFrom, dateTo);
@@ -335,7 +357,7 @@ const AnalyticsUI = {
         const speseTot = expensesData.total || 0;
         const guadagnoNetto = incassato - speseTot;
         
-        let csvContent = "data:text/csv;charset=utf-8,";
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
         
         // Intestazione aggregata
         csvContent += "REPORT ECONOMICO ECOSISTEMA PROF. MEMMO\n";
@@ -465,6 +487,7 @@ const AnalyticsUI = {
         const sortedEntries = Object.entries(data).sort((a, b) => b[1] - a[1]);
         const labels = sortedEntries.map(e => e[0]);
         const values = sortedEntries.map(e => e[1]);
+        const colors = labels.map(g => (this.GAME_META[g] ? this.GAME_META[g].color : '#6366f1'));
 
         this.chartGiochi = new Chart(ctx, {
             type: 'bar',
@@ -473,8 +496,8 @@ const AnalyticsUI = {
                 datasets: [{
                     label: 'Utenti per Piattaforma',
                     data: values,
-                    backgroundColor: '#6366f1',
-                    borderRadius: 6
+                    backgroundColor: colors,
+                    borderRadius: 8
                 }]
             },
             options: {
@@ -490,8 +513,6 @@ const AnalyticsUI = {
                         callbacks: {
                             label: function(context) {
                                 const val = context.parsed.y;
-                                // Calcola totale percentuale su tutti i giochi (può superare gli iscritti se un utente è in 2 giochi,
-                                // ma questa è la percentuale "di utilizzo").
                                 let total = 0;
                                 context.chart.data.datasets[0].data.forEach(v => total += v);
                                 const percentage = total > 0 ? Math.round((val / total) * 100) : 0;
@@ -504,43 +525,100 @@ const AnalyticsUI = {
         });
     },
 
-    renderAndamentoChart: function(data) {
+    renderAndamentoChart: function(timelineByGame, timelineTotal) {
         const ctx = document.getElementById('chart-andamento');
         if (!ctx) return;
         if (this.chartAndamento) this.chartAndamento.destroy();
 
-        // Sort keys (dates YYYY-MM)
-        const sortedKeys = Object.keys(data).sort();
-        
-        // Se non ci sono date valide o ce n'è solo una, possiamo aggiungere una riga fittizia prima per fare linea
-        if (sortedKeys.length === 0) {
-            // Nessun dato temporale
+        // Raccoglie tutte le date presenti
+        const allDatesSet = new Set();
+        if (timelineTotal) Object.keys(timelineTotal).forEach(k => allDatesSet.add(k));
+        if (timelineByGame) {
+            Object.values(timelineByGame).forEach(tGame => {
+                Object.keys(tGame).forEach(k => allDatesSet.add(k));
+            });
+        }
+
+        const sortedDates = Array.from(allDatesSet).sort();
+        if (sortedDates.length === 0) return;
+
+        // Se l'utente ha selezionato un solo gioco specifico
+        if (this.activeGameFilter && this.activeGameFilter !== 'all') {
+            const g = this.activeGameFilter;
+            const meta = this.GAME_META[g] || { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.15)' };
+            const dataVals = sortedDates.map(d => (timelineByGame && timelineByGame[g] && timelineByGame[g][d]) ? timelineByGame[g][d] : 0);
+
+            this.chartAndamento = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: `${g} (Nuove Iscrizioni)`,
+                        data: dataVals,
+                        borderColor: meta.color,
+                        backgroundColor: meta.bg,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.35
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { position: 'top' }
+                    }
+                }
+            });
             return;
         }
 
-        const labels = [];
-        const values = [];
-        
-        // Accumuliamo le iscrizioni per fare un grafico cumulativo? 
-        // O grafico delle nuove iscrizioni per mese? Facciamo le nuove iscrizioni per semplicità.
-        sortedKeys.forEach(k => {
-            labels.push(k);
-            values.push(data[k]);
+        // Vista multi-gioco con linee separate distinte (NON mescolate insieme)
+        const datasets = [];
+        const knownGames = ['Fantaletteratura', 'La Rotta degli Eroi', 'Palestra di Riflessione', 'La Corte della Commedia', 'Ops! Operazione Storia', 'Hub'];
+
+        knownGames.forEach(gName => {
+            const gTimeline = (timelineByGame && timelineByGame[gName]) || {};
+            const dataVals = sortedDates.map(d => gTimeline[d] || 0);
+            const totalForGame = dataVals.reduce((a, b) => a + b, 0);
+
+            if (totalForGame > 0 || (timelineByGame && timelineByGame[gName])) {
+                const meta = this.GAME_META[gName] || { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.15)' };
+                datasets.push({
+                    label: gName,
+                    data: dataVals,
+                    borderColor: meta.color,
+                    backgroundColor: meta.bg,
+                    borderWidth: 2.5,
+                    fill: false,
+                    tension: 0.35
+                });
+            }
         });
+
+        // Se non abbiamo dataset specifici, usa timelineTotal
+        if (datasets.length === 0) {
+            const dataVals = sortedDates.map(d => timelineTotal[d] || 0);
+            datasets.push({
+                label: 'Iscrizioni Totali',
+                data: dataVals,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.35
+            });
+        }
 
         this.chartAndamento = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Nuove Iscrizioni',
-                    data: values,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4 // Curva morbida
-                }]
+                labels: sortedDates,
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -550,7 +628,10 @@ const AnalyticsUI = {
                     x: { grid: { display: false } }
                 },
                 plugins: {
-                    legend: { display: false }
+                    legend: {
+                        position: 'top',
+                        labels: { boxWidth: 14, font: { weight: 600 } }
+                    }
                 }
             }
         });
