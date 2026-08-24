@@ -714,19 +714,19 @@
         <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 20px;">
           <h3 style="color:var(--text-main); margin:0;">Tabella Iscritti Multi-Sito</h3>
           <div style="display: none; align-items: center; gap: 10px; flex-wrap: wrap;" id="bulk-actions-container">
-            <span style="font-size: 0.85rem; font-weight: 700; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 8px;" id="bulk-selected-badge">
+            <span style="font-size: 0.85rem; font-weight: 700; color: #1e40af; background: #eff6ff; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 8px;" id="bulk-selected-badge">
               <span id="bulk-selected-count">0</span> selezionati
             </span>
-            <button class="btn" onclick="window.UsersUI.sendBulkEmail()" style="background: #10b981; color: white; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-              <i class="fa-solid fa-envelope"></i> Invia Email a Selezionati
+            <button class="btn" onclick="window.UsersUI.sendBulkEmail()" style="background: #10b981 !important; color: #ffffff !important; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-envelope" style="color:#ffffff;"></i> <span style="color:#ffffff;">Invia Email a Selezionati</span>
             </button>
-            <button class="btn" onclick="window.UsersUI.openBulkEditPlanModal()" style="background: #6366f1; color: white; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-              <i class="fa-solid fa-crown"></i> Modifica Piano Selezionati
+            <button class="btn" onclick="window.UsersUI.openBulkEditPlanModal()" style="background: #6366f1 !important; color: #ffffff !important; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-crown" style="color:#ffffff;"></i> <span style="color:#ffffff;">Modifica Piano Selezionati</span>
             </button>
-            <button class="btn" onclick="window.UsersUI.openBulkDeleteModal()" style="background: var(--danger-color); color: white; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-              <i class="fa-solid fa-trash"></i> Elimina Selezionati
+            <button class="btn" onclick="window.UsersUI.openBulkDeleteModal()" style="background: #ef4444 !important; color: #ffffff !important; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-trash" style="color:#ffffff;"></i> <span style="color:#ffffff;">Elimina Selezionati</span>
             </button>
-            <button class="btn outline" onclick="window.UsersUI.clearSelection()" style="border: 1px solid #cbd5e1; background: white; color: #64748b; font-size: 0.85rem; padding: 8px 12px; border-radius: 8px; cursor: pointer;">
+            <button class="btn outline" onclick="window.UsersUI.clearSelection()" style="border: 1px solid #cbd5e1; background: #ffffff !important; color: #475569 !important; font-size: 0.85rem; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">
               Deseleziona
             </button>
           </div>
@@ -2743,38 +2743,38 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   </div>
 
   <!-- Scripts -->
-  <script src="js/firebase-init.js?v=20260824_1720"></script>
-  <script src="js/services/auth/auth-service.js?v=20260824_1720"></script>
-  <script src="js/utils/ai-prompts.js?v=20260824_1720"></script>
-  <script src="js/utils/db-fixer.js?v=20260824_1720"></script>
+  <script src="js/firebase-init.js?v=20260824_1730"></script>
+  <script src="js/services/auth/auth-service.js?v=20260824_1730"></script>
+  <script src="js/utils/ai-prompts.js?v=20260824_1730"></script>
+  <script src="js/utils/db-fixer.js?v=20260824_1730"></script>
   
   <!-- Services -->
-  <script src="js/services/cross-projects.js?v=20260824_1720"></script>
-  <script src="js/services/users/user-service.js?v=20260824_1720"></script>
-  <script src="js/services/messages/messages-service.js?v=20260824_1720"></script>
-  <script src="js/services/games/games-service.js?v=20260824_1720"></script>
-  <script src="js/services/newsletter/newsletter-service.js?v=20260824_1720"></script>
-  <script src="js/services/payments/payments-service.js?v=20260824_1720"></script>
-  <script src="js/services/ecosystem/ecosystem-service.js?v=20260824_1720"></script>
-  <script src="js/services/archive/archive-service.js?v=20260824_1720"></script>
-  <script src="js/services/diagnostics/diagnostics-service.js?v=20260824_1720"></script>
+  <script src="js/services/cross-projects.js?v=20260824_1730"></script>
+  <script src="js/services/users/user-service.js?v=20260824_1730"></script>
+  <script src="js/services/messages/messages-service.js?v=20260824_1730"></script>
+  <script src="js/services/games/games-service.js?v=20260824_1730"></script>
+  <script src="js/services/newsletter/newsletter-service.js?v=20260824_1730"></script>
+  <script src="js/services/payments/payments-service.js?v=20260824_1730"></script>
+  <script src="js/services/ecosystem/ecosystem-service.js?v=20260824_1730"></script>
+  <script src="js/services/archive/archive-service.js?v=20260824_1730"></script>
+  <script src="js/services/diagnostics/diagnostics-service.js?v=20260824_1730"></script>
   
   <!-- UI Modules -->
-  <script src="js/dashboard/messages-ui.js?v=20260824_1720"></script>
-  <script src="js/dashboard/ecosistema-ui.js?v=20260824_1720"></script>
-  <script src="js/dashboard/games-ui.js?v=20260824_1720"></script>
-  <script src="js/dashboard/users-ui.js?v=20260824_1720"></script>
-  <script src="js/dashboard/payments-ui.js?v=20260824_1720"></script>
-  <script src="js/dashboard/vetrina-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/messages-ui.js?v=20260824_1730"></script>
+  <script src="js/dashboard/ecosistema-ui.js?v=20260824_1730"></script>
+  <script src="js/dashboard/games-ui.js?v=20260824_1730"></script>
+  <script src="js/dashboard/users-ui.js?v=20260824_1730"></script>
+  <script src="js/dashboard/payments-ui.js?v=20260824_1730"></script>
+  <script src="js/dashboard/vetrina-ui.js?v=20260824_1730"></script>
   
-  <script src="js/dashboard/newsletter-ui.js?v=20260824_1720"></script>
-  <script src="js/dashboard/analytics-ui.js?v=20260824_1720"></script>
-  <script src="js/dashboard/notifications-ui.js?v=20260824_1720"></script>
-  <script src="js/dashboard/legal-admin-ui.js?v=20260824_1720"></script>
-  <script src="js/dashboard/impostazioni-ui.js?v=20260824_1720"></script>
-  <script src="js/dashboard/diagnostics-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/newsletter-ui.js?v=20260824_1730"></script>
+  <script src="js/dashboard/analytics-ui.js?v=20260824_1730"></script>
+  <script src="js/dashboard/notifications-ui.js?v=20260824_1730"></script>
+  <script src="js/dashboard/legal-admin-ui.js?v=20260824_1730"></script>
+  <script src="js/dashboard/impostazioni-ui.js?v=20260824_1730"></script>
+  <script src="js/dashboard/diagnostics-ui.js?v=20260824_1730"></script>
   
-  <script src="js/app_v2.js?v=20260824_1720"></script>
+  <script src="js/app_v2.js?v=20260824_1730"></script>
   <script>
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');
