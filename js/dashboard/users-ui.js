@@ -143,7 +143,7 @@ const UsersUI = {
                 <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
                 <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
                 <td style="padding: 10px;">
-                    <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value, '${(user.email||'').replace(/'/g,"\\'")  }', '${(user.nome||'').replace(/'/g,"\\'")  }')" style="padding: 5px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; outline: none; cursor: pointer; background: white; font-weight: 600;">
+                    <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value)" style="padding: 5px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; outline: none; cursor: pointer; background: white; font-weight: 600;">
                         <option value="base" ${userPlan === 'base' ? 'selected' : ''}>⚪ Base / Gratuito</option>
                         <option value="viandante" ${userPlan === 'viandante' ? 'selected' : ''}>🧭 Viandante</option>
                         <option value="docente_didattico" ${userPlan === 'docente_didattico' ? 'selected' : ''}>🟡 Docente Didattico</option>
@@ -156,10 +156,10 @@ const UsersUI = {
                         <a href="https://prof-memmo.github.io/games/profilo.html?preview=${user.id}" target="_blank" title="Anteprima Profilo Utente" style="color: #6366f1; font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-eye"></i>
                         </a>
-                        <a href="mailto:${user.email || ''}" title="Scrivi a ${(user.nome || 'Utente').replace(/"/g, '&quot;')}" style="color: var(--primary-color); font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                        <a href="mailto:${user.email || ''}" title="Invia Email" style="color: var(--primary-color); font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-envelope"></i>
                         </a>
-                        <button type="button" style="background: none; border: none; padding: 0; color: #ef4444; font-size: 1.15rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="window.UsersUI.openDeleteUserModal('${user.id}', '${(user.email || '').replace(/'/g, &quot;\\'&quot;)}', '${(user.nome || 'Utente').replace(/'/g, &quot;\\'&quot;)}', '${(user.gioco || 'Hub').replace(/'/g, &quot;\\'&quot;)}')" title="Elimina Utente">
+                        <button type="button" style="background: none; border: none; padding: 0; color: #ef4444; font-size: 1.15rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="window.UsersUI.openDeleteUserModal('${user.id}')" title="Elimina Utente">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -269,16 +269,21 @@ const UsersUI = {
     },
     
     openDeleteUserModal: function(userId, userEmail, userName, gamesString) {
+        const user = (this.allUsers || []).find(u => u.id === userId) || {};
+        const finalEmail = userEmail || user.email || '';
+        const finalName = userName || user.nome || 'Utente';
+        const finalGames = gamesString || user.gioco || 'Hub';
+
         document.getElementById('delete-user-id').value = userId;
-        document.getElementById('delete-user-email').value = userEmail;
-        document.getElementById('delete-user-name').textContent = userName;
+        document.getElementById('delete-user-email').value = finalEmail;
+        document.getElementById('delete-user-name').textContent = finalName;
         
         document.getElementById('delete-everywhere').checked = false;
         
         const container = document.getElementById('delete-sites-container');
         container.innerHTML = '';
         
-        const games = gamesString ? gamesString.split(',').map(s => s.trim()).filter(s => s) : [];
+        const games = finalGames ? finalGames.split(/[,/]/).map(s => s.trim()).filter(s => s) : [];
         
         if (games.length === 0) {
             container.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Questo utente non è iscritto ad alcun gioco specifico.</p>';
