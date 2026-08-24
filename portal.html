@@ -13,6 +13,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-functions-compat.js"></script>
   
   <style>
     :root {
@@ -456,6 +457,21 @@
       </button>
     </div>
 
+    <!-- Banner Abbonamento & Rimborso Self-Service -->
+    <div id="subscription-status-card" style="display:none; max-width: 1200px; margin: 20px auto 0 auto; padding: 0 30px; width: 100%; box-sizing: border-box;">
+      <div style="background: white; border: 1px solid var(--border-color); border-radius: 15px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: var(--shadow);">
+        <div>
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Abbonamento Attivo</div>
+          <div id="sub-plan-name" style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-top: 2px;">Piano Base</div>
+          <div id="sub-plan-expiry" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">Scadenza: -</div>
+        </div>
+        <div id="refund-action-container" style="display:none;">
+          <button class="btn btn-secondary" onclick="PortalApp.openRefundModal()" style="width:auto; padding: 8px 16px; font-size: 0.85rem; color: #b45309; border: 1px solid #fcd34d; background: #fffbeb;">
+            <i class="fa-solid fa-arrow-rotate-left"></i> Richiedi Rimborso (entro 14gg)
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div id="account-blocked-banner">
       <i class="fa-solid fa-ban"></i> Il tuo account è stato bloccato o rifiutato.
@@ -464,6 +480,38 @@
 
     <div class="platforms-grid" id="platforms-container">
       <!-- Generato dinamicamente via JS -->
+    </div>
+  </div>
+
+  <!-- MODAL CONFERMA RIMBORSO -->
+  <div id="refund-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content" style="max-width: 480px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h3 style="margin:0; font-family:var(--font-display); font-size:1.3rem; color:#991b1b; display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-arrow-rotate-left"></i> Richiesta di Rimborso
+        </h3>
+        <button onclick="PortalApp.closeRefundModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#64748b;">&times;</button>
+      </div>
+
+      <div style="font-size:0.92rem; line-height:1.5; color:#334155;">
+        <p style="margin-top:0;">Stai richiedendo il rimborso dell'abbonamento attivo entro il termine previsto di 14 giorni dall'acquisto o rinnovo.</p>
+        
+        <div style="background:#fef2f2; border-left:4px solid #ef4444; padding:12px 15px; border-radius:8px; margin-bottom:15px; font-size:0.85rem; color:#991b1b;">
+          <strong><i class="fa-solid fa-triangle-exclamation"></i> Condizioni di recesso:</strong>
+          <ul style="margin:6px 0 0 0; padding-left:18px;">
+            <li>L'accesso alle piattaforme e funzionalità a pagamento verrà <strong>revocato immediatamente</strong>.</li>
+            <li>Il tuo account rimarrà attivo e tornerà al <strong>Piano Base</strong> senza perdita dei tuoi dati.</li>
+            <li>L'importo verrà riaccreditato sulla carta utilizzata per l'acquisto secondo i tempi bancari (generalmente <strong>5-10 giorni lavorativi</strong>).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+        <button type="button" class="btn btn-google" style="width:auto; padding:10px 18px;" onclick="PortalApp.closeRefundModal()">Annulla</button>
+        <button type="button" id="btn-confirm-refund" class="btn" style="width:auto; padding:10px 20px; background:#dc2626; color:white;" onclick="PortalApp.confirmRefund()">
+          Conferma Rimborso
+        </button>
+      </div>
     </div>
   </div>
 

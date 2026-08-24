@@ -336,16 +336,45 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
 
                 const refundDate = latestRefund && latestRefund.created ? new Date(latestRefund.created * 1000).toISOString() : new Date().toISOString();
 
-                // Se rimborso totale, revoca abbonamento in hub_users
-                if (userId && isFullRefund) {
-                    await db.collection("hub_users").doc(userId).set({
-                        abbonamento: "base",
-                        "subscription.status": "refunded",
-                        "subscription.refundedAt": refundDate,
-                        "subscription.refundReason": refundReason,
-                        "subscription.lastEvent": event.type,
-                        "subscription.lastEventAt": new Date().toISOString()
-                    }, { merge: true });
+                // Se rimborso totale, revoca abbonamento in hub_users e garantisce cancellazione subscription su Stripe
+                if (isFullRefund) {
+                    if (userId) {
+                        await db.collection("hub_users").doc(userId).set({
+                            abbonamento: "base",
+                            "subscription.status": "refunded",
+                            "subscription.refundedAt": refundDate,
+                            "subscription.refundReason": refundReason,
+                            "subscription.lastEvent": event.type,
+                            "subscription.lastEventAt": new Date().toISOString()
+                        }, { merge: true });
+                    }
+
+                    // Safeguard idempotente: garantisce cancellazione subscription su Stripe
+                    let subToCancel = charge.subscription;
+                    if (!subToCancel && charge.invoice) {
+                        try {
+                            const inv = await stripe.invoices.retrieve(charge.invoice);
+                            subToCancel = inv.subscription;
+                        } catch (e) {
+                            // ignore
+                        }
+                    }
+                    if (!subToCancel && userId) {
+                        const userSnap = await db.collection("hub_users").doc(userId).get();
+                        if (userSnap.exists) {
+                            subToCancel = userSnap.data() && userSnap.data().subscription ? userSnap.data().subscription.stripeSubscriptionId : null;
+                        }
+                    }
+                    if (subToCancel) {
+                        try {
+                            await stripe.subscriptions.cancel(subToCancel, { prorate: false });
+                            console.log(`🛑 Subscription ${subToCancel} cancellata con successo a seguito di rimborso totale.`);
+                        } catch (cancelErr) {
+                            if (cancelErr.code !== 'resource_missing' && !String(cancelErr.message).includes('canceled')) {
+                                console.warn(`Avviso cancellazione subscription ${subToCancel}:`, cancelErr.message);
+                            }
+                        }
+                    }
                 }
 
                 // Registra evento di rimborso nel Registro Pagamenti
@@ -441,4 +470,113 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
         console.error("❌ Errore elaborazione evento webhook Stripe:", error);
         return res.status(500).json({ error: "Errore interno elaborazione webhook" });
     }
+});
+
+/**
+ * Cloud Function Callable: Richiesta Rimborso Self-Service entro 14 giorni
+ * Verifica server-side: autenticazione, eleggibilità temporale (14gg), status pagato,
+ * idempotency key, rimborso su Stripe e cancellazione subscription.
+ */
+exports.requestSubscriptionRefund = functions.https.onCall(async (data, context) => {
+    // 1. Verifica autenticazione utente
+    if (!context.auth || !context.auth.uid) {
+        throw new functions.https.HttpsError("unauthenticated", "Devi effettuare il login per richiedere un rimborso.");
+    }
+
+    const userId = context.auth.uid;
+
+    // 2. Lettura profilo utente da Firestore
+    const userDoc = await db.collection("hub_users").doc(userId).get();
+    if (!userDoc.exists) {
+        throw new functions.https.HttpsError("not-found", "Profilo utente non trovato.");
+    }
+
+    const userData = userDoc.data() || {};
+    const subData = userData.subscription || {};
+
+    const stripeSubscriptionId = subData.stripeSubscriptionId;
+    if (!stripeSubscriptionId) {
+        throw new functions.https.HttpsError("failed-precondition", "Nessun abbonamento Stripe attivo associato a questo account.");
+    }
+
+    if (subData.status === "refunded") {
+        throw new functions.https.HttpsError("already-exists", "Questo abbonamento è già stato rimborsato.");
+    }
+
+    // 3. Recupero dell'ultima fattura effettivamente PAGATA per la subscription
+    let paidInvoices;
+    try {
+        paidInvoices = await stripe.invoices.list({
+            subscription: stripeSubscriptionId,
+            status: "paid",
+            limit: 1,
+            expand: ["data.payment_intent"]
+        });
+    } catch (e) {
+        console.error("Errore recupero fatture pagate da Stripe:", e);
+        throw new functions.https.HttpsError("internal", "Impossibile verificare lo storico pagamenti con Stripe.");
+    }
+
+    if (!paidInvoices || !paidInvoices.data || paidInvoices.data.length === 0) {
+        throw new functions.https.HttpsError("failed-precondition", "Nessuna fattura pagata trovata per questo abbonamento.");
+    }
+
+    const latestPaidInvoice = paidInvoices.data[0];
+    const paymentIntent = latestPaidInvoice.payment_intent;
+    if (!paymentIntent || paymentIntent.status !== "succeeded") {
+        throw new functions.https.HttpsError("failed-precondition", "Nessun pagamento valido trovato per il rimborso.");
+    }
+
+    if (paymentIntent.amount_refunded > 0) {
+        throw new functions.https.HttpsError("already-exists", "La transazione è già stata rimborsata.");
+    }
+
+    // 4. Verifica Server-Side finestra 14 giorni (calcolata rigorosamente sull'ultima fattura pagata)
+    const paidTimestamp = (latestPaidInvoice.status_transitions && latestPaidInvoice.status_transitions.paid_at)
+        ? (latestPaidInvoice.status_transitions.paid_at * 1000)
+        : (latestPaidInvoice.created * 1000);
+    const now = Date.now();
+    const windowMs = 14 * 24 * 60 * 60 * 1000;
+
+    if (now - paidTimestamp > windowMs) {
+        throw new functions.https.HttpsError("deadline-exceeded", "Il termine di 14 giorni per richiedere il rimborso è scaduto.");
+    }
+
+    // 5. Creazione Rimborso su Stripe con Idempotency Key
+    let refund;
+    try {
+        refund = await stripe.refunds.create({
+            payment_intent: paymentIntent.id,
+            reason: "requested_by_customer",
+            metadata: {
+                refundReason: "recesso",
+                userId: userId,
+                userEmail: context.auth.token.email || userData.email || ""
+            }
+        }, {
+            idempotencyKey: `refund_self_service_${paymentIntent.id}`
+        });
+    } catch (e) {
+        console.error("Errore creazione rimborso su Stripe:", e);
+        throw new functions.https.HttpsError("internal", "Errore durante l'elaborazione del rimborso con Stripe.");
+    }
+
+    // 6. Cancellazione immediata della subscription su Stripe per impedire rinnovi futuri
+    try {
+        await stripe.subscriptions.cancel(stripeSubscriptionId, {
+            prorate: false
+        });
+    } catch (e) {
+        console.warn("Avviso cancellazione subscription su Stripe dopo rimborso:", e);
+    }
+
+    console.log(`✅ Rimborso self-service eseguito con successo per utente ${userId} (Refund ID: ${refund.id})`);
+
+    return {
+        success: true,
+        refundId: refund.id,
+        amountRefunded: refund.amount / 100,
+        currency: (refund.currency || "eur").toUpperCase(),
+        message: "Richiesta di rimborso completata con successo. L'importo verrà restituito sul metodo di pagamento originario entro i tempi tecnici bancari (5-10 giorni lavorativi)."
+    };
 });

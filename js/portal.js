@@ -235,10 +235,113 @@ const PortalApp = {
             }
             
             this.renderPlatforms();
+            this.renderSubscriptionStatus();
 
         } catch(e) {
             console.error("Errore recupero profilo:", e);
             this.showError("Impossibile caricare il profilo centrale. Dettaglio: " + e.message);
+        }
+    },
+
+    renderSubscriptionStatus: function() {
+        const card = document.getElementById('subscription-status-card');
+        const planNameEl = document.getElementById('sub-plan-name');
+        const planExpiryEl = document.getElementById('sub-plan-expiry');
+        const refundContainer = document.getElementById('refund-action-container');
+        if (!card || !planNameEl || !planExpiryEl || !refundContainer) return;
+
+        const sub = (this.profile && this.profile.subscription) || {};
+        const abbonamento = (this.profile && this.profile.abbonamento) || sub.plan || 'base';
+        const isPaidActive = (sub.status === 'active' || sub.status === 'past_due') && abbonamento !== 'base' && sub.stripeSubscriptionId;
+
+        if (!isPaidActive) {
+            card.style.display = 'none';
+            refundContainer.style.display = 'none';
+            return;
+        }
+
+        card.style.display = 'block';
+
+        let planTitle = 'Piano Docente Ecosistema Completo';
+        const pKey = abbonamento.toLowerCase();
+        if (pKey.includes('viandante')) planTitle = 'Piano Viandante (Giocatore Singolo)';
+        else if (pKey.includes('didattico')) planTitle = 'Piano Docente Didattico (Materia Singola)';
+
+        planNameEl.textContent = planTitle;
+
+        if (sub.expiresAt) {
+            const expDate = new Date(sub.expiresAt).toLocaleDateString('it-IT');
+            planExpiryEl.textContent = `Scadenza abbonamento: ${expDate}`;
+        } else {
+            planExpiryEl.textContent = 'Abbonamento attivo';
+        }
+
+        // Verifica eleggibilità 14 giorni (client-side preview; la verifica autoritativa finale è server-side)
+        const lastPaymentDate = sub.lastRenewalAt || sub.purchasedAt;
+        if (lastPaymentDate) {
+            const diffMs = Date.now() - new Date(lastPaymentDate).getTime();
+            const days14Ms = 14 * 24 * 60 * 60 * 1000;
+            if (diffMs <= days14Ms && sub.status !== 'refunded') {
+                refundContainer.style.display = 'block';
+            } else {
+                refundContainer.style.display = 'none';
+            }
+        } else {
+            refundContainer.style.display = 'none';
+        }
+    },
+
+    openRefundModal: function() {
+        const modal = document.getElementById('refund-modal');
+        if (modal) modal.style.display = 'flex';
+    },
+
+    closeRefundModal: function() {
+        const modal = document.getElementById('refund-modal');
+        if (modal) modal.style.display = 'none';
+    },
+
+    confirmRefund: async function() {
+        const btn = document.getElementById('btn-confirm-refund');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Elaborazione in corso...';
+        }
+
+        try {
+            if (!window.firebase || !window.firebase.functions) {
+                throw new Error("Modulo Firebase Functions non caricato.");
+            }
+            const requestRefundFn = window.firebase.functions().httpsCallable('requestSubscriptionRefund');
+            const res = await requestRefundFn({});
+
+            this.closeRefundModal();
+            
+            // Messaggio chiaro e conforme: rimborso inviato a Stripe e accesso revocato
+            const msg = res.data && res.data.message 
+                ? res.data.message 
+                : "Rimborso richiesto correttamente. Il rimborso è stato inviato a Stripe. L'accesso al piano è stato revocato. I tempi effettivi di riaccredito dipendono dall'istituto di pagamento.";
+            alert(msg);
+
+            // Aggiorna immediatamente lo stato locale (senza attendere il roundtrip del webhook)
+            if (this.profile) {
+                this.profile.abbonamento = 'base';
+                if (this.profile.subscription) {
+                    this.profile.subscription.status = 'refunded';
+                }
+            }
+            this.renderSubscriptionStatus();
+            this.renderPlatforms();
+
+            // Ricarica il profilo dal server
+            await this.loadUserProfile();
+        } catch (e) {
+            console.error("Errore durante la richiesta di rimborso:", e);
+            alert(e.message || "Si è verificato un errore durante la richiesta di rimborso.");
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'Conferma Rimborso';
+            }
         }
     },
 
