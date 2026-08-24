@@ -713,8 +713,22 @@
       <div class="glass-panel">
         <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 20px;">
           <h3 style="color:var(--text-main); margin:0;">Tabella Iscritti Multi-Sito</h3>
-          <div style="display: flex; gap: 10px;" id="bulk-actions-container" class="hidden">
-            <button class="btn btn-secondary" onclick="window.UsersUI.openBulkEditPlanModal()"><i class="fa-solid fa-crown"></i> Modifica Piano Selezionati</button>
+          <div style="display: none; align-items: center; gap: 10px; flex-wrap: wrap;" id="bulk-actions-container">
+            <span style="font-size: 0.85rem; font-weight: 700; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 8px;" id="bulk-selected-badge">
+              <span id="bulk-selected-count">0</span> selezionati
+            </span>
+            <button class="btn" onclick="window.UsersUI.sendBulkEmail()" style="background: #10b981; color: white; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-envelope"></i> Invia Email
+            </button>
+            <button class="btn" onclick="window.UsersUI.openBulkEditPlanModal()" style="background: #6366f1; color: white; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-crown"></i> Assegna Piano
+            </button>
+            <button class="btn" onclick="window.UsersUI.openBulkDeleteModal()" style="background: var(--danger-color); color: white; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-trash"></i> Elimina Selezionati
+            </button>
+            <button class="btn outline" onclick="window.UsersUI.clearSelection()" style="border: 1px solid #cbd5e1; background: white; color: #64748b; font-size: 0.85rem; padding: 8px 12px; border-radius: 8px; cursor: pointer;">
+              Deseleziona
+            </button>
           </div>
         </div>
         <div class="table-responsive" style="overflow-x:auto;">
@@ -798,6 +812,33 @@
                 <div style="display: flex; gap: 12px; justify-content: flex-end;">
                     <button class="btn btn-secondary" onclick="document.getElementById('modal-delete-user').style.display = 'none';" style="flex:1; border: 1px solid var(--border-color); background: white; color: var(--text-main); font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer;">Annulla</button>
                     <button class="btn btn-primary" onclick="window.UsersUI.executeDeleteUser()" style="flex:1; background: var(--danger-color); border: none; color: white; font-weight: 700; padding: 10px; border-radius: 8px; cursor: pointer;">Conferma Eliminazione</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Modifica Massiva Piano -->
+    <div id="modal-bulk-plan" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); z-index: 999999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+        <div style="background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); border: 1px solid var(--border-color); max-width: 460px; width: 100%; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+                <h3 style="margin: 0; font-size: 1.15rem; color: #6366f1; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-crown"></i> Assegna Piano Massivo
+                </h3>
+                <span onclick="document.getElementById('modal-bulk-plan').style.display = 'none';" style="font-size: 1.5rem; color: var(--text-muted); cursor: pointer; line-height: 1;">&times;</span>
+            </div>
+            <div style="padding: 24px; text-align: left;">
+                <p style="margin-top: 0; font-size: 0.95rem; color: var(--text-main);">
+                    Seleziona il piano da assegnare ai <strong id="bulk-plan-count">0</strong> utenti selezionati:
+                </p>
+                <select id="bulk-plan-select" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; font-weight: 600; margin-bottom: 20px; outline: none; background: white;">
+                    <option value="base">⚪ Base / Gratuito</option>
+                    <option value="viandante">🧭 Piano Viandante</option>
+                    <option value="docente_didattico">🟡 Piano Docente Didattico</option>
+                    <option value="docente_ecosistema">🟣 Piano Docente Ecosistema Completo</option>
+                </select>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('modal-bulk-plan').style.display = 'none';" style="flex:1; border: 1px solid var(--border-color); background: white; color: var(--text-main); font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer;">Annulla</button>
+                    <button class="btn btn-primary" onclick="window.UsersUI.executeBulkPlan()" style="flex:1; background: #6366f1; border: none; color: white; font-weight: 700; padding: 10px; border-radius: 8px; cursor: pointer;">Conferma Assegnazione</button>
                 </div>
             </div>
         </div>
@@ -2702,38 +2743,38 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   </div>
 
   <!-- Scripts -->
-  <script src="js/firebase-init.js?v=20260824_1715"></script>
-  <script src="js/services/auth/auth-service.js?v=20260824_1715"></script>
-  <script src="js/utils/ai-prompts.js?v=20260824_1715"></script>
-  <script src="js/utils/db-fixer.js?v=20260824_1715"></script>
+  <script src="js/firebase-init.js?v=20260824_1720"></script>
+  <script src="js/services/auth/auth-service.js?v=20260824_1720"></script>
+  <script src="js/utils/ai-prompts.js?v=20260824_1720"></script>
+  <script src="js/utils/db-fixer.js?v=20260824_1720"></script>
   
   <!-- Services -->
-  <script src="js/services/cross-projects.js?v=20260824_1715"></script>
-  <script src="js/services/users/user-service.js?v=20260824_1715"></script>
-  <script src="js/services/messages/messages-service.js?v=20260824_1715"></script>
-  <script src="js/services/games/games-service.js?v=20260824_1715"></script>
-  <script src="js/services/newsletter/newsletter-service.js?v=20260824_1715"></script>
-  <script src="js/services/payments/payments-service.js?v=20260824_1715"></script>
-  <script src="js/services/ecosystem/ecosystem-service.js?v=20260824_1715"></script>
-  <script src="js/services/archive/archive-service.js?v=20260824_1715"></script>
-  <script src="js/services/diagnostics/diagnostics-service.js?v=20260824_1715"></script>
+  <script src="js/services/cross-projects.js?v=20260824_1720"></script>
+  <script src="js/services/users/user-service.js?v=20260824_1720"></script>
+  <script src="js/services/messages/messages-service.js?v=20260824_1720"></script>
+  <script src="js/services/games/games-service.js?v=20260824_1720"></script>
+  <script src="js/services/newsletter/newsletter-service.js?v=20260824_1720"></script>
+  <script src="js/services/payments/payments-service.js?v=20260824_1720"></script>
+  <script src="js/services/ecosystem/ecosystem-service.js?v=20260824_1720"></script>
+  <script src="js/services/archive/archive-service.js?v=20260824_1720"></script>
+  <script src="js/services/diagnostics/diagnostics-service.js?v=20260824_1720"></script>
   
   <!-- UI Modules -->
-  <script src="js/dashboard/messages-ui.js?v=20260824_1715"></script>
-  <script src="js/dashboard/ecosistema-ui.js?v=20260824_1715"></script>
-  <script src="js/dashboard/games-ui.js?v=20260824_1715"></script>
-  <script src="js/dashboard/users-ui.js?v=20260824_1715"></script>
-  <script src="js/dashboard/payments-ui.js?v=20260824_1715"></script>
-  <script src="js/dashboard/vetrina-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/messages-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/ecosistema-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/games-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/users-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/payments-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/vetrina-ui.js?v=20260824_1720"></script>
   
-  <script src="js/dashboard/newsletter-ui.js?v=20260824_1715"></script>
-  <script src="js/dashboard/analytics-ui.js?v=20260824_1715"></script>
-  <script src="js/dashboard/notifications-ui.js?v=20260824_1715"></script>
-  <script src="js/dashboard/legal-admin-ui.js?v=20260824_1715"></script>
-  <script src="js/dashboard/impostazioni-ui.js?v=20260824_1715"></script>
-  <script src="js/dashboard/diagnostics-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/newsletter-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/analytics-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/notifications-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/legal-admin-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/impostazioni-ui.js?v=20260824_1720"></script>
+  <script src="js/dashboard/diagnostics-ui.js?v=20260824_1720"></script>
   
-  <script src="js/app_v2.js?v=20260824_1715"></script>
+  <script src="js/app_v2.js?v=20260824_1720"></script>
   <script>
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');

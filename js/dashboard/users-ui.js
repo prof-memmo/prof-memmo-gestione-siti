@@ -173,8 +173,13 @@ const UsersUI = {
         const checkboxes = document.querySelectorAll('.user-select-cb');
         checkboxes.forEach(cb => {
             cb.checked = isChecked;
-            this.toggleUserSelection(cb.value, isChecked);
+            if (isChecked) {
+                this.selectedUsers.add(cb.value);
+            } else {
+                this.selectedUsers.delete(cb.value);
+            }
         });
+        this.updateBulkUI();
     },
 
     toggleUserSelection: function(userId, isChecked) {
@@ -183,19 +188,170 @@ const UsersUI = {
             this.selectedUsers.add(userId);
         } else {
             this.selectedUsers.delete(userId);
-            document.getElementById('select-all-users').checked = false;
+            const selectAllCb = document.getElementById('select-all-users');
+            if (selectAllCb) selectAllCb.checked = false;
         }
+        this.updateBulkUI();
+    },
+
+    clearSelection: function() {
+        if (!this.selectedUsers) this.selectedUsers = new Set();
+        this.selectedUsers.clear();
         
+        const checkboxes = document.querySelectorAll('.user-select-cb');
+        checkboxes.forEach(cb => cb.checked = false);
+        
+        const selectAllCb = document.getElementById('select-all-users');
+        if (selectAllCb) selectAllCb.checked = false;
+        
+        this.updateBulkUI();
+    },
+
+    updateBulkUI: function() {
         const bulkContainer = document.getElementById('bulk-actions-container');
-        if (this.selectedUsers.size > 0) {
-            bulkContainer.style.display = 'flex';
-        } else {
-            bulkContainer.style.display = 'none';
+        const countSpan = document.getElementById('bulk-selected-count');
+        const count = this.selectedUsers ? this.selectedUsers.size : 0;
+        
+        if (countSpan) countSpan.textContent = count;
+        
+        if (bulkContainer) {
+            if (count > 0) {
+                bulkContainer.style.display = 'inline-flex';
+            } else {
+                bulkContainer.style.display = 'none';
+            }
         }
     },
 
+    // 1. Invia Email a tutti i selezionati (in CCN per rispetto della privacy)
+    sendBulkEmail: function() {
+        if (!this.selectedUsers || this.selectedUsers.size === 0) {
+            alert("Seleziona almeno un utente dalla tabella con la casella di spunta.");
+            return;
+        }
+        
+        const selectedEmails = [];
+        this.selectedUsers.forEach(id => {
+            const u = (this.allUsers || []).find(user => String(user.id) === String(id));
+            if (u && u.email && u.email.includes('@')) {
+                selectedEmails.push(u.email.trim());
+            }
+        });
+        
+        if (selectedEmails.length === 0) {
+            alert("Nessun indirizzo email valido trovato tra i profili selezionati.");
+            return;
+        }
+        
+        const bccList = selectedEmails.join(',');
+        const subject = encodeURIComponent('Comunicazione dall\'Ecosistema Prof. Memmo');
+        window.open(`https://mail.google.com/mail/?view=cm&bcc=${encodeURIComponent(bccList)}&su=${subject}`, '_blank');
+    },
+
+    // 2. Eliminazione Massiva da tutti i database
+    openBulkDeleteModal: function() {
+        if (!this.selectedUsers || this.selectedUsers.size === 0) {
+            alert("Seleziona almeno un utente dalla tabella con la casella di spunta.");
+            return;
+        }
+        
+        const count = this.selectedUsers.size;
+        const confirmMsg = `ATTENZIONE: Sei sicuro di voler eliminare definitivamente i ${count} utenti selezionati?\n\nI profili verranno rimossi da tutti i giochi e dal database centrale Hub in modo irreversibile.`;
+        if (confirm(confirmMsg)) {
+            this.executeBulkDelete();
+        }
+    },
+
+    executeBulkDelete: async function() {
+        const hubDb = (window.fbDb && window.fbDb.hub) || (window.firebase && window.firebase.firestore ? window.firebase.firestore() : null);
+        if (!hubDb) {
+            alert("Database Hub non connesso.");
+            return;
+        }
+
+        const allColls = ['hub_users', 'eroi_users', 'fanta_users', 'palestra_users', 'corte_users', 'ops_users'];
+        const selectedIds = Array.from(this.selectedUsers);
+        let promises = [];
+        
+        selectedIds.forEach(id => {
+            allColls.forEach(colName => {
+                promises.push(hubDb.collection(colName).doc(id).delete());
+            });
+        });
+
+        try {
+            await Promise.allSettled(promises);
+            
+            // Rimuovi localmente gli utenti eliminati
+            const idSet = new Set(selectedIds.map(String));
+            this.allUsers = (this.allUsers || []).filter(u => !idSet.has(String(u.id)));
+            
+            this.clearSelection();
+            this.filterIscritti();
+            
+            alert(`Eliminazione completata con successo: ${selectedIds.length} utenti rimossi.`);
+        } catch (e) {
+            console.error("Errore cancellazione massiva:", e);
+            alert("Errore durante la cancellazione: " + e.message);
+        }
+    },
+
+    // 3. Assegnazione Massiva Piano
     openBulkEditPlanModal: function() {
-        alert("La modifica massiva del piano non è più supportata dal menu a tendina.");
+        if (!this.selectedUsers || this.selectedUsers.size === 0) {
+            alert("Seleziona almeno un utente dalla tabella con la casella di spunta.");
+            return;
+        }
+        const modal = document.getElementById('modal-bulk-plan');
+        if (modal) {
+            const countEl = document.getElementById('bulk-plan-count');
+            if (countEl) countEl.textContent = this.selectedUsers.size;
+            modal.style.display = 'flex';
+        }
+    },
+
+    executeBulkPlan: async function() {
+        const select = document.getElementById('bulk-plan-select');
+        const newPlan = select ? select.value : 'base';
+        const hubDb = (window.fbDb && window.fbDb.hub) || (window.firebase && window.firebase.firestore ? window.firebase.firestore() : null);
+        if (!hubDb) {
+            alert("Database Hub non connesso.");
+            return;
+        }
+
+        const currentYear = new Date().getFullYear();
+        const scadenza = `${currentYear}-12-31`;
+        const selectedIds = Array.from(this.selectedUsers);
+        let promises = [];
+
+        selectedIds.forEach(id => {
+            promises.push(hubDb.collection('hub_users').doc(id).set({
+                abbonamento: newPlan,
+                admin_override: true,
+                abbonamento_scadenza: newPlan === 'base' ? null : scadenza,
+                lastUpdated: new Date().toISOString()
+            }, { merge: true }));
+
+            const usr = (this.allUsers || []).find(u => String(u.id) === String(id));
+            if (usr) {
+                usr.plan = newPlan;
+                usr.admin_override = true;
+                usr.abbonamento_scadenza = newPlan === 'base' ? null : scadenza;
+            }
+        });
+
+        try {
+            await Promise.allSettled(promises);
+            const modal = document.getElementById('modal-bulk-plan');
+            if (modal) modal.style.display = 'none';
+            
+            this.clearSelection();
+            this.filterIscritti();
+            alert(`Piano aggiornato con successo a "${newPlan}" per ${selectedIds.length} utenti.`);
+        } catch (e) {
+            console.error("Errore aggiornamento piani massivo:", e);
+            alert("Errore durante l'assegnazione del piano: " + e.message);
+        }
     },
     
     updateUserPlan: async function(userId, newPlan, userEmail, userName) {
