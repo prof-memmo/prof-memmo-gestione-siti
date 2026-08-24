@@ -3,7 +3,7 @@
   "description": "Cloud Functions per Hub Centrale Prof. Memmo - Stripe Webhook & Lifecycle Abbonamenti",
   "version": "1.0.0",
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "main": "index.js",
   "dependencies": {

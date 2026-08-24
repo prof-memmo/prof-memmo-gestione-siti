@@ -77,7 +77,12 @@ async function findUserIdByCustomer(customerId, customerEmail) {
 /**
  * Webhook Principale Stripe
  */
-exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
+exports.stripeWebhook = functions.runWith({
+    maxInstances: 2,
+    timeoutSeconds: 15,
+    memory: "128MB",
+    serviceAccount: "prof-memmo-hub@appspot.gserviceaccount.com"
+}).https.onRequest(async (req, res) => {
     if (req.method !== "POST") {
         return res.status(405).send("Method Not Allowed");
     }
@@ -477,7 +482,12 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
  * Verifica server-side: autenticazione, eleggibilità temporale (14gg), status pagato,
  * idempotency key, rimborso su Stripe e cancellazione subscription.
  */
-exports.requestSubscriptionRefund = functions.https.onCall(async (data, context) => {
+exports.requestSubscriptionRefund = functions.runWith({
+    maxInstances: 2,
+    timeoutSeconds: 15,
+    memory: "128MB",
+    serviceAccount: "prof-memmo-hub@appspot.gserviceaccount.com"
+}).https.onCall(async (data, context) => {
     // 1. Verifica autenticazione utente
     if (!context.auth || !context.auth.uid) {
         throw new functions.https.HttpsError("unauthenticated", "Devi effettuare il login per richiedere un rimborso.");
