@@ -269,49 +269,59 @@ const UsersUI = {
     },
     
     openDeleteUserModal: function(userId, userEmail, userName, gamesString) {
-        const user = (this.allUsers || []).find(u => u.id === userId) || {};
+        const user = (this.allUsers || []).find(u => String(u.id) === String(userId)) || {};
         const finalEmail = userEmail || user.email || '';
         const finalName = userName || user.nome || 'Utente';
         const finalGames = gamesString || user.gioco || 'Hub';
 
-        document.getElementById('delete-user-id').value = userId;
-        document.getElementById('delete-user-email').value = finalEmail;
-        document.getElementById('delete-user-name').textContent = finalName;
-        
-        document.getElementById('delete-everywhere').checked = false;
-        
+        const idInput = document.getElementById('delete-user-id');
+        const emailInput = document.getElementById('delete-user-email');
+        const nameEl = document.getElementById('delete-user-name');
+        const deleteEverywhereCb = document.getElementById('delete-everywhere');
         const container = document.getElementById('delete-sites-container');
-        container.innerHTML = '';
+
+        if (idInput) idInput.value = userId;
+        if (emailInput) emailInput.value = finalEmail;
+        if (nameEl) nameEl.textContent = finalName;
         
         const games = finalGames ? finalGames.split(/[,/]/).map(s => s.trim()).filter(s => s) : [];
+        const isOnlyHub = games.length === 0 || (games.length === 1 && games[0].toLowerCase() === 'hub');
+
+        if (deleteEverywhereCb) {
+            deleteEverywhereCb.checked = isOnlyHub;
+        }
         
-        if (games.length === 0) {
-            container.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Questo utente non è iscritto ad alcun gioco specifico.</p>';
-        } else {
-            games.forEach(game => {
-                const gameId = this.mapGameNameToId(game);
-                if (gameId) {
-                    container.innerHTML += `
-                        <label style="display:flex; align-items:center; gap:10px;">
-                            <input type="checkbox" class="delete-site-cb" value="${gameId}">
-                            Rimuovi da <strong>${game}</strong>
-                        </label>
-                    `;
-                }
-            });
+        if (container) {
+            container.innerHTML = '';
+            if (isOnlyHub) {
+                container.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;"><i class="fa-solid fa-globe"></i> Utente registrato nell\'<strong>Hub Centrale</strong>.</p>';
+            } else {
+                games.forEach(game => {
+                    const gameId = this.mapGameNameToId(game);
+                    if (gameId && gameId !== 'hub') {
+                        container.innerHTML += `
+                            <label style="display:flex; align-items:center; gap:10px;">
+                                <input type="checkbox" class="delete-site-cb" value="${gameId}" checked>
+                                Rimuovi da <strong>${game}</strong>
+                            </label>
+                        `;
+                    }
+                });
+            }
         }
         
         const modal = document.getElementById('modal-delete-user');
-        modal.style.display = 'flex';
+        if (modal) modal.style.display = 'flex';
     },
     
     mapGameNameToId: function(name) {
-        const lower = name.toLowerCase();
-        if (lower.includes('rotta degli eroi')) return 'eroi';
-        if (lower.includes('fantaletteratura')) return 'fanta';
+        const lower = (name || '').toLowerCase();
+        if (lower.includes('rotta degli eroi') || lower.includes('eroi')) return 'eroi';
+        if (lower.includes('fantaletteratura') || lower.includes('fanta')) return 'fanta';
         if (lower.includes('palestra')) return 'palestra';
-        if (lower.includes('commedia')) return 'commedia';
+        if (lower.includes('commedia') || lower.includes('corte')) return 'commedia';
         if (lower.includes('ops')) return 'ops';
+        if (lower.includes('hub')) return 'hub';
         return null;
     },
     
@@ -330,58 +340,65 @@ const UsersUI = {
         if (!userId) return;
         
         const btn = document.querySelector('#modal-delete-user .btn-primary');
-        const origText = btn.textContent;
-        btn.textContent = 'Eliminazione in corso...';
-        btn.disabled = true;
+        const origText = btn ? btn.textContent : 'Conferma Eliminazione';
+        if (btn) {
+            btn.textContent = 'Eliminazione in corso...';
+            btn.disabled = true;
+        }
         
         try {
-            const dbMap = {
-                'eroi': { db: window.fbDb.eroi, col: 'users' },
-                'fanta': { db: window.fbDb.fanta, col: 'users' },
-                'palestra': { db: window.fbDb.palestra, col: 'users' },
-                'commedia': { db: window.fbDb.commedia, col: 'users' },
-                'ops': { db: window.fbDb.ops, col: 'users' }
+            const hubDb = (window.fbDb && window.fbDb.hub) || (window.firebase && window.firebase.firestore ? window.firebase.firestore() : null);
+            if (!hubDb) throw new Error("Database Hub non connesso");
+
+            const collMap = {
+                'eroi': 'eroi_users',
+                'fanta': 'fanta_users',
+                'palestra': 'palestra_users',
+                'commedia': 'corte_users',
+                'ops': 'ops_users',
+                'hub': 'hub_users'
             };
             
             let promises = [];
             
             if (deleteEverywhere) {
-                Object.values(dbMap).forEach(info => {
-                    if (info.db) promises.push(info.db.collection(info.col).doc(userId).delete());
+                // Elimina ovunque: rimuovi da tutte le collezioni del database unico Hub
+                const allColls = ['hub_users', 'eroi_users', 'fanta_users', 'palestra_users', 'corte_users', 'ops_users'];
+                allColls.forEach(colName => {
+                    promises.push(hubDb.collection(colName).doc(userId).delete());
                 });
-                if (window.fbDb.hub) {
-                    promises.push(window.fbDb.hub.collection('hub_users').doc(userId).delete());
-                }
             } else {
                 const cbs = document.querySelectorAll('.delete-site-cb:checked');
                 if (cbs.length === 0) {
-                    alert("Seleziona almeno una piattaforma da cui eliminare l'utente.");
-                    btn.textContent = origText;
-                    btn.disabled = false;
-                    return;
+                    // Fallback: se nessuna spunta specifica, elimina da hub_users
+                    promises.push(hubDb.collection('hub_users').doc(userId).delete());
+                } else {
+                    cbs.forEach(cb => {
+                        const colName = collMap[cb.value];
+                        if (colName) promises.push(hubDb.collection(colName).doc(userId).delete());
+                    });
                 }
-                cbs.forEach(cb => {
-                    const info = dbMap[cb.value];
-                    if (info && info.db) promises.push(info.db.collection(info.col).doc(userId).delete());
-                });
             }
             
             await Promise.allSettled(promises);
-            alert("Utente eliminato correttamente dalle piattaforme selezionate.");
             
-            if (deleteEverywhere) {
-                this.allUsers = this.allUsers.filter(u => u.id !== userId);
-            }
+            // Rimuovi localmente l'utente dalla lista
+            this.allUsers = (this.allUsers || []).filter(u => String(u.id) !== String(userId));
             
-            document.getElementById('modal-delete-user').style.display = 'none';
+            const modal = document.getElementById('modal-delete-user');
+            if (modal) modal.style.display = 'none';
+            
             this.filterIscritti();
+            alert("Utente eliminato con successo.");
             
         } catch (e) {
             console.error("Errore eliminazione utente:", e);
             alert("Errore durante l'eliminazione: " + e.message);
         } finally {
-            btn.textContent = origText;
-            btn.disabled = false;
+            if (btn) {
+                btn.textContent = origText;
+                btn.disabled = false;
+            }
         }
     },
 

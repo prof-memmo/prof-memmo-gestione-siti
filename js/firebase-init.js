@@ -24,6 +24,7 @@ try {
     window.fbDb.commedia = firestoreHub;
     window.fbDb.fanta = firestoreHub;
     window.fbDb.palestra = firestoreHub;
+    window.fbDb.ops = firestoreHub;
     
     // Auth principale
     window.fbAuth = appHub.auth();
