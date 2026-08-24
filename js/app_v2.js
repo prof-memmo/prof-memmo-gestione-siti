@@ -75,14 +75,15 @@ const HubApp = {
     },
 
     loadDidacticOverrides: async function() {
-        if (!window.fbDb) return;
+        const dbHub = (window.fbDb && window.fbDb.hub) || window.db;
+        if (!dbHub) return;
         const banner = document.getElementById('hub-didactic-sync-banner');
         const titleEl = document.getElementById('hub-didactic-sync-title');
         const descEl = document.getElementById('hub-didactic-sync-desc');
         const tbody = document.getElementById('didactic-overrides-body');
 
         try {
-            const snapshot = await window.fbDb.collection('hub_didactic_overrides').get();
+            const snapshot = await dbHub.collection('hub_didactic_overrides').get();
             const overrides = [];
             snapshot.forEach(doc => {
                 overrides.push({ id: doc.id, ...doc.data() });
@@ -134,8 +135,9 @@ const HubApp = {
 
     deleteDidacticOverride: async function(docId) {
         if (!confirm("Hai già inserito questa modifica nei file su GitHub o vuoi rimuovere questo override dal cloud?")) return;
+        const dbHub = (window.fbDb && window.fbDb.hub) || window.db;
         try {
-            await window.fbDb.collection('hub_didactic_overrides').doc(docId).delete();
+            if (dbHub) await dbHub.collection('hub_didactic_overrides').doc(docId).delete();
             alert("✅ Override rimosso con successo dal cloud!");
             this.loadDidacticOverrides();
         } catch (e) {
