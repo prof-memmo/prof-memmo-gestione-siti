@@ -768,34 +768,36 @@
     </div>
     <!-- View: Viste Iframe Rimosse a favore dell'apertura in nuova scheda -->
 
-    <!-- Modale Eliminazione Utente -->
-    <div id="modal-delete-user" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h2><i class="fa-solid fa-trash" style="color:var(--danger-color);"></i> Elimina Utente</h2>
-                <span class="close-modal" onclick="document.getElementById('modal-delete-user').style.display = 'none';">&times;</span>
+    <!-- Modale Eliminazione Utente (Fixed Overlay Centered) -->
+    <div id="modal-delete-user" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); z-index: 999999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+        <div style="background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); border: 1px solid var(--border-color); max-width: 500px; width: 100%; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+                <h3 style="margin: 0; font-size: 1.15rem; color: var(--danger-color); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-trash"></i> Elimina Utente
+                </h3>
+                <span onclick="document.getElementById('modal-delete-user').style.display = 'none';" style="font-size: 1.5rem; color: var(--text-muted); cursor: pointer; line-height: 1;">&times;</span>
             </div>
-            <div class="modal-body" style="text-align: left;">
-                <p>Vuoi eliminare l'utente <strong id="delete-user-name"></strong>?</p>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Scegli da dove vuoi eliminare l'utente:</p>
+            <div style="padding: 24px; text-align: left;">
+                <p style="margin-top: 0; font-size: 1rem; color: var(--text-main);">Vuoi eliminare l'utente <strong id="delete-user-name"></strong>?</p>
+                <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 15px;">Scegli da dove vuoi eliminare l'utente:</p>
                 
                 <input type="hidden" id="delete-user-id">
                 <input type="hidden" id="delete-user-email">
                 
-                <div style="margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
-                    <label style="display:flex; align-items:center; gap:10px; margin-bottom: 15px; font-weight: 600; color: var(--danger-color);">
-                        <input type="checkbox" id="delete-everywhere" onchange="window.UsersUI.toggleDeleteEverywhere(this.checked)" style="accent-color: var(--danger-color);">
+                <div style="margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <label style="display:flex; align-items:center; gap:10px; margin-bottom: 12px; font-weight: 700; color: var(--danger-color); cursor: pointer;">
+                        <input type="checkbox" id="delete-everywhere" onchange="window.UsersUI.toggleDeleteEverywhere(this.checked)" style="accent-color: var(--danger-color); transform: scale(1.15);">
                         Cancella Ovunque (Tutti i siti e l'Hub)
                     </label>
-                    <hr style="border:none; border-top: 1px solid #e2e8f0; margin-bottom: 15px;">
+                    <hr style="border:none; border-top: 1px solid #e2e8f0; margin-bottom: 12px;">
                     <div id="delete-sites-container" style="display:flex; flex-direction:column; gap:10px;">
                         <!-- I checkbox dei siti verranno popolati dinamicamente -->
                     </div>
                 </div>
                 
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-secondary" onclick="document.getElementById('modal-delete-user').style.display = 'none';" style="flex:1;">Annulla</button>
-                    <button class="btn btn-primary" onclick="window.UsersUI.executeDeleteUser()" style="flex:1; background: var(--danger-color); border-color: var(--danger-color);">Conferma Eliminazione</button>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('modal-delete-user').style.display = 'none';" style="flex:1; border: 1px solid var(--border-color); background: white; color: var(--text-main); font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer;">Annulla</button>
+                    <button class="btn btn-primary" onclick="window.UsersUI.executeDeleteUser()" style="flex:1; background: var(--danger-color); border: none; color: white; font-weight: 700; padding: 10px; border-radius: 8px; cursor: pointer;">Conferma Eliminazione</button>
                 </div>
             </div>
         </div>
@@ -2700,38 +2702,38 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   </div>
 
   <!-- Scripts -->
-  <script src="js/firebase-init.js?v=20260824_1710"></script>
-  <script src="js/services/auth/auth-service.js?v=20260824_1710"></script>
-  <script src="js/utils/ai-prompts.js?v=20260824_1710"></script>
-  <script src="js/utils/db-fixer.js?v=20260824_1710"></script>
+  <script src="js/firebase-init.js?v=20260824_1715"></script>
+  <script src="js/services/auth/auth-service.js?v=20260824_1715"></script>
+  <script src="js/utils/ai-prompts.js?v=20260824_1715"></script>
+  <script src="js/utils/db-fixer.js?v=20260824_1715"></script>
   
   <!-- Services -->
-  <script src="js/services/cross-projects.js?v=20260824_1710"></script>
-  <script src="js/services/users/user-service.js?v=20260824_1710"></script>
-  <script src="js/services/messages/messages-service.js?v=20260824_1710"></script>
-  <script src="js/services/games/games-service.js?v=20260824_1710"></script>
-  <script src="js/services/newsletter/newsletter-service.js?v=20260824_1710"></script>
-  <script src="js/services/payments/payments-service.js?v=20260824_1710"></script>
-  <script src="js/services/ecosystem/ecosystem-service.js?v=20260824_1710"></script>
-  <script src="js/services/archive/archive-service.js?v=20260824_1710"></script>
-  <script src="js/services/diagnostics/diagnostics-service.js?v=20260824_1710"></script>
+  <script src="js/services/cross-projects.js?v=20260824_1715"></script>
+  <script src="js/services/users/user-service.js?v=20260824_1715"></script>
+  <script src="js/services/messages/messages-service.js?v=20260824_1715"></script>
+  <script src="js/services/games/games-service.js?v=20260824_1715"></script>
+  <script src="js/services/newsletter/newsletter-service.js?v=20260824_1715"></script>
+  <script src="js/services/payments/payments-service.js?v=20260824_1715"></script>
+  <script src="js/services/ecosystem/ecosystem-service.js?v=20260824_1715"></script>
+  <script src="js/services/archive/archive-service.js?v=20260824_1715"></script>
+  <script src="js/services/diagnostics/diagnostics-service.js?v=20260824_1715"></script>
   
   <!-- UI Modules -->
-  <script src="js/dashboard/messages-ui.js?v=20260824_1710"></script>
-  <script src="js/dashboard/ecosistema-ui.js?v=20260824_1710"></script>
-  <script src="js/dashboard/games-ui.js?v=20260824_1710"></script>
-  <script src="js/dashboard/users-ui.js?v=20260824_1710"></script>
-  <script src="js/dashboard/payments-ui.js?v=20260824_1710"></script>
-  <script src="js/dashboard/vetrina-ui.js?v=20260824_1710"></script>
+  <script src="js/dashboard/messages-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/ecosistema-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/games-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/users-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/payments-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/vetrina-ui.js?v=20260824_1715"></script>
   
-  <script src="js/dashboard/newsletter-ui.js?v=20260824_1710"></script>
-  <script src="js/dashboard/analytics-ui.js?v=20260824_1710"></script>
-  <script src="js/dashboard/notifications-ui.js?v=20260824_1710"></script>
-  <script src="js/dashboard/legal-admin-ui.js?v=20260824_1710"></script>
-  <script src="js/dashboard/impostazioni-ui.js?v=20260824_1710"></script>
-  <script src="js/dashboard/diagnostics-ui.js?v=20260824_1710"></script>
+  <script src="js/dashboard/newsletter-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/analytics-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/notifications-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/legal-admin-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/impostazioni-ui.js?v=20260824_1715"></script>
+  <script src="js/dashboard/diagnostics-ui.js?v=20260824_1715"></script>
   
-  <script src="js/app_v2.js?v=20260824_1710"></script>
+  <script src="js/app_v2.js?v=20260824_1715"></script>
   <script>
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');
