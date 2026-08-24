@@ -354,9 +354,6 @@
     <div class="nav-item" data-target="view-newsletter" onclick="switchView('view-newsletter')">
       <i class="fa-solid fa-paper-plane" style="color:#38bdf8;"></i> Newsletter
     </div>
-    <div class="nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')">
-      <i class="fa-solid fa-bolt" style="color:#f43f5e;"></i> Comunicazioni Automatiche
-    </div>
     <div class="nav-item" data-target="view-notifiche-admin" onclick="switchView('view-notifiche-admin')">
       <i class="fa-solid fa-bell" style="color:#f59e0b;"></i> Notifiche Ecosistema
     </div>
@@ -421,9 +418,6 @@
     </div>
     <div class="mobile-nav-item" data-target="view-notifiche-admin" onclick="switchView('view-notifiche-admin')" title="Notifiche Ecosistema">
       <i class="fa-solid fa-bell" style="color:#f59e0b;"></i><span>Notifiche</span>
-    </div>
-    <div class="mobile-nav-item" data-target="view-email-templates" onclick="switchView('view-email-templates')" title="Comunicazioni Automatiche">
-      <i class="fa-solid fa-bolt" style="color:#f43f5e;"></i><span>Email</span>
     </div>
     <div class="mobile-nav-item" data-target="view-esperienze" onclick="switchView('view-esperienze')" title="Esperienze Ricevute">
       <i class="fa-solid fa-star" style="color:#f59e0b;"></i><span>Esperienze</span>
@@ -949,106 +943,7 @@
     </div>
 
 
-    <!-- View: Comunicazioni Automatiche (Brevo Transactional) -->
-    <div id="view-email-templates" class="hub-view">
-      <div class="hub-header">
-        <h2><i class="fa-solid fa-bolt" style="color:#f43f5e;"></i> Centro Comunicazioni Automatiche (Brevo Transactional)</h2>
-      </div>
 
-      <!-- Overview Cards Comunicazioni Attive -->
-      <div class="glass-panel" style="margin-bottom: 20px;">
-        <div style="margin-bottom: 15px;">
-          <h3 style="color:var(--text-main); margin:0 0 5px 0;">Comunicazioni Transazionali dell'Ecosistema</h3>
-          <p style="color:var(--text-muted); font-size:0.88rem; margin:0;">
-            Le comunicazioni transazionali sono inviate automaticamente tramite <strong>Brevo Transactional (API/SMTP)</strong> al verificarsi di eventi applicativi. Non richiedono consenso marketing e raggiungono sempre il destinatario.
-          </p>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
-          
-          <!-- Card 1: Benvenuto Ecosistema -->
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; border-left: 4px solid #3b82f6;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-              <strong style="color: #1e293b; font-size: 0.95rem;">1. Benvenuto & Attivazione Ecosistema</strong>
-              <span style="background: #eff6ff; color: #2563eb; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;">ATTIVO</span>
-            </div>
-            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 6px;"><strong>Evento:</strong> Nuova registrazione / Attivazione profilo</div>
-            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 8px;"><strong>Destinatario:</strong> Nuovo Utente / Docente</div>
-            <div style="font-size: 0.78rem; background: #ffffff; padding: 6px 8px; border-radius: 6px; border: 1px solid #e2e8f0; color: #475569; font-family: monospace;">
-              Variabili: {{ params.NOME }}, {{ params.RUOLO }}, {{ params.LINK_PROFILO }}
-            </div>
-          </div>
-
-          <!-- Card 2: Attivazione Piano -->
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; border-left: 4px solid #10b981;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-              <strong style="color: #1e293b; font-size: 0.95rem;">2. Attivazione Piano & Piattaforme</strong>
-              <span style="background: #ecfdf5; color: #059669; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;">ATTIVO</span>
-            </div>
-            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 6px;"><strong>Evento:</strong> Checkout Stripe completato / Attivazione Admin</div>
-            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 8px;"><strong>Destinatario:</strong> Utente con Piano sbloccato</div>
-            <div style="font-size: 0.78rem; background: #ffffff; padding: 6px 8px; border-radius: 6px; border: 1px solid #e2e8f0; color: #475569; font-family: monospace;">
-              Variabili: {{ params.NOME }}, {{ params.PIANO }}, {{ params.LINK_PROFILO }}
-            </div>
-          </div>
-
-          <!-- Card 3: Promemoria Scadenza -->
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; border-left: 4px solid #f59e0b;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-              <strong style="color: #1e293b; font-size: 0.95rem;">3. Promemoria Scadenza Abbonamento</strong>
-              <span style="background: #fffbeb; color: #d97706; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;">ATTIVO</span>
-            </div>
-            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 6px;"><strong>Evento:</strong> 15 giorni prima della scadenza annuale</div>
-            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 8px;"><strong>Destinatario:</strong> Abbonato in scadenza</div>
-            <div style="font-size: 0.78rem; background: #ffffff; padding: 6px 8px; border-radius: 6px; border: 1px solid #e2e8f0; color: #475569; font-family: monospace;">
-              Variabili: {{ params.NOME }}, {{ params.PIANO }}, {{ params.DATA_SCADENZA }}
-            </div>
-          </div>
-
-          <!-- Card 4: Risposta Contatti -->
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; border-left: 4px solid #8b5cf6;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-              <strong style="color: #1e293b; font-size: 0.95rem;">4. Risposta Modulo Contatti</strong>
-              <span style="background: #f5f3ff; color: #7c3aed; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;">ATTIVO</span>
-            </div>
-            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 6px;"><strong>Evento:</strong> Risposta dell'admin da Casella Postale Hub</div>
-            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 8px;"><strong>Destinatario:</strong> Richiedente</div>
-            <div style="font-size: 0.78rem; background: #ffffff; padding: 6px 8px; border-radius: 6px; border: 1px solid #e2e8f0; color: #475569; font-family: monospace;">
-              Variabili: {{ params.NOME }}, {{ params.OGGETTO }}, {{ params.MESSAGGIO }}
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Editor Testi / Fallback Template -->
-      <div class="glass-panel" style="margin-bottom: 20px;">
-        <div style="background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; color: #92400e; font-size: 0.88rem; line-height: 1.5;">
-          <i class="fa-solid fa-triangle-exclamation" style="color: #d97706; margin-right: 6px; font-size: 1rem;"></i>
-          <strong>ATTENZIONE:</strong> questi testi sono modelli di riferimento per le comunicazioni dirette. Puoi utilizzarli o personalizzarli al momento della composizione dei messaggi.
-        </div>
-
-        <h3 style="color:var(--text-main); margin-top:0; margin-bottom:10px;">Configurazione e Testo di Riferimento</h3>
-        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom: 15px;">
-          Seleziona una comunicazione per visualizzarne o personalizzarne il testo predefinito di riferimento locale:
-        </p>
-        <div style="margin-bottom: 15px;">
-          <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-main);">Seleziona Comunicazione</label>
-          <select id="email-template-select" class="input-form" onchange="HubApp.loadEmailTemplateForSelected()" style="width: 100%; max-width: 450px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <optgroup label="Comunicazioni Transazionali Ecosistema">
-              <option value="abbonamento_attivo">🎉 1. Benvenuto & Attivazione Ecosistema</option>
-              <option value="abbonamento_pagamento">💳 2. Attivazione Piano & Piattaforme</option>
-              <option value="abbonamento_in_scadenza">⏰ 3. Promemoria Scadenza Abbonamento</option>
-              <option value="risposta_contatti">✉️ 4. Risposta Modulo Contatti</option>
-            </optgroup>
-          </select>
-        </div>
-        <div style="margin-bottom: 15px;">
-          <textarea id="email-template-text" class="input-form" style="width: 100%; height: 280px; padding: 15px; font-family: monospace; font-size: 0.9rem; border-radius: 8px; border: 1px solid var(--border-color);"></textarea>
-        </div>
-        <button class="btn" onclick="HubApp.saveEmailTemplate()"><i class="fa-solid fa-floppy-disk"></i> Salva Testo di Riferimento</button>
-      </div>
-    </div>
 
     <!-- View: Notifiche & Comunicazioni Ecosistema -->
     <div id="view-notifiche-admin" class="hub-view">
@@ -2269,7 +2164,7 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
             <div>
               <h3 style="margin:0; color:var(--text-main); font-size:1.15rem; font-weight:800;">Controllo e Diagnostica Ecosistema</h3>
               <p style="color:var(--text-muted); font-size:0.85rem; margin:4px 0 0 0;">
-                Monitoraggio continuo dei 6 repository di baseline, Firebase Auth, Database Centrale, Stripe e Brevo.
+                Monitoraggio continuo dei 6 repository di baseline, Firebase Auth, Database Centrale e Stripe.
               </p>
             </div>
           </div>
@@ -2661,7 +2556,6 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   <script src="js/services/cross-projects.js?v=20260815_2210"></script>
   <script src="js/services/users/user-service.js?v=20260815_2210"></script>
   <script src="js/services/messages/messages-service.js?v=20260815_2210"></script>
-  <script src="js/services/requests/requests-service.js?v=20260815_2210"></script>
   <script src="js/services/games/games-service.js?v=20260815_2210"></script>
   <script src="js/services/newsletter/newsletter-service.js?v=20260815_2210"></script>
   <script src="js/services/ecosystem/ecosystem-service.js?v=20260815_2210"></script>
@@ -2670,7 +2564,6 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   
   <!-- UI Modules -->
   <script src="js/dashboard/messages-ui.js?v=20260815_2210"></script>
-  <script src="js/dashboard/requests-ui.js?v=20260815_2210"></script>
   <script src="js/dashboard/ecosistema-ui.js?v=20260815_2210"></script>
   <script src="js/dashboard/games-ui.js?v=20260815_2210"></script>
   <script src="js/dashboard/users-ui.js?v=20260815_2210"></script>
@@ -2719,9 +2612,6 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
       }
       if (targetId === 'view-legal-admin' && window.LegalAdminUI) {
         window.LegalAdminUI.init();
-      }
-      if (targetId === 'view-email-templates' && window.RequestsUI) {
-        window.RequestsUI.loadEmailTemplateForSelected();
       }
       if (targetId === 'view-impostazioni') {
         if (window.ImpostazioniUI) window.ImpostazioniUI.init();

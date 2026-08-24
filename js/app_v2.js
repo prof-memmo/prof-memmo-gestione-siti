@@ -58,7 +58,6 @@ const HubApp = {
         // Inizializza i nuovi sottomoduli UI
         if(window.UsersUI) window.UsersUI.init();
         if(window.GamesUI) window.GamesUI.init();
-        if(window.RequestsUI) window.RequestsUI.init();
         if(window.NewsletterUI) window.NewsletterUI.init();
         if(window.EcosistemaUI) window.EcosistemaUI.init();
         if(window.ImpostazioniUI) window.ImpostazioniUI.init();
@@ -325,52 +324,6 @@ const HubApp = {
         'abbonamento_pagamento': `Oggetto: Conferma Pagamento e Attivazione Piano - Prof. Memmo 🎉\n\nCiao [NOME],\n\nabbiamo ricevuto la conferma del tuo ordine e il tuo piano è ora attivo.\n\n--- RIEPILOGO ABBONAMENTO ---\nPiano: [PIANO]\nData: [DATA]\n\nAccedi subito al tuo profilo personale:\nhttps://prof-memmo.github.io/games/profilo.html\n\nGrazie per aver scelto l'Ecosistema Didattico Prof. Memmo!\nA presto,\nProf. Memmo`,
 
         'abbonamento_in_scadenza': `Oggetto: Il tuo abbonamento Prof. Memmo è in scadenza ⏰\n\nCiao [NOME],\n\nti ricordiamo che il tuo abbonamento [PIANO] è in scadenza al termine del periodo corrente.\n\nPer continuare a utilizzare tutte le funzionalità avanzate e i materiali didattici senza interruzioni, puoi rinnovare il tuo piano dalla pagina dedicata:\nhttps://prof-memmo.github.io/games/prezzi.html\n\nSe hai domande o desideri chiarimenti, rispondi pure a questa email.\n\nA presto,\nProf. Memmo`
-    },
-
-    loadEmailTemplateForSelected: async function() {
-        const sel = document.getElementById('email-template-select');
-        const textarea = document.getElementById('email-template-text');
-        if (!sel || !textarea) return;
-        const key = sel.value;
-
-        // 1. Inserisce immediatamente il template di default
-        const defaultVal = this._defaultTemplates[key] || '';
-        textarea.value = defaultVal;
-
-        // 2. Se salvato su Firestore, sovrascrive con la personalizzazione
-        try {
-            if (window.fbDb && window.fbDb.hub) {
-                const doc = await window.fbDb.hub.collection('hub_settings').doc('email_templates').get();
-                if (doc.exists && doc.data() && doc.data()[key] !== undefined && doc.data()[key] !== '') {
-                    textarea.value = doc.data()[key];
-                }
-            }
-        } catch(e) {
-            console.warn("Uso template default per:", key);
-        }
-    },
-
-    saveEmailTemplate: async function() {
-        const sel = document.getElementById('email-template-select');
-        const textarea = document.getElementById('email-template-text');
-        if (!sel || !textarea) return;
-        const key = sel.value;
-        const text = textarea.value;
-
-        try {
-            if (window.fbDb && window.fbDb.hub) {
-                await window.fbDb.hub.collection('hub_settings').doc('email_templates').set(
-                    { [key]: text },
-                    { merge: true }
-                );
-                alert('✅ Modello email salvato per: ' + sel.options[sel.selectedIndex].text);
-            } else {
-                alert('Database Hub non disponibile.');
-            }
-        } catch(e) {
-            console.error('Errore salvataggio template email:', e);
-            alert('Errore durante il salvataggio: ' + e.message);
-        }
     }
 };
 

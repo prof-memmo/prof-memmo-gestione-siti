@@ -283,7 +283,7 @@ const DiagnosticsUI = {
                 <div style="text-align: center; padding: 40px 20px;">
                     <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: #6366f1; margin-bottom: 12px; display: block;"></i>
                     <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem;">Verifica dinamica di tutti i componenti registrati nell'ecosistema...</div>
-                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Controllo raggiungibilità progetti, Firebase Auth, Firestore, Stripe e Brevo</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Controllo raggiungibilità progetti, Firebase Auth, Firestore e Stripe</div>
                 </div>
             `;
         }
