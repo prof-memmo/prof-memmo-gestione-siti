@@ -58,6 +58,7 @@ const HubApp = {
         // Inizializza i nuovi sottomoduli UI
         if(window.UsersUI) window.UsersUI.init();
         if(window.GamesUI) window.GamesUI.init();
+        if(window.PaymentsUI) window.PaymentsUI.init();
         if(window.NewsletterUI) window.NewsletterUI.init();
         if(window.EcosistemaUI) window.EcosistemaUI.init();
         if(window.ImpostazioniUI) window.ImpostazioniUI.init();

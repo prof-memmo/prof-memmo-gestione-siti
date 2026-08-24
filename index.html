@@ -337,6 +337,9 @@
     <div class="nav-item" data-target="view-analytics" onclick="switchView('view-analytics')">
       <i class="fa-solid fa-chart-line" style="color:#6366f1;"></i> Analytics
     </div>
+    <div class="nav-item" data-target="view-registro-pagamenti" onclick="switchView('view-registro-pagamenti')">
+      <i class="fa-solid fa-receipt" style="color:#059669;"></i> Registro Pagamenti
+    </div>
     <div class="nav-item" data-target="view-monetizzazione" onclick="switchView('view-monetizzazione')">
       <i class="fa-solid fa-euro-sign" style="color:#10b981;"></i> Monetizzazione e Piani
     </div>
@@ -392,6 +395,9 @@
     </div>
     <div class="mobile-nav-item" data-target="view-analytics" onclick="switchView('view-analytics')" title="Analytics & KPI">
       <i class="fa-solid fa-chart-line" style="color:#6366f1;"></i><span>Analytics</span>
+    </div>
+    <div class="mobile-nav-item" data-target="view-registro-pagamenti" onclick="switchView('view-registro-pagamenti')" title="Registro Pagamenti">
+      <i class="fa-solid fa-receipt" style="color:#059669;"></i><span>Pagamenti</span>
     </div>
 
     <div class="nav-dock-sep"></div>
@@ -1678,6 +1684,146 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
       </div>
     </div>
 
+    <!-- View: Registro Pagamenti (Stripe & Contabilità) -->
+    <div id="view-registro-pagamenti" class="hub-view">
+      <div class="hub-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+        <div>
+          <h2><i class="fa-solid fa-receipt" style="color:#059669;"></i> Registro Pagamenti &amp; Contabilità</h2>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin:4px 0 0 0;">
+            Giornale cronologico delle transazioni Stripe reali (incassi, rinnovi, rimborsi e tentativi falliti) utile a fini contabili e fiscali.
+          </p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" onclick="PaymentsUI.exportCSV()" style="background:#059669; color:white; font-weight:700; display:flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(5,150,105,0.25);">
+            <i class="fa-solid fa-file-csv"></i> Esporta Registro CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+        <div class="glass-panel" style="padding: 16px 20px; border-left: 4px solid #059669;">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Incasso Netto Effettivo</div>
+          <div id="kpi-pay-netto" style="font-size: 1.6rem; font-weight: 900; color: #059669; margin-top: 4px;">0,00 €</div>
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Incassi lordi meno rimborsi</div>
+        </div>
+
+        <div class="glass-panel" style="padding: 16px 20px; border-left: 4px solid #3b82f6;">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Totale Incassi Lordi</div>
+          <div id="kpi-pay-lordo" style="font-size: 1.6rem; font-weight: 900; color: #1e293b; margin-top: 4px;">0,00 €</div>
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Transazioni completate</div>
+        </div>
+
+        <div class="glass-panel" style="padding: 16px 20px; border-left: 4px solid #f59e0b;">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Totale Rimborsi</div>
+          <div id="kpi-pay-rimborsi" style="font-size: 1.6rem; font-weight: 900; color: #d97706; margin-top: 4px;">0,00 €</div>
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Rimborsi totali e parziali</div>
+        </div>
+
+        <div class="glass-panel" style="padding: 16px 20px; border-left: 4px solid #6366f1;">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Transazioni Riuscite</div>
+          <div id="kpi-pay-successi" style="font-size: 1.6rem; font-weight: 900; color: #4338ca; margin-top: 4px;">0</div>
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Acquisti e rinnovi a buon fine</div>
+        </div>
+
+        <div class="glass-panel" style="padding: 16px 20px; border-left: 4px solid #ef4444;">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Pagamenti Falliti</div>
+          <div id="kpi-pay-falliti" style="font-size: 1.6rem; font-weight: 900; color: #dc2626; margin-top: 4px;">0</div>
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Tentativi respinti da Stripe</div>
+        </div>
+      </div>
+
+      <!-- Barra Filtri e Ricerca -->
+      <div class="glass-panel" style="margin-bottom: 20px; padding: 16px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+          <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-filter" style="color: var(--accent);"></i> Filtri &amp; Ricerca Registro
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('month')">Questo Mese</button>
+            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('quarter')">Trimestre</button>
+            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('year')">Anno Corrente</button>
+            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('all')">Tutto lo Storico</button>
+            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px; color: #dc2626;" onclick="PaymentsUI.resetFilters()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Da Data</label>
+            <input type="date" id="payments-date-from" class="input-field" style="margin: 0; width: 100%; padding: 8px 10px; font-size: 0.85rem;" onchange="PaymentsUI.onFilterChange()">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">A Data</label>
+            <input type="date" id="payments-date-to" class="input-field" style="margin: 0; width: 100%; padding: 8px 10px; font-size: 0.85rem;" onchange="PaymentsUI.onFilterChange()">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Piano</label>
+            <select id="payments-filter-plan" class="input-field" style="margin: 0; width: 100%; padding: 8px 10px; font-size: 0.85rem;" onchange="PaymentsUI.onFilterChange()">
+              <option value="all">Tutti i Piani</option>
+              <option value="ecosistema">Docente Ecosistema</option>
+              <option value="didattico">Docente Didattico</option>
+              <option value="viandante">Viandante</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Tipo Operazione</label>
+            <select id="payments-filter-type" class="input-field" style="margin: 0; width: 100%; padding: 8px 10px; font-size: 0.85rem;" onchange="PaymentsUI.onFilterChange()">
+              <option value="all">Tutti i Tipi</option>
+              <option value="primo_acquisto">Primo Acquisto</option>
+              <option value="rinnovo_annuale">Rinnovo Annuale</option>
+              <option value="rimborso">Rimborso</option>
+              <option value="pagamento_fallito">Pagamento Fallito</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Stato</label>
+            <select id="payments-filter-status" class="input-field" style="margin: 0; width: 100%; padding: 8px 10px; font-size: 0.85rem;" onchange="PaymentsUI.onFilterChange()">
+              <option value="all">Tutti gli Stati</option>
+              <option value="completato">Pagato / Completato</option>
+              <option value="rimborsato">Rimborsato</option>
+              <option value="rimborsato_parziale">Parz. Rimborsato</option>
+              <option value="fallito">Fallito</option>
+            </select>
+          </div>
+          <div style="grid-column: span 2;">
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Cerca Cliente / ID Stripe</label>
+            <input type="text" id="payments-search-input" class="input-field" placeholder="Email, nome, UID, cus_, sub_, in_, pi_..." style="margin: 0; width: 100%; padding: 8px 10px; font-size: 0.85rem;" oninput="PaymentsUI.onFilterChange()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabella Registro Pagamenti -->
+      <div class="glass-panel" style="padding: 0; overflow: hidden; margin-bottom: 30px;">
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 800; color: #475569; text-transform: uppercase;">Data e Ora</th>
+                <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 800; color: #475569; text-transform: uppercase;">Cliente &amp; Email</th>
+                <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 800; color: #475569; text-transform: uppercase;">Piano</th>
+                <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 800; color: #475569; text-transform: uppercase;">Tipo Operazione</th>
+                <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 800; color: #475569; text-transform: uppercase; text-align: right;">Importo</th>
+                <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 800; color: #475569; text-transform: uppercase; text-align: center;">Stato</th>
+                <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 800; color: #475569; text-transform: uppercase;">ID Stripe</th>
+                <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 800; color: #475569; text-transform: uppercase; text-align: center;">Documenti</th>
+              </tr>
+            </thead>
+            <tbody id="payments-table-body">
+              <tr>
+                <td colspan="8" style="text-align: center; padding: 25px; color: var(--text-muted);">Caricamento registro pagamenti in corso...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="payments-empty-state" style="display: none; text-align: center; padding: 40px 20px; color: var(--text-muted);">
+          <i class="fa-solid fa-receipt" style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 10px; display: block;"></i>
+          <strong>Nessuna transazione trovata</strong>
+          <p style="font-size: 0.85rem; margin: 4px 0 0 0;">Prova a modificare i filtri per visualizzare le transazioni storiche.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- View: Sostieni il Progetto -->
     <div id="view-sostieni" class="hub-view">
       <div class="hub-header">
@@ -2558,6 +2704,7 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   <script src="js/services/messages/messages-service.js?v=20260815_2210"></script>
   <script src="js/services/games/games-service.js?v=20260815_2210"></script>
   <script src="js/services/newsletter/newsletter-service.js?v=20260815_2210"></script>
+  <script src="js/services/payments/payments-service.js?v=20260824_1000"></script>
   <script src="js/services/ecosystem/ecosystem-service.js?v=20260815_2210"></script>
   <script src="js/services/archive/archive-service.js?v=20260815_2210"></script>
   <script src="js/services/diagnostics/diagnostics-service.js?v=20260815_2210"></script>
@@ -2567,6 +2714,7 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   <script src="js/dashboard/ecosistema-ui.js?v=20260815_2210"></script>
   <script src="js/dashboard/games-ui.js?v=20260815_2210"></script>
   <script src="js/dashboard/users-ui.js?v=20260815_2210"></script>
+  <script src="js/dashboard/payments-ui.js?v=20260824_1000"></script>
   <script src="js/dashboard/vetrina-ui.js?v=20260815_2210"></script>
   
   <script src="js/dashboard/newsletter-ui.js?v=20260822_1500"></script>
@@ -2605,6 +2753,9 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
         } else {
           window.AnalyticsUI.initExpenses();
         }
+      }
+      if (targetId === 'view-registro-pagamenti' && window.PaymentsUI) {
+        window.PaymentsUI.init();
       }
       if (targetId === 'view-notifiche-admin') {
         if (window.NotificationsUI) window.NotificationsUI.init();

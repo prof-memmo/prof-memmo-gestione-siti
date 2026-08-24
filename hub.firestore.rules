@@ -443,5 +443,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ==============================================================
+    // REGISTRO PAGAMENTI E TRANSAZIONI STRIPE (Solo Super Admin)
+    // ==============================================================
+    match /hub_transactions/{transactionId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
   }
 }
