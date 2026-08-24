@@ -156,10 +156,10 @@ const UsersUI = {
                         <a href="https://prof-memmo.github.io/games/profilo.html?preview=${user.id}" target="_blank" title="Anteprima Profilo Utente" style="color: #6366f1; font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-eye"></i>
                         </a>
-                        <a href="mailto:${user.email}" title="Scrivi a ${user.nome}" style="color: var(--primary-color); font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                        <a href="mailto:${user.email || ''}" title="Scrivi a ${(user.nome || 'Utente').replace(/"/g, '&quot;')}" style="color: var(--primary-color); font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-envelope"></i>
                         </a>
-                        <button type="button" style="background: none; border: none; padding: 0; color: #ef4444; font-size: 1.15rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="window.UsersUI.openDeleteUserModal('${user.id}', '${user.email}', '${user.nome.replace(/'/g, "\\'") }', '${user.gioco}')" title="Elimina Utente">
+                        <button type="button" style="background: none; border: none; padding: 0; color: #ef4444; font-size: 1.15rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="window.UsersUI.openDeleteUserModal('${user.id}', '${(user.email || '').replace(/'/g, &quot;\\'&quot;)}', '${(user.nome || 'Utente').replace(/'/g, &quot;\\'&quot;)}', '${(user.gioco || 'Hub').replace(/'/g, &quot;\\'&quot;)}')" title="Elimina Utente">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>

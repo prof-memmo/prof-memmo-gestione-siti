@@ -80,8 +80,9 @@ const CrossProjectsService = {
 
                 return {
                     id: doc.name.split('/').pop(),
-                    nome: (fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || (fields.username && fields.username.stringValue) || (((fields.firstName && fields.firstName.stringValue) || (fields.lastName && fields.lastName.stringValue)) ? (((fields.firstName && fields.firstName.stringValue) || '') + ' ' + ((fields.lastName && fields.lastName.stringValue) || '')).trim() : 'Utente'),
+                    nome: ((fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || (fields.username && fields.username.stringValue) || (((fields.firstName && fields.firstName.stringValue) || (fields.lastName && fields.lastName.stringValue)) ? (((fields.firstName && fields.firstName.stringValue) || '') + ' ' + ((fields.lastName && fields.lastName.stringValue) || '')).trim() : 'Utente')).trim() || 'Utente',
                     email: (fields.email && fields.email.stringValue) || '',
+                    avatar: (fields.avatar && fields.avatar.stringValue) || (fields.photoURL && fields.photoURL.stringValue) || (fields.foto && fields.foto.stringValue) || '',
                     ruolo: rawRole,
                     classe: (fields.classId && fields.classId.stringValue) || (fields.class && fields.class.stringValue) || 'N/A',
                     dataValue: dataVal,
