@@ -652,9 +652,9 @@ const UsersUI = {
             const matchesOverride = filterOverride === 'all' || (filterOverride === 'override' && !!user.admin_override);
 
             // Riconoscimento accurato e universale dei ruoli
-            const r = (user.ruolo || '').toLowerCase();
-            const p = (user.plan || '').toLowerCase();
-            const e = (user.email || '').toLowerCase();
+            const r = String(user.ruolo || '').toLowerCase();
+            const p = String(user.plan || '').toLowerCase();
+            const e = String(user.email || '').toLowerCase();
 
             const isDoc = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r.includes('prof') || r.includes('judge') || p.includes('docente') || p.includes('didattic') || p.includes('ecosistema') || e === 'prof.memmo@gmail.com';
             const isViand = !isDoc && (r.includes('viandante') || r.includes('forestiero') || r.includes('amico') || r.includes('guest') || r.includes('pellegrino') || p.includes('viandante'));

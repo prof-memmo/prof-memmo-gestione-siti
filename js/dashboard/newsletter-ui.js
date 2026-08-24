@@ -23,7 +23,8 @@ const NewsletterUI = {
     },
 
     getPlanLabelAndBadge: function(user) {
-        const pRaw = (user.abbonamento || user.subscription || user.piano || user.plan || 'base').toLowerCase().trim();
+        if (!user) return { key: 'base', label: 'Piano Base', isPaid: false, color: '#64748b', bg: '#f8fafc', icon: 'fa-circle-check' };
+        const pRaw = String(user.abbonamento || user.subscription || user.piano || user.plan || 'base').toLowerCase().trim();
         if (pRaw.includes('ecosistema')) {
             return { key: 'docente_ecosistema', label: 'Ecosistema Completo', isPaid: true, color: '#059669', bg: '#ecfdf5', icon: 'fa-crown' };
         } else if (pRaw.includes('didattico')) {
@@ -44,7 +45,7 @@ const NewsletterUI = {
         const total = this.users.length;
         const withConsent = this.users.filter(u => this.hasConsent(u)).length;
         const docenti = this.users.filter(u => {
-            const r = (u.ruolo || u.role || '').toLowerCase();
+            const r = String(u.ruolo || u.role || '').toLowerCase();
             return r.includes('docente') || r.includes('prof');
         }).length;
         const abbonati = this.users.filter(u => this.getPlanLabelAndBadge(u).isPaid).length;
@@ -354,7 +355,7 @@ const NewsletterUI = {
             const isChecked = this.selectedUids.has(uId);
             
             // Badge Ruolo
-            const rRaw = (user.ruolo || user.role || 'viandante').toLowerCase();
+            const rRaw = String(user.ruolo || user.role || 'viandante').toLowerCase();
             let roleBadge = `<span style="background:#f1f5f9; color:#475569; padding:3px 8px; border-radius:6px; font-size:0.8rem; font-weight:600;">Viandante</span>`;
             if (rRaw.includes('docente') || rRaw.includes('prof')) {
                 roleBadge = `<span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:6px; font-size:0.8rem; font-weight:600;">Docente</span>`;

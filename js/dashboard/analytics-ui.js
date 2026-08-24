@@ -153,13 +153,13 @@ const AnalyticsUI = {
 
         iscritti.forEach(user => {
             // Normalizzazione Ruolo Unificato
-            const rRaw = (user.ruolo || user.role || '').toLowerCase().trim();
+            const rRaw = String(user.ruolo || user.role || '').toLowerCase().trim();
             let ruoloUnificato = 'viandante';
             if (rRaw.includes('student') || rRaw === 'studente') {
                 ruoloUnificato = 'studente';
             } else if (rRaw.includes('teacher') || rRaw.includes('docente') || rRaw === 'prof') {
                 ruoloUnificato = 'docente';
-            } else if (rRaw.includes('admin') || (user.email && user.email.toLowerCase() === 'prof.memmo@gmail.com')) {
+            } else if (rRaw.includes('admin') || (user.email && String(user.email).toLowerCase() === 'prof.memmo@gmail.com')) {
                 ruoloUnificato = 'admin';
             } else {
                 ruoloUnificato = 'viandante';
@@ -167,7 +167,7 @@ const AnalyticsUI = {
             stats.ruoli[ruoloUnificato] = (stats.ruoli[ruoloUnificato] || 0) + 1;
 
             // Normalizzazione e Conteggio Piani
-            const pRaw = (user.abbonamento || user.subscription || user.piano || user.plan || 'base').toLowerCase().trim();
+            const pRaw = String(user.abbonamento || user.subscription || user.piano || user.plan || 'base').toLowerCase().trim();
             let pianoLabel = 'Piano Base';
             
             if (pRaw.includes('ecosistema') || pRaw === 'docente_ecosistema') {
@@ -320,7 +320,7 @@ const AnalyticsUI = {
             if (startTs && t < startTs) return;
             if (endTs && t > endTs) return;
 
-            const p = (user.abbonamento || user.subscription || user.piano || user.plan || 'base').toLowerCase();
+            const p = String(user.abbonamento || user.subscription || user.piano || user.plan || 'base').toLowerCase();
             let amount = 0;
             if (p.includes('viandante')) amount = prices.viandante;
             else if (p.includes('didattic') || p === 'docente_didattico') amount = prices.docente_didattico;
