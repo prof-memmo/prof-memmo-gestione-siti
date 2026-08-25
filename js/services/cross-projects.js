@@ -4,34 +4,32 @@
 const CrossProjectsService = {
     getAuthTokenFromDB: async function(apiKey, appName = "[DEFAULT]") {
         return new Promise((resolve) => {
-            const req = indexedDB.open('firebaseLocalStorageDb');
-            req.onsuccess = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains('firebaseLocalStorage')) return resolve(null);
-                const tx = db.transaction('firebaseLocalStorage', 'readonly');
-                const store = tx.objectStore('firebaseLocalStorage');
-                const getReq = store.get(`firebase:authUser:${apiKey}:${appName}`);
-                getReq.onsuccess = (e2) => {
-                    if (e2.target.result && e2.target.result.value.stsTokenManager) {
-                        resolve(e2.target.result.value.stsTokenManager);
-                    } else {
-                        // Fallback su tutti i token disponibili in local storage
-                        const getAllReq = store.getAll();
-                        getAllReq.onsuccess = (e3) => {
-                            const items = e3.target.result || [];
-                            for (const it of items) {
-                                if (it && it.value && it.value.stsTokenManager) {
-                                    return resolve(it.value.stsTokenManager);
-                                }
+            const timeout = setTimeout(() => resolve(null), 800);
+            try {
+                const req = indexedDB.open('firebaseLocalStorageDb');
+                req.onsuccess = (e) => {
+                    clearTimeout(timeout);
+                    const db = e.target.result;
+                    if (!db || !db.objectStoreNames.contains('firebaseLocalStorage')) return resolve(null);
+                    const tx = db.transaction('firebaseLocalStorage', 'readonly');
+                    const store = tx.objectStore('firebaseLocalStorage');
+                    const getAllReq = store.getAll();
+                    getAllReq.onsuccess = (e2) => {
+                        const items = e2.target.result || [];
+                        for (const it of items) {
+                            if (it && it.value && it.value.stsTokenManager) {
+                                return resolve(it.value.stsTokenManager);
                             }
-                            resolve(null);
-                        };
-                        getAllReq.onerror = () => resolve(null);
-                    }
+                        }
+                        resolve(null);
+                    };
+                    getAllReq.onerror = () => resolve(null);
                 };
-                getReq.onerror = () => resolve(null);
-            };
-            req.onerror = () => resolve(null);
+                req.onerror = () => { clearTimeout(timeout); resolve(null); };
+            } catch(err) {
+                clearTimeout(timeout);
+                resolve(null);
+            }
         });
     },
 
@@ -40,57 +38,62 @@ const CrossProjectsService = {
             const tokenManager = await CrossProjectsService.getAuthTokenFromDB(apiKey, appName);
             if (!tokenManager || !tokenManager.refreshToken) return [];
             
-            // Forza il refresh del token per evitare errori 401/403 (token scaduto dopo 1h)
-            const refreshRes = await fetch(`https://securetoken.googleapis.com/v1/token?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `grant_type=refresh_token&refresh_token=${tokenManager.refreshToken}`
-            });
-            const refreshData = await refreshRes.json();
-            const validToken = refreshData.id_token || tokenManager.accessToken;
+            // Timeout per evitare chiamate di rete appese
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1500));
+            
+            const networkTask = async () => {
+                const refreshRes = await fetch(`https://securetoken.googleapis.com/v1/token?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `grant_type=refresh_token&refresh_token=${tokenManager.refreshToken}`
+                });
+                const refreshData = await refreshRes.json();
+                const validToken = refreshData.id_token || tokenManager.accessToken;
 
-            const res = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users?pageSize=1000`, {
-                headers: { Authorization: `Bearer ${validToken}` }
-            });
-            const data = await res.json();
-            if (!data.documents) return [];
-            return data.documents.map(doc => {
-                const fields = doc.fields || {};
-                let dataVal = 0;
-                if (fields.createdAt && fields.createdAt.integerValue) dataVal = parseInt(fields.createdAt.integerValue);
-                else if (fields.joinedAt && fields.joinedAt.integerValue) dataVal = parseInt(fields.joinedAt.integerValue);
-                else if (fields.createdAt && fields.createdAt.timestampValue) dataVal = new Date(fields.createdAt.timestampValue).getTime();
-                else if (fields.joinedAt && fields.joinedAt.timestampValue) dataVal = new Date(fields.joinedAt.timestampValue).getTime();
-                else if (fields.createdAt && fields.createdAt.stringValue) dataVal = new Date(fields.createdAt.stringValue).getTime();
-                else if (fields.joinedAt && fields.joinedAt.stringValue) dataVal = new Date(fields.joinedAt.stringValue).getTime();
-                
-                const rawRole = (fields.role && fields.role.stringValue) || (fields.ruolo && fields.ruolo.stringValue) || 'studente';
-                const rawPlan = (fields.plan && fields.plan.stringValue) || 
-                                (fields.piano && fields.piano.stringValue) || 
-                                (fields.subscription && fields.subscription.stringValue) || 
-                                (fields.abbonamento && fields.abbonamento.stringValue) || 
-                                (rawRole === 'studente' ? 'studente' : 'base');
+                const res = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users?pageSize=1000`, {
+                    headers: { Authorization: `Bearer ${validToken}` }
+                });
+                const data = await res.json();
+                if (!data.documents) return [];
+                return data.documents.map(doc => {
+                    const fields = doc.fields || {};
+                    let dataVal = 0;
+                    if (fields.createdAt && fields.createdAt.integerValue) dataVal = parseInt(fields.createdAt.integerValue);
+                    else if (fields.joinedAt && fields.joinedAt.integerValue) dataVal = parseInt(fields.joinedAt.integerValue);
+                    else if (fields.createdAt && fields.createdAt.timestampValue) dataVal = new Date(fields.createdAt.timestampValue).getTime();
+                    else if (fields.joinedAt && fields.joinedAt.timestampValue) dataVal = new Date(fields.joinedAt.timestampValue).getTime();
+                    else if (fields.createdAt && fields.createdAt.stringValue) dataVal = new Date(fields.createdAt.stringValue).getTime();
+                    else if (fields.joinedAt && fields.joinedAt.stringValue) dataVal = new Date(fields.joinedAt.stringValue).getTime();
+                    
+                    const rawRole = (fields.role && fields.role.stringValue) || (fields.ruolo && fields.ruolo.stringValue) || 'studente';
+                    const rawPlan = (fields.plan && fields.plan.stringValue) || 
+                                    (fields.piano && fields.piano.stringValue) || 
+                                    (fields.subscription && fields.subscription.stringValue) || 
+                                    (fields.abbonamento && fields.abbonamento.stringValue) || 
+                                    (rawRole === 'studente' ? 'studente' : 'base');
 
-                const rawOverride = (fields.admin_override && fields.admin_override.booleanValue !== undefined ? fields.admin_override.booleanValue : (fields.adminOverride && fields.adminOverride.booleanValue !== undefined ? fields.adminOverride.booleanValue : (fields.isAdminOverride && fields.isAdminOverride.booleanValue !== undefined ? fields.isAdminOverride.booleanValue : false)));
+                    const rawOverride = (fields.admin_override && fields.admin_override.booleanValue !== undefined ? fields.admin_override.booleanValue : (fields.adminOverride && fields.adminOverride.booleanValue !== undefined ? fields.adminOverride.booleanValue : (fields.isAdminOverride && fields.isAdminOverride.booleanValue !== undefined ? fields.isAdminOverride.booleanValue : false)));
 
-                const rawScadenza = (fields.abbonamento_scadenza && fields.abbonamento_scadenza.stringValue) || 
-                                     (fields.scadenza && fields.scadenza.stringValue) || '';
+                    const rawScadenza = (fields.abbonamento_scadenza && fields.abbonamento_scadenza.stringValue) || 
+                                         (fields.scadenza && fields.scadenza.stringValue) || '';
 
-                return {
-                    id: doc.name.split('/').pop(),
-                    nome: ((fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || (fields.username && fields.username.stringValue) || (((fields.firstName && fields.firstName.stringValue) || (fields.lastName && fields.lastName.stringValue)) ? (((fields.firstName && fields.firstName.stringValue) || '') + ' ' + ((fields.lastName && fields.lastName.stringValue) || '')).trim() : 'Utente')).trim() || 'Utente',
-                    email: (fields.email && fields.email.stringValue) || '',
-                    avatar: (fields.avatar && fields.avatar.stringValue) || (fields.photoURL && fields.photoURL.stringValue) || (fields.foto && fields.foto.stringValue) || '',
-                    ruolo: rawRole,
-                    classe: (fields.classId && fields.classId.stringValue) || (fields.class && fields.class.stringValue) || 'N/A',
-                    dataValue: dataVal,
-                    plan: rawPlan,
-                    admin_override: rawOverride,
-                    abbonamento_scadenza: rawScadenza
-                };
-            });
+                    return {
+                        id: doc.name.split('/').pop(),
+                        nome: ((fields.nome && fields.nome.stringValue) || (fields.name && fields.name.stringValue) || (fields.displayName && fields.displayName.stringValue) || (fields.username && fields.username.stringValue) || (((fields.firstName && fields.firstName.stringValue) || (fields.lastName && fields.lastName.stringValue)) ? (((fields.firstName && fields.firstName.stringValue) || '') + ' ' + ((fields.lastName && fields.lastName.stringValue) || '')).trim() : 'Utente')).trim() || 'Utente',
+                        email: (fields.email && fields.email.stringValue) || '',
+                        avatar: (fields.avatar && fields.avatar.stringValue) || (fields.photoURL && fields.photoURL.stringValue) || (fields.foto && fields.foto.stringValue) || '',
+                        ruolo: rawRole,
+                        classe: (fields.classId && fields.classId.stringValue) || (fields.class && fields.class.stringValue) || 'N/A',
+                        dataValue: dataVal,
+                        plan: rawPlan,
+                        admin_override: rawOverride,
+                        abbonamento_scadenza: rawScadenza
+                    };
+                });
+            };
+
+            return await Promise.race([networkTask(), timeoutPromise]);
         } catch(e) {
-            console.error("REST Fetch error for " + projectId, e);
             return [];
         }
     },
