@@ -126,7 +126,9 @@ const CrossProjectsService = {
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon',
-                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base'),
+                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
+                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
                     });
                 });
             } catch(e) { console.warn("Fanta Hub fetch error:", e); }
@@ -145,7 +147,9 @@ const CrossProjectsService = {
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship',
-                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base'),
+                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
+                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
                     });
                 });
             } catch(e) { console.warn("Eroi Hub fetch error:", e); }
@@ -164,7 +168,9 @@ const CrossProjectsService = {
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain',
-                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base'),
+                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
+                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
                     });
                 });
             } catch(e) { console.warn("Palestra Hub fetch error:", e); }
@@ -183,7 +189,9 @@ const CrossProjectsService = {
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open',
-                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base'),
+                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
+                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
                     });
                 });
             } catch(e) { console.warn("Commedia Hub fetch error:", e); }
@@ -202,7 +210,9 @@ const CrossProjectsService = {
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left',
-                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base')
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base'),
+                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
+                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
                     });
                 });
             } catch(e) { console.warn("Ops Hub fetch error:", e); }
@@ -223,7 +233,9 @@ const CrossProjectsService = {
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
                         gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe',
-                        plan: data.subscription || data.abbonamento || (data.role === 'studente' ? 'studente' : 'base')
+                        plan: data.subscription || data.abbonamento || (data.role === 'studente' ? 'studente' : 'base'),
+                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
+                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
                     });
                 });
             } catch(e) { console.warn("Hub users fetch error:", e); }
@@ -285,6 +297,11 @@ const CrossProjectsService = {
                     }
                     if (u.plan && u.plan !== 'base') {
                         existing.plan = u.plan;
+                    }
+                    if (u.newsletter === true || (u.consents && u.consents.newsletter === true)) {
+                        existing.newsletter = true;
+                        if (!existing.consents) existing.consents = {};
+                        existing.consents.newsletter = true;
                     }
                     // Se l'utente è docente in uno dei giochi o ha piano docente, impostalo come docente
                     const uRole = String(u.ruolo || '').toLowerCase();
