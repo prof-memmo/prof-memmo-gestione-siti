@@ -306,6 +306,18 @@
       }
     }
 
+    async function ensureAllAppsAuthenticated() {
+      if (!window.currentGoogleCredential) {
+        log("👉 Apertura finestra Google per autorizzare l'accesso ai database legacy...");
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        const result = await hubAuth.signInWithPopup(provider);
+        window.currentGoogleCredential = result.credential;
+        log(`✅ Super-Admin autenticato: ${result.user.email}`);
+      }
+      await authenticateAllSourceApps(window.currentGoogleCredential);
+    }
+
     async function connectAdminWithGoogle() {
       log("🔑 Autenticazione con account Google in corso...");
       try {
@@ -518,6 +530,8 @@
     async function migrateGame(gameKey) {
       const g = oldConfigs[gameKey];
       if (!g) return;
+
+      await ensureAllAppsAuthenticated();
 
       log(`\n=======================================================`);
       log(`🚀 AVVIO MIGRAZIONE [${g.name.toUpperCase()}] -> Prefisso '${g.prefix}'`);
