@@ -488,15 +488,22 @@ const CrossProjectsService = {
             const r = String(u.ruolo || '').toLowerCase();
             const p = String(u.plan || '').toLowerCase();
             const e = String(u.email || '').toLowerCase();
+            const c = String(u.classe || '').toUpperCase().trim();
 
             const isDoc = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r.includes('prof') || r.includes('judge') || p.includes('docente') || p.includes('didattic') || p.includes('ecosistema') || e === 'prof.memmo@gmail.com';
-            const isViand = !isDoc && (r.includes('viandante') || r.includes('forestiero') || r.includes('amico') || r.includes('guest') || r.includes('pellegrino') || p.includes('viandante'));
+            const isStud = !isDoc && (r === 'studente' || r === 'student') && c !== 'N/A' && c !== 'N/D' && c !== '' && c !== 'TEST';
 
-            if (isDoc) cDocenti++;
-            else if (isViand) cViandanti++;
-            else cStudenti++;
+            if (isDoc) {
+                u.ruolo = (e === 'prof.memmo@gmail.com' || r.includes('admin')) ? 'admin' : 'docente';
+                cDocenti++;
+            } else if (isStud) {
+                u.ruolo = 'studente';
+                cStudenti++;
+            } else {
+                u.ruolo = 'viandante';
+                cViandanti++;
+            }
 
-            let c = String(u.classe || '').toUpperCase().trim();
             let s = String(u.scuola || u.school || '').trim();
             if (s && s.toUpperCase() !== 'N/A' && s.toUpperCase() !== 'N/D') {
                 scuoleSet.add(s.toLowerCase());

@@ -828,10 +828,11 @@ const UsersUI = {
             const r = String(user.ruolo || '').toLowerCase();
             const p = String(user.plan || '').toLowerCase();
             const e = String(user.email || '').toLowerCase();
+            const c = String(user.classe || '').toUpperCase().trim();
 
             const isDoc = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r.includes('prof') || r.includes('judge') || p.includes('docente') || p.includes('didattic') || p.includes('ecosistema') || e === 'prof.memmo@gmail.com';
-            const isViand = !isDoc && (r.includes('viandante') || r.includes('forestiero') || r.includes('amico') || r.includes('guest') || r.includes('pellegrino') || p.includes('viandante'));
-            const isStud = !isDoc && !isViand;
+            const isStud = !isDoc && (r === 'studente' || r === 'student') && c !== 'N/A' && c !== 'N/D' && c !== '' && c !== 'TEST';
+            const isViand = !isDoc && !isStud;
 
             let matchesRole = true;
             if (this.activeRoleFilter === 'studenti') {
