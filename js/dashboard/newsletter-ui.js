@@ -12,8 +12,78 @@ const NewsletterUI = {
     currentGroups: [],
 
     init: function() {
+        this.initSyncStatusListener();
         this.updateStats();
         this.filterNews();
+    },
+
+    /**
+     * Ascolta in tempo reale le informazioni sull'ultimo allineamento Brevo
+     */
+    initSyncStatusListener: function() {
+        if (!window.NewsletterService || !window.NewsletterService.listenToSyncStatus) return;
+        
+        window.NewsletterService.listenToSyncStatus(statusData => {
+            const el = document.getElementById('brevo-last-sync-text');
+            if (!el) return;
+
+            if (!statusData || !statusData.lastSyncAt) {
+                el.innerHTML = `Sincronizzazione in tempo reale attiva. <em>(Nessun allineamento massivo recente)</em>`;
+                return;
+            }
+
+            let dateStr = 'Data non disponibile';
+            if (statusData.lastSyncAt.toDate) {
+                dateStr = statusData.lastSyncAt.toDate().toLocaleString('it-IT');
+            } else if (typeof statusData.lastSyncAt === 'string') {
+                dateStr = new Date(statusData.lastSyncAt).toLocaleString('it-IT');
+            }
+
+            const count = statusData.consentedSynced !== undefined ? statusData.consentedSynced : (statusData.totalEvaluated || 0);
+            el.innerHTML = `Ultimo allineamento: <strong>${dateStr}</strong> &bull; <strong>${count}</strong> iscritti attivi su Brevo`;
+        });
+    },
+
+    /**
+     * Trigger manuale per forzare l'allineamento di tutti i contatti con Brevo
+     */
+    triggerManualSync: async function() {
+        const btn = document.getElementById('btn-sync-brevo');
+        const icon = document.getElementById('icon-sync-brevo');
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.style.cursor = 'not-allowed';
+        }
+        if (icon) {
+            icon.className = 'fa-solid fa-spinner fa-spin';
+        }
+
+        try {
+            if (!window.NewsletterService || !window.NewsletterService.syncAllWithBrevo) {
+                throw new Error("NewsletterService non disponibile.");
+            }
+
+            const result = await window.NewsletterService.syncAllWithBrevo();
+            
+            const countConsented = result.consentedSynced !== undefined ? result.consentedSynced : 0;
+            const total = result.totalUsers !== undefined ? result.totalUsers : 0;
+            
+            alert(`✅ Sincronizzazione con Brevo completata con successo!\n\n• Iscritti allineati nella Lista 3: ${countConsented}\n• Utenti totali verificati: ${total}\n\nOra puoi aprire Brevo e inviare o programmare la tua newsletter.`);
+        } catch (err) {
+            console.error("Errore durante la sincronizzazione con Brevo:", err);
+            alert("❌ Errore durante la sincronizzazione con Brevo:\n" + (err.message || err));
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            }
+            if (icon) {
+                icon.className = 'fa-solid fa-arrows-rotate';
+            }
+        }
     },
 
     setUsers: function(usersArray) {

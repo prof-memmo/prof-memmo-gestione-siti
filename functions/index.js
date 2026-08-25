@@ -590,3 +590,379 @@ exports.requestSubscriptionRefund = functions.runWith({
         message: "Richiesta di rimborso completata con successo. L'importo verrà restituito sul metodo di pagamento originario entro i tempi tecnici bancari (5-10 giorni lavorativi)."
     };
 });
+
+// ============================================================================
+// MODULO BREVO: Sincronizzazione Bidirezionale Newsletter (Lista ID 3)
+// ============================================================================
+
+/**
+ * Recupera configurazione Brevo da variabili d'ambiente o firebase config
+ */
+function getBrevoConfig() {
+    const apiKey = process.env.BREVO_API_KEY || (functions.config().brevo && functions.config().brevo.key);
+    const listIdRaw = process.env.BREVO_LIST_ID || (functions.config().brevo && functions.config().brevo.list_id) || "3";
+    const listId = parseInt(listIdRaw, 10) || 3;
+    return { apiKey, listId };
+}
+
+/**
+ * Normalizza il nome del piano per gli attributi di Brevo
+ */
+function getNormalizedPlanLabel(userData) {
+    if (!userData) return "Piano Base";
+    const p = String(userData.abbonamento || userData.subscription?.status || userData.piano || userData.plan || "base").toLowerCase().trim();
+    if (p.includes("ecosistema") || p.includes("completo")) return "Ecosistema Completo";
+    if (p.includes("didattico")) return "Docente Didattico";
+    if (p.includes("viandante")) return "Viandante";
+    return "Piano Base";
+}
+
+/**
+ * Normalizza il ruolo per gli attributi di Brevo
+ */
+function getNormalizedRole(userData) {
+    if (!userData) return "Viandante";
+    const r = String(userData.ruolo || userData.role || "").toLowerCase().trim();
+    if (r.includes("docente") || r.includes("prof")) return "Docente";
+    if (r.includes("student")) return "Studente";
+    if (r.includes("admin")) return "Amministratore";
+    return "Viandante";
+}
+
+/**
+ * Esegue una chiamata REST autenticata alle API v3 di Brevo
+ */
+async function callBrevoApi(endpoint, method = "GET", body = null) {
+    const { apiKey } = getBrevoConfig();
+    if (!apiKey || apiKey.includes("dummy")) {
+        console.warn("⚠️ Brevo API Key non configurata o fittizia.");
+        return { ok: false, status: 400, data: { message: "Brevo API Key non configurata" } };
+    }
+
+    const url = `https://api.brevo.com/v3${endpoint}`;
+    const headers = {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    };
+
+    const options = {
+        method: method,
+        headers: headers
+    };
+
+    if (body) {
+        options.body = JSON.stringify(body);
+    }
+
+    try {
+        const response = await fetch(url, options);
+        let resData = null;
+        try {
+            resData = await response.json();
+        } catch (jsonErr) {
+            resData = null;
+        }
+
+        return {
+            ok: response.ok,
+            status: response.status,
+            data: resData
+        };
+    } catch (err) {
+        console.error(`Errore chiamata Brevo API [${method} ${endpoint}]:`, err);
+        return { ok: false, status: 500, error: err.message };
+    }
+}
+
+/**
+ * Aggiunge o aggiorna un singolo contatto su Brevo (Lista ID 3) con i suoi attributi
+ */
+async function upsertBrevoContact(userData, listId) {
+    const email = (userData.email || "").toLowerCase().trim();
+    if (!email || !email.includes("@")) return { ok: false, reason: "Email non valida" };
+
+    const payload = {
+        email: email,
+        attributes: {
+            NOME: (userData.nome || "").trim(),
+            COGNOME: (userData.cognome || "").trim(),
+            RUOLO: getNormalizedRole(userData),
+            PIANO: getNormalizedPlanLabel(userData)
+        },
+        listIds: [listId],
+        updateEnabled: true
+    };
+
+    return await callBrevoApi("/contacts", "POST", payload);
+}
+
+/**
+ * Rimuove un contatto dalla Lista di Brevo
+ */
+async function removeBrevoContactFromList(email, listId) {
+    if (!email || !email.includes("@")) return { ok: false, reason: "Email non valida" };
+    const cleanEmail = email.toLowerCase().trim();
+
+    // Rimuove l'utente dalla lista specifica
+    return await callBrevoApi(`/contacts/lists/${listId}/contacts/remove`, "POST", {
+        emails: [cleanEmail]
+    });
+}
+
+/**
+ * 1. TRIGGER REALTIME FIRESTORE: onUserWriteSyncBrevo
+ * Scatta in automatico ad ogni creazione o modifica di un utente in hub_users.
+ * Sincronizza lo stato newsletter istantaneamente su Brevo a zero click.
+ */
+exports.onUserWriteSyncBrevo = functions.runWith({
+    maxInstances: 5,
+    timeoutSeconds: 15,
+    memory: "128MB"
+}).firestore.document("hub_users/{userId}").onWrite(async (change, context) => {
+    const { apiKey, listId } = getBrevoConfig();
+    if (!apiKey) {
+        console.warn("⚠️ onUserWriteSyncBrevo: Brevo API Key non impostata.");
+        return null;
+    }
+
+    const beforeData = change.before.exists ? change.before.data() : null;
+    const afterData = change.after.exists ? change.after.data() : null;
+
+    // Se l'utente è stato cancellato da Firestore
+    if (!afterData) {
+        if (beforeData && beforeData.email) {
+            console.log(`🗑️ Utente eliminato da Firestore, rimozione da Brevo Lista ${listId}: ${beforeData.email}`);
+            await removeBrevoContactFromList(beforeData.email, listId);
+        }
+        return null;
+    }
+
+    const email = (afterData.email || "").toLowerCase().trim();
+    if (!email || !email.includes("@")) return null;
+
+    const hasConsentAfter = afterData.newsletter === true || (afterData.consents && afterData.consents.newsletter === true);
+    const hasConsentBefore = beforeData ? (beforeData.newsletter === true || (beforeData.consents && beforeData.consents.newsletter === true)) : false;
+
+    // Controllo idempotenza: evitiamo chiamate inutili se i dati newsletter e anagrafici sono identici
+    if (beforeData) {
+        const emailBefore = (beforeData.email || "").toLowerCase().trim();
+        const roleBefore = getNormalizedRole(beforeData);
+        const roleAfter = getNormalizedRole(afterData);
+        const planBefore = getNormalizedPlanLabel(beforeData);
+        const planAfter = getNormalizedPlanLabel(afterData);
+        const nomeBefore = (beforeData.nome || "").trim();
+        const nomeAfter = (afterData.nome || "").trim();
+        const cognomeBefore = (beforeData.cognome || "").trim();
+        const cognomeAfter = (afterData.cognome || "").trim();
+
+        const isUnchanged = (hasConsentBefore === hasConsentAfter) &&
+            (emailBefore === email) &&
+            (roleBefore === roleAfter) &&
+            (planBefore === planAfter) &&
+            (nomeBefore === nomeAfter) &&
+            (cognomeBefore === cognomeAfter);
+
+        if (isUnchanged) {
+            return null; // Nessuna variazione rilevante
+        }
+    }
+
+    try {
+        if (hasConsentAfter) {
+            console.log(`✉️ Sincronizzazione automatica su Brevo (Iscritto): ${email}`);
+            await upsertBrevoContact(afterData, listId);
+        } else {
+            console.log(`🚫 Sincronizzazione automatica su Brevo (Non iscritto o revocato): ${email}`);
+            await removeBrevoContactFromList(email, listId);
+        }
+    } catch (e) {
+        console.error(`Errore sincronizzazione automatica Brevo per ${email}:`, e);
+    }
+
+    return null;
+});
+
+/**
+ * 2. CALLABLE FUNCTION: syncAllBrevoContacts
+ * Esegue la sincronizzazione massiva di tutti gli utenti presenti in hub_users.
+ * Utilizzabile dall'Hub Admin tramite il pulsante "Sincronizza Tutto".
+ */
+exports.syncAllBrevoContacts = functions.runWith({
+    maxInstances: 2,
+    timeoutSeconds: 120,
+    memory: "256MB"
+}).https.onCall(async (data, context) => {
+    // 1. Verifica autenticazione
+    if (!context.auth || !context.auth.uid) {
+        throw new functions.https.HttpsError("unauthenticated", "È necessario essere autenticati.");
+    }
+
+    const callerEmail = (context.auth.token.email || "").toLowerCase().trim();
+    const isSuperAdmin = (callerEmail === "prof.memmo@gmail.com");
+
+    // Verifica ruolo Admin se non è la mail superadmin
+    if (!isSuperAdmin) {
+        const callerDoc = await db.collection("hub_users").doc(context.auth.uid).get();
+        const callerData = callerDoc.exists ? callerDoc.data() : {};
+        const callerRole = String(callerData.ruolo || callerData.role || "").toLowerCase();
+        if (!callerRole.includes("admin")) {
+            throw new functions.https.HttpsError("permission-denied", "Operazione riservata agli amministratori.");
+        }
+    }
+
+    const { apiKey, listId } = getBrevoConfig();
+    if (!apiKey) {
+        throw new functions.https.HttpsError("failed-precondition", "Chiave API Brevo non configurata.");
+    }
+
+    console.log(`🔄 Avvio sincronizzazione massiva contatti con Brevo (Lista ID: ${listId}) da parte di ${callerEmail}`);
+
+    const snap = await db.collection("hub_users").get();
+    let totalUsers = 0;
+    let consentedCount = 0;
+    let nonConsentedCount = 0;
+    let errorCount = 0;
+
+    const usersToSync = [];
+    const emailsToRemove = [];
+
+    snap.forEach(doc => {
+        const u = doc.data();
+        const email = (u.email || "").toLowerCase().trim();
+        if (email && email.includes("@")) {
+            totalUsers++;
+            const hasConsent = (u.newsletter === true || (u.consents && u.consents.newsletter === true));
+            if (hasConsent) {
+                consentedCount++;
+                usersToSync.push(u);
+            } else {
+                nonConsentedCount++;
+                emailsToRemove.push(email);
+            }
+        }
+    });
+
+    // 1. Upsert contatti con consenso (processati in blocchi concorrenti)
+    const BATCH_SIZE = 10;
+    for (let i = 0; i < usersToSync.length; i += BATCH_SIZE) {
+        const chunk = usersToSync.slice(i, i + BATCH_SIZE);
+        await Promise.all(chunk.map(async (userData) => {
+            try {
+                const res = await upsertBrevoContact(userData, listId);
+                if (!res.ok && res.status !== 200 && res.status !== 201 && res.status !== 204) {
+                    console.warn(`Avviso upsert Brevo per ${userData.email}:`, res);
+                }
+            } catch (e) {
+                console.error(`Errore batch sync Brevo per ${userData.email}:`, e);
+                errorCount++;
+            }
+        }));
+    }
+
+    // 2. Rimozione contatti senza consenso dalla lista 3
+    for (let i = 0; i < emailsToRemove.length; i += 20) {
+        const emailChunk = emailsToRemove.slice(i, i + 20);
+        await Promise.all(emailChunk.map(async (em) => {
+            try {
+                await removeBrevoContactFromList(em, listId);
+            } catch (e) {
+                // Non bloccante
+            }
+        }));
+    }
+
+    const syncMetadata = {
+        lastSyncAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastSyncBy: callerEmail,
+        listId: listId,
+        totalEvaluated: totalUsers,
+        consentedSynced: consentedCount,
+        nonConsentedHandled: nonConsentedCount,
+        errors: errorCount
+    };
+
+    // Salva le informazioni sull'ultimo allineamento in Firestore
+    await db.collection("hub_settings").doc("newsletter_sync").set(syncMetadata, { merge: true });
+
+    console.log(`✅ Sincronizzazione Brevo completata con successo: ${consentedCount} iscritti attivi allineati.`);
+
+    return {
+        success: true,
+        listId: listId,
+        totalUsers: totalUsers,
+        consentedSynced: consentedCount,
+        nonConsentedHandled: nonConsentedCount,
+        errors: errorCount,
+        syncedAt: new Date().toISOString()
+    };
+});
+
+/**
+ * 3. WEBHOOK ENDPOINT: brevoWebhook
+ * Riceve gli eventi da Brevo (disiscrizioni tramite link email, bounce, eliminazioni).
+ * Aggiorna Firestore istantaneamente garantendo la piena conformità GDPR.
+ */
+exports.brevoWebhook = functions.runWith({
+    maxInstances: 5,
+    timeoutSeconds: 15,
+    memory: "128MB"
+}).https.onRequest(async (req, res) => {
+    if (req.method !== "POST") {
+        return res.status(405).send("Method Not Allowed");
+    }
+
+    const payload = req.body || {};
+    const eventType = String(payload.event || "").toLowerCase().trim();
+    const rawEmail = payload.email || (payload["email_address"]) || "";
+    const email = String(rawEmail).toLowerCase().trim();
+
+    console.log(`📥 Ricevuto Brevo Webhook Event: [${eventType}] per email: [${email}]`);
+
+    if (!email || !email.includes("@")) {
+        return res.status(200).send("OK - No email provided");
+    }
+
+    // Eventi di disiscrizione o revoca
+    const isUnsubscribeEvent = [
+        "unsubscribe",
+        "unsubscribed",
+        "hard_bounce",
+        "contact_deleted",
+        "spam",
+        "complaint"
+    ].includes(eventType);
+
+    if (isUnsubscribeEvent) {
+        try {
+            const usersSnap = await db.collection("hub_users")
+                .where("email", "==", email)
+                .get();
+
+            if (usersSnap.empty) {
+                console.log(`ℹ️ Brevo Webhook: Nessun utente Firestore trovato con email ${email}`);
+                return res.status(200).send("OK - User not in Hub");
+            }
+
+            const batch = db.batch();
+            usersSnap.forEach(docSnap => {
+                const userRef = docSnap.ref;
+                batch.set(userRef, {
+                    newsletter: false,
+                    "consents.newsletter": false,
+                    "consents.lastActionAt": new Date().toISOString(),
+                    "consents.unsubscribedFrom": `brevo_webhook_${eventType}`,
+                    "consents.unsubscribedAt": new Date().toISOString()
+                }, { merge: true });
+            });
+
+            await batch.commit();
+            console.log(`✅ Brevo Webhook: Disiscrizione GDPR registrata per ${email} (${usersSnap.size} record aggiornati)`);
+        } catch (e) {
+            console.error(`Errore elaborazione Brevo Webhook per ${email}:`, e);
+        }
+    }
+
+    return res.status(200).json({ received: true, event: eventType, email: email });
+});
+
