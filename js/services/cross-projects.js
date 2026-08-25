@@ -295,28 +295,46 @@ const CrossProjectsService = {
             ...hubUsers
         ];
 
-        // 3. Auto-consolidamento silenzioso in background in hub_users
+        // 3. Auto-consolidamento silenzioso in background in hub_users e nelle collezioni di gioco
         if (allUsers.length > 0 && window.fbDb && window.fbDb.hub) {
             setTimeout(async () => {
                 const existingHubIds = new Set(hubUsers.map(u => u.id));
                 for (const u of allUsers) {
-                    if (u.id && !existingHubIds.has(u.id)) {
-                        try {
-                            await window.fbDb.hub.collection('hub_users').doc(u.id).set({
-                                nome: u.nome || '',
-                                email: u.email || '',
-                                role: u.ruolo || 'studente',
-                                classId: u.classe || 'N/A',
-                                avatar: u.avatar || '',
-                                subscription: u.plan || 'base',
-                                newsletter: !!u.newsletter,
-                                "consents.newsletter": !!u.newsletter,
-                                "consents.source": "auto_ecosystem_sync",
-                                lastSeenAt: new Date().toISOString()
-                            }, { merge: true }).catch(() => {});
+                    if (!u.id) continue;
+                    
+                    let targetColl = null;
+                    const gLow = String(u.gioco || '').toLowerCase();
+                    if (gLow.includes('eroi')) targetColl = 'eroi_users';
+                    else if (gLow.includes('palestra')) targetColl = 'palestra_users';
+                    else if (gLow.includes('commedia') || gLow.includes('corte')) targetColl = 'corte_users';
+                    else if (gLow.includes('fanta')) targetColl = 'fanta_users';
+                    else if (gLow.includes('ops') || gLow.includes('storia')) targetColl = 'ops_users';
+
+                    const docPayload = {
+                        nome: u.nome || '',
+                        name: u.nome || '',
+                        email: u.email || '',
+                        role: u.ruolo || 'studente',
+                        ruolo: u.ruolo || 'studente',
+                        classId: u.classe || 'N/A',
+                        avatar: u.avatar || '',
+                        subscription: u.plan || 'base',
+                        plan: u.plan || 'base',
+                        newsletter: !!u.newsletter,
+                        "consents.newsletter": !!u.newsletter,
+                        "consents.source": "auto_ecosystem_sync",
+                        lastSeenAt: new Date().toISOString()
+                    };
+
+                    try {
+                        if (!existingHubIds.has(u.id)) {
+                            await window.fbDb.hub.collection('hub_users').doc(u.id).set(docPayload, { merge: true }).catch(() => {});
                             existingHubIds.add(u.id);
-                        } catch(err) {}
-                    }
+                        }
+                        if (targetColl) {
+                            await window.fbDb.hub.collection(targetColl).doc(u.id).set(docPayload, { merge: true }).catch(() => {});
+                        }
+                    } catch(err) {}
                 }
             }, 1000);
         }
