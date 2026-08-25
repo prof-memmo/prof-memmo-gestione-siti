@@ -288,7 +288,23 @@
       console.error(e);
     }
 
-    window.currentGoogleCredential = null;
+    async function authenticateAllSourceApps(credential) {
+      log("🔐 Connessione autenticata a tutti i 5 database storici...");
+      for (const [key, g] of Object.entries(oldConfigs)) {
+        try {
+          let app = (firebase.apps || []).find(a => a.name === g.name);
+          if (!app) app = firebase.initializeApp(g.config, g.name);
+          if (credential) {
+            await app.auth().signInWithCredential(credential).catch(err => {
+              log(`   ⚠️ Login secondario su ${g.name}: ${err.message}`);
+            });
+            log(`   ✅ Autenticato su ${g.name} (${g.projectId})`);
+          }
+        } catch(e) {
+          log(`   ⚠️ Inizializzazione ${g.name}: ${e.message}`);
+        }
+      }
+    }
 
     async function connectAdminWithGoogle() {
       log("🔑 Autenticazione con account Google in corso...");
@@ -297,7 +313,10 @@
         provider.setCustomParameters({ prompt: 'select_account' });
         const result = await hubAuth.signInWithPopup(provider);
         window.currentGoogleCredential = result.credential;
-        log(`✅ Connesso con Google: ${result.user.email} (UID: ${result.user.uid})`);
+        log(`✅ Connesso come Super-Admin su Hub: ${result.user.email}`);
+        
+        await authenticateAllSourceApps(result.credential);
+
         document.getElementById('migrationActions').style.display = 'block';
         const btnG = document.getElementById('btnGoogleConnect');
         if (btnG) {
@@ -307,7 +326,7 @@
           btnG.disabled = true;
         }
       } catch(err) {
-        log(`❌ Errore login Google Hub: ${err.message}`);
+        log(`❌ Errore login Google: ${err.message}`);
         alert("Errore Google Login: " + err.message);
       }
     }
@@ -320,7 +339,17 @@
       log("🔑 Autenticazione Super-Admin su Hub in corso...");
       try {
         const userCred = await hubAuth.signInWithEmailAndPassword(email, pwd);
-        log(`✅ Connesso come: ${userCred.user.email} (UID: ${userCred.user.uid})`);
+        log(`✅ Connesso come: ${userCred.user.email}`);
+        
+        // Autentica le app con email e password se disponibili
+        for (const [key, g] of Object.entries(oldConfigs)) {
+          try {
+            let app = (firebase.apps || []).find(a => a.name === g.name);
+            if (!app) app = firebase.initializeApp(g.config, g.name);
+            await app.auth().signInWithEmailAndPassword(email, pwd).catch(() => {});
+          } catch(e) {}
+        }
+
         document.getElementById('migrationActions').style.display = 'block';
         document.getElementById('btnConnect').innerText = "✓ Connesso";
         document.getElementById('btnConnect').disabled = true;
@@ -358,19 +387,16 @@
     }
 
     async function copyCollection(g, sourceColl, targetColl) {
-      log(`🔄 Lettura collezione sorgente '${sourceColl}'...`);
+      log(`🔄 Lettura collezione sorgente '${sourceColl}' da ${g.projectId}...`);
       let docsToMigrate = [];
 
-      // 1. Prova lettura via SDK con autenticazione
+      // 1. Lettura via SDK Firebase
       try {
-        let oldApp;
-        try { oldApp = firebase.initializeApp(g.config, g.name); }
-        catch(e) { oldApp = firebase.app(g.name); }
+        let oldApp = (firebase.apps || []).find(a => a.name === g.name);
+        if (!oldApp) oldApp = firebase.initializeApp(g.config, g.name);
         
         if (window.currentGoogleCredential && !oldApp.auth().currentUser) {
-          try {
-            await oldApp.auth().signInWithCredential(window.currentGoogleCredential);
-          } catch(e) {}
+          await oldApp.auth().signInWithCredential(window.currentGoogleCredential).catch(() => {});
         }
 
         const oldDb = oldApp.firestore();
@@ -379,18 +405,16 @@
           snap.forEach(d => {
             docsToMigrate.push({ id: d.id, data: d.data() });
           });
+          log(`   - Trovati ${docsToMigrate.length} documenti via SDK su ${sourceColl}.`);
         }
       } catch(sdkErr) {
-        log(`   - SDK non ha risposto (${sdkErr.message}), tentativo via REST API autenticata...`);
+        log(`   - SDK (${sdkErr.message}), tentativo via REST API...`);
       }
 
-      // 2. Se vuoto o errore, fallback su REST API
+      // 2. Fallback REST API
       if (docsToMigrate.length === 0) {
         try {
-          const token = await hubAuth.currentUser.getIdToken(true).catch(() => null);
-          const res = await fetch(`https://firestore.googleapis.com/v1/projects/${g.projectId}/databases/(default)/documents/${sourceColl}?pageSize=1000`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
-          });
+          const res = await fetch(`https://firestore.googleapis.com/v1/projects/${g.projectId}/databases/(default)/documents/${sourceColl}?pageSize=1000`);
           if (res.ok) {
             const json = await res.json();
             if (json.documents && Array.isArray(json.documents)) {
@@ -399,6 +423,7 @@
                 const docData = parseRestFields(d.fields);
                 docsToMigrate.push({ id: docId, data: docData });
               });
+              log(`   - Trovati ${docsToMigrate.length} documenti via REST.`);
             }
           }
         } catch(restErr) {
@@ -411,29 +436,60 @@
         return 0;
       }
 
-      log(`   - Trovati ${docsToMigrate.length} documenti. Scrittura in '${targetColl}'...`);
+      log(`   - Scrittura di ${docsToMigrate.length} doc in '${targetColl}'...`);
       let count = 0;
       const batchSize = 100;
       let batch = hubDb.batch();
 
       for (let i = 0; i < docsToMigrate.length; i++) {
         const item = docsToMigrate[i];
-        const targetRef = hubDb.collection(targetColl).doc(item.id);
-        batch.set(targetRef, item.data, { merge: true });
+        const uData = item.data || {};
+        
+        // Se users, determina il ruolo e piano corretto
+        if (sourceColl === 'users') {
+          const rawRole = String(uData.role || uData.ruolo || '').toLowerCase();
+          const rawEmail = String(uData.email || '').toLowerCase();
+          const rawPlan = String(uData.plan || uData.subscription || uData.piano || uData.abbonamento || '').toLowerCase();
 
-        // Se stiamo migrando la collezione 'users', consolidala automaticamente anche in 'hub_users'
+          const isDocente = rawRole.includes('teacher') || rawRole.includes('admin') || rawRole.includes('docente') || rawRole.includes('prof') || rawPlan.includes('docente') || rawEmail === 'prof.memmo@gmail.com';
+          const isStudente = !isDocente && (rawRole === 'studente' || rawRole === 'student');
+
+          let cleanRole = 'viandante';
+          let cleanPlan = 'base';
+
+          if (isDocente) {
+            cleanRole = (rawEmail === 'prof.memmo@gmail.com' || rawRole.includes('admin')) ? 'admin' : 'docente';
+            cleanPlan = rawPlan.includes('ecosistema') ? 'docente_ecosistema' : 'docente_didattico';
+          } else if (isStudente) {
+            cleanRole = 'studente';
+            cleanPlan = 'studente';
+          } else {
+            cleanRole = 'viandante';
+            cleanPlan = 'base';
+          }
+
+          uData.role = cleanRole;
+          uData.ruolo = cleanRole;
+          uData.plan = cleanPlan;
+          uData.subscription = cleanPlan;
+        }
+
+        const targetRef = hubDb.collection(targetColl).doc(item.id);
+        batch.set(targetRef, uData, { merge: true });
+
+        // Salva in hub_users
         if (sourceColl === 'users') {
           const hubRef = hubDb.collection('hub_users').doc(item.id);
-          const uData = item.data || {};
           const hubPayload = {
             nome: (uData.nome || uData.name || uData.displayName || 'Utente').trim(),
             name: (uData.nome || uData.name || uData.displayName || 'Utente').trim(),
             email: uData.email || '',
-            role: uData.role || uData.ruolo || 'studente',
-            ruolo: uData.role || uData.ruolo || 'studente',
+            role: uData.role,
+            ruolo: uData.ruolo,
             classId: uData.classId || uData.classe || uData.class || 'N/A',
             avatar: uData.avatar || uData.photoURL || '',
-            subscription: uData.subscription || uData.plan || (uData.role === 'studente' ? 'studente' : 'base'),
+            subscription: uData.plan,
+            plan: uData.plan,
             newsletter: !!uData.newsletter,
             "consents.newsletter": !!uData.newsletter,
             "consents.source": "migration_tool_sync",
@@ -455,7 +511,7 @@
         await batch.commit();
       }
 
-      log(`   ✅ '${targetColl}' completata con successo (${count} doc riversati in ${targetColl} e hub_users).`);
+      log(`   ✅ '${targetColl}' completata (${count} doc salvati).`);
       return count;
     }
 
