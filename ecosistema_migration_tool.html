@@ -420,6 +420,28 @@
         const item = docsToMigrate[i];
         const targetRef = hubDb.collection(targetColl).doc(item.id);
         batch.set(targetRef, item.data, { merge: true });
+
+        // Se stiamo migrando la collezione 'users', consolidala automaticamente anche in 'hub_users'
+        if (sourceColl === 'users') {
+          const hubRef = hubDb.collection('hub_users').doc(item.id);
+          const uData = item.data || {};
+          const hubPayload = {
+            nome: (uData.nome || uData.name || uData.displayName || 'Utente').trim(),
+            name: (uData.nome || uData.name || uData.displayName || 'Utente').trim(),
+            email: uData.email || '',
+            role: uData.role || uData.ruolo || 'studente',
+            ruolo: uData.role || uData.ruolo || 'studente',
+            classId: uData.classId || uData.classe || uData.class || 'N/A',
+            avatar: uData.avatar || uData.photoURL || '',
+            subscription: uData.subscription || uData.plan || (uData.role === 'studente' ? 'studente' : 'base'),
+            newsletter: !!uData.newsletter,
+            "consents.newsletter": !!uData.newsletter,
+            "consents.source": "migration_tool_sync",
+            lastSeenAt: new Date().toISOString()
+          };
+          batch.set(hubRef, hubPayload, { merge: true });
+        }
+
         count++;
 
         if (count % batchSize === 0) {
@@ -433,7 +455,7 @@
         await batch.commit();
       }
 
-      log(`   ✅ '${targetColl}' completata con successo (${count} doc).`);
+      log(`   ✅ '${targetColl}' completata con successo (${count} doc riversati in ${targetColl} e hub_users).`);
       return count;
     }
 
