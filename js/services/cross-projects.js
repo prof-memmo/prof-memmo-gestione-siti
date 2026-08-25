@@ -290,43 +290,87 @@ const CrossProjectsService = {
                     } catch(err) {
                         console.warn("Background auto-consolidation error:", err);
                     }
-                }, 1500);
+                }, 1000);
             }
         }
 
-        // 2. Fallback REST dai vecchi server solo se il conteggio è 0
-        if (eroiUsers.length === 0) {
+        // 2. Query diretta ai database legacy (Palestra, Eroi, Commedia, Fanta, Ops) tramite app secondarie
+        let legacyUsers = [];
+        const legacyGameConfigs = [
+            { key: 'palestra', name: 'PalestraApp_Sec', config: { apiKey: "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo", authDomain: "palestra-riflessione.firebaseapp.com", projectId: "palestra-riflessione" }, gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain' },
+            { key: 'eroi', name: 'EroiApp_Sec', config: { apiKey: "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A", authDomain: "la-rotta-degli-eroi.firebaseapp.com", projectId: "la-rotta-degli-eroi" }, gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship' },
+            { key: 'commedia', name: 'CommediaApp_Sec', config: { apiKey: "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls", authDomain: "la-corte-della-commedia.firebaseapp.com", projectId: "la-corte-della-commedia" }, gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open' },
+            { key: 'fanta', name: 'FantaApp_Sec', config: { apiKey: "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ", authDomain: "fantaletteratura-a7ff1.firebaseapp.com", projectId: "fantaletteratura-a7ff1" }, gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon' },
+            { key: 'ops', name: 'OpsApp_Sec', config: { apiKey: "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY", authDomain: "ops-storia.firebaseapp.com", projectId: "ops-storia" }, gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left' }
+        ];
+
+        for (const g of legacyGameConfigs) {
             try {
-                const eroiRestUsers = await this.fetchUsersREST("la-rotta-degli-eroi", "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A", "Eroi");
-                eroiRestUsers.forEach(u => { eroiUsers.push({ ...u, gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship' }); });
-            } catch(e) {}
-        }
-        if (commediaUsers.length === 0) {
-            try {
-                const commediaRestUsers = await this.fetchUsersREST("la-corte-della-commedia", "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls", "Commedia");
-                commediaRestUsers.forEach(u => { commediaUsers.push({ ...u, gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open' }); });
-            } catch(e) {}
-        }
-        if (fantaUsers.length === 0) {
-            try {
-                const fantaRestUsers = await this.fetchUsersREST("fantaletteratura-a7ff1", "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ", "Fanta");
-                fantaRestUsers.forEach(u => { fantaUsers.push({ ...u, gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon' }); });
-            } catch(e) {}
-        }
-        if (palestraUsers.length === 0) {
-            try {
-                const palestraRestUsers = await this.fetchUsersREST("palestra-riflessione", "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo", "Palestra");
-                palestraRestUsers.forEach(u => { palestraUsers.push({ ...u, gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain' }); });
-            } catch(e) {}
-        }
-        if (opsUsers.length === 0) {
-            try {
-                const opsRestUsers = await this.fetchUsersREST("ops-storia", "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY", "Ops");
-                opsRestUsers.forEach(u => { opsUsers.push({ ...u, gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left' }); });
-            } catch(e) {}
+                let secApp = (firebase.apps || []).find(a => a.name === g.name);
+                if (!secApp) {
+                    secApp = firebase.initializeApp(g.config, g.name);
+                }
+                const secDb = secApp.firestore();
+                const snap = await secDb.collection('users').get();
+                snap.forEach(doc => {
+                    const data = doc.data() || {};
+                    const nomeStr = ((data.nome || data.name || data.displayName || data.username || (((data.firstName || data.cognome) || data.lastName) ? ((data.firstName || data.nome || '') + ' ' + (data.lastName || data.cognome || '')).trim() : 'Utente')) || 'Utente').trim();
+                    const rawRole = String(data.role || data.ruolo || 'studente').toLowerCase();
+                    const rawPlan = data.subscription || data.abbonamento || data.plan || (rawRole.includes('docente') || rawRole.includes('teacher') ? 'docente_didattico' : 'base');
+                    
+                    legacyUsers.push({
+                        id: doc.id,
+                        nome: nomeStr,
+                        email: data.email || (doc.id.includes('@') ? doc.id : ''),
+                        ruolo: rawRole,
+                        classe: data.classId || data.classe || data.class || data.teamId || 'N/A',
+                        avatar: data.avatar || data.photoURL || data.foto || '',
+                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
+                        gioco: g.gioco,
+                        giocoColor: g.giocoColor,
+                        giocoIcon: g.giocoIcon,
+                        plan: rawPlan,
+                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
+                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
+                    });
+                });
+            } catch(e) {
+                console.warn(`Fallback legacy fetch skipped for ${g.key}:`, e.message);
+            }
         }
 
-        const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers, ...opsUsers, ...(typeof rootUsers !== 'undefined' ? rootUsers : []), ...hubUsers];
+        // Salva gli utenti legacy trovati direttamente in hub_users
+        if (legacyUsers.length > 0 && window.fbDb && window.fbDb.hub) {
+            setTimeout(async () => {
+                for (const lu of legacyUsers) {
+                    try {
+                        await window.fbDb.hub.collection('hub_users').doc(lu.id).set({
+                            nome: lu.nome || '',
+                            email: lu.email || '',
+                            role: lu.ruolo || 'studente',
+                            classId: lu.classe || 'N/A',
+                            avatar: lu.avatar || '',
+                            subscription: lu.plan || 'base',
+                            newsletter: !!lu.newsletter,
+                            "consents.newsletter": !!lu.newsletter,
+                            "consents.source": "legacy_auto_sync",
+                            lastSeenAt: new Date().toISOString()
+                        }, { merge: true }).catch(() => {});
+                    } catch(err) {}
+                }
+            }, 1200);
+        }
+
+        const allUsers = [
+            ...eroiUsers, 
+            ...commediaUsers, 
+            ...fantaUsers, 
+            ...palestraUsers, 
+            ...opsUsers, 
+            ...legacyUsers, 
+            ...(typeof rootUsers !== 'undefined' ? rootUsers : []), 
+            ...hubUsers
+        ];
         
         // Deduplicazione
         const uniqueUsersMap = new Map();
