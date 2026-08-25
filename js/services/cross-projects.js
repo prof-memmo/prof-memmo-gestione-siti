@@ -15,20 +15,18 @@ const CrossProjectsService = {
                     if (e2.target.result && e2.target.result.value.stsTokenManager) {
                         resolve(e2.target.result.value.stsTokenManager);
                     } else {
-                        // Fallback: try [DEFAULT] if the appName wasn't found
-                        if (appName !== "[DEFAULT]") {
-                            const fallbackReq = store.get(`firebase:authUser:${apiKey}:[DEFAULT]`);
-                            fallbackReq.onsuccess = (e3) => {
-                                if (e3.target.result && e3.target.result.value.stsTokenManager) {
-                                    resolve(e3.target.result.value.stsTokenManager);
-                                } else {
-                                    resolve(null);
+                        // Fallback su tutti i token disponibili in local storage
+                        const getAllReq = store.getAll();
+                        getAllReq.onsuccess = (e3) => {
+                            const items = e3.target.result || [];
+                            for (const it of items) {
+                                if (it && it.value && it.value.stsTokenManager) {
+                                    return resolve(it.value.stsTokenManager);
                                 }
-                            };
-                            fallbackReq.onerror = () => resolve(null);
-                        } else {
+                            }
                             resolve(null);
-                        }
+                        };
+                        getAllReq.onerror = () => resolve(null);
                     }
                 };
                 getReq.onerror = () => resolve(null);
@@ -109,14 +107,14 @@ const CrossProjectsService = {
         let palestraUsers = [];
         let opsUsers = [];
         let hubUsers = [];
+        let rootUsers = [];
 
-        // 1. Fetch diretto dalle collezioni già presenti in Hub Centrale
+        // 1. Fetch diretto e istantaneo dalle collezioni consolidate in Hub Centrale
         if (window.fbDb && window.fbDb.hub) {
-            // FantaLetteratura
             try {
                 const snapFanta = await window.fbDb.hub.collection("fanta_users").get();
                 snapFanta.forEach(doc => {
-                    const data = doc.data();
+                    const data = doc.data() || {};
                     fantaUsers.push({
                         id: doc.id,
                         nome: (data.name || data.nome || data.displayName || data.username || 'Utente Fanta'),
@@ -133,11 +131,10 @@ const CrossProjectsService = {
                 });
             } catch(e) { console.warn("Fanta Hub fetch error:", e); }
 
-            // La Rotta degli Eroi
             try {
                 const snapEroi = await window.fbDb.hub.collection("eroi_users").get();
                 snapEroi.forEach(doc => {
-                    const data = doc.data();
+                    const data = doc.data() || {};
                     eroiUsers.push({
                         id: doc.id,
                         nome: (data.name || data.nome || data.displayName || 'Utente Eroi'),
@@ -154,11 +151,10 @@ const CrossProjectsService = {
                 });
             } catch(e) { console.warn("Eroi Hub fetch error:", e); }
 
-            // Palestra di Riflessione
             try {
                 const snapPal = await window.fbDb.hub.collection("palestra_users").get();
                 snapPal.forEach(doc => {
-                    const data = doc.data();
+                    const data = doc.data() || {};
                     palestraUsers.push({
                         id: doc.id,
                         nome: (data.name || data.nome || data.displayName || 'Utente Palestra'),
@@ -175,11 +171,10 @@ const CrossProjectsService = {
                 });
             } catch(e) { console.warn("Palestra Hub fetch error:", e); }
 
-            // La Corte della Commedia
             try {
                 const snapCommedia = await window.fbDb.hub.collection("corte_users").get();
                 snapCommedia.forEach(doc => {
-                    const data = doc.data();
+                    const data = doc.data() || {};
                     commediaUsers.push({
                         id: doc.id,
                         nome: (data.name || data.nome || data.displayName || 'Utente Commedia'),
@@ -196,11 +191,10 @@ const CrossProjectsService = {
                 });
             } catch(e) { console.warn("Commedia Hub fetch error:", e); }
 
-            // Ops! Operazione Storia
             try {
                 const snapOps = await window.fbDb.hub.collection("ops_users").get();
                 snapOps.forEach(doc => {
-                    const data = doc.data();
+                    const data = doc.data() || {};
                     opsUsers.push({
                         id: doc.id,
                         nome: (data.name || data.nome || data.displayName || 'Utente Ops'),
@@ -217,11 +211,10 @@ const CrossProjectsService = {
                 });
             } catch(e) { console.warn("Ops Hub fetch error:", e); }
 
-            // Hub Users
             try {
                 const snapHub = await window.fbDb.hub.collection("hub_users").get();
                 snapHub.forEach(doc => {
-                    const data = doc.data();
+                    const data = doc.data() || {};
                     const nomeStr = data.anagrafica ? (data.anagrafica.nome + " " + (data.anagrafica.cognome || "")) : (data.nome || data.name || data.displayName || 'Utente');
                     hubUsers.push({
                         id: doc.id,
@@ -229,7 +222,7 @@ const CrossProjectsService = {
                         email: data.email || '',
                         ruolo: data.role || data.ruolo || 'studente',
                         statusAccount: data.statusAccount || data.statoAccount || 'active',
-                        classe: data.classId || data.class || 'N/A',
+                        classe: data.classId || data.classe || data.class || 'N/A',
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
                         gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe',
@@ -240,12 +233,10 @@ const CrossProjectsService = {
                 });
             } catch(e) { console.warn("Hub users fetch error:", e); }
 
-            // Root Users (collezione 'users' preesistente / account storici)
-            var rootUsers = [];
             try {
                 const snapRoot = await window.fbDb.hub.collection("users").get();
                 snapRoot.forEach(doc => {
-                    const data = doc.data();
+                    const data = doc.data() || {};
                     const nomeStr = data.anagrafica ? (data.anagrafica.nome + " " + (data.anagrafica.cognome || "")) : (data.nome || data.name || data.displayName || data.username || 'Utente');
                     rootUsers.push({
                         id: doc.id,
@@ -263,158 +254,31 @@ const CrossProjectsService = {
                     });
                 });
             } catch(e) { console.warn("Root users fetch error:", e); }
-
-            // Auto-consolidamento silenzioso in background: se ci sono utenti in 'users' o nei singoli giochi non ancora presenti in 'hub_users', salvali in hub_users
-            if (rootUsers.length > 0 || eroiUsers.length > 0 || commediaUsers.length > 0 || fantaUsers.length > 0 || palestraUsers.length > 0 || opsUsers.length > 0) {
-                setTimeout(async () => {
-                    try {
-                        const existingHubIds = new Set(hubUsers.map(u => u.id));
-                        const candidates = [...rootUsers, ...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers, ...opsUsers];
-                        for (const u of candidates) {
-                            if (u.id && !existingHubIds.has(u.id)) {
-                                await window.fbDb.hub.collection('hub_users').doc(u.id).set({
-                                    nome: u.nome || '',
-                                    email: u.email || '',
-                                    role: u.ruolo || 'studente',
-                                    classId: u.classe || 'N/A',
-                                    avatar: u.avatar || '',
-                                    subscription: u.plan || 'base',
-                                    newsletter: !!u.newsletter,
-                                    "consents.newsletter": !!u.newsletter,
-                                    "consents.source": "auto_migration_hub",
-                                    lastSeenAt: new Date().toISOString()
-                                }, { merge: true }).catch(() => {});
-                                existingHubIds.add(u.id);
-                            }
-                        }
-                    } catch(err) {
-                        console.warn("Background auto-consolidation error:", err);
-                    }
-                }, 1000);
-            }
         }
 
-        // 2. Query diretta ai database legacy (Palestra, Eroi, Commedia, Fanta, Ops) tramite app secondarie
-        let legacyUsers = [];
-        const legacyGameConfigs = [
-            { key: 'palestra', name: 'PalestraApp_Sec', config: { apiKey: "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo", authDomain: "palestra-riflessione.firebaseapp.com", projectId: "palestra-riflessione" }, gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain' },
-            { key: 'eroi', name: 'EroiApp_Sec', config: { apiKey: "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A", authDomain: "la-rotta-degli-eroi.firebaseapp.com", projectId: "la-rotta-degli-eroi" }, gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship' },
-            { key: 'commedia', name: 'CommediaApp_Sec', config: { apiKey: "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls", authDomain: "la-corte-della-commedia.firebaseapp.com", projectId: "la-corte-della-commedia" }, gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open' },
-            { key: 'fanta', name: 'FantaApp_Sec', config: { apiKey: "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ", authDomain: "fantaletteratura-a7ff1.firebaseapp.com", projectId: "fantaletteratura-a7ff1" }, gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon' },
-            { key: 'ops', name: 'OpsApp_Sec', config: { apiKey: "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY", authDomain: "ops-storia.firebaseapp.com", projectId: "ops-storia" }, gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left' }
+        // 2. Fetch REST in parallelo dai 5 database storici (recupera account registrati sui singoli giochi)
+        let restUsers = [];
+        const restConfigs = [
+            { id: "fantaletteratura-a7ff1", key: "AIzaSyB3wKx8ssbZVMtbiH5vbDDvAEgwzZcfRVQ", app: "Fanta", name: 'Fantaletteratura', color: '#a855f7', icon: 'fa-dragon' },
+            { id: "la-rotta-degli-eroi", key: "AIzaSyCVCg9G6RbDDYMoQ0oWCs2Z9-1iFBSZZ5A", app: "Eroi", name: 'La Rotta degli Eroi', color: '#3b82f6', icon: 'fa-ship' },
+            { id: "palestra-riflessione", key: "AIzaSyC9WhGYaWyaJtqDHhKhii5yhnP363SczJo", app: "Palestra", name: 'Palestra di Riflessione', color: '#22c55e', icon: 'fa-brain' },
+            { id: "la-corte-della-commedia", key: "AIzaSyCgz52XehTx0qQQ1MkKtTnIM5LmjJKcPls", app: "Commedia", name: 'La Corte della Commedia', color: '#ef4444', icon: 'fa-book-open' },
+            { id: "ops-storia", key: "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY", app: "Ops", name: 'Ops! Operazione Storia', color: '#eab308', icon: 'fa-clock-rotate-left' }
         ];
 
-        for (const g of legacyGameConfigs) {
-            try {
-                let secApp = (firebase.apps || []).find(a => a.name === g.name);
-                if (!secApp) {
-                    secApp = firebase.initializeApp(g.config, g.name);
+        try {
+            const results = await Promise.allSettled(restConfigs.map(c => 
+                CrossProjectsService.fetchUsersREST(c.id, c.key, c.app).then(list => 
+                    list.map(u => ({ ...u, gioco: c.name, giocoColor: c.color, giocoIcon: c.icon }))
+                )
+            ));
+            results.forEach(res => {
+                if (res.status === 'fulfilled' && Array.isArray(res.value)) {
+                    restUsers.push(...res.value);
                 }
-                const secDb = secApp.firestore();
-                const snap = await secDb.collection('users').get();
-                snap.forEach(doc => {
-                    const data = doc.data() || {};
-                    const nomeStr = ((data.nome || data.name || data.displayName || data.username || (((data.firstName || data.cognome) || data.lastName) ? ((data.firstName || data.nome || '') + ' ' + (data.lastName || data.cognome || '')).trim() : 'Utente')) || 'Utente').trim();
-                    const rawRole = String(data.role || data.ruolo || 'studente').toLowerCase();
-                    const rawPlan = data.subscription || data.abbonamento || data.plan || (rawRole.includes('docente') || rawRole.includes('teacher') ? 'docente_didattico' : 'base');
-                    
-                    legacyUsers.push({
-                        id: doc.id,
-                        nome: nomeStr,
-                        email: data.email || (doc.id.includes('@') ? doc.id : ''),
-                        ruolo: rawRole,
-                        classe: data.classId || data.classe || data.class || data.teamId || 'N/A',
-                        avatar: data.avatar || data.photoURL || data.foto || '',
-                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
-                        gioco: g.gioco,
-                        giocoColor: g.giocoColor,
-                        giocoIcon: g.giocoIcon,
-                        plan: rawPlan,
-                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
-                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
-                    });
-                });
-            } catch(e) {
-                console.warn(`Fallback legacy fetch skipped for ${g.key}:`, e.message);
-            }
-        }
-
-        // Salva gli utenti legacy trovati direttamente in hub_users
-        if (legacyUsers.length > 0 && window.fbDb && window.fbDb.hub) {
-            setTimeout(async () => {
-                for (const lu of legacyUsers) {
-                    try {
-                        await window.fbDb.hub.collection('hub_users').doc(lu.id).set({
-                            nome: lu.nome || '',
-                            email: lu.email || '',
-                            role: lu.ruolo || 'studente',
-                            classId: lu.classe || 'N/A',
-                            avatar: lu.avatar || '',
-                            subscription: lu.plan || 'base',
-                            newsletter: !!lu.newsletter,
-                            "consents.newsletter": !!lu.newsletter,
-                            "consents.source": "legacy_auto_sync",
-                            lastSeenAt: new Date().toISOString()
-                        }, { merge: true }).catch(() => {});
-                    } catch(err) {}
-                }
-            }, 1200);
-        }
-
-        // 3. Estrazione studenti registrati nelle Classi e Team didattici
-        let classStudents = [];
-        if (window.fbDb && window.fbDb.hub) {
-            const classCollections = [
-                { coll: 'palestra_classes', gioco: 'Palestra di Riflessione', color: '#22c55e', icon: 'fa-brain' },
-                { coll: 'eroi_classes', gioco: 'La Rotta degli Eroi', color: '#3b82f6', icon: 'fa-ship' },
-                { coll: 'corte_classes', gioco: 'La Corte della Commedia', color: '#ef4444', icon: 'fa-book-open' },
-                { coll: 'fanta_teams', gioco: 'Fantaletteratura', color: '#a855f7', icon: 'fa-dragon' },
-                { coll: 'ops_classes', gioco: 'Ops! Operazione Storia', color: '#eab308', icon: 'fa-clock-rotate-left' },
-                { coll: 'classes', gioco: 'Hub', color: '#6366f1', icon: 'fa-graduation-cap' }
-            ];
-
-            for (const cc of classCollections) {
-                try {
-                    const snapCl = await window.fbDb.hub.collection(cc.coll).get();
-                    snapCl.forEach(cDoc => {
-                        const cData = cDoc.data() || {};
-                        const cName = cData.name || cData.nome || cData.className || cData.teamName || cData.code || cDoc.id;
-                        const list = (Array.isArray(cData.students) ? cData.students : [])
-                            .concat(Array.isArray(cData.alunni) ? cData.alunni : [])
-                            .concat(Array.isArray(cData.members) ? cData.members : [])
-                            .concat(Array.isArray(cData.players) ? cData.players : [])
-                            .concat(Array.isArray(cData.studentList) ? cData.studentList : []);
-                        
-                        list.forEach((st, idx) => {
-                            if (!st) return;
-                            let stId = typeof st === 'string' ? (cDoc.id + '_st_' + idx) : (st.id || st.uid || st.email || (cDoc.id + '_st_' + idx));
-                            let stName = typeof st === 'string' ? st : (st.name || st.nome || ((st.firstName || '') + ' ' + (st.lastName || '')).trim() || st.displayName || 'Studente');
-                            let stEmail = typeof st === 'object' ? (st.email || '') : '';
-                            
-                            if (stName && stName.trim() !== '') {
-                                classStudents.push({
-                                    id: stId,
-                                    nome: stName.trim(),
-                                    email: stEmail,
-                                    ruolo: 'studente',
-                                    statusAccount: 'active',
-                                    classe: cName,
-                                    avatar: (typeof st === 'object' && st.avatar) ? st.avatar : '',
-                                    dataValue: cData.createdAt ? (cData.createdAt.toMillis ? cData.createdAt.toMillis() : new Date(cData.createdAt).getTime()) : 0,
-                                    gioco: cc.gioco,
-                                    giocoColor: cc.color,
-                                    giocoIcon: cc.icon,
-                                    plan: 'studente',
-                                    newsletter: false,
-                                    consents: {}
-                                });
-                            }
-                        });
-                    });
-                } catch(e) {
-                    console.warn(`Fetch class students error on ${cc.coll}:`, e);
-                }
-            }
+            });
+        } catch(e) {
+            console.warn("REST fetch error:", e);
         }
 
         const allUsers = [
@@ -423,25 +287,42 @@ const CrossProjectsService = {
             ...fantaUsers, 
             ...palestraUsers, 
             ...opsUsers, 
-            ...legacyUsers, 
-            ...(typeof rootUsers !== 'undefined' ? rootUsers : []), 
-            ...classStudents,
+            ...restUsers, 
+            ...rootUsers, 
             ...hubUsers
         ];
+
+        // 3. Auto-consolidamento silenzioso in background in hub_users
+        if (allUsers.length > 0 && window.fbDb && window.fbDb.hub) {
+            setTimeout(async () => {
+                const existingHubIds = new Set(hubUsers.map(u => u.id));
+                for (const u of allUsers) {
+                    if (u.id && !existingHubIds.has(u.id)) {
+                        try {
+                            await window.fbDb.hub.collection('hub_users').doc(u.id).set({
+                                nome: u.nome || '',
+                                email: u.email || '',
+                                role: u.ruolo || 'studente',
+                                classId: u.classe || 'N/A',
+                                avatar: u.avatar || '',
+                                subscription: u.plan || 'base',
+                                newsletter: !!u.newsletter,
+                                "consents.newsletter": !!u.newsletter,
+                                "consents.source": "auto_ecosystem_sync",
+                                lastSeenAt: new Date().toISOString()
+                            }, { merge: true }).catch(() => {});
+                            existingHubIds.add(u.id);
+                        } catch(err) {}
+                    }
+                }
+            }, 1000);
+        }
         
-        // Deduplicazione: preserva account diversi con nomi diversi
+        // 4. Deduplicazione precisa e preservazione dati utente
         const uniqueUsersMap = new Map();
         allUsers.forEach(u => {
             const emailKey = u.email ? String(u.email).trim().toLowerCase() : '';
-            const nomeKey = u.nome ? String(u.nome).trim().toLowerCase() : '';
-            const isSharedEmail = emailKey.includes('scuola') || emailKey.includes('classe') || emailKey.includes('prof.memmo');
-            
-            let dedupeKey = u.id;
-            if (emailKey && !isSharedEmail) {
-                dedupeKey = emailKey;
-            } else if (nomeKey && nomeKey !== 'utente' && nomeKey !== 'studente') {
-                dedupeKey = nomeKey + '___' + String(u.classe || '').toLowerCase();
-            }
+            const dedupeKey = emailKey || u.id;
 
             if (uniqueUsersMap.has(dedupeKey)) {
                 let existing = uniqueUsersMap.get(dedupeKey);
@@ -452,7 +333,7 @@ const CrossProjectsService = {
                 }
                 const exNome = String(existing.nome || '');
                 const uNome = String(u.nome || '');
-                if ((exNome === 'Anonimo' || exNome === '' || exNome.startsWith('Utente') || exNome === 'Studente') && uNome && uNome !== 'Anonimo' && !uNome.startsWith('Utente') && uNome !== 'Studente') {
+                if ((exNome === 'Anonimo' || exNome === '' || exNome.startsWith('Utente')) && uNome && uNome !== 'Anonimo' && !uNome.startsWith('Utente')) {
                     existing.nome = uNome;
                 }
                 if (!existing.avatar && u.avatar) {
@@ -491,7 +372,7 @@ const CrossProjectsService = {
             const c = String(u.classe || '').toUpperCase().trim();
 
             const isDoc = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r.includes('prof') || r.includes('judge') || p.includes('docente') || p.includes('didattic') || p.includes('ecosistema') || e === 'prof.memmo@gmail.com';
-            const isStud = !isDoc && (r === 'studente' || r === 'student') && c !== 'N/A' && c !== 'N/D' && c !== '' && c !== 'TEST';
+            const isStud = !isDoc && (r === 'studente' || r === 'student');
 
             if (isDoc) {
                 u.ruolo = (e === 'prof.memmo@gmail.com' || r.includes('admin')) ? 'admin' : 'docente';
