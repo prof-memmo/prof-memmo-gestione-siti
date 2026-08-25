@@ -239,6 +239,59 @@ const CrossProjectsService = {
                     });
                 });
             } catch(e) { console.warn("Hub users fetch error:", e); }
+
+            // Root Users (collezione 'users' preesistente / account storici)
+            var rootUsers = [];
+            try {
+                const snapRoot = await window.fbDb.hub.collection("users").get();
+                snapRoot.forEach(doc => {
+                    const data = doc.data();
+                    const nomeStr = data.anagrafica ? (data.anagrafica.nome + " " + (data.anagrafica.cognome || "")) : (data.nome || data.name || data.displayName || data.username || 'Utente');
+                    rootUsers.push({
+                        id: doc.id,
+                        nome: nomeStr.trim() || 'Utente',
+                        email: data.email || (doc.id.includes('@') ? doc.id : ''),
+                        ruolo: data.role || data.ruolo || 'studente',
+                        statusAccount: data.statusAccount || data.statoAccount || 'active',
+                        classe: data.classId || data.classe || data.class || data.teamId || 'N/A',
+                        avatar: data.avatar || data.photoURL || data.foto || '',
+                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
+                        gioco: 'Ecosistema', giocoColor: '#6366f1', giocoIcon: 'fa-user-check',
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base'),
+                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
+                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
+                    });
+                });
+            } catch(e) { console.warn("Root users fetch error:", e); }
+
+            // Auto-consolidamento silenzioso in background: se ci sono utenti in 'users' o nei singoli giochi non ancora presenti in 'hub_users', salvali in hub_users
+            if (rootUsers.length > 0 || eroiUsers.length > 0 || commediaUsers.length > 0 || fantaUsers.length > 0 || palestraUsers.length > 0 || opsUsers.length > 0) {
+                setTimeout(async () => {
+                    try {
+                        const existingHubIds = new Set(hubUsers.map(u => u.id));
+                        const candidates = [...rootUsers, ...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers, ...opsUsers];
+                        for (const u of candidates) {
+                            if (u.id && !existingHubIds.has(u.id)) {
+                                await window.fbDb.hub.collection('hub_users').doc(u.id).set({
+                                    nome: u.nome || '',
+                                    email: u.email || '',
+                                    role: u.ruolo || 'studente',
+                                    classId: u.classe || 'N/A',
+                                    avatar: u.avatar || '',
+                                    subscription: u.plan || 'base',
+                                    newsletter: !!u.newsletter,
+                                    "consents.newsletter": !!u.newsletter,
+                                    "consents.source": "auto_migration_hub",
+                                    lastSeenAt: new Date().toISOString()
+                                }, { merge: true }).catch(() => {});
+                                existingHubIds.add(u.id);
+                            }
+                        }
+                    } catch(err) {
+                        console.warn("Background auto-consolidation error:", err);
+                    }
+                }, 1500);
+            }
         }
 
         // 2. Fallback REST dai vecchi server solo se il conteggio è 0
@@ -273,7 +326,7 @@ const CrossProjectsService = {
             } catch(e) {}
         }
 
-        const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers, ...opsUsers, ...hubUsers];
+        const allUsers = [...eroiUsers, ...commediaUsers, ...fantaUsers, ...palestraUsers, ...opsUsers, ...(typeof rootUsers !== 'undefined' ? rootUsers : []), ...hubUsers];
         
         // Deduplicazione
         const uniqueUsersMap = new Map();
