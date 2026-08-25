@@ -361,6 +361,62 @@ const CrossProjectsService = {
             }, 1200);
         }
 
+        // 3. Estrazione studenti registrati nelle Classi e Team didattici
+        let classStudents = [];
+        if (window.fbDb && window.fbDb.hub) {
+            const classCollections = [
+                { coll: 'palestra_classes', gioco: 'Palestra di Riflessione', color: '#22c55e', icon: 'fa-brain' },
+                { coll: 'eroi_classes', gioco: 'La Rotta degli Eroi', color: '#3b82f6', icon: 'fa-ship' },
+                { coll: 'corte_classes', gioco: 'La Corte della Commedia', color: '#ef4444', icon: 'fa-book-open' },
+                { coll: 'fanta_teams', gioco: 'Fantaletteratura', color: '#a855f7', icon: 'fa-dragon' },
+                { coll: 'ops_classes', gioco: 'Ops! Operazione Storia', color: '#eab308', icon: 'fa-clock-rotate-left' },
+                { coll: 'classes', gioco: 'Hub', color: '#6366f1', icon: 'fa-graduation-cap' }
+            ];
+
+            for (const cc of classCollections) {
+                try {
+                    const snapCl = await window.fbDb.hub.collection(cc.coll).get();
+                    snapCl.forEach(cDoc => {
+                        const cData = cDoc.data() || {};
+                        const cName = cData.name || cData.nome || cData.className || cData.teamName || cData.code || cDoc.id;
+                        const list = (Array.isArray(cData.students) ? cData.students : [])
+                            .concat(Array.isArray(cData.alunni) ? cData.alunni : [])
+                            .concat(Array.isArray(cData.members) ? cData.members : [])
+                            .concat(Array.isArray(cData.players) ? cData.players : [])
+                            .concat(Array.isArray(cData.studentList) ? cData.studentList : []);
+                        
+                        list.forEach((st, idx) => {
+                            if (!st) return;
+                            let stId = typeof st === 'string' ? (cDoc.id + '_st_' + idx) : (st.id || st.uid || st.email || (cDoc.id + '_st_' + idx));
+                            let stName = typeof st === 'string' ? st : (st.name || st.nome || ((st.firstName || '') + ' ' + (st.lastName || '')).trim() || st.displayName || 'Studente');
+                            let stEmail = typeof st === 'object' ? (st.email || '') : '';
+                            
+                            if (stName && stName.trim() !== '') {
+                                classStudents.push({
+                                    id: stId,
+                                    nome: stName.trim(),
+                                    email: stEmail,
+                                    ruolo: 'studente',
+                                    statusAccount: 'active',
+                                    classe: cName,
+                                    avatar: (typeof st === 'object' && st.avatar) ? st.avatar : '',
+                                    dataValue: cData.createdAt ? (cData.createdAt.toMillis ? cData.createdAt.toMillis() : new Date(cData.createdAt).getTime()) : 0,
+                                    gioco: cc.gioco,
+                                    giocoColor: cc.color,
+                                    giocoIcon: cc.icon,
+                                    plan: 'studente',
+                                    newsletter: false,
+                                    consents: {}
+                                });
+                            }
+                        });
+                    });
+                } catch(e) {
+                    console.warn(`Fetch class students error on ${cc.coll}:`, e);
+                }
+            }
+        }
+
         const allUsers = [
             ...eroiUsers, 
             ...commediaUsers, 
@@ -369,48 +425,57 @@ const CrossProjectsService = {
             ...opsUsers, 
             ...legacyUsers, 
             ...(typeof rootUsers !== 'undefined' ? rootUsers : []), 
+            ...classStudents,
             ...hubUsers
         ];
         
-        // Deduplicazione
+        // Deduplicazione: preserva account diversi con nomi diversi
         const uniqueUsersMap = new Map();
         allUsers.forEach(u => {
-            if (u.email && String(u.email).trim() !== '') {
-                const emailKey = String(u.email).trim().toLowerCase();
-                if (uniqueUsersMap.has(emailKey)) {
-                    let existing = uniqueUsersMap.get(emailKey);
-                    const curGioco = String(existing.gioco || '');
-                    const newGioco = String(u.gioco || '');
-                    if (!curGioco.includes(newGioco)) {
-                        existing.gioco = curGioco ? (curGioco + " / " + newGioco) : newGioco;
-                    }
-                    const exNome = String(existing.nome || '');
-                    const uNome = String(u.nome || '');
-                    if ((exNome === 'Anonimo' || exNome === '' || exNome.startsWith('Utente')) && uNome && uNome !== 'Anonimo' && !uNome.startsWith('Utente')) {
-                        existing.nome = uNome;
-                    }
-                    if (!existing.avatar && u.avatar) {
-                        existing.avatar = u.avatar;
-                    }
-                    if (u.plan && u.plan !== 'base') {
-                        existing.plan = u.plan;
-                    }
-                    if (u.newsletter === true || (u.consents && u.consents.newsletter === true)) {
-                        existing.newsletter = true;
-                        if (!existing.consents) existing.consents = {};
-                        existing.consents.newsletter = true;
-                    }
-                    // Se l'utente è docente in uno dei giochi o ha piano docente, impostalo come docente
-                    const uRole = String(u.ruolo || '').toLowerCase();
-                    const uPlan = String(u.plan || '').toLowerCase();
-                    if (uRole.includes('teacher') || uRole.includes('admin') || uRole.includes('docente') || uRole.includes('prof') || uRole.includes('judge') || uPlan.includes('docente')) {
-                        existing.ruolo = 'docente';
-                    }
-                } else {
-                    uniqueUsersMap.set(emailKey, {...u});
+            const emailKey = u.email ? String(u.email).trim().toLowerCase() : '';
+            const nomeKey = u.nome ? String(u.nome).trim().toLowerCase() : '';
+            const isSharedEmail = emailKey.includes('scuola') || emailKey.includes('classe') || emailKey.includes('prof.memmo');
+            
+            let dedupeKey = u.id;
+            if (emailKey && !isSharedEmail) {
+                dedupeKey = emailKey;
+            } else if (nomeKey && nomeKey !== 'utente' && nomeKey !== 'studente') {
+                dedupeKey = nomeKey + '___' + String(u.classe || '').toLowerCase();
+            }
+
+            if (uniqueUsersMap.has(dedupeKey)) {
+                let existing = uniqueUsersMap.get(dedupeKey);
+                const curGioco = String(existing.gioco || '');
+                const newGioco = String(u.gioco || '');
+                if (!curGioco.includes(newGioco)) {
+                    existing.gioco = curGioco ? (curGioco + " / " + newGioco) : newGioco;
+                }
+                const exNome = String(existing.nome || '');
+                const uNome = String(u.nome || '');
+                if ((exNome === 'Anonimo' || exNome === '' || exNome.startsWith('Utente') || exNome === 'Studente') && uNome && uNome !== 'Anonimo' && !uNome.startsWith('Utente') && uNome !== 'Studente') {
+                    existing.nome = uNome;
+                }
+                if (!existing.avatar && u.avatar) {
+                    existing.avatar = u.avatar;
+                }
+                if (u.plan && u.plan !== 'base') {
+                    existing.plan = u.plan;
+                }
+                if (u.classe && u.classe !== 'N/A' && (!existing.classe || existing.classe === 'N/A')) {
+                    existing.classe = u.classe;
+                }
+                if (u.newsletter === true || (u.consents && u.consents.newsletter === true)) {
+                    existing.newsletter = true;
+                    if (!existing.consents) existing.consents = {};
+                    existing.consents.newsletter = true;
+                }
+                const uRole = String(u.ruolo || '').toLowerCase();
+                const uPlan = String(u.plan || '').toLowerCase();
+                if (uRole.includes('teacher') || uRole.includes('admin') || uRole.includes('docente') || uRole.includes('prof') || uRole.includes('judge') || uPlan.includes('docente')) {
+                    existing.ruolo = 'docente';
                 }
             } else {
-                uniqueUsersMap.set(u.id, {...u});
+                uniqueUsersMap.set(dedupeKey, {...u});
             }
         });
         
