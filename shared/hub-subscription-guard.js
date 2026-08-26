@@ -41,9 +41,10 @@
         normalizePlanKey: function (rawPlan) {
             if (!rawPlan) return 'base';
             const p = String(rawPlan).toLowerCase().trim();
-            if (p.includes('ecosistema') || p === 'docente_ecosistema') return 'docente_ecosistema';
-            if (p.includes('docente') || p === 'docente_didattico') return 'docente_didattico';
-            if (p.includes('viandante')) return 'viandante';
+            if (p === 'docente_ecosistema' || p.includes('ecosistema') || p.includes('completo')) return 'docente_ecosistema';
+            if (p === 'docente_didattico' || p.includes('didattic')) return 'docente_didattico';
+            if (p === 'viandante' || p.includes('viandante')) return 'viandante';
+            if (p === 'studente' || p === 'student') return 'studente';
             return 'base';
         },
 

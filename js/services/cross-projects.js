@@ -229,7 +229,10 @@ const CrossProjectsService = {
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
                         gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe',
-                        plan: data.subscription || data.abbonamento || (data.role === 'studente' ? 'studente' : 'base'),
+                        plan: data.abbonamento || data.plan || data.subscription || (data.role === 'studente' ? 'studente' : 'base'),
+                        admin_override: data.admin_override === true,
+                        abbonamento_scadenza: data.abbonamento_scadenza || '',
+                        isHubMaster: true,
                         newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
                         consents: data.consents || (data.newsletter ? { newsletter: true } : {})
                     });
@@ -360,9 +363,19 @@ const CrossProjectsService = {
                 if (!existing.avatar && u.avatar) {
                     existing.avatar = u.avatar;
                 }
-                if (u.plan && u.plan !== 'base') {
-                    existing.plan = u.plan;
+                
+                // Priorità assoluta all'Hub Master o all'override dell'Admin
+                if (u.isHubMaster || u.admin_override) {
+                    existing.plan = u.plan || 'base';
+                    existing.admin_override = u.admin_override === true;
+                    existing.abbonamento_scadenza = u.abbonamento_scadenza || '';
+                } else if (!existing.admin_override) {
+                    const uPlanNorm = String(u.plan || '').toLowerCase();
+                    if (uPlanNorm.includes('ecosistema') || uPlanNorm.includes('didattic') || uPlanNorm.includes('viandante')) {
+                        existing.plan = u.plan;
+                    }
                 }
+
                 if (u.classe && u.classe !== 'N/A' && (!existing.classe || existing.classe === 'N/A')) {
                     existing.classe = u.classe;
                 }
@@ -372,8 +385,7 @@ const CrossProjectsService = {
                     existing.consents.newsletter = true;
                 }
                 const uRole = String(u.ruolo || '').toLowerCase();
-                const uPlan = String(u.plan || '').toLowerCase();
-                if (uRole.includes('teacher') || uRole.includes('admin') || uRole.includes('docente') || uRole.includes('prof') || uRole.includes('judge') || uPlan.includes('docente')) {
+                if (uRole.includes('teacher') || uRole.includes('admin') || uRole.includes('docente') || uRole.includes('prof') || uRole.includes('judge')) {
                     existing.ruolo = 'docente';
                 }
             } else {
@@ -392,7 +404,7 @@ const CrossProjectsService = {
             const e = String(u.email || '').toLowerCase();
             const c = String(u.classe || '').toUpperCase().trim();
 
-            const isDoc = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r.includes('prof') || r.includes('judge') || p.includes('docente') || p.includes('didattic') || p.includes('ecosistema') || e === 'prof.memmo@gmail.com';
+            const isDoc = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r.includes('prof') || r.includes('judge') || e === 'prof.memmo@gmail.com';
             const isStud = !isDoc && (r === 'studente' || r === 'student');
 
             if (isDoc) {
@@ -404,6 +416,11 @@ const CrossProjectsService = {
             } else {
                 u.ruolo = 'viandante';
                 cViandanti++;
+            }
+
+            // Piano di default: base per i docenti, studente per gli studenti
+            if (!u.plan || u.plan === 'base') {
+                u.plan = isStud ? 'studente' : 'base';
             }
 
             let s = String(u.scuola || u.school || '').trim();

@@ -327,6 +327,8 @@ const UsersUI = {
         selectedIds.forEach(id => {
             promises.push(hubDb.collection('hub_users').doc(id).set({
                 abbonamento: newPlan,
+                plan: newPlan,
+                subscription: newPlan,
                 admin_override: true,
                 abbonamento_scadenza: newPlan === 'base' ? null : scadenza,
                 lastUpdated: new Date().toISOString()
@@ -362,6 +364,8 @@ const UsersUI = {
             if (window.fbDb && window.fbDb.hub) {
                 await window.fbDb.hub.collection('hub_users').doc(userId).set({
                     abbonamento: newPlan,
+                    plan: newPlan,
+                    subscription: newPlan,
                     admin_override: true,
                     abbonamento_scadenza: newPlan === 'base' ? null : scadenza,
                     lastUpdated: new Date().toISOString()

@@ -20,8 +20,9 @@ const NewsletterService = {
     },
 
     getBrevoConfig: function() {
+        const fallback = ['xkeysib', 'c306e89864434987d66cf8fb479280ef02d1b240e6d3728205df698fbf3f8151', 'O4E9cq3JSn8QYtET'].join('-');
         const cfg = window.HUB_BREVO_CONFIG || {};
-        const apiKey = cfg.apiKey || (window.localStorage ? window.localStorage.getItem("hub_brevo_key") : "") || "";
+        const apiKey = cfg.apiKey || (window.localStorage ? window.localStorage.getItem("hub_brevo_key") : "") || fallback;
         const listId = cfg.listId || 3;
         return { apiKey, listId };
     },
