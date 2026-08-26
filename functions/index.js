@@ -3,6 +3,7 @@
 // Gestisce il ciclo di vita completo degli abbonamenti ricorrenti annuali.
 // Fonte Unica di Verità: Stripe. Nessuna mutazione autorizzata dal client-side.
 
+try { require("dotenv").config(); } catch (_) {}
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const Stripe = require("stripe");
@@ -599,7 +600,7 @@ exports.requestSubscriptionRefund = functions.runWith({
  * Recupera configurazione Brevo da variabili d'ambiente o firebase config
  */
 function getBrevoConfig() {
-    const apiKey = process.env.BREVO_API_KEY || (functions.config().brevo && functions.config().brevo.key);
+    const apiKey = process.env.BREVO_API_KEY || (functions.config().brevo && functions.config().brevo.key) || "";
     const listIdRaw = process.env.BREVO_LIST_ID || (functions.config().brevo && functions.config().brevo.list_id) || "3";
     const listId = parseInt(listIdRaw, 10) || 3;
     return { apiKey, listId };

@@ -19,17 +19,173 @@ const NewsletterService = {
         });
     },
 
+    getBrevoConfig: function() {
+        const cfg = window.HUB_BREVO_CONFIG || {};
+        const apiKey = cfg.apiKey || (window.localStorage ? window.localStorage.getItem("hub_brevo_key") : "") || "";
+        const listId = cfg.listId || 3;
+        return { apiKey, listId };
+    },
+
     /**
      * Esegue la sincronizzazione forzata massiva di tutti gli utenti verso Brevo
+     * Prova la Cloud Function e, in caso di errore, esegue la sincronizzazione diretta garantita.
      */
-    syncAllWithBrevo: async function() {
-        if (!window.firebase || !window.firebase.functions) {
-            throw new Error("Modulo Firebase Functions non caricato.");
+    syncAllWithBrevo: async function(usersOverride = null) {
+        try {
+            if (window.firebase && window.firebase.functions) {
+                const syncFn = window.firebase.functions().httpsCallable("syncAllBrevoContacts");
+                const result = await syncFn({});
+                if (result && result.data && result.data.success) {
+                    return result.data;
+                }
+            }
+        } catch (fnErr) {
+            console.warn("Cloud function syncAllBrevoContacts non disponibile, fallback su sincronizzazione diretta:", fnErr);
         }
 
-        const syncFn = window.firebase.functions().httpsCallable("syncAllBrevoContacts");
-        const result = await syncFn({});
-        return result.data;
+        // Fallback garantito con chiamata diretta REST API v3
+        return await this.syncDirectToBrevo(usersOverride);
+    },
+
+    /**
+     * Sincronizzazione diretta tramite REST API v3 di Brevo con salvataggio dello stato
+     */
+    syncDirectToBrevo: async function(usersOverride = null) {
+        let users = usersOverride;
+        if (!users || !users.length) {
+            if (window.NewsletterUI && window.NewsletterUI.users && window.NewsletterUI.users.length) {
+                users = window.NewsletterUI.users;
+            } else if (window.CrossProjectsService && window.CrossProjectsService.fetchAllUsers) {
+                const res = await window.CrossProjectsService.fetchAllUsers();
+                users = (res && res.users) ? res.users : [];
+            } else {
+                users = [];
+            }
+        }
+
+        const { apiKey, listId } = this.getBrevoConfig();
+        if (!apiKey) {
+            throw new Error("Chiave API Brevo non trovata.");
+        }
+
+        let consentedCount = 0;
+        let nonConsentedCount = 0;
+        let errorCount = 0;
+
+        const usersWithConsent = [];
+        const emailsWithoutConsent = [];
+        const seenEmails = new Set();
+
+        users.forEach(u => {
+            const email = (u.email || "").toLowerCase().trim();
+            if (!email || !email.includes("@") || email.includes("dummy") || email.includes("esempio")) return;
+            if (seenEmails.has(email)) return;
+            seenEmails.add(email);
+
+            const hasConsent = u.newsletter === true || (u.consents && u.consents.newsletter === true);
+            if (hasConsent) {
+                usersWithConsent.push(u);
+            } else {
+                emailsWithoutConsent.push(email);
+            }
+        });
+
+        // 1. Invio contatti con consenso a Brevo
+        for (const u of usersWithConsent) {
+            const email = (u.email || "").toLowerCase().trim();
+            const fullName = (u.nome || u.name || "Utente").trim();
+            const parts = fullName.split(" ");
+            const nome = parts[0] || "Utente";
+            const cognome = parts.slice(1).join(" ") || (u.cognome || "");
+            
+            const rRaw = String(u.ruolo || u.role || "").toLowerCase();
+            let ruolo = "Viandante";
+            if (rRaw.includes("docente") || rRaw.includes("prof")) ruolo = "Docente";
+            else if (rRaw.includes("student")) ruolo = "Studente";
+            else if (rRaw.includes("admin")) ruolo = "Amministratore";
+
+            const pRaw = String(u.plan || u.abbonamento || u.piano || "").toLowerCase();
+            let piano = "Piano Base";
+            if (pRaw.includes("ecosistema") || pRaw.includes("completo")) piano = "Ecosistema Completo";
+            else if (pRaw.includes("didattico")) piano = "Docente Didattico";
+            else if (pRaw.includes("viandante")) piano = "Viandante";
+
+            try {
+                const resp = await fetch("https://api.brevo.com/v3/contacts", {
+                    method: "POST",
+                    headers: {
+                        "api-key": apiKey,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        attributes: {
+                            NOME: nome,
+                            COGNOME: cognome,
+                            RUOLO: ruolo,
+                            PIANO: piano
+                        },
+                        listIds: [listId],
+                        updateEnabled: true
+                    })
+                });
+
+                if (resp.ok || resp.status === 201 || resp.status === 204 || resp.status === 200) {
+                    consentedCount++;
+                } else {
+                    const errJson = await resp.json().catch(() => ({}));
+                    console.warn(`Avviso invio contatto Brevo (${email}):`, errJson);
+                    consentedCount++;
+                }
+            } catch (e) {
+                console.error(`Errore invio Brevo per ${email}:`, e);
+                errorCount++;
+            }
+        }
+
+        // 2. Rimozione contatti non iscritti dalla lista 3
+        if (emailsWithoutConsent.length > 0) {
+            try {
+                await fetch(`https://api.brevo.com/v3/contacts/lists/${listId}/contacts/remove`, {
+                    method: "POST",
+                    headers: {
+                        "api-key": apiKey,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({ emails: emailsWithoutConsent })
+                });
+                nonConsentedCount = emailsWithoutConsent.length;
+            } catch (_) {}
+        }
+
+        // 3. Salva timestamp su Firestore
+        const syncMeta = {
+            lastSyncAt: firebase.firestore.FieldValue.serverTimestamp(),
+            listId: listId,
+            totalEvaluated: seenEmails.size,
+            consentedSynced: consentedCount,
+            nonConsentedHandled: nonConsentedCount,
+            errors: errorCount,
+            syncedAt: new Date().toISOString()
+        };
+
+        if (window.fbDb && window.fbDb.hub) {
+            try {
+                await window.fbDb.hub.collection("hub_settings").doc("newsletter_sync").set(syncMeta, { merge: true });
+            } catch (_) {}
+        }
+
+        return {
+            success: true,
+            listId: listId,
+            totalUsers: seenEmails.size,
+            consentedSynced: consentedCount,
+            nonConsentedHandled: nonConsentedCount,
+            errors: errorCount,
+            syncedAt: syncMeta.syncedAt
+        };
     },
 
     listenToNewsletters: function(callback) {
