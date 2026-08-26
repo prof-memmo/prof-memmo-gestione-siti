@@ -418,9 +418,9 @@ const CrossProjectsService = {
                 cViandanti++;
             }
 
-            // Piano di default: base per i docenti, studente per gli studenti
-            if (!u.plan || u.plan === 'base') {
-                u.plan = isStud ? 'studente' : 'base';
+            // Piano di default: Base per tutti gli utenti senza abbonamento specifico
+            if (!u.plan) {
+                u.plan = 'base';
             }
 
             let s = String(u.scuola || u.school || '').trim();

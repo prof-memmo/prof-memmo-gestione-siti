@@ -72,11 +72,10 @@ const UsersUI = {
         function normalizePlanKey(rawPlan) {
             if (!rawPlan) return 'base';
             const p = String(rawPlan).toLowerCase().trim();
-            if (p.includes('ecosistema') || p === 'docente_ecosistema') return 'docente_ecosistema';
-            if (p.includes('didattic') || p === 'docente_didattico' || p === 'docente_didattica') return 'docente_didattico';
+            if (p === 'docente_ecosistema' || p.includes('ecosistema') || p.includes('completo')) return 'docente_ecosistema';
+            if (p === 'docente_didattico' || p.includes('didattic')) return 'docente_didattico';
             if (p.includes('viandante') || p.includes('pellegrino') || p.includes('external')) return 'viandante';
-            if (p === 'base' || p === 'free' || p === 'gratuito' || p === 'studente' || p === 'studente_classe') return 'base';
-            return p;
+            return 'base';
         }
 
         usersArray.forEach(user => {
