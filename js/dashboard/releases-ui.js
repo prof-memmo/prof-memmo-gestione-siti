@@ -337,7 +337,8 @@ const ReleasesUI = {
     },
 
     openConfirmModal: function(siteId) {
-        const project = this.PROJECTS.find(p => p.id === siteId);
+        const isAll = (siteId === 'ALL');
+        const project = isAll ? { name: "Tutto l'Ecosistema (Tutti i 6 Siti)", repo: "ALL (Multi-Repo Sync)" } : this.PROJECTS.find(p => p.id === siteId);
         if (!project) return;
 
         const modal = document.getElementById('modal-release-confirm');
@@ -383,7 +384,8 @@ const ReleasesUI = {
         const btnExec = document.getElementById('btn-execute-release');
         const modal = document.getElementById('modal-release-confirm');
         const siteId = inputEl ? inputEl.dataset.siteId : this.selectedSiteId;
-        const project = this.PROJECTS.find(p => p.id === siteId);
+        const isAll = (siteId === 'ALL');
+        const project = isAll ? { name: "Tutto l'Ecosistema", repo: "ALL" } : this.PROJECTS.find(p => p.id === siteId);
 
         if (!project) return;
 
@@ -396,13 +398,13 @@ const ReleasesUI = {
             const triggerRelease = firebase.functions().httpsCallable('triggerReleaseAction');
             const result = await triggerRelease({
                 repo: project.repo,
-                siteId: project.id
+                siteId: siteId
             });
 
             console.log("✅ Risultato Cloud Function:", result.data);
 
             if (modal) modal.style.display = 'none';
-            alert(`🎉 RILASCIO COMPLETATO!\n\nIl sito "${project.name}" è stato aggiornato in produzione con successo su GitHub Pages a Zero-Downtime.`);
+            alert(`🎉 RILASCIO COMPLETATO!\n\n${isAll ? "Tutti i siti dell'Ecosistema sono stati aggiornati in produzione con successo!" : 'Il sito "' + project.name + '" è stato aggiornato in produzione con successo su GitHub Pages a Zero-Downtime.'}`);
 
             // Aggiorna stato e storico
             await Promise.all([
