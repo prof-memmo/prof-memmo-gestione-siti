@@ -215,6 +215,24 @@ const PortalApp = {
                 }
             }
 
+            // Controllo monetizzazione per redirect
+            try {
+                const ecoDoc = await window.fbDb.hub.collection('hub_settings').doc('ecosistema').get();
+                const isMonetActive = ecoDoc.exists && !!ecoDoc.data().monetizzazione;
+                const userRole = (this.profile.role || this.profile.ruolo || 'viandante').toLowerCase();
+                const userSub = (this.profile.subscription || 'base').toLowerCase();
+
+                if (isMonetActive && userRole !== 'studente' && userSub === 'base' && !redirectTarget) {
+                    const prezziUrl = isPreview 
+                        ? 'https://prof-memmo.github.io/games/preview/prezzi.html' 
+                        : 'https://prof-memmo.github.io/games/prezzi.html';
+                    window.location.replace(prezziUrl);
+                    return;
+                }
+            } catch(ecoErr) {
+                console.warn("Controllo monetizzazione non riuscito:", ecoErr);
+            }
+
             // Altrimenti va SEMPRE all'Area Profilo ufficiale
             const profileUrl = isPreview 
                 ? 'https://prof-memmo.github.io/games/preview/profilo.html' 

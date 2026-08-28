@@ -51,8 +51,8 @@ service cloud.firestore {
       // Aggiornamento: L'admin modifica qualsiasi cosa. L'owner aggiorna solo dati anagrafici/non privilegiati.
       allow update: if isAdmin() || (isOwner(userId) && noPrivilegeEscalation());
       
-      // Eliminazione: Riservata agli Amministratori.
-      allow delete: if isAdmin();
+      // Eliminazione: L'utente può eliminare il proprio profilo (GDPR), oppure l'amministratore.
+      allow delete: if isOwner(userId) || isAdmin();
     }
     
     // ==============================================================
