@@ -195,42 +195,30 @@ const PortalApp = {
 
             this.profile = snap.data();
             
-            // Mostra Dashboard UI
-            document.getElementById('portal-login-overlay').style.display = 'none';
-            document.getElementById('portal-onboarding').style.display = 'none';
-            document.getElementById('portal-dashboard').style.display = 'flex';
-            
-            document.getElementById('user-greeting').textContent = `Ciao, ${this.profile.anagrafica.nome.split(' ')[0]}!`;
-            
-            // Gestione blocchi account
-            const isRejected = (this.profile.statusAccount === 'rejected' || this.profile.statusAccount === 'suspended');
-            
-            if (isRejected) {
-                document.getElementById('account-blocked-banner').style.display = 'block';
-                document.getElementById('teacher-pending-banner').style.display = 'none';
-                document.getElementById('platforms-container').style.display = 'none';
-                return; // Non renderizza le piattaforme
-            } else {
-                document.getElementById('account-blocked-banner').style.display = 'none';
-                document.getElementById('platforms-container').style.display = 'grid';
-            }
-
-            // Handle Teacher Pending state
-            if (this.profile.role === 'docente' && this.profile.statusAccount === 'pending') {
-                document.getElementById('teacher-pending-banner').style.display = 'block';
-            } else {
-                document.getElementById('teacher-pending-banner').style.display = 'none';
-            }
-            
-            // Handle URL auto-redirect (SSO Flow)
+            // Reindirizzamento SSO immediato
             const urlParams = new URLSearchParams(window.location.search);
             const redirectTarget = urlParams.get('redirect');
-            if (redirectTarget && this.profile.platforms && this.profile.platforms[redirectTarget] && this.profile.platforms[redirectTarget].enabled) {
-                this.openPlatform(redirectTarget);
-                return;
+            const isPreview = window.location.pathname.includes('/preview');
+
+            if (redirectTarget) {
+                const gameMap = {
+                    'fantaletteratura': isPreview ? 'https://prof-memmo.github.io/fantaletteratura/preview/' : 'https://prof-memmo.github.io/fantaletteratura/',
+                    'palestra_riflessione': isPreview ? 'https://prof-memmo.github.io/palestra-di-riflessione/preview/' : 'https://prof-memmo.github.io/palestra-di-riflessione/',
+                    'rotta_degli_eroi': isPreview ? 'https://prof-memmo.github.io/la-rotta-degli-eroi/preview/' : 'https://prof-memmo.github.io/la-rotta-degli-eroi/',
+                    'corte_della_commedia': isPreview ? 'https://prof-memmo.github.io/la-corte-della-commedia/preview/' : 'https://prof-memmo.github.io/la-corte-della-commedia/'
+                };
+                if (gameMap[redirectTarget]) {
+                    window.location.replace(gameMap[redirectTarget]);
+                    return;
+                }
             }
-            
-            this.renderPlatforms();
+
+            // Altrimenti va SEMPRE all'Area Profilo ufficiale
+            const profileUrl = isPreview 
+                ? 'https://prof-memmo.github.io/games/preview/profilo.html' 
+                : 'https://prof-memmo.github.io/games/profilo.html';
+            window.location.replace(profileUrl);
+            return;
 
         } catch(e) {
             console.error("Errore recupero profilo:", e);
