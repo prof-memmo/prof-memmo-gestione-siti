@@ -1,6 +1,6 @@
 // js/dashboard/releases-ui.js
 // Gestione UI della sezione RILASCI & ANTEPRIME per l'Ecosistema Prof. Memmo
-// Permette la verifica delle anteprime private e il deploy controllato su GitHub Pages.
+// Rileva in tempo reale le nuove anteprime pronte (main...preview) e gestisce il deploy controllato.
 
 const ReleasesUI = {
     PROJECTS: [
@@ -22,7 +22,7 @@ const ReleasesUI = {
             previewUrl: 'https://prof-memmo.github.io/games/preview/',
             icon: 'fa-store',
             color: '#ec4899',
-            description: 'Vetrina pubblica principale e catalogo giochi didattici.'
+            description: 'Vetrina pubblica principale, accesso unificato e catalogo giochi.'
         },
         {
             id: 'fantaletteratura',
@@ -76,19 +76,50 @@ const ReleasesUI = {
         }
     ],
 
-    selectedSiteId: 'fantaletteratura',
+    selectedSiteId: 'hub_vetrina',
+    siteStatuses: {},
     history: [],
 
     init: async function() {
         console.log("🚀 ReleasesUI: Inizializzazione modulo Rilasci...");
         this.renderSiteGrid();
         this.selectSite(this.selectedSiteId);
-        await this.loadHistory();
+        await Promise.all([
+            this.checkAllSiteStatuses(),
+            this.loadHistory()
+        ]);
+    },
+
+    checkAllSiteStatuses: async function() {
+        console.log("🔍 ReleasesUI: Verifica stato anteprime su GitHub...");
+        for (const project of this.PROJECTS) {
+            try {
+                const res = await fetch(`https://api.github.com/repos/prof-memmo/${project.repo}/compare/main...preview`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const aheadBy = data.ahead_by || 0;
+                    const commits = data.commits || [];
+                    const lastCommit = commits.length > 0 ? commits[commits.length - 1] : null;
+
+                    this.siteStatuses[project.id] = {
+                        status: data.status,
+                        aheadBy: aheadBy,
+                        lastCommitMessage: lastCommit && lastCommit.commit ? lastCommit.commit.message : '',
+                        lastCommitDate: lastCommit && lastCommit.commit && lastCommit.commit.author ? new Date(lastCommit.commit.author.date).toLocaleString('it-IT') : ''
+                    };
+                }
+            } catch(e) {
+                console.warn(`Errore controllo compare per ${project.repo}:`, e);
+            }
+        }
+        this.renderSiteGrid();
+        this.selectSite(this.selectedSiteId);
     },
 
     selectSite: function(siteId) {
         this.selectedSiteId = siteId;
         const project = this.PROJECTS.find(p => p.id === siteId) || this.PROJECTS[0];
+        const status = this.siteStatuses[siteId] || { aheadBy: 0, status: 'synced' };
 
         // Aggiorna classe attiva nelle card
         document.querySelectorAll('.release-site-card').forEach(el => {
@@ -99,21 +130,55 @@ const ReleasesUI = {
         const detailContainer = document.getElementById('release-active-details');
         if (!detailContainer) return;
 
+        // Banner di Stato Anteprima vs Live
+        let statusBannerHtml = '';
+        if (status.aheadBy > 0) {
+            statusBannerHtml = `
+                <div style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1.5px solid #c4b5fd; border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.08);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 6px;">
+                        <div style="font-weight: 800; color: #5b21b6; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-sparkles" style="color: #8b5cf6; font-size: 1.2rem;"></i> Nuova Versione Pronta in Anteprima!
+                        </div>
+                        <span style="background: #7c3aed; color: white; font-size: 0.78rem; padding: 4px 10px; border-radius: 12px; font-weight: 700; letter-spacing: 0.5px;">
+                            ⚡ ${status.aheadBy} ${status.aheadBy === 1 ? 'Aggiornamento' : 'Aggiornamenti'} da Pubblicare
+                        </span>
+                    </div>
+                    <div style="font-size: 0.88rem; color: #4c1d95; line-height: 1.5;">
+                        <strong>Descrizione ultima modifica:</strong> <em>"${status.lastCommitMessage || 'Miglioramenti piattaforma'}"</em>
+                        ${status.lastCommitDate ? `<span style="color: #6d28d9; margin-left: 8px; font-size: 0.8rem;">(${status.lastCommitDate})</span>` : ''}
+                    </div>
+                </div>
+            `;
+        } else {
+            statusBannerHtml = `
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 18px; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <div style="font-size: 0.92rem; color: #166534; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Produzione e Anteprima Sincronizzate
+                    </div>
+                    <span style="font-size: 0.78rem; color: #15803d; background: #dcfce7; padding: 3px 10px; border-radius: 12px; font-weight: 600;">
+                        Tutto Aggiornato
+                    </span>
+                </div>
+            `;
+        }
+
         detailContainer.innerHTML = `
+            ${statusBannerHtml}
+
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
                 <div>
-                    <h3 style="margin: 0 0 6px 0; font-size: 1.3rem; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
+                    <h3 style="margin: 0 0 6px 0; font-size: 1.35rem; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
                         <i class="fa-solid ${project.icon}" style="color: ${project.color};"></i> ${project.name}
                     </h3>
                     <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">${project.description}</p>
                     <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">
-                        Repository GitHub: <code>${project.repo}</code> &bull; Branch Live: <code>main</code> &bull; Branch Anteprima: <code>preview</code>
+                        Repository: <code>${project.repo}</code> &bull; Live: <code>main</code> &bull; Anteprima: <code>preview</code>
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <span class="badge" style="background: #ecfdf5; color: #059669; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; border: 1px solid #a7f3d0;">
-                        <i class="fa-solid fa-circle-check"></i> Produzione Live Attiva
-                    </span>
+                    <button class="btn outline" style="padding: 6px 12px; font-size: 0.8rem;" onclick="ReleasesUI.checkAllSiteStatuses()" title="Ricarica stato da GitHub">
+                        <i class="fa-solid fa-rotate"></i> Aggiorna Stato
+                    </button>
                 </div>
             </div>
 
@@ -159,19 +224,21 @@ const ReleasesUI = {
                     </button>
                 </div>
                 <div id="release-preflight-result" style="font-size: 0.88rem; color: var(--text-muted);">
-                    Clicca su <strong>"Esegui Check Ora"</strong> per verificare integrità, connessione al database Hub e assenza di errori bloccanti prima della pubblicazione.
+                    Clicca su <strong>"Esegui Check Ora"</strong> per verificare integrità, database Hub e assenza di errori bloccanti prima della pubblicazione.
                 </div>
             </div>
 
             <!-- Sezione Azione di Pubblicazione -->
-            <div style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color: white; border-radius: 14px; padding: 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 10px 25px -5px rgba(49, 46, 129, 0.4);">
+            <div style="background: ${status.aheadBy > 0 ? 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%)' : 'linear-gradient(135deg, #1e293b 0%, #334155 100%)'}; color: white; border-radius: 14px; padding: 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 10px 25px -5px rgba(30, 27, 75, 0.35);">
                 <div>
-                    <h4 style="margin: 0 0 6px 0; font-size: 1.15rem; color: #e0e7ff;">Sei pronto a pubblicare le modifiche?</h4>
+                    <h4 style="margin: 0 0 6px 0; font-size: 1.15rem; color: #e0e7ff;">
+                        ${status.aheadBy > 0 ? '🚀 Modifiche pronte per la pubblicazione live' : 'Sei pronto a pubblicare le modifiche?'}
+                    </h4>
                     <p style="margin: 0; font-size: 0.88rem; color: #c7d2fe; max-width: 550px;">
                         L'approvazione unirà il branch <code>preview</code> nel branch <code>main</code> e aggiornerà il sito pubblico a <strong>Zero-Downtime</strong>.
                     </p>
                 </div>
-                <button class="btn" style="background: #10b981; color: white; font-weight: 800; font-size: 1rem; padding: 14px 28px; border-radius: 10px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);" onclick="ReleasesUI.openConfirmModal('${project.id}')">
+                <button class="btn" style="background: #10b981; color: white; font-weight: 800; font-size: 1rem; padding: 14px 28px; border-radius: 10px; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);" onclick="ReleasesUI.openConfirmModal('${project.id}')">
                     <i class="fa-solid fa-rocket"></i> Pubblica in Produzione
                 </button>
             </div>
@@ -182,21 +249,31 @@ const ReleasesUI = {
         const grid = document.getElementById('release-sites-grid');
         if (!grid) return;
 
-        grid.innerHTML = this.PROJECTS.map(p => `
-            <div class="glass-panel release-site-card ${p.id === this.selectedSiteId ? 'active-site-card' : ''}" 
-                 data-site-id="${p.id}" 
-                 onclick="ReleasesUI.selectSite('${p.id}')"
-                 style="cursor: pointer; padding: 14px 18px; border-radius: 10px; transition: all 0.2s; display: flex; align-items: center; gap: 12px;">
-                <div style="width: 38px; height: 38px; border-radius: 8px; background: ${p.color}15; color: ${p.color}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                    <i class="fa-solid ${p.icon}"></i>
+        grid.innerHTML = this.PROJECTS.map(p => {
+            const status = this.siteStatuses[p.id] || { aheadBy: 0 };
+            const hasUpdate = status.aheadBy > 0;
+
+            return `
+                <div class="glass-panel release-site-card ${p.id === this.selectedSiteId ? 'active-site-card' : ''}" 
+                     data-site-id="${p.id}" 
+                     onclick="ReleasesUI.selectSite('${p.id}')"
+                     style="cursor: pointer; padding: 12px 16px; border-radius: 10px; transition: all 0.2s; display: flex; align-items: center; gap: 12px; position: relative;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: ${p.color}15; color: ${p.color}; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;">
+                        <i class="fa-solid ${p.icon}"></i>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                            <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</span>
+                            ${hasUpdate 
+                                ? `<span style="background: #ede9fe; color: #7c3aed; font-size: 0.68rem; padding: 2px 7px; border-radius: 10px; font-weight: 800; white-space: nowrap;"><i class="fa-solid fa-sparkles"></i> ${status.aheadBy} nuovi</span>`
+                                : `<span style="color: #10b981; font-size: 0.72rem; font-weight: 600;"><i class="fa-solid fa-check"></i></span>`
+                            }
+                        </div>
+                        <div style="font-size: 0.76rem; color: var(--text-muted);">Repo: ${p.repo}</div>
+                    </div>
                 </div>
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</div>
-                    <div style="font-size: 0.78rem; color: var(--text-muted);">Repo: ${p.repo}</div>
-                </div>
-                <i class="fa-solid fa-chevron-right" style="color: #cbd5e1; font-size: 0.8rem;"></i>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     },
 
     runPreflightCheck: async function(siteId) {
@@ -248,126 +325,106 @@ const ReleasesUI = {
         if (!project) return;
 
         const modal = document.getElementById('modal-release-confirm');
-        if (!modal) return;
+        const siteNameEl = document.getElementById('release-modal-site-name');
+        const repoNameEl = document.getElementById('release-modal-repo-name');
+        const inputEl = document.getElementById('release-confirm-input');
+        const btnExec = document.getElementById('btn-execute-release');
 
-        document.getElementById('release-modal-site-name').innerText = project.name;
-        document.getElementById('release-modal-repo-name').innerText = project.repo;
-        document.getElementById('release-confirm-input').value = '';
-        document.getElementById('btn-execute-release').disabled = true;
-        document.getElementById('btn-execute-release').style.opacity = '0.5';
+        if (siteNameEl) siteNameEl.textContent = project.name;
+        if (repoNameEl) repoNameEl.textContent = project.repo;
+        if (inputEl) {
+            inputEl.value = '';
+            inputEl.dataset.siteId = siteId;
+        }
+        if (btnExec) {
+            btnExec.disabled = true;
+            btnExec.style.opacity = '0.5';
+            btnExec.innerHTML = '<i class="fa-solid fa-rocket"></i> Conferma e Pubblica Live';
+        }
 
-        modal.style.display = 'flex';
+        if (modal) modal.style.display = 'flex';
     },
 
     checkConfirmInput: function() {
-        const val = (document.getElementById('release-confirm-input').value || '').trim().toUpperCase();
-        const btn = document.getElementById('btn-execute-release');
+        const inputEl = document.getElementById('release-confirm-input');
+        const btnExec = document.getElementById('btn-execute-release');
+        if (!inputEl || !btnExec) return;
+
+        const val = inputEl.value.trim().toUpperCase();
         if (val === 'CONFERMA') {
-            btn.disabled = false;
-            btn.style.opacity = '1';
+            btnExec.disabled = false;
+            btnExec.style.opacity = '1';
+            btnExec.style.cursor = 'pointer';
         } else {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
+            btnExec.disabled = true;
+            btnExec.style.opacity = '0.5';
+            btnExec.style.cursor = 'not-allowed';
         }
     },
 
     executeRelease: async function() {
-        const siteId = this.selectedSiteId;
-        const project = this.PROJECTS.find(p => p.id === siteId);
-        const btn = document.getElementById('btn-execute-release');
+        const inputEl = document.getElementById('release-confirm-input');
+        const btnExec = document.getElementById('btn-execute-release');
         const modal = document.getElementById('modal-release-confirm');
+        const siteId = inputEl ? inputEl.dataset.siteId : this.selectedSiteId;
+        const project = this.PROJECTS.find(p => p.id === siteId);
 
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Pubblicazione in corso...';
+        if (!project) return;
+
+        btnExec.disabled = true;
+        btnExec.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Pubblicazione in corso...';
 
         try {
-            console.log(`🚀 Avvio rilascio per ${project.name} (${project.repo})...`);
+            console.log(`🚀 ReleasesUI: Esecuzione rilascio per ${project.name} (repo: ${project.repo})...`);
 
-            // Chiamata alla Cloud Function sicura
-            let success = false;
-            let message = '';
-
-            try {
-                if (window.firebase && window.firebase.functions) {
-                    const triggerFn = window.firebase.functions().httpsCallable('triggerReleaseAction');
-                    const res = await triggerFn({ repo: project.repo, action: 'publish', siteId: project.id });
-                    if (res && res.data && res.data.success) {
-                        success = true;
-                        message = res.data.message || 'Deploy completato!';
-                    }
-                }
-            } catch(fnErr) {
-                console.warn("Cloud function trigger:", fnErr);
-            }
-
-            // Registrazione nello storico Firestore (hub_settings/releases_history)
-            const historyEntry = {
-                siteId: project.id,
-                siteName: project.name,
+            const triggerRelease = firebase.functions().httpsCallable('triggerReleaseAction');
+            const result = await triggerRelease({
                 repo: project.repo,
-                timestamp: new Date().toISOString(),
-                dateStr: new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                status: 'success',
-                author: window.firebase.auth().currentUser ? window.firebase.auth().currentUser.email : 'prof.memmo@gmail.com'
-            };
+                siteId: project.id
+            });
 
-            if (window.fbDb) {
-                await window.fbDb.collection('hub_settings').doc('releases_history').set({
-                    entries: window.firebase.firestore.FieldValue.arrayUnion(historyEntry),
-                    lastUpdated: new Date().toISOString()
-                }, { merge: true });
-            }
+            console.log("✅ Risultato Cloud Function:", result.data);
 
-            alert(`🎉 RILASCIO COMPLETATO!\n\nIl sito "${project.name}" è stato pubblicato con successo in produzione su GitHub Pages a zero downtime.`);
-            modal.style.display = 'none';
-            await this.loadHistory();
+            if (modal) modal.style.display = 'none';
+            alert(`🎉 RILASCIO COMPLETATO!\n\nIl sito "${project.name}" è stato aggiornato in produzione con successo su GitHub Pages a Zero-Downtime.`);
+
+            // Aggiorna stato e storico
+            await Promise.all([
+                this.checkAllSiteStatuses(),
+                this.loadHistory()
+            ]);
         } catch(e) {
             console.error("Errore durante il rilascio:", e);
-            alert(`❌ Errore durante il rilascio: ${e.message}`);
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-rocket"></i> Conferma e Pubblica Live';
+            alert("Errore rilascio: " + (e.message || "Verifica permessi o connessione."));
+            btnExec.disabled = false;
+            btnExec.innerHTML = '<i class="fa-solid fa-rocket"></i> Riprova Pubblicazione';
         }
     },
 
     loadHistory: async function() {
-        const historyContainer = document.getElementById('release-history-list');
-        if (!historyContainer) return;
+        const listEl = document.getElementById('release-history-list');
+        if (!listEl || !window.fbDb) return;
 
         try {
-            let entries = [];
-            if (window.fbDb) {
-                const doc = await window.fbDb.collection('hub_settings').doc('releases_history').get();
-                if (doc.exists && doc.data() && Array.isArray(doc.data().entries)) {
-                    entries = doc.data().entries;
-                }
-            }
-
-            if (!entries.length) {
-                historyContainer.innerHTML = `
-                    <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 20px;">
-                        Nessun rilascio registrato finora. I tuoi rilasci compariranno qui con data, ora ed esito.
+            const doc = await window.fbDb.collection('hub_settings').doc('releases_history').get();
+            if (doc.exists && doc.data().lastRelease) {
+                const r = doc.data().lastRelease;
+                const d = r.timestamp ? new Date(r.timestamp).toLocaleString('it-IT') : 'Recente';
+                listEl.innerHTML = `
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></div>
+                            <div>
+                                <strong style="color: var(--text-main); font-size: 0.9rem;">Ultimo rilascio: ${r.siteId || r.repo}</strong>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">Eseguito da ${r.author || 'Super Admin'} &bull; Repo: <code>${r.repo}</code></div>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #64748b; font-weight: 600;">${d}</div>
                     </div>
                 `;
-                return;
+            } else {
+                listEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 10px;">Nessun rilascio recente registrato.</div>';
             }
-
-            // Mostra in ordine decrescente
-            const sorted = [...entries].reverse();
-            historyContainer.innerHTML = sorted.map((entry, idx) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="color: #10b981; font-weight: 700;">✓</span>
-                        <div>
-                            <strong style="color: var(--text-main);">${entry.siteName}</strong>
-                            <div style="font-size: 0.78rem; color: var(--text-muted);">${entry.dateStr} &bull; Autore: ${entry.author}</div>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; font-weight: 700;">LIVE</span>
-                    </div>
-                </div>
-            `).join('');
         } catch(e) {
             console.warn("Errore caricamento storico rilasci:", e);
         }
