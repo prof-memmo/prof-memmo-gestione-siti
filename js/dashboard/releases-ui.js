@@ -8,8 +8,8 @@ const ReleasesUI = {
             id: 'hub_admin',
             name: 'Hub Dashboard Admin',
             repo: 'prof-memmo-gestione-siti',
-            liveUrl: 'https://prof-memmo.github.io/prof-memmo-gestione-siti/index.html',
-            previewUrl: 'https://prof-memmo.github.io/prof-memmo-gestione-siti/preview/index.html',
+            liveUrl: 'https://prof-memmo.github.io/prof-memmo-gestione-siti/',
+            previewUrl: 'https://prof-memmo.github.io/prof-memmo-gestione-siti/preview/',
             icon: 'fa-shield-halved',
             color: '#6366f1',
             description: 'Console di amministrazione centrale e strumenti di gestione.'
