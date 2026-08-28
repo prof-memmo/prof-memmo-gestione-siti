@@ -97,8 +97,6 @@ const PortalApp = {
                 // Forse è un nuovo utente! Controlliamo se ha compilato i dati obbligatori per registrarsi.
                 const terms = document.getElementById('reg-terms').checked;
                 const age = document.getElementById('reg-age').checked;
-                const newsConsent = document.getElementById('reg-newsletter') ? document.getElementById('reg-newsletter').checked : false;
-                this.pendingNewsletterConsent = newsConsent;
                 
                 if (!terms || !age) {
                     this.showError("Credenziali errate oppure account inesistente. Se sei un nuovo utente, accetta i Termini e conferma l'Età per poterti registrare.");
@@ -204,144 +202,39 @@ const PortalApp = {
             
             document.getElementById('user-greeting').textContent = `Ciao, ${this.profile.anagrafica.nome.split(' ')[0]}!`;
             
-            // Gestione blocchi account (sospeso o rifiutato)
+            // Gestione blocchi account
             const isRejected = (this.profile.statusAccount === 'rejected' || this.profile.statusAccount === 'suspended');
             
             if (isRejected) {
                 document.getElementById('account-blocked-banner').style.display = 'block';
-                const pBanner = document.getElementById('teacher-pending-banner');
-                if (pBanner) pBanner.style.display = 'none';
+                document.getElementById('teacher-pending-banner').style.display = 'none';
                 document.getElementById('platforms-container').style.display = 'none';
                 return; // Non renderizza le piattaforme
             } else {
                 document.getElementById('account-blocked-banner').style.display = 'none';
-                const pBanner = document.getElementById('teacher-pending-banner');
-                if (pBanner) pBanner.style.display = 'none';
                 document.getElementById('platforms-container').style.display = 'grid';
+            }
+
+            // Handle Teacher Pending state
+            if (this.profile.role === 'docente' && this.profile.statusAccount === 'pending') {
+                document.getElementById('teacher-pending-banner').style.display = 'block';
+            } else {
+                document.getElementById('teacher-pending-banner').style.display = 'none';
             }
             
             // Handle URL auto-redirect (SSO Flow)
             const urlParams = new URLSearchParams(window.location.search);
             const redirectTarget = urlParams.get('redirect');
-            if (redirectTarget) {
-                const isAdmin = (this.profile.role === 'admin' || (this.user.email && this.user.email.toLowerCase() === 'prof.memmo@gmail.com'));
-                const isGeneralRole = (this.profile.role === 'studente' || this.profile.role === 'viandante' || this.profile.role === 'forestiero');
-                const isExplicitlyEnabled = (this.profile.platforms && this.profile.platforms[redirectTarget] && this.profile.platforms[redirectTarget].enabled);
-                
-                if (isAdmin || isGeneralRole || isExplicitlyEnabled) {
-                    this.openPlatform(redirectTarget);
-                    return;
-                }
+            if (redirectTarget && this.profile.platforms && this.profile.platforms[redirectTarget] && this.profile.platforms[redirectTarget].enabled) {
+                this.openPlatform(redirectTarget);
+                return;
             }
             
             this.renderPlatforms();
-            this.renderSubscriptionStatus();
 
         } catch(e) {
             console.error("Errore recupero profilo:", e);
             this.showError("Impossibile caricare il profilo centrale. Dettaglio: " + e.message);
-        }
-    },
-
-    renderSubscriptionStatus: function() {
-        const card = document.getElementById('subscription-status-card');
-        const planNameEl = document.getElementById('sub-plan-name');
-        const planExpiryEl = document.getElementById('sub-plan-expiry');
-        const refundContainer = document.getElementById('refund-action-container');
-        if (!card || !planNameEl || !planExpiryEl || !refundContainer) return;
-
-        const sub = (this.profile && this.profile.subscription) || {};
-        const abbonamento = (this.profile && this.profile.abbonamento) || sub.plan || 'base';
-        const isPaidActive = (sub.status === 'active' || sub.status === 'past_due') && abbonamento !== 'base' && sub.stripeSubscriptionId;
-
-        if (!isPaidActive) {
-            card.style.display = 'none';
-            refundContainer.style.display = 'none';
-            return;
-        }
-
-        card.style.display = 'block';
-
-        let planTitle = 'Piano Docente Ecosistema Completo';
-        const pKey = abbonamento.toLowerCase();
-        if (pKey.includes('viandante')) planTitle = 'Piano Viandante (Giocatore Singolo)';
-        else if (pKey.includes('didattico')) planTitle = 'Piano Docente Didattico (Materia Singola)';
-
-        planNameEl.textContent = planTitle;
-
-        if (sub.expiresAt) {
-            const expDate = new Date(sub.expiresAt).toLocaleDateString('it-IT');
-            planExpiryEl.textContent = `Scadenza abbonamento: ${expDate}`;
-        } else {
-            planExpiryEl.textContent = 'Abbonamento attivo';
-        }
-
-        // Verifica eleggibilità 14 giorni (client-side preview; la verifica autoritativa finale è server-side)
-        const lastPaymentDate = sub.lastRenewalAt || sub.purchasedAt;
-        if (lastPaymentDate) {
-            const diffMs = Date.now() - new Date(lastPaymentDate).getTime();
-            const days14Ms = 14 * 24 * 60 * 60 * 1000;
-            if (diffMs <= days14Ms && sub.status !== 'refunded') {
-                refundContainer.style.display = 'block';
-            } else {
-                refundContainer.style.display = 'none';
-            }
-        } else {
-            refundContainer.style.display = 'none';
-        }
-    },
-
-    openRefundModal: function() {
-        const modal = document.getElementById('refund-modal');
-        if (modal) modal.style.display = 'flex';
-    },
-
-    closeRefundModal: function() {
-        const modal = document.getElementById('refund-modal');
-        if (modal) modal.style.display = 'none';
-    },
-
-    confirmRefund: async function() {
-        const btn = document.getElementById('btn-confirm-refund');
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Elaborazione in corso...';
-        }
-
-        try {
-            if (!window.firebase || !window.firebase.functions) {
-                throw new Error("Modulo Firebase Functions non caricato.");
-            }
-            const requestRefundFn = window.firebase.functions().httpsCallable('requestSubscriptionRefund');
-            const res = await requestRefundFn({});
-
-            this.closeRefundModal();
-            
-            // Messaggio chiaro e conforme: rimborso inviato a Stripe e accesso revocato
-            const msg = res.data && res.data.message 
-                ? res.data.message 
-                : "Rimborso richiesto correttamente. Il rimborso è stato inviato a Stripe. L'accesso al piano è stato revocato. I tempi effettivi di riaccredito dipendono dall'istituto di pagamento.";
-            alert(msg);
-
-            // Aggiorna immediatamente lo stato locale (senza attendere il roundtrip del webhook)
-            if (this.profile) {
-                this.profile.abbonamento = 'base';
-                if (this.profile.subscription) {
-                    this.profile.subscription.status = 'refunded';
-                }
-            }
-            this.renderSubscriptionStatus();
-            this.renderPlatforms();
-
-            // Ricarica il profilo dal server
-            await this.loadUserProfile();
-        } catch (e) {
-            console.error("Errore durante la richiesta di rimborso:", e);
-            alert(e.message || "Si è verificato un errore durante la richiesta di rimborso.");
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = 'Conferma Rimborso';
-            }
         }
     },
 
@@ -389,14 +282,7 @@ const PortalApp = {
             const surveyEl = document.getElementById('portal-survey');
             if (surveyEl) surveyEl.style.display = 'none';
 
-            await window.UserService.createUserProfile(
-                this.user.uid, 
-                nome, 
-                email, 
-                this.pendingRole || 'studente', 
-                surveyData, 
-                this.pendingNewsletterConsent || false
-            );
+            await window.UserService.createUserProfile(this.user.uid, nome, email, this.pendingRole || 'studente', surveyData);
             
             // Ricarica il profilo adesso che esiste
             await this.loadUserProfile();
