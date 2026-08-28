@@ -631,8 +631,8 @@
         a.id = 'nav-accedi-link';
         a.href = 'profilo.html';
         a.innerHTML = '<i class="ph ph-user-circle"></i> Il mio Profilo';
-        a.style.color = '#059669';
-        a.style.fontWeight = '600';
+        a.style.color = '';
+        a.style.fontWeight = '';
       } else {
         a.id = 'nav-accedi-link';
         a.href = 'accedi.html';
