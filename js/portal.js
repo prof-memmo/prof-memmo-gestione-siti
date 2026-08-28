@@ -24,9 +24,10 @@ const PortalApp = {
             } else {
                 this.user = null;
                 this.profile = null;
-                document.getElementById('portal-login-overlay').style.display = 'block';
-                document.getElementById('portal-onboarding').style.display = 'none';
-                document.getElementById('portal-dashboard').style.display = 'none';
+                const loginOverlay = document.getElementById('portal-login-overlay');
+                const onboarding = document.getElementById('portal-onboarding');
+                if (loginOverlay) loginOverlay.style.display = 'block';
+                if (onboarding) onboarding.style.display = 'none';
             }
         });
     },
@@ -187,9 +188,10 @@ const PortalApp = {
             
             if (!snap.exists) {
                 // Mostra la UI di onboarding a Card
-                document.getElementById('portal-login-overlay').style.display = 'none';
-                document.getElementById('portal-dashboard').style.display = 'none';
-                document.getElementById('portal-onboarding').style.display = 'flex';
+                const loginOverlay = document.getElementById('portal-login-overlay');
+                const onboarding = document.getElementById('portal-onboarding');
+                if (loginOverlay) loginOverlay.style.display = 'none';
+                if (onboarding) onboarding.style.display = 'flex';
                 return; // Fermiamo qui l'esecuzione.
             }
 
