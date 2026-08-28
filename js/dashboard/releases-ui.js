@@ -395,7 +395,8 @@ const ReleasesUI = {
         try {
             console.log(`🚀 ReleasesUI: Esecuzione rilascio per ${project.name} (repo: ${project.repo})...`);
 
-            const triggerRelease = firebase.functions().httpsCallable('triggerReleaseAction');
+            const functionsInstance = firebase.app().functions('us-central1');
+            const triggerRelease = functionsInstance.httpsCallable('triggerReleaseAction');
             const result = await triggerRelease({
                 repo: project.repo,
                 siteId: siteId
@@ -413,7 +414,8 @@ const ReleasesUI = {
             ]);
         } catch(e) {
             console.error("Errore durante il rilascio:", e);
-            alert("Errore rilascio: " + (e.message || "Verifica permessi o connessione."));
+            const errDetail = (e.details && e.details.message) || e.message || "Errore sconosciuto";
+            alert("Errore rilascio: " + errDetail);
             btnExec.disabled = false;
             btnExec.innerHTML = '<i class="fa-solid fa-rocket"></i> Riprova Pubblicazione';
         }
