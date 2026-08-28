@@ -15,16 +15,7 @@ const HubApp = {
     },
 
     checkAuth: function() {
-        if (!window.fbAuth || !window.AuthService) {
-            document.getElementById('login-overlay').innerHTML = "<h2 style='color:red;'>Errore Inizializzazione Firebase/AuthService</h2><p>Controlla la console.</p>";
-            return;
-        }
-
-        window.AuthService.onAuthStateChanged((user, error) => {
-            if (error) {
-                console.error(error);
-                return;
-            }
+        firebase.auth().onAuthStateChanged(user => {
             if (user) {
                 this.user = user;
                 // Controlla se l'utente è l'admin (Prof Memmo)
@@ -37,25 +28,25 @@ const HubApp = {
                         console.error("Errore durante loadData:", err);
                     }
                 } else {
-                    alert("Accesso negato. L'email riconosciuta è: " + (user.email || 'Nessuna email') + ". Solo l'amministratore può accedere.");
-                    this.logout();
+                    alert("Accesso negato. L'email riconosciuta è: " + (user.email || 'Nessuna email') + ". Solo l'amministratore prof.memmo@gmail.com può accedere.");
+                    firebase.auth().signOut().then(() => {
+                        window.location.reload();
+                    });
                 }
             } else {
                 this.user = null;
                 const overlay = document.getElementById('login-overlay');
                 if (overlay) overlay.style.display = 'flex';
                 const btn = document.getElementById('btn-google-login');
-                if(btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
+                if (btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
             }
         });
     },
 
     logout: function() {
-        if (window.AuthService) {
-            window.AuthService.logout().then(() => {
-                window.location.reload();
-            });
-        }
+        firebase.auth().signOut().then(() => {
+            window.location.reload();
+        });
     },
 
     loadData: function() {
@@ -343,16 +334,20 @@ window.preparaInvioGmail = function() { if(window.NewsletterUI) window.Newslette
 
 
 async function eseguiLoginGoogle() {
-    console.log("Login button clicked! Deleghiamo ad AuthService...");
-    if (!window.AuthService) {
-        alert("Errore critico: AuthService non caricato.");
-        return;
-    }
-    
+    console.log("Login Google avviato...");
+    const btn = document.getElementById('btn-google-login');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Accesso in corso...';
+
     try {
-        await window.AuthService.login();
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        await firebase.auth().signInWithPopup(provider);
     } catch (e) {
-        alert("Si è verificato un errore durante l'accesso con Google: " + (e.code || "Sconosciuto") + " - " + e.message);
+        console.error("Errore login Google:", e);
+        if (e.code !== 'auth/popup-closed-by-user') {
+            alert("Si è verificato un errore durante l'accesso con Google: " + (e.message || e.code));
+        }
+        if (btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
     }
 }
 
