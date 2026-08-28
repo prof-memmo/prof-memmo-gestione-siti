@@ -368,9 +368,9 @@
       <i class="fa-solid fa-star" style="color:#f59e0b;"></i> Esperienze Hub
     </div>
 
-    <div class="sidebar-section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Marketing & AI</div>
-    <div class="nav-item" data-target="view-ai" onclick="switchView('view-ai')">
-      <i class="fa-solid fa-wand-magic-sparkles" style="color:#a855f7;"></i> Generatore AI & Tool
+    <div class="sidebar-section-title"><i class="fa-solid fa-rocket"></i> Gestione Ecosistema</div>
+    <div class="nav-item" data-target="view-rilasci" onclick="switchView('view-rilasci')">
+      <i class="fa-solid fa-rocket" style="color:#a855f7;"></i> Rilasci & Anteprime
     </div>
     
     <div style="flex-grow: 1; min-height: 20px;"></div>
@@ -435,9 +435,9 @@
 
     <div class="nav-dock-sep"></div>
 
-    <!-- Gruppo 4: Marketing & AI -->
-    <div class="mobile-nav-item" data-target="view-ai" onclick="switchView('view-ai')" title="Strumenti AI">
-      <i class="fa-solid fa-wand-magic-sparkles" style="color:#a855f7;"></i><span>AI</span>
+    <!-- Gruppo 4: Gestione & Rilasci -->
+    <div class="mobile-nav-item" data-target="view-rilasci" onclick="switchView('view-rilasci')" title="Gestione Rilasci">
+      <i class="fa-solid fa-rocket" style="color:#a855f7;"></i><span>Rilasci</span>
     </div>
 
     <div class="nav-dock-sep"></div>
@@ -1306,22 +1306,42 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
       </div>
     </div>
 
-    <!-- View: Generatore AI & Social -->
-    <!-- View: Generatore AI & Strumenti -->
-    <div id="view-ai" class="hub-view">
+    <!-- View: Gestione Rilasci & Anteprime -->
+    <div id="view-rilasci" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Strumenti AI & Social</h2>
+        <h2><i class="fa-solid fa-rocket" style="color:#a855f7;"></i> Gestione Rilasci & Anteprime</h2>
       </div>
-      
-      <div class="glass-panel" style="max-width: 600px; margin: 0 auto; text-align: center;">
-        <h3 style="color:var(--text-main); margin-top:0; margin-bottom: 20px;">Lancio Rapido Strumenti</h3>
-        <p style="color:var(--text-muted); font-size:1rem; margin-bottom: 30px;">Clicca sui pulsanti per aprire le relative piattaforme in una nuova scheda.</p>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-          <button class="btn" onclick="window.open('https://business.facebook.com/', '_blank')" style="background: #E1306C; padding: 20px; font-size: 1.1rem;"><i class="fa-brands fa-instagram" style="margin-right: 10px;"></i> Meta Business</button>
-          <button class="btn" onclick="window.open('https://chat.openai.com/', '_blank')" style="background: #10a37f; padding: 20px; font-size: 1.1rem;"><i class="fa-solid fa-robot" style="margin-right: 10px;"></i> ChatGPT</button>
-          <button class="btn" onclick="window.open('https://www.canva.com/', '_blank')" style="background: #00c4cc; padding: 20px; font-size: 1.1rem;"><i class="fa-solid fa-pen-nib" style="margin-right: 10px;"></i> Canva</button>
-          <button class="btn" onclick="window.open('https://gemini.google.com/', '_blank')" style="background: #4285f4; padding: 20px; font-size: 1.1rem;"><i class="fa-solid fa-sparkles" style="margin-right: 10px;"></i> Gemini</button>
+
+      <div style="display: grid; grid-template-columns: 320px 1fr; gap: 25px; align-items: start;">
+        <!-- Colonna Sinistra: Selettore Siti dell'Ecosistema -->
+        <div>
+          <div class="glass-panel" style="margin-bottom: 20px; padding: 18px;">
+            <div style="font-weight: 700; font-size: 1rem; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+              <span><i class="fa-solid fa-layer-group" style="color: #6366f1;"></i> Siti Ecosistema</span>
+              <span style="font-size: 0.75rem; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 10px; font-weight: 600;">7 Siti</span>
+            </div>
+            <div id="release-sites-grid" style="display: flex; flex-direction: column; gap: 10px;">
+              <!-- Popolato dinamicamente da ReleasesUI -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Colonna Destra: Pannello Dettaglio Sito Selezionato -->
+        <div>
+          <div class="glass-panel" id="release-active-details" style="padding: 25px; margin-bottom: 25px;">
+            <!-- Popolato dinamicamente da ReleasesUI.selectSite() -->
+          </div>
+
+          <!-- Storico dei Rilasci -->
+          <div class="glass-panel" style="padding: 22px;">
+            <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+              <span><i class="fa-solid fa-clock-rotate-left" style="color: #64748b;"></i> Registro Storico Rilasci</span>
+              <button class="btn outline" style="padding: 4px 10px; font-size: 0.78rem;" onclick="ReleasesUI.loadHistory()"><i class="fa-solid fa-rotate"></i> Aggiorna</button>
+            </div>
+            <div id="release-history-list">
+              <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 15px;">Caricamento storico...</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2780,6 +2800,7 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   <script src="js/dashboard/legal-admin-ui.js?v=20260826_1410"></script>
   <script src="js/dashboard/impostazioni-ui.js?v=20260824_1730"></script>
   <script src="js/dashboard/diagnostics-ui.js?v=20260824_1730"></script>
+  <script src="js/dashboard/releases-ui.js?v=20260828_01"></script>
   
   <script src="js/app_v2.js?v=20260824_1730"></script>
   <script>
@@ -2824,6 +2845,9 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
       if (targetId === 'view-impostazioni') {
         if (window.ImpostazioniUI) window.ImpostazioniUI.init();
         if (window.DiagnosticsUI) window.DiagnosticsUI.init();
+      }
+      if (targetId === 'view-rilasci' && window.ReleasesUI) {
+        window.ReleasesUI.init();
       }
       if ((targetId === 'view-monetizzazione' || targetId === 'view-come-funziona' || targetId === 'view-sostieni') && window.EcosistemaUI) {
         window.EcosistemaUI.renderUI();
@@ -2914,6 +2938,41 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
         <button onclick="document.getElementById('modal-hub-migration').style.display='none'" class="btn outline" style="border-color: #64748b; color: #94a3b8;">Chiudi</button>
         <button id="btn-start-hub-migration" onclick="window.startHubDataMigration()" class="btn" style="background: #10b981; color: white; font-weight: 700; padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer;">
           <i class="fa-solid fa-play"></i> Avvia Migrazione Ora
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Conferma Rilascio di Sicurezza -->
+  <div id="modal-release-confirm" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+    <div class="glass-panel" style="background: #ffffff; color: var(--text-main); width: 100%; max-width: 550px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); border: 1px solid var(--border-color); padding: 28px; box-sizing: border-box;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; font-size: 1.25rem; color: #1e1b4b; display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-rocket" style="color: #10b981;"></i> Conferma Pubblicazione Live
+        </h3>
+        <button onclick="document.getElementById('modal-release-confirm').style.display='none'" style="background: transparent; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 0; line-height: 1.5;">
+        Stai per pubblicare la nuova versione del sito <strong id="release-modal-site-name" style="color: #4338ca;"></strong> (repo: <code id="release-modal-repo-name"></code>) sul sito pubblico ufficiale.
+      </p>
+
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 20px; font-size: 0.88rem;">
+        <div style="font-weight: 700; color: #334155; margin-bottom: 4px;">🚀 Azione Zero-Downtime:</div>
+        <div style="color: #64748b;">Il branch <code>preview</code> verrà unito in <code>main</code> su GitHub. L'aggiornamento sarà istantaneo per tutti gli utenti.</div>
+      </div>
+
+      <div style="margin-bottom: 22px;">
+        <label style="display: block; font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-bottom: 8px;">
+          Per confermare, digita <span style="color: #dc2626; letter-spacing: 1px;">CONFERMA</span> nel campo sottostante:
+        </label>
+        <input type="text" id="release-confirm-input" class="input-field" placeholder="Digita CONFERMA..." oninput="ReleasesUI.checkConfirmInput()" style="text-transform: uppercase; font-weight: 700; font-size: 1rem; text-align: center; letter-spacing: 2px;">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button onclick="document.getElementById('modal-release-confirm').style.display='none'" class="btn outline" style="border-color: #cbd5e1; color: #64748b;">Annulla</button>
+        <button id="btn-execute-release" onclick="ReleasesUI.executeRelease()" class="btn" style="background: #10b981; color: white; font-weight: 700; padding: 10px 22px; border: none; border-radius: 8px; cursor: pointer; opacity: 0.5;" disabled>
+          <i class="fa-solid fa-rocket"></i> Conferma e Pubblica Live
         </button>
       </div>
     </div>

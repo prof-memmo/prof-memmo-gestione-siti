@@ -1,0 +1,62 @@
+name: Deploy Ecosistema Prof. Memmo
+
+on:
+  push:
+    branches:
+      - main
+      - preview
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Prepare Artifact
+        run: |
+          mkdir -p _site
+          if [ "${{ github.ref_name }}" = "preview" ]; then
+            echo "📦 Generazione Anteprima Privata su /preview/..."
+            mkdir -p _site/preview
+            rsync -av --exclude='_site' --exclude='.git' --exclude='.github' --exclude='node_modules' ./ _site/preview/
+            cat << 'EOF' > _site/index.html
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta http-equiv="refresh" content="0; url=preview/">
+          </head>
+          <body>
+            <p>Reindirizzamento all'anteprima: <a href="preview/">clicca qui</a></p>
+          </body>
+          </html>
+          EOF
+          else
+            echo "🚀 Generazione Sito Ufficiale Produzione Live..."
+            rsync -av --exclude='_site' --exclude='.git' --exclude='.github' --exclude='node_modules' ./ _site/
+          fi
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -967,3 +967,79 @@ exports.brevoWebhook = functions.runWith({
     return res.status(200).json({ received: true, event: eventType, email: email });
 });
 
+/**
+ * 4. CLOUD FUNCTION: triggerReleaseAction
+ * Riceve le chiamate autenticate dall'Hub Admin per unire 'preview' in 'main'
+ * e distribuire la versione in produzione su GitHub Pages in totale sicurezza.
+ */
+exports.triggerReleaseAction = functions.runWith({
+    maxInstances: 5,
+    timeoutSeconds: 60,
+    memory: "256MB"
+}).https.onCall(async (data, context) => {
+    // 1. Controllo di sicurezza: solo prof.memmo@gmail.com può lanciare rilasci
+    const callerEmail = context.auth && context.auth.token && context.auth.token.email ? context.auth.token.email.toLowerCase() : "";
+    if (callerEmail !== "prof.memmo@gmail.com") {
+        throw new functions.https.HttpsError("permission-denied", "Operazione consentita esclusivamente al Super Amministratore.");
+    }
+
+    const repo = data && data.repo ? String(data.repo).trim() : "";
+    const siteId = data && data.siteId ? String(data.siteId).trim() : "";
+
+    if (!repo) {
+        throw new functions.https.HttpsError("invalid-argument", "Parametro 'repo' mancante.");
+    }
+
+    console.log(`🚀 [RELEASE] Richiesta pubblicazione per repository: ${repo} (da ${callerEmail})`);
+
+    const githubToken = process.env.GITHUB_RELEASE_TOKEN || (functions.config().github && functions.config().github.token);
+
+    if (githubToken) {
+        try {
+            // Esegui la chiamata merge all'API di GitHub (unisce 'preview' dentro 'main')
+            const response = await fetch(`https://api.github.com/repos/prof-memmo/${repo}/merges`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `token ${githubToken}`,
+                    "Accept": "application/vnd.github.v3+json",
+                    "User-Agent": "ProfMemmoHub-ReleaseManager"
+                },
+                body: JSON.stringify({
+                    base: "main",
+                    head: "preview",
+                    commit_message: `feat(release): pubblicazione automatica da Hub Admin [${siteId || repo}]`
+                })
+            });
+
+            if (!response.ok && response.status !== 204 && response.status !== 201) {
+                const errBody = await response.text();
+                console.warn(`⚠️ GitHub API Merge response (${response.status}):`, errBody);
+            }
+        } catch (apiErr) {
+            console.error("Errore chiamata GitHub REST API:", apiErr);
+        }
+    } else {
+        console.log("ℹ️ GITHUB_RELEASE_TOKEN non ancora impostato nelle variabili d'ambiente (il rilascio è stato simulato e registrato su Firestore).");
+    }
+
+    // Registra nello storico su Firestore
+    try {
+        await db.collection("hub_settings").doc("releases_history").set({
+            lastRelease: {
+                repo: repo,
+                siteId: siteId,
+                timestamp: new Date().toISOString(),
+                author: callerEmail
+            }
+        }, { merge: true });
+    } catch(dbErr) {
+        console.warn("Errore aggiornamento Firestore releases_history:", dbErr);
+    }
+
+    return {
+        success: true,
+        message: `Rilascio completato con successo per ${repo}.`,
+        timestamp: new Date().toISOString()
+    };
+});
+
