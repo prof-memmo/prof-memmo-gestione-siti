@@ -104,6 +104,11 @@ const ReleasesUI = {
                     this.siteStatuses[project.id] = {
                         status: data.status,
                         aheadBy: aheadBy,
+                        commits: commits.map(c => ({
+                            message: c.commit ? c.commit.message : '',
+                            author: c.commit && c.commit.author ? c.commit.author.name : '',
+                            date: c.commit && c.commit.author ? new Date(c.commit.author.date).toLocaleString('it-IT') : ''
+                        })),
                         lastCommitMessage: lastCommit && lastCommit.commit ? lastCommit.commit.message : '',
                         lastCommitDate: lastCommit && lastCommit.commit && lastCommit.commit.author ? new Date(lastCommit.commit.author.date).toLocaleString('it-IT') : ''
                     };
@@ -119,7 +124,7 @@ const ReleasesUI = {
     selectSite: function(siteId) {
         this.selectedSiteId = siteId;
         const project = this.PROJECTS.find(p => p.id === siteId) || this.PROJECTS[0];
-        const status = this.siteStatuses[siteId] || { aheadBy: 0, status: 'synced' };
+        const status = this.siteStatuses[siteId] || { aheadBy: 0, status: 'synced', commits: [] };
 
         // Aggiorna classe attiva nelle card
         document.querySelectorAll('.release-site-card').forEach(el => {
@@ -130,12 +135,21 @@ const ReleasesUI = {
         const detailContainer = document.getElementById('release-active-details');
         if (!detailContainer) return;
 
-        // Banner di Stato Anteprima vs Live
+        // Banner di Stato Anteprima vs Live con elenco dettagliato modifiche
         let statusBannerHtml = '';
         if (status.aheadBy > 0) {
+            const commitListHtml = (status.commits && status.commits.length > 0) 
+                ? status.commits.map((c, i) => `
+                    <li style="margin-bottom: 6px; font-size: 0.85rem; color: #4c1d95; line-height: 1.4;">
+                        <span style="font-weight: 700; color: #7c3aed;">#${i + 1}</span> <em>"${c.message}"</em>
+                        ${c.date ? `<span style="color: #6d28d9; font-size: 0.75rem; margin-left: 6px;">(${c.date})</span>` : ''}
+                    </li>
+                `).join('')
+                : `<li><em>"${status.lastCommitMessage || 'Miglioramenti piattaforma'}"</em></li>`;
+
             statusBannerHtml = `
                 <div style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1.5px solid #c4b5fd; border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.08);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 6px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
                         <div style="font-weight: 800; color: #5b21b6; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-sparkles" style="color: #8b5cf6; font-size: 1.2rem;"></i> Nuova Versione Pronta in Anteprima!
                         </div>
@@ -143,10 +157,12 @@ const ReleasesUI = {
                             ⚡ ${status.aheadBy} ${status.aheadBy === 1 ? 'Aggiornamento' : 'Aggiornamenti'} da Pubblicare
                         </span>
                     </div>
-                    <div style="font-size: 0.88rem; color: #4c1d95; line-height: 1.5;">
-                        <strong>Descrizione ultima modifica:</strong> <em>"${status.lastCommitMessage || 'Miglioramenti piattaforma'}"</em>
-                        ${status.lastCommitDate ? `<span style="color: #6d28d9; margin-left: 8px; font-size: 0.8rem;">(${status.lastCommitDate})</span>` : ''}
+                    <div style="font-size: 0.88rem; color: #5b21b6; font-weight: 700; margin-bottom: 6px;">
+                        Elenco dettagliato modifiche pronte per il rilascio:
                     </div>
+                    <ul style="margin: 0; padding-left: 1.2rem; list-style-type: disc;">
+                        ${commitListHtml}
+                    </ul>
                 </div>
             `;
         } else {
