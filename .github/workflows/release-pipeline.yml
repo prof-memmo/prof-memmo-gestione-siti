@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - preview
   workflow_dispatch:
 
 permissions:
@@ -28,10 +29,23 @@ jobs:
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
 
+      - name: Build Unified Site (Live on root / and Preview on /preview/)
+        run: |
+          mkdir -p _site/preview
+          # 1. Clona il branch main per il sito ufficiale live su root /
+          git clone --depth 1 --branch main https://github.com/${{ github.repository }}.git _main_src
+          rsync -av --exclude='_site' --exclude='.git' --exclude='.github' --exclude='node_modules' _main_src/ _site/
+          rm -rf _main_src
+
+          # 2. Clona il branch preview per il canale anteprima su /preview/
+          git clone --depth 1 --branch preview https://github.com/${{ github.repository }}.git _preview_src
+          rsync -av --exclude='_site' --exclude='.git' --exclude='.github' --exclude='node_modules' _preview_src/ _site/preview/
+          rm -rf _preview_src
+
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
