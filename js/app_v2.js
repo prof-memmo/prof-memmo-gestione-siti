@@ -29,15 +29,21 @@ const HubApp = {
                 this.user = user;
                 // Controlla se l'utente è l'admin (Prof Memmo)
                 if (user.email && user.email.toLowerCase() === 'prof.memmo@gmail.com') {
-                    document.getElementById('login-overlay').style.display = 'none';
-                    this.loadData();
+                    const overlay = document.getElementById('login-overlay');
+                    if (overlay) overlay.style.display = 'none';
+                    try {
+                        this.loadData();
+                    } catch(err) {
+                        console.error("Errore durante loadData:", err);
+                    }
                 } else {
                     alert("Accesso negato. L'email riconosciuta è: " + (user.email || 'Nessuna email') + ". Solo l'amministratore può accedere.");
                     this.logout();
                 }
             } else {
                 this.user = null;
-                document.getElementById('login-overlay').style.display = 'flex';
+                const overlay = document.getElementById('login-overlay');
+                if (overlay) overlay.style.display = 'flex';
                 const btn = document.getElementById('btn-google-login');
                 if(btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
             }
@@ -344,7 +350,7 @@ async function eseguiLoginGoogle() {
     }
     
     try {
-        await window.AuthService.login(['https://www.googleapis.com/auth/calendar.events']);
+        await window.AuthService.login();
     } catch (e) {
         alert("Si è verificato un errore durante l'accesso con Google: " + (e.code || "Sconosciuto") + " - " + e.message);
     }
