@@ -96,33 +96,36 @@ const UsersUI = {
             const isAdminOverride = !!user.admin_override;
             const isChecked = window.UsersUI.selectedUsers.has(user.id) ? 'checked' : '';
 
-            // Calcolo esatto scadenza: esattamente 1 anno dopo la data di iscrizione
-            let finalScadenza = 'N/D';
+            // Calcolo esatto scadenza: esattamente 1 anno dopo la data di iscrizione (per TUTTI gli utenti)
+            const currentYear = new Date().getFullYear();
+            let finalScadenza = `31/12/${currentYear + 1}`;
             let isExpired = false;
+
             if (user.dataValue > 0) {
                 const dIscrizione = new Date(user.dataValue);
                 const dScadenza = new Date(dIscrizione);
                 dScadenza.setFullYear(dScadenza.getFullYear() + 1);
                 finalScadenza = dScadenza.toLocaleDateString('it-IT');
                 if (dScadenza < new Date()) isExpired = true;
+            } else {
+                finalScadenza = `31/12/${currentYear}`;
             }
+
             if (user.abbonamento_scadenza) {
                 finalScadenza = user.abbonamento_scadenza.replace(/-/g, '/').split('/').reverse().join('/');
                 if (new Date(user.abbonamento_scadenza) < new Date()) isExpired = true;
             }
 
-            // Scadenza Cell: solo per Super Admin è "Mai"
+            // Scadenza Cell: Super Admin ha "Mai", tutti gli altri utenti mostrano sempre la data reale
             let scadenzaCell = '';
             if (isAdminRole) {
-                scadenzaCell = '<span title="Super Admin / Accesso Permanente" style="color:#f59e0b; font-weight:700;">👑 Mai</span>';
-            } else if (userPlan !== 'base') {
-                if (isExpired) {
-                    scadenzaCell = `<span title="Abbonamento Scaduto" style="color:#ef4444; font-weight:700; font-size:0.85rem;"><i class="fa-solid fa-triangle-exclamation"></i> ${finalScadenza} (Scaduto)</span>`;
-                } else {
-                    scadenzaCell = `<span style="color:#10b981; font-weight:600; font-size:0.85rem;">${finalScadenza}</span>`;
-                }
+                scadenzaCell = '<span title="Super Admin / Accesso Permanente" style="color:#f59e0b; font-weight:700; font-size:0.82rem;">👑 Mai</span>';
             } else {
-                scadenzaCell = '<span style="color:var(--text-muted);">-</span>';
+                if (isExpired) {
+                    scadenzaCell = `<span title="Abbonamento Scaduto" style="color:#ef4444; font-weight:700; font-size:0.82rem;"><i class="fa-solid fa-triangle-exclamation"></i> ${finalScadenza}</span>`;
+                } else {
+                    scadenzaCell = `<span style="color:#10b981; font-weight:600; font-size:0.82rem;">${finalScadenza}</span>`;
+                }
             }
 
             // Badge piano
