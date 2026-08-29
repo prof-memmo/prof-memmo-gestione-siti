@@ -977,78 +977,112 @@ exports.triggerReleaseAction = functions.runWith({
     timeoutSeconds: 60,
     memory: "256MB"
 }).https.onCall(async (data, context) => {
-    // 1. Controllo di sicurezza: solo prof.memmo@gmail.com può lanciare rilasci
-    const callerEmail = context.auth && context.auth.token && context.auth.token.email ? context.auth.token.email.toLowerCase() : "";
-    if (callerEmail !== "prof.memmo@gmail.com") {
-        throw new functions.https.HttpsError("permission-denied", "Operazione consentita esclusivamente al Super Amministratore.");
-    }
-
-    const repo = data && data.repo ? String(data.repo).trim() : "";
-    const siteId = data && data.siteId ? String(data.siteId).trim() : "";
-
-    if (!repo) {
-        throw new functions.https.HttpsError("invalid-argument", "Parametro 'repo' mancante.");
-    }
-
-    console.log(`🚀 [RELEASE] Richiesta pubblicazione per repository: ${repo} (da ${callerEmail})`);
-
-    const githubToken = process.env.GITHUB_RELEASE_TOKEN || (functions.config().github && functions.config().github.token);
-
-    const targetRepos = (repo === "ALL" || repo === "all") 
-        ? ["prof-memmo-gestione-siti", "games", "fantaletteratura", "la-rotta-degli-eroi", "la-corte-della-commedia", "palestra-di-riflessione"]
-        : [repo];
-
-    const results = [];
-
-    if (githubToken) {
-        for (const targetRepo of targetRepos) {
+    try {
+        let callerEmail = context.auth && context.auth.token && context.auth.token.email ? context.auth.token.email.toLowerCase() : "";
+        
+        if (!callerEmail && context.auth && context.auth.uid) {
             try {
-                const response = await fetch(`https://api.github.com/repos/prof-memmo/${targetRepo}/merges`, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${githubToken}`,
-                        "Accept": "application/vnd.github.v3+json",
-                        "User-Agent": "ProfMemmoHub-ReleaseManager"
-                    },
-                    body: JSON.stringify({
-                        base: "main",
-                        head: "preview",
-                        commit_message: `feat(release): pubblicazione automatica da Hub Admin [${targetRepo}]`
-                    })
-                });
-
-                const resText = await response.text();
-                console.log(`📡 GitHub API Merge [${targetRepo}] status: ${response.status}`, resText);
-                results.push({ repo: targetRepo, status: response.status, ok: response.ok || response.status === 204 });
-            } catch (apiErr) {
-                console.error(`Errore merge GitHub API per ${targetRepo}:`, apiErr);
-                results.push({ repo: targetRepo, status: 'error', error: apiErr.message });
+                const userDoc = await db.collection("hub_users").doc(context.auth.uid).get();
+                if (userDoc.exists && userDoc.data().email) {
+                    callerEmail = userDoc.data().email.toLowerCase();
+                }
+            } catch (e) {
+                console.warn("Impossibile recuperare email da UID:", e);
             }
         }
-    } else {
-        console.warn("⚠️ GITHUB_RELEASE_TOKEN non trovato nell'ambiente.");
-    }
 
-    // Registra nello storico su Firestore
-    try {
-        await db.collection("hub_settings").doc("releases_history").set({
-            lastRelease: {
-                repo: repo,
-                siteId: siteId || (repo === 'ALL' ? 'Tutto l\'Ecosistema' : repo),
-                timestamp: new Date().toISOString(),
-                author: callerEmail,
-                details: results
+        if (callerEmail !== "prof.memmo@gmail.com") {
+            throw new functions.https.HttpsError("permission-denied", "Operazione consentita esclusivamente a prof.memmo@gmail.com.");
+        }
+
+        const repo = data && data.repo ? String(data.repo).trim() : "";
+        const siteId = data && data.siteId ? String(data.siteId).trim() : "";
+
+        if (!repo) {
+            throw new functions.https.HttpsError("invalid-argument", "Parametro 'repo' mancante.");
+        }
+
+        console.log(`🚀 [RELEASE] Richiesta pubblicazione per repository: ${repo} (da ${callerEmail})`);
+
+        let githubToken = process.env.GITHUB_RELEASE_TOKEN;
+        if (!githubToken) {
+            try {
+                if (functions.config().github && functions.config().github.token) {
+                    githubToken = functions.config().github.token;
+                }
+            } catch (_) {}
+        }
+        if (!githubToken) {
+            try {
+                const ecoDoc = await db.collection("hub_settings").doc("ecosistema").get();
+                if (ecoDoc.exists && ecoDoc.data().github_token) {
+                    githubToken = ecoDoc.data().github_token;
+                }
+            } catch (_) {}
+        }
+
+        const targetRepos = (repo === "ALL" || repo === "all") 
+            ? ["prof-memmo-gestione-siti", "games", "fantaletteratura", "la-rotta-degli-eroi", "la-corte-della-commedia", "palestra-di-riflessione"]
+            : [repo];
+
+        const results = [];
+
+        if (githubToken) {
+            for (const targetRepo of targetRepos) {
+                try {
+                    const response = await fetch(`https://api.github.com/repos/prof-memmo/${targetRepo}/merges`, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `token ${githubToken}`,
+                            "Accept": "application/vnd.github.v3+json",
+                            "User-Agent": "ProfMemmoHub-ReleaseManager"
+                        },
+                        body: JSON.stringify({
+                            base: "main",
+                            head: "preview",
+                            commit_message: `feat(release): pubblicazione automatica da Hub Admin [${targetRepo}]`
+                        })
+                    });
+
+                    const resText = await response.text();
+                    console.log(`📡 GitHub API Merge [${targetRepo}] status: ${response.status}`, resText);
+                    results.push({ repo: targetRepo, status: response.status, ok: response.ok || response.status === 204 });
+                } catch (apiErr) {
+                    console.error(`Errore merge GitHub API per ${targetRepo}:`, apiErr);
+                    results.push({ repo: targetRepo, status: 'error', error: apiErr.message });
+                }
             }
-        }, { merge: true });
-    } catch(dbErr) {
-        console.warn("Errore aggiornamento Firestore releases_history:", dbErr);
-    }
+        } else {
+            console.warn("⚠️ GITHUB_RELEASE_TOKEN non trovato nell'ambiente.");
+        }
 
-    return {
-        success: true,
-        message: repo === 'ALL' ? 'Pubblicazione di tutti i siti dell\'Ecosistema completata!' : `Rilascio completato per ${repo}.`,
-        details: results,
-        timestamp: new Date().toISOString()
-    };
+        // Registra nello storico su Firestore
+        try {
+            await db.collection("hub_settings").doc("releases_history").set({
+                lastRelease: {
+                    repo: repo,
+                    siteId: siteId || (repo === 'ALL' ? 'Tutto l\'Ecosistema' : repo),
+                    timestamp: new Date().toISOString(),
+                    author: callerEmail,
+                    details: results
+                }
+            }, { merge: true });
+        } catch(dbErr) {
+            console.warn("Errore aggiornamento Firestore releases_history:", dbErr);
+        }
+
+        return {
+            success: true,
+            message: repo === 'ALL' ? 'Pubblicazione di tutti i siti dell\'Ecosistema completata!' : `Rilascio completato per ${repo}.`,
+            details: results,
+            timestamp: new Date().toISOString()
+        };
+    } catch (outerErr) {
+        console.error("Errore fatale triggerReleaseAction:", outerErr);
+        if (outerErr instanceof functions.https.HttpsError) {
+            throw outerErr;
+        }
+        throw new functions.https.HttpsError("internal", outerErr.message || "Errore sconosciuto durante il rilascio.");
+    }
 });
 
