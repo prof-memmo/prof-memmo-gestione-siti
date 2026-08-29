@@ -96,20 +96,37 @@ const UsersUI = {
             const isAdminOverride = !!user.admin_override;
             const isChecked = window.UsersUI.selectedUsers.has(user.id) ? 'checked' : '';
 
-            // Scadenza
+            // Calcolo esatto scadenza: esattamente 1 anno dopo la data di iscrizione
+            let finalScadenza = 'N/D';
+            let isExpired = false;
+            if (user.dataValue > 0) {
+                const dIscrizione = new Date(user.dataValue);
+                const dScadenza = new Date(dIscrizione);
+                dScadenza.setFullYear(dScadenza.getFullYear() + 1);
+                finalScadenza = dScadenza.toLocaleDateString('it-IT');
+                if (dScadenza < new Date()) isExpired = true;
+            }
+            if (user.abbonamento_scadenza) {
+                finalScadenza = user.abbonamento_scadenza.replace(/-/g, '/').split('/').reverse().join('/');
+                if (new Date(user.abbonamento_scadenza) < new Date()) isExpired = true;
+            }
+
+            // Scadenza Cell: solo per Super Admin è "Mai"
             let scadenzaCell = '';
             if (isAdminRole) {
-                scadenzaCell = '<span title="Super Admin / Accesso Completo" style="color:#f59e0b; font-weight:700;">👑 Mai</span>';
-            } else if (isAdminOverride) {
-                scadenzaCell = '<span title="Piano assegnato da Admin" style="color:#6366f1; font-weight:700;">⚙️ Mai</span>';
+                scadenzaCell = '<span title="Super Admin / Accesso Permanente" style="color:#f59e0b; font-weight:700;">👑 Mai</span>';
             } else if (userPlan !== 'base') {
-                scadenzaCell = `<span style="color:#10b981; font-size:0.85rem;">${user.abbonamento_scadenza ? user.abbonamento_scadenza.replace(/-/g, '/').split('/').reverse().join('/') : scadenzaStr}</span>`;
+                if (isExpired) {
+                    scadenzaCell = `<span title="Abbonamento Scaduto" style="color:#ef4444; font-weight:700; font-size:0.85rem;"><i class="fa-solid fa-triangle-exclamation"></i> ${finalScadenza} (Scaduto)</span>`;
+                } else {
+                    scadenzaCell = `<span style="color:#10b981; font-weight:600; font-size:0.85rem;">${finalScadenza}</span>`;
+                }
             } else {
                 scadenzaCell = '<span style="color:var(--text-muted);">-</span>';
             }
 
             // Badge piano
-            const overrideBadge = isAdminOverride ? ' <span title="Piano assegnato da Admin" style="font-size:0.75rem; background:#ede9fe; color:#6366f1; border-radius:4px; padding:1px 5px;">⚙️ Admin</span>' : '';
+            const overrideBadge = (isAdminOverride && !isAdminRole) ? ' <span title="Piano modificato dall\'Amministratore" style="font-size:0.75rem; background:#ede9fe; color:#6366f1; border-radius:4px; padding:1px 5px; font-weight:600;">⚙️ Admin</span>' : '';
             const superBadge = isAdminRole ? ' <span style="font-size:0.75rem; background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px;">👑</span>' : '';
 
             function getSafeAvatarUrl(avatar) {
