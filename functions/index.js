@@ -994,32 +994,39 @@ exports.triggerReleaseAction = functions.runWith({
 
     const githubToken = process.env.GITHUB_RELEASE_TOKEN || (functions.config().github && functions.config().github.token);
 
-    if (githubToken) {
-        try {
-            // Esegui la chiamata merge all'API di GitHub (unisce 'preview' dentro 'main')
-            const response = await fetch(`https://api.github.com/repos/prof-memmo/${repo}/merges`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `token ${githubToken}`,
-                    "Accept": "application/vnd.github.v3+json",
-                    "User-Agent": "ProfMemmoHub-ReleaseManager"
-                },
-                body: JSON.stringify({
-                    base: "main",
-                    head: "preview",
-                    commit_message: `feat(release): pubblicazione automatica da Hub Admin [${siteId || repo}]`
-                })
-            });
+    const targetRepos = (repo === "ALL" || repo === "all") 
+        ? ["prof-memmo-gestione-siti", "games", "fantaletteratura", "la-rotta-degli-eroi", "la-corte-della-commedia", "palestra-di-riflessione"]
+        : [repo];
 
-            if (!response.ok && response.status !== 204 && response.status !== 201) {
-                const errBody = await response.text();
-                console.warn(`⚠️ GitHub API Merge response (${response.status}):`, errBody);
+    const results = [];
+
+    if (githubToken) {
+        for (const targetRepo of targetRepos) {
+            try {
+                const response = await fetch(`https://api.github.com/repos/prof-memmo/${targetRepo}/merges`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${githubToken}`,
+                        "Accept": "application/vnd.github.v3+json",
+                        "User-Agent": "ProfMemmoHub-ReleaseManager"
+                    },
+                    body: JSON.stringify({
+                        base: "main",
+                        head: "preview",
+                        commit_message: `feat(release): pubblicazione automatica da Hub Admin [${targetRepo}]`
+                    })
+                });
+
+                const resText = await response.text();
+                console.log(`📡 GitHub API Merge [${targetRepo}] status: ${response.status}`, resText);
+                results.push({ repo: targetRepo, status: response.status, ok: response.ok || response.status === 204 });
+            } catch (apiErr) {
+                console.error(`Errore merge GitHub API per ${targetRepo}:`, apiErr);
+                results.push({ repo: targetRepo, status: 'error', error: apiErr.message });
             }
-        } catch (apiErr) {
-            console.error("Errore chiamata GitHub REST API:", apiErr);
         }
     } else {
-        console.log("ℹ️ GITHUB_RELEASE_TOKEN non ancora impostato nelle variabili d'ambiente (il rilascio è stato simulato e registrato su Firestore).");
+        console.warn("⚠️ GITHUB_RELEASE_TOKEN non trovato nell'ambiente.");
     }
 
     // Registra nello storico su Firestore
@@ -1027,9 +1034,10 @@ exports.triggerReleaseAction = functions.runWith({
         await db.collection("hub_settings").doc("releases_history").set({
             lastRelease: {
                 repo: repo,
-                siteId: siteId,
+                siteId: siteId || (repo === 'ALL' ? 'Tutto l\'Ecosistema' : repo),
                 timestamp: new Date().toISOString(),
-                author: callerEmail
+                author: callerEmail,
+                details: results
             }
         }, { merge: true });
     } catch(dbErr) {
@@ -1038,7 +1046,8 @@ exports.triggerReleaseAction = functions.runWith({
 
     return {
         success: true,
-        message: `Rilascio completato con successo per ${repo}.`,
+        message: repo === 'ALL' ? 'Pubblicazione di tutti i siti dell\'Ecosistema completata!' : `Rilascio completato per ${repo}.`,
+        details: results,
         timestamp: new Date().toISOString()
     };
 });

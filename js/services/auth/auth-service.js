@@ -13,6 +13,9 @@ const AuthService = {
      */
     init: function(fbAuthInstance) {
         this.authInstance = fbAuthInstance;
+        if (this.authInstance && this.authInstance.getRedirectResult) {
+            this.authInstance.getRedirectResult().catch(err => console.warn("AuthService redirect result:", err));
+        }
     },
 
     /**
@@ -42,19 +45,22 @@ const AuthService = {
         
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
-            providerScope.forEach(scope => provider.addScope(scope));
+            if (providerScope && providerScope.length > 0) {
+                providerScope.forEach(scope => provider.addScope(scope));
+            }
             provider.setCustomParameters({ prompt: 'select_account' });
             
             await this.authInstance.signInWithPopup(provider);
-            // Il login è andato a buon fine, onAuthStateChanged notificherà i listener
         } catch (e) {
             console.error("AuthService: Errore Google Login:", e);
-            if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
-                console.warn("AuthService: Popup bloccato, tento fallback su redirect...");
+            if (e.code === 'auth/popup-blocked') {
+                console.warn("AuthService: Popup bloccato dal browser, tento fallback su redirect...");
                 const provider = new firebase.auth.GoogleAuthProvider();
                 this.authInstance.signInWithRedirect(provider);
+            } else if (e.code === 'auth/popup-closed-by-user') {
+                console.log("AuthService: Popup chiuso dall'utente.");
             } else {
-                throw e; // Propaga l'errore per la gestione UI
+                throw e;
             }
         }
     },
