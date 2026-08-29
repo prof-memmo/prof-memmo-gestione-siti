@@ -426,7 +426,9 @@ const ReleasesUI = {
         if (!listEl || !window.fbDb) return;
 
         try {
-            const doc = await window.fbDb.collection('hub_settings').doc('releases_history').get();
+            const dbInstance = (window.fbDb && window.fbDb.hub) ? window.fbDb.hub : (window.db || (typeof firebase !== 'undefined' ? firebase.firestore() : null));
+            if (!dbInstance) return;
+            const doc = await dbInstance.collection('hub_settings').doc('releases_history').get();
             if (doc.exists && doc.data().lastRelease) {
                 const r = doc.data().lastRelease;
                 const d = r.timestamp ? new Date(r.timestamp).toLocaleString('it-IT') : 'Recente';
