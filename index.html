@@ -736,22 +736,25 @@
           <table class="game-table" id="hub-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>
               <tr>
-                <th style="width: 40px; text-align: center;">
+                <th style="width: 36px; text-align: center; padding: 10px 6px;">
                   <input type="checkbox" id="select-all-users" onchange="window.UsersUI.toggleAllUsers(this.checked)">
                 </th>
-                <th style="cursor:pointer;" onclick="HubApp.sortIscritti('nome')">
+                <th style="cursor:pointer; padding: 10px 8px;" onclick="HubApp.sortIscritti('nome')">
                   <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                  <input type="text" id="search-iscritti" class="input-field" placeholder="Cerca utente per nome o email..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="HubApp.filterIscritti()">
+                  <input type="text" id="search-iscritti" class="input-field" placeholder="Cerca utente..." style="padding: 5px 8px; font-size: 0.82rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="HubApp.filterIscritti()">
                 </th>
-                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortIscritti('ruolo')">
+                <th style="cursor:pointer; vertical-align: top; padding: 10px 6px;" onclick="HubApp.sortIscritti('ruolo')">
                   <div style="display: flex; align-items: center; white-space: nowrap;">Ruolo <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
-                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortIscritti('data')">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Data Iscrizione <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                <th style="cursor:pointer; vertical-align: top; padding: 10px 8px;" onclick="HubApp.sortIscritti('data')" title="Clicca per ordinare per data iscrizione">
+                  <div style="display: flex; align-items: center; white-space: nowrap; color: #4f46e5; font-weight: 700;">Iscritto il <i class="fa-solid fa-arrow-down-short-wide" style="margin-left:5px; font-size:0.85em;"></i></div>
                 </th>
-                <th style="cursor:pointer;" onclick="HubApp.sortIscritti('gioco')">
+                <th style="cursor:pointer; vertical-align: top; padding: 10px 8px;" onclick="HubApp.sortIscritti('scadenza')" title="Clicca per ordinare per data scadenza">
+                  <div style="display: flex; align-items: center; white-space: nowrap;">Scadenza <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer; padding: 10px 8px;" onclick="HubApp.sortIscritti('gioco')">
                   <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                  <select id="filter-gioco" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
+                  <select id="filter-gioco" class="input-field" style="padding: 5px; font-size: 0.82rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
                     <option value="all">Tutti</option>
                     <option value="La Rotta degli Eroi">Eroi</option>
                     <option value="La Corte della Commedia">Commedia</option>
@@ -759,18 +762,18 @@
                     <option value="Palestra di Riflessione">Palestra</option>
                   </select>
                 </th>
-                <th style="cursor:pointer;" onclick="HubApp.sortIscritti('piano')">
-                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Stato / Piano <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                  <select id="filter-admin-override" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
+                <th style="cursor:pointer; padding: 10px 8px;" onclick="HubApp.sortIscritti('piano')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Piano <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <select id="filter-admin-override" class="input-field" style="padding: 5px; font-size: 0.82rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
                     <option value="all">Tutti i piani</option>
-                    <option value="override">⚙️ Solo Admin Override</option>
+                    <option value="base">⚪ Base / Gratuito</option>
+                    <option value="viandante">🧭 Viandante</option>
+                    <option value="docente_didattico">🟡 Docente Didattico</option>
+                    <option value="docente_ecosistema">🟣 Docente Ecosistema</option>
                   </select>
                 </th>
-                <th style="vertical-align: top;">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Scadenza</div>
-                </th>
-                <th style="vertical-align: top;">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Azione</div>
+                <th style="vertical-align: top; text-align: center; padding: 10px 8px;">
+                  <div style="display: flex; align-items: center; justify-content: center; white-space: nowrap;">Azioni</div>
                 </th>
               </tr>
             </thead>
@@ -2793,7 +2796,7 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   <script src="js/dashboard/messages-ui.js?v=20260828_1615"></script>
   <script src="js/dashboard/ecosistema-ui.js?v=20260828_1615"></script>
   <script src="js/dashboard/games-ui.js?v=20260828_1615"></script>
-  <script src="js/dashboard/users-ui.js?v=20260829_1025"></script>
+  <script src="js/dashboard/users-ui.js?v=20260829_1035"></script>
   <script src="js/dashboard/payments-ui.js?v=20260828_1615"></script>
   <script src="js/dashboard/vetrina-ui.js?v=20260828_1615"></script>
   
