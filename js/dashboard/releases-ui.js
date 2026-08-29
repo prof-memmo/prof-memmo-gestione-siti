@@ -379,6 +379,13 @@ const ReleasesUI = {
         }
     },
 
+    getFirestore: function() {
+        if (window.fbDb && window.fbDb.hub) return window.fbDb.hub;
+        if (window.db) return window.db;
+        if (typeof firebase !== 'undefined' && firebase.firestore) return firebase.firestore();
+        return null;
+    },
+
     executeRelease: async function() {
         const inputEl = document.getElementById('release-confirm-input');
         const btnExec = document.getElementById('btn-execute-release');
@@ -395,14 +402,80 @@ const ReleasesUI = {
         try {
             console.log(`🚀 ReleasesUI: Esecuzione rilascio per ${project.name} (repo: ${project.repo})...`);
 
-            const functionsInstance = firebase.app().functions('us-central1');
-            const triggerRelease = functionsInstance.httpsCallable('triggerReleaseAction');
-            const result = await triggerRelease({
-                repo: project.repo,
-                siteId: siteId
-            });
+            const firestore = this.getFirestore();
+            let token = localStorage.getItem('hub_github_pat');
 
-            console.log("✅ Risultato Cloud Function:", result.data);
+            if (!token && firestore) {
+                try {
+                    const ecoSnap = await firestore.collection('hub_settings').doc('ecosistema').get();
+                    if (ecoSnap.exists && ecoSnap.data().github_token) {
+                        token = ecoSnap.data().github_token;
+                    }
+                } catch(e) {
+                    console.warn("Impossibile leggere token da Firestore:", e);
+                }
+            }
+
+            if (!token) {
+                token = prompt("🔑 Inserisci il Personal Access Token di GitHub per autorizzare i rilasci dall'Hub:");
+                if (!token || !token.trim()) {
+                    alert("Operazione annullata: Token GitHub non inserito.");
+                    btnExec.disabled = false;
+                    btnExec.innerHTML = '<i class="fa-solid fa-rocket"></i> Riprova Pubblicazione';
+                    return;
+                }
+                token = token.trim();
+                localStorage.setItem('hub_github_pat', token);
+                if (firestore) {
+                    try {
+                        await firestore.collection('hub_settings').doc('ecosistema').set({
+                            github_token: token
+                        }, { merge: true });
+                    } catch(e) {}
+                }
+            }
+
+            const targetRepos = isAll 
+                ? this.PROJECTS.map(p => p.repo) 
+                : [project.repo];
+
+            const results = [];
+
+            for (const targetRepo of targetRepos) {
+                const res = await fetch(`https://api.github.com/repos/prof-memmo/${targetRepo}/merges`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `token ${token}`,
+                        "Accept": "application/vnd.github.v3+json",
+                        "User-Agent": "ProfMemmoHub-ReleaseManager"
+                    },
+                    body: JSON.stringify({
+                        base: "main",
+                        head: "preview",
+                        commit_message: `feat(release): pubblicazione automatica da Hub Admin [${targetRepo}]`
+                    })
+                });
+                console.log(`📡 GitHub Merges API [${targetRepo}] Status: ${res.status}`);
+                results.push({ repo: targetRepo, status: res.status, ok: res.ok || res.status === 204 });
+            }
+
+            // Registra nello storico su Firestore
+            if (firestore) {
+                const authUser = (window.fbAuth && window.fbAuth.currentUser) || (window.firebase && firebase.auth && firebase.auth().currentUser);
+                try {
+                    await firestore.collection("hub_settings").doc("releases_history").set({
+                        lastRelease: {
+                            repo: project.repo,
+                            siteId: siteId || (isAll ? "Tutto l'Ecosistema" : project.repo),
+                            timestamp: new Date().toISOString(),
+                            author: authUser ? authUser.email : "prof.memmo@gmail.com",
+                            details: results
+                        }
+                    }, { merge: true });
+                } catch(e) {
+                    console.warn("Avviso salvataggio storico Firestore:", e);
+                }
+            }
 
             if (modal) modal.style.display = 'none';
             alert(`🎉 RILASCIO COMPLETATO!\n\n${isAll ? "Tutti i siti dell'Ecosistema sono stati aggiornati in produzione con successo!" : 'Il sito "' + project.name + '" è stato aggiornato in produzione con successo su GitHub Pages a Zero-Downtime.'}`);
@@ -414,8 +487,7 @@ const ReleasesUI = {
             ]);
         } catch(e) {
             console.error("Errore durante il rilascio:", e);
-            const errDetail = (e.details && e.details.message) || e.message || "Errore sconosciuto";
-            alert("Errore rilascio: " + errDetail);
+            alert("Errore rilascio: " + (e.message || "Verifica la connessione internet o i permessi GitHub."));
             btnExec.disabled = false;
             btnExec.innerHTML = '<i class="fa-solid fa-rocket"></i> Riprova Pubblicazione';
         }
@@ -423,12 +495,11 @@ const ReleasesUI = {
 
     loadHistory: async function() {
         const listEl = document.getElementById('release-history-list');
-        if (!listEl || !window.fbDb) return;
+        const firestore = this.getFirestore();
+        if (!listEl || !firestore) return;
 
         try {
-            const dbInstance = (window.fbDb && window.fbDb.hub) ? window.fbDb.hub : (window.db || (typeof firebase !== 'undefined' ? firebase.firestore() : null));
-            if (!dbInstance) return;
-            const doc = await dbInstance.collection('hub_settings').doc('releases_history').get();
+            const doc = await firestore.collection('hub_settings').doc('releases_history').get();
             if (doc.exists && doc.data().lastRelease) {
                 const r = doc.data().lastRelease;
                 const d = r.timestamp ? new Date(r.timestamp).toLocaleString('it-IT') : 'Recente';
