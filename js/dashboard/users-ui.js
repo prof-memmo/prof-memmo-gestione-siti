@@ -148,43 +148,50 @@ const UsersUI = {
 
             const safeAvatar = getSafeAvatarUrl(user.avatar);
 
+            // Semplifica nome gioco eliminando ' / Hub' e abbreviando per pulizia estetica
+            let cleanGioco = (user.gioco || 'Hub')
+                .replace(' / Hub', '')
+                .replace('La Rotta degli Eroi', 'Eroi')
+                .replace('La Corte della Commedia', 'Commedia')
+                .replace('Palestra di Riflessione', 'Palestra');
+
             tr.innerHTML = `
-                <td style="text-align: center; padding: 8px 6px;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
-                <td style="padding: 8px 8px 8px 6px;">
+                <td style="text-align: center; padding: 6px 4px;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
+                <td style="padding: 6px 6px 6px 4px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <img src="${safeAvatar}" alt="Avatar" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; background: #ffffff; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        <div style="min-width: 0;">
-                            <strong style="font-size:0.9rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${user.nome}</strong>
-                            <span style="font-size:0.78rem; color:var(--text-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.email}</span>
+                        <img src="${safeAvatar}" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; background: #ffffff; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <div style="min-width: 0; max-width: 140px;">
+                            <strong style="font-size:0.85rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${user.nome}</strong>
+                            <span style="font-size:0.75rem; color:var(--text-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.email}</span>
                         </div>
                     </div>
                 </td>
-                <td style="padding: 8px 6px;"><span class="badge" style="background:#f1f5f9; color:#475569; padding:3px 8px; border-radius:6px; font-weight:600; font-size:0.78rem; white-space: nowrap;">${displayRole}</span></td>
-                <td style="padding: 8px; font-size:0.85rem; color:var(--text-muted); white-space: nowrap;">${dataStr}</td>
-                <td style="padding: 8px; white-space: nowrap;">
-                    <div style="display: inline-flex; align-items: center; gap: 6px;">
+                <td style="padding: 6px 4px;"><span class="badge" style="background:#f1f5f9; color:#475569; padding:2px 6px; border-radius:5px; font-weight:600; font-size:0.75rem; white-space: nowrap;">${displayRole}</span></td>
+                <td style="padding: 6px; font-size:0.82rem; color:var(--text-muted); white-space: nowrap;">${dataStr}</td>
+                <td style="padding: 6px; white-space: nowrap;">
+                    <div style="display: inline-flex; align-items: center; gap: 5px;">
                         ${scadenzaCell}
-                        ${!isAdminRole ? `<button type="button" onclick="window.UsersUI.openEditExpiryModal('${user.id}', '${finalScadenza}')" title="Modifica data scadenza" style="background:none; border:none; padding:2px; cursor:pointer; color:#64748b; font-size:0.8rem; transition:color 0.2s;" onmouseover="this.style.color='#4f46e5'" onmouseout="this.style.color='#64748b'"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
+                        ${!isAdminRole ? `<button type="button" onclick="window.UsersUI.openEditExpiryModal('${user.id}', '${finalScadenza}')" title="Modifica data scadenza" style="background:none; border:none; padding:2px; cursor:pointer; color:#64748b; font-size:0.78rem; transition:color 0.2s;" onmouseover="this.style.color='#4f46e5'" onmouseout="this.style.color='#64748b'"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
                     </div>
                 </td>
-                <td style="padding: 8px; color:${user.giocoColor}; white-space: nowrap; font-size:0.85rem;"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
-                <td style="padding: 8px;">
-                    <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value)" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.82rem; outline: none; cursor: pointer; background: white; font-weight: 600;">
-                        <option value="base" ${userPlan === 'base' ? 'selected' : ''}>⚪ Base / Gratuito</option>
+                <td style="padding: 6px; color:${user.giocoColor}; white-space: nowrap; font-size:0.82rem; font-weight:600;"><i class="fa-solid ${user.giocoIcon}"></i> ${cleanGioco}</td>
+                <td style="padding: 6px;">
+                    <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value)" style="padding: 3px 6px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.8rem; outline: none; cursor: pointer; background: white; font-weight: 600; max-width: 125px;">
+                        <option value="base" ${userPlan === 'base' ? 'selected' : ''}>⚪ Base</option>
                         <option value="viandante" ${userPlan === 'viandante' ? 'selected' : ''}>🧭 Viandante</option>
                         <option value="docente_didattico" ${userPlan === 'docente_didattico' ? 'selected' : ''}>🟡 Docente Didattico</option>
                         <option value="docente_ecosistema" ${userPlan === 'docente_ecosistema' ? 'selected' : ''}>🟣 Docente Ecosistema</option>
                     </select>${superBadge}
                 </td>
-                <td style="padding: 8px; text-align:center;">
-                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-                        <a href="https://prof-memmo.github.io/games/profilo.html?preview=${user.id}" target="_blank" title="Anteprima Profilo Utente" style="color: #6366f1; font-size: 1.1rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                <td style="padding: 6px; text-align:center;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                        <a href="https://prof-memmo.github.io/games/profilo.html?preview=${user.id}" target="_blank" title="Anteprima Profilo Utente" style="color: #6366f1; font-size: 1rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-eye"></i>
                         </a>
-                        <a href="mailto:${user.email || ''}" title="Invia Email" style="color: var(--primary-color); font-size: 1.1rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                        <a href="mailto:${user.email || ''}" title="Invia Email" style="color: var(--primary-color); font-size: 1rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-envelope"></i>
                         </a>
-                        <button type="button" style="background: none; border: none; padding: 0; color: #ef4444; font-size: 1.1rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="window.UsersUI.openDeleteUserModal('${user.id}')" title="Elimina Utente">
+                        <button type="button" style="background: none; border: none; padding: 0; color: #ef4444; font-size: 1rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="window.UsersUI.openDeleteUserModal('${user.id}')" title="Elimina Utente">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
