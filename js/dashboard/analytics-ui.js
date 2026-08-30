@@ -883,8 +883,16 @@ const AnalyticsUI = {
         const dateTo = document.getElementById('analytics-date-to') ? document.getElementById('analytics-date-to').value : '';
 
         const expensesData = this.calculateExpenses(dateFrom, dateTo);
-        const earnings = this.calculateEarnings(this.iscrittiAggregati || [], dateFrom || null, dateTo || null);
-        const incassato = earnings.total || 0;
+        
+        // Usa l'incasso reale effettivo (al netto dei rimborsi) dal registro pagamenti
+        let incassato = 0;
+        if (window.PaymentsUI && typeof window.PaymentsUI.getNetEarnings === 'function') {
+            incassato = Math.max(0, window.PaymentsUI.getNetEarnings(dateFrom, dateTo));
+        } else {
+            const earnings = this.calculateEarnings(this.iscrittiAggregati || [], dateFrom || null, dateTo || null);
+            incassato = earnings.total || 0;
+        }
+
         const spese = expensesData.total || 0;
         const guadagno = incassato - spese;
 
@@ -895,7 +903,8 @@ const AnalyticsUI = {
 
         const elGuadagno = document.getElementById('analytics-guadagno-display');
         if (elGuadagno) {
-            elGuadagno.textContent = guadagno.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+            const absGuadagno = Math.abs(guadagno).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+            elGuadagno.textContent = (guadagno < 0 ? '- ' : (guadagno > 0 ? '+ ' : '')) + absGuadagno;
             elGuadagno.style.color = (guadagno >= 0) ? '#059669' : '#dc2626';
         }
 
