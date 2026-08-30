@@ -157,12 +157,12 @@ const UsersUI = {
 
             tr.innerHTML = `
                 <td style="text-align: center; padding: 6px 4px;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
-                <td style="padding: 6px 6px 6px 4px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <img src="${safeAvatar}" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; background: #ffffff; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                        <div style="min-width: 0; max-width: 140px;">
-                            <strong style="font-size:0.85rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${user.nome}</strong>
-                            <span style="font-size:0.75rem; color:var(--text-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.email}</span>
+                <td style="padding: 6px 8px 6px 4px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="${safeAvatar}" alt="Avatar" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; background: #ffffff; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <div style="min-width: 0; max-width: 240px;">
+                            <strong style="font-size:0.88rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${user.nome}</strong>
+                            <span style="font-size:0.78rem; color:var(--text-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${user.email}">${user.email}</span>
                         </div>
                     </div>
                 </td>
