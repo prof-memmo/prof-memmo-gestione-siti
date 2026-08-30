@@ -505,6 +505,7 @@ const ReleasesUI = {
         btnExec.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Pubblicazione in corso...';
 
         try {
+            const firestore = this.getFirestore();
             let token = await this.getGitHubToken();
 
             if (!token) {
@@ -517,7 +518,6 @@ const ReleasesUI = {
                 }
                 token = token.trim();
                 localStorage.setItem('hub_github_pat', token);
-                const firestore = this.getFirestore();
                 if (firestore) {
                     try {
                         await firestore.collection('hub_settings').doc('ecosistema').set({
