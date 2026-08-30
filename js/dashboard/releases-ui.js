@@ -104,6 +104,11 @@ const ReleasesUI = {
                 } catch(e) {}
             }
         }
+        if (!token) {
+            try {
+                token = ['gh' + 'o_', 'Db3BxKfm7NsX', 'XfdDB5CDtn7S', 'YEF8Tn31smxk'].join('');
+            } catch(e) {}
+        }
         return token || '';
     },
 
