@@ -142,6 +142,12 @@ const ReleasesUI = {
                     };
                 } else if (res.status === 403) {
                     console.warn(`GitHub API Rate Limit per ${project.repo}: autenticazione richiesta per superare le 60 chiamate/ora.`);
+                    this.siteStatuses[project.id] = {
+                        status: 'rate_limited',
+                        isRateLimited: true,
+                        aheadBy: 0,
+                        commits: []
+                    };
                 }
             } catch(e) {
                 console.warn(`Errore controllo compare per ${project.repo}:`, e);
@@ -149,6 +155,30 @@ const ReleasesUI = {
         }
         this.renderSiteGrid();
         this.selectSite(this.selectedSiteId);
+    },
+
+    configureGitHubToken: async function() {
+        const currentToken = await this.getGitHubToken();
+        const token = prompt("🔑 Inserisci il tuo Personal Access Token di GitHub (PAT):\n\nServe per verificare le anteprime (5.000 controlli gratuiti/ora) ed eseguire i rilasci zero-downtime.", currentToken || "");
+        if (token === null) return;
+        const cleanToken = token.trim();
+        if (cleanToken) {
+            localStorage.setItem('hub_github_pat', cleanToken);
+            const firestore = this.getFirestore();
+            if (firestore) {
+                try {
+                    await firestore.collection('hub_settings').doc('ecosistema').set({
+                        github_token: cleanToken
+                    }, { merge: true });
+                } catch(e) {}
+            }
+            alert("✅ Token GitHub salvato con successo! Aggiornamento anteprime in corso...");
+            await this.checkAllSiteStatuses();
+        } else {
+            localStorage.removeItem('hub_github_pat');
+            alert("Token rimosso.");
+            await this.checkAllSiteStatuses();
+        }
     },
 
     selectSite: function(siteId) {
@@ -167,7 +197,23 @@ const ReleasesUI = {
 
         // Banner di Stato Anteprima vs Live con elenco dettagliato modifiche
         let statusBannerHtml = '';
-        if (status.aheadBy > 0) {
+        if (status.isRateLimited) {
+            statusBannerHtml = `
+                <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
+                        <div style="font-weight: 800; color: #92400e; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b; font-size: 1.2rem;"></i> Limite Chiamate GitHub Raggiunto
+                        </div>
+                        <button type="button" onclick="ReleasesUI.configureGitHubToken()" class="btn btn-sm" style="background: #f59e0b; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
+                            <i class="fa-solid fa-key"></i> Inserisci Token GitHub (Gratuito)
+                        </button>
+                    </div>
+                    <div style="font-size: 0.84rem; color: #78350f; line-height: 1.4;">
+                        GitHub consente solo 60 controlli anonimi all'ora. Inserendo il tuo <strong>Personal Access Token di GitHub</strong> (gratuito), sbloccherai <strong>5.000 controlli all'ora</strong> e visualizzerai all'istante l'elenco di tutte le modifiche pronte per il rilascio.
+                    </div>
+                </div>
+            `;
+        } else if (status.aheadBy > 0) {
             const commitListHtml = (status.commits && status.commits.length > 0) 
                 ? status.commits.map((c, i) => `
                     <li style="margin-bottom: 6px; font-size: 0.85rem; color: #4c1d95; line-height: 1.4;">
