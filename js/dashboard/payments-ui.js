@@ -233,6 +233,67 @@ const PaymentsUI = {
         setVal('kpi-pay-successi', successCount);
         setVal('kpi-pay-falliti', failedCount);
         setVal('kpi-pay-totali', list.length);
+
+        // Aggiorna anche il pannello Incassato e Residuo del Massimale Fiscale
+        const elIncassato = document.getElementById('analytics-incassato-display');
+        const elMassimale = document.getElementById('analytics-massimale-display');
+        const elResiduo = document.getElementById('analytics-residuo-display');
+        if (elIncassato) {
+            elIncassato.textContent = Math.max(0, netEarnings).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+        }
+        if (elMassimale && elResiduo) {
+            const massimale = parseFloat(elMassimale.textContent.replace(/[^0-9.,]/g, '').replace(',', '.')) || 4000;
+            const residuo = Math.max(0, massimale - Math.max(0, netEarnings));
+            elResiduo.textContent = residuo.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+        }
+
+        // Notifica AnalyticsUI per aggiornare Spese & Guadagno con il valore effettivo
+        if (window.AnalyticsUI && typeof window.AnalyticsUI.updateExpensesKPIs === 'function') {
+            window.AnalyticsUI.updateExpensesKPIs();
+        }
+    },
+
+    getNetEarnings: function(dateFrom, dateTo) {
+        let startTs = dateFrom ? new Date(dateFrom).getTime() : 0;
+        let endTs = dateTo ? (new Date(dateTo).getTime() + 86400000) : Infinity;
+
+        let totalGross = 0;
+        let totalRefunds = 0;
+
+        const list = (this.rawTransactions && this.rawTransactions.length > 0) ? this.rawTransactions : (this.filteredTransactions || []);
+        list.forEach(tx => {
+            const dateRaw = tx.createdAt || tx.purchasedAt || tx.timestamp;
+            let txTs = 0;
+            if (dateRaw && typeof dateRaw.toDate === 'function') txTs = dateRaw.toDate().getTime();
+            else if (dateRaw && dateRaw.seconds) txTs = dateRaw.seconds * 1000;
+            else if (dateRaw) txTs = new Date(dateRaw).getTime();
+
+            if (startTs && txTs < startTs) return;
+            if (endTs && txTs > endTs) return;
+
+            const amount = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount || 0);
+            const status = (tx.status || '').toLowerCase();
+            const type = (tx.type || '').toLowerCase();
+
+            if (type === 'pagamento_fallito' || status === 'fallito') {
+                return;
+            } else if (type === 'rimborso') {
+                const ref = tx.refundAmount || Math.abs(amount);
+                totalRefunds += ref;
+            } else {
+                if (status === 'rimborsato') {
+                    totalRefunds += (tx.refundAmount || amount);
+                    totalGross += amount;
+                } else if (status === 'rimborsato_parziale') {
+                    totalRefunds += (tx.refundAmount || 0);
+                    totalGross += amount;
+                } else {
+                    totalGross += amount;
+                }
+            }
+        });
+
+        return totalGross - totalRefunds;
     },
 
     renderTable: function(list) {

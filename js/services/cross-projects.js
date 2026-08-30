@@ -228,7 +228,7 @@ const CrossProjectsService = {
                         classe: data.classId || data.classe || data.class || 'N/A',
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
-                        gioco: 'Hub', giocoColor: '#6366f1', giocoIcon: 'fa-globe',
+                        gioco: '', giocoColor: '#6366f1', giocoIcon: 'fa-globe',
                         plan: data.abbonamento || data.plan || data.subscription || (data.role === 'studente' ? 'studente' : 'base'),
                         admin_override: data.admin_override === true,
                         abbonamento_scadenza: data.abbonamento_scadenza || '',
@@ -346,24 +346,34 @@ const CrossProjectsService = {
         const uniqueUsersMap = new Map();
         allUsers.forEach(u => {
             let emailKey = u.email ? String(u.email).trim().toLowerCase() : '';
-            const uNomeLow = String(u.nome || u.name || '').trim().toLowerCase();
+            const uNomeClean = String(u.nome || u.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const isMemmo = uNomeClean.includes('profmemmo') || emailKey.includes('prof.memmo');
 
-            // Unifica prof.memmo orfano con l'account master prof.memmo@gmail.com
-            if (uNomeLow === 'prof.memmo' || uNomeLow === 'prof memmo' || emailKey === 'prof.memmo@gmail.com') {
+            // Unifica qualsiasi variazione di prof. memmo con l'account master prof.memmo@gmail.com
+            if (isMemmo) {
                 emailKey = 'prof.memmo@gmail.com';
+                u.id = 'prof_memmo_admin';
                 u.email = 'prof.memmo@gmail.com';
+                u.nome = 'Prof. Memmo';
                 u.ruolo = 'admin';
                 u.role = 'admin';
+                u.plan = 'docente_ecosistema';
+                u.avatar = 'assets/avatars/6.png';
             }
 
             const dedupeKey = emailKey || u.id;
 
             if (uniqueUsersMap.has(dedupeKey)) {
                 let existing = uniqueUsersMap.get(dedupeKey);
-                const curGioco = String(existing.gioco || '');
-                const newGioco = String(u.gioco || '');
-                if (!curGioco.includes(newGioco)) {
+                let curGioco = String(existing.gioco || '').replace(/\bHub\b/g, '').replace(/\s*\/\s*$/, '').replace(/^\s*\/\s*/, '').trim();
+                let newGioco = String(u.gioco || '').replace(/\bHub\b/g, '').replace(/\s*\/\s*$/, '').replace(/^\s*\/\s*/, '').trim();
+                
+                if (newGioco && !curGioco.includes(newGioco)) {
                     existing.gioco = curGioco ? (curGioco + " / " + newGioco) : newGioco;
+                    if (u.giocoColor) existing.giocoColor = u.giocoColor;
+                    if (u.giocoIcon) existing.giocoIcon = u.giocoIcon;
+                } else if (curGioco) {
+                    existing.gioco = curGioco;
                 }
                 const exNome = String(existing.nome || '');
                 const uNome = String(u.nome || '');
