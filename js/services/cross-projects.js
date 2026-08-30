@@ -346,14 +346,19 @@ const CrossProjectsService = {
         const uniqueUsersMap = new Map();
         allUsers.forEach(u => {
             let emailKey = u.email ? String(u.email).trim().toLowerCase() : '';
-            const uNomeLow = String(u.nome || u.name || '').trim().toLowerCase();
+            const uNomeClean = String(u.nome || u.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const isMemmo = uNomeClean.includes('profmemmo') || emailKey.includes('prof.memmo');
 
-            // Unifica prof.memmo orfano con l'account master prof.memmo@gmail.com
-            if (uNomeLow === 'prof.memmo' || uNomeLow === 'prof memmo' || emailKey === 'prof.memmo@gmail.com') {
+            // Unifica qualsiasi variazione di prof. memmo con l'account master prof.memmo@gmail.com
+            if (isMemmo) {
                 emailKey = 'prof.memmo@gmail.com';
+                u.id = 'prof_memmo_admin';
                 u.email = 'prof.memmo@gmail.com';
+                u.nome = 'Prof. Memmo';
                 u.ruolo = 'admin';
                 u.role = 'admin';
+                u.plan = 'docente_ecosistema';
+                u.avatar = 'assets/avatars/6.png';
             }
 
             const dedupeKey = emailKey || u.id;

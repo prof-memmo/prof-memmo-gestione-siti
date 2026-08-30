@@ -83,7 +83,8 @@ const UsersUI = {
             const dataStr = user.dataValue > 0 ? new Date(user.dataValue).toLocaleDateString('it-IT') : 'N/D';
             
             const rLow = (user.ruolo || '').toLowerCase();
-            const isSuperAdmin = (user.email || '').toLowerCase() === SUPER_ADMIN_EMAIL;
+            const nClean = (user.nome || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const isSuperAdmin = (user.email || '').toLowerCase() === SUPER_ADMIN_EMAIL || nClean.includes('profmemmo');
             const isAdminRole = isSuperAdmin || rLow.includes('admin');
 
             let displayRole = 'Viandante';
