@@ -288,14 +288,14 @@ const CrossProjectsService = {
         }
 
         const allUsers = [
+            ...hubUsers,
             ...eroiUsers, 
             ...commediaUsers, 
             ...fantaUsers, 
             ...palestraUsers, 
             ...opsUsers, 
             ...restUsers, 
-            ...rootUsers, 
-            ...hubUsers
+            ...rootUsers
         ];
 
         // 3. Auto-consolidamento silenzioso in background in hub_users e nelle collezioni di gioco
@@ -345,7 +345,17 @@ const CrossProjectsService = {
         // 4. Deduplicazione precisa e preservazione dati utente
         const uniqueUsersMap = new Map();
         allUsers.forEach(u => {
-            const emailKey = u.email ? String(u.email).trim().toLowerCase() : '';
+            let emailKey = u.email ? String(u.email).trim().toLowerCase() : '';
+            const uNomeLow = String(u.nome || u.name || '').trim().toLowerCase();
+
+            // Unifica prof.memmo orfano con l'account master prof.memmo@gmail.com
+            if (uNomeLow === 'prof.memmo' || uNomeLow === 'prof memmo' || emailKey === 'prof.memmo@gmail.com') {
+                emailKey = 'prof.memmo@gmail.com';
+                u.email = 'prof.memmo@gmail.com';
+                u.ruolo = 'admin';
+                u.role = 'admin';
+            }
+
             const dedupeKey = emailKey || u.id;
 
             if (uniqueUsersMap.has(dedupeKey)) {
@@ -360,20 +370,25 @@ const CrossProjectsService = {
                 if ((exNome === 'Anonimo' || exNome === '' || exNome.startsWith('Utente')) && uNome && uNome !== 'Anonimo' && !uNome.startsWith('Utente')) {
                     existing.nome = uNome;
                 }
-                if (!existing.avatar && u.avatar) {
-                    existing.avatar = u.avatar;
-                }
                 
                 // Priorità assoluta all'Hub Master o all'override dell'Admin
                 if (u.isHubMaster || u.admin_override) {
                     existing.plan = u.plan || 'base';
                     existing.admin_override = u.admin_override === true;
                     existing.abbonamento_scadenza = u.abbonamento_scadenza || '';
+                    if (u.avatar) existing.avatar = u.avatar;
+                    if (u.ruolo) existing.ruolo = u.ruolo;
                 } else if (!existing.admin_override) {
                     const uPlanNorm = String(u.plan || '').toLowerCase();
                     if (uPlanNorm.includes('ecosistema') || uPlanNorm.includes('didattic') || uPlanNorm.includes('viandante')) {
                         existing.plan = u.plan;
                     }
+                }
+
+                if (u.isHubMaster && u.avatar) {
+                    existing.avatar = u.avatar;
+                } else if (!existing.avatar && u.avatar) {
+                    existing.avatar = u.avatar;
                 }
 
                 if (u.classe && u.classe !== 'N/A' && (!existing.classe || existing.classe === 'N/A')) {
@@ -386,7 +401,7 @@ const CrossProjectsService = {
                 }
                 const uRole = String(u.ruolo || '').toLowerCase();
                 if (uRole.includes('teacher') || uRole.includes('admin') || uRole.includes('docente') || uRole.includes('prof') || uRole.includes('judge')) {
-                    existing.ruolo = 'docente';
+                    existing.ruolo = (emailKey === 'prof.memmo@gmail.com' || uRole.includes('admin')) ? 'admin' : 'docente';
                 }
             } else {
                 uniqueUsersMap.set(dedupeKey, {...u});
