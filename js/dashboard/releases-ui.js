@@ -76,7 +76,7 @@ const ReleasesUI = {
         }
     ],
 
-    selectedSiteId: 'hub_vetrina',
+    selectedSiteId: 'hub_admin',
     siteStatuses: {},
     history: [],
 
