@@ -439,6 +439,23 @@ const ReleasesUI = {
                 ? this.PROJECTS.map(p => p.repo) 
                 : [project.repo];
 
+            // Raccogli l'elenco dei commit / modifiche in sospeso per ciascun repo
+            const changesList = [];
+            targetRepos.forEach(repoName => {
+                const proj = this.PROJECTS.find(p => p.repo === repoName);
+                if (proj && this.siteStatuses[proj.id] && Array.isArray(this.siteStatuses[proj.id].commits)) {
+                    this.siteStatuses[proj.id].commits.forEach(c => {
+                        changesList.push({
+                            repo: repoName,
+                            siteName: proj.name,
+                            message: c.message || 'Aggiornamento codice',
+                            author: c.author || 'prof.memmo@gmail.com',
+                            date: c.date || new Date().toLocaleString('it-IT')
+                        });
+                    });
+                }
+            });
+
             const results = [];
 
             for (const targetRepo of targetRepos) {
@@ -459,7 +476,7 @@ const ReleasesUI = {
                 results.push({ repo: targetRepo, status: res.status, ok: res.ok || res.status === 204 });
             }
 
-            // Registra nello storico su Firestore (cronologia completa)
+            // Registra nello storico su Firestore (cronologia completa con commit e modifiche)
             if (firestore) {
                 const authUser = (window.fbAuth && window.fbAuth.currentUser) || (window.firebase && firebase.auth && firebase.auth().currentUser);
                 const successCount = results.filter(r => r.ok).length;
@@ -473,7 +490,8 @@ const ReleasesUI = {
                     successCount: successCount,
                     totalRepos: targetRepos.length,
                     status: (successCount === targetRepos.length) ? 'success' : (successCount > 0 ? 'partial' : 'failed'),
-                    details: results
+                    details: results,
+                    changes: changesList
                 };
 
                 try {
@@ -563,6 +581,7 @@ const ReleasesUI = {
                 const badgeText = isAll ? `${r.successCount || 6}/${r.totalRepos || 6} Siti Aggiornati` : `Repo: ${r.repo}`;
 
                 const detailsList = Array.isArray(r.details) ? r.details : [];
+                const changesList = Array.isArray(r.changes) ? r.changes : [];
 
                 html += `
                     <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); transition: all 0.2s;">
@@ -579,7 +598,7 @@ const ReleasesUI = {
                             </div>
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">${d}</span>
-                                ${detailsList.length > 0 ? `
+                                ${(detailsList.length > 0 || changesList.length > 0) ? `
                                     <button type="button" onclick="ReleasesUI.toggleReleaseDetails('${relId}')" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                         <span>Dettagli</span> <i id="rel-icon-${relId}" class="fa-solid fa-chevron-down"></i>
                                     </button>
@@ -587,19 +606,39 @@ const ReleasesUI = {
                             </div>
                         </div>
 
-                        ${detailsList.length > 0 ? `
+                        ${(detailsList.length > 0 || changesList.length > 0) ? `
                             <div id="rel-details-${relId}" style="display: none; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; font-size: 0.8rem;">
-                                <div style="font-weight: 700; color: #475569; margin-bottom: 6px; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em;">Esito Sincronizzazione Repository:</div>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px;">
-                                    ${detailsList.map(item => `
-                                        <div style="background: #f8fafc; padding: 5px 8px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                                            <code style="font-size: 0.75rem; color: #334155;">${item.repo}</code>
-                                            <span style="font-weight: 700; color: ${item.ok ? '#059669' : '#dc2626'}; font-size: 0.72rem;">
-                                                ${item.ok ? '<i class="fa-solid fa-check"></i> Pubblicato' : '<i class="fa-solid fa-xmark"></i> Errore ' + (item.status || '')}
-                                            </span>
+                                ${detailsList.length > 0 ? `
+                                    <div style="font-weight: 700; color: #475569; margin-bottom: 6px; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em;">Esito Sincronizzazione Repository:</div>
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; margin-bottom: 10px;">
+                                        ${detailsList.map(item => `
+                                            <div style="background: #f8fafc; padding: 5px 8px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                                                <code style="font-size: 0.75rem; color: #334155;">${item.repo}</code>
+                                                <span style="font-weight: 700; color: ${item.ok ? '#059669' : '#dc2626'}; font-size: 0.72rem;">
+                                                    ${item.ok ? '<i class="fa-solid fa-check"></i> Pubblicato' : '<i class="fa-solid fa-xmark"></i> Errore ' + (item.status || '')}
+                                                </span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+
+                                ${changesList.length > 0 ? `
+                                    <div style="padding-top: 8px; border-top: 1px dashed #e2e8f0;">
+                                        <div style="font-weight: 700; color: #475569; margin-bottom: 6px; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em;">Modifiche &amp; Commit Inclusi (${changesList.length}):</div>
+                                        <div style="display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; padding-right: 4px;">
+                                            ${changesList.map((ch, cIdx) => `
+                                                <div style="background: #f8fafc; padding: 4px 8px; border-radius: 5px; border-left: 3px solid #6366f1; font-size: 0.76rem; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                                    <div>
+                                                        <span style="font-weight: 700; color: #6366f1;">#${cIdx + 1}</span> 
+                                                        <span style="color: #1e293b; font-weight: 600;">&ldquo;${ch.message}&rdquo;</span>
+                                                        ${isAll ? `<span class="badge" style="background: #e0e7ff; color: #4338ca; font-size: 0.68rem; padding: 1px 5px; border-radius: 4px; margin-left: 4px;">${ch.siteName || ch.repo}</span>` : ''}
+                                                    </div>
+                                                    <span style="color: #64748b; font-size: 0.7rem; white-space: nowrap;">${ch.date}</span>
+                                                </div>
+                                            `).join('')}
                                         </div>
-                                    `).join('')}
-                                </div>
+                                    </div>
+                                ` : ''}
                             </div>
                         ` : ''}
                     </div>

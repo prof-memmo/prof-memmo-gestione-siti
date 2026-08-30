@@ -149,7 +149,7 @@ const UsersUI = {
 
             const safeAvatar = getSafeAvatarUrl(user.avatar);
 
-            // Semplifica e compatta la colonna gioco (badge compatto se multiscritto)
+            // Semplifica e compatta la colonna gioco (badge interattivo con popover)
             let rawGioco = (user.gioco || 'Hub')
                 .replace(' / Hub', '')
                 .replace('La Rotta degli Eroi', 'Eroi')
@@ -157,13 +157,46 @@ const UsersUI = {
                 .replace('Palestra di Riflessione', 'Palestra');
 
             const gameParts = rawGioco.split(' / ').map(s => s.trim()).filter(Boolean);
+            const GAME_META = {
+                'Eroi': { name: 'La Rotta degli Eroi', color: '#3b82f6', icon: 'fa-ship' },
+                'Commedia': { name: 'La Corte della Commedia', color: '#a855f7', icon: 'fa-masks-theater' },
+                'Fanta': { name: 'FantaLetteratura', color: '#f59e0b', icon: 'fa-feather-pointed' },
+                'Palestra': { name: 'Palestra di Riflessione', color: '#10b981', icon: 'fa-brain' },
+                'Ops': { name: 'Ops! Operazione Storia', color: '#ef4444', icon: 'fa-landmark' }
+            };
+
             let cleanGiocoHtml = '';
-            if (gameParts.length >= 3) {
-                cleanGiocoHtml = `<span title="${gameParts.join(' • ')}" style="background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.25); padding:2px 7px; border-radius:6px; font-weight:700; font-size:0.75rem; white-space:nowrap; cursor:help;"><i class="fa-solid fa-layer-group"></i> Multiscritto (${gameParts.length})</span>`;
-            } else if (gameParts.length === 2) {
-                cleanGiocoHtml = `<span style="font-size:0.8rem; font-weight:600; color:${user.giocoColor || '#6366f1'}; white-space:nowrap;"><i class="fa-solid ${user.giocoIcon || 'fa-gamepad'}"></i> ${gameParts.join(' / ')}</span>`;
+            const safeUserId = String(user.id || 'u_' + Math.random()).replace(/[^a-zA-Z0-9_-]/g, '_');
+
+            if (gameParts.length >= 2) {
+                cleanGiocoHtml = `
+                    <div style="position: relative; display: inline-block;">
+                        <button type="button" onclick="event.stopPropagation(); window.UsersUI.toggleGamePopover('${safeUserId}')" style="background: rgba(99,102,241,0.1); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.76rem; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.2)'" onmouseout="this.style.background='rgba(99,102,241,0.1)'" title="Clicca per visualizzare i ${gameParts.length} giochi">
+                            <i class="fa-solid fa-layer-group"></i> Multiscritto (${gameParts.length}) <i id="game-pop-icon-${safeUserId}" class="fa-solid fa-chevron-down" style="font-size: 0.65rem;"></i>
+                        </button>
+                        <div id="game-popover-${safeUserId}" class="game-popover-dropdown" style="display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 1000; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05); padding: 8px 10px; min-width: 210px; text-align: left;">
+                            <div style="font-size: 0.68rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: space-between;">
+                                <span>Piattaforme Attive (${gameParts.length}):</span>
+                                <i class="fa-solid fa-xmark" style="cursor: pointer; padding: 2px;" onclick="event.stopPropagation(); window.UsersUI.toggleGamePopover('${safeUserId}')"></i>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                ${gameParts.map(gp => {
+                                    const meta = GAME_META[gp] || { name: gp, color: '#6366f1', icon: 'fa-gamepad' };
+                                    return `
+                                        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 600; color: #1e293b; padding: 4px 8px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9;">
+                                            <i class="fa-solid ${meta.icon}" style="color: ${meta.color}; width: 14px; text-align: center;"></i>
+                                            <span>${meta.name}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
             } else {
-                cleanGiocoHtml = `<span style="font-size:0.8rem; font-weight:600; color:${user.giocoColor || '#64748b'}; white-space:nowrap;"><i class="fa-solid ${user.giocoIcon || 'fa-gamepad'}"></i> ${gameParts[0] || 'Hub'}</span>`;
+                const singleGame = gameParts[0] || 'Hub';
+                const meta = GAME_META[singleGame] || { name: singleGame, color: user.giocoColor || '#64748b', icon: user.giocoIcon || 'fa-gamepad' };
+                cleanGiocoHtml = `<span style="font-size: 0.8rem; font-weight: 600; color: ${meta.color}; white-space: nowrap;"><i class="fa-solid ${meta.icon}"></i> ${meta.name || singleGame}</span>`;
             }
 
             tr.innerHTML = `
@@ -943,7 +976,29 @@ const UsersUI = {
         });
 
         this.renderIscrittiTable(filtered);
+    },
+
+    toggleGamePopover: function(safeUserId) {
+        const pop = document.getElementById(`game-popover-${safeUserId}`);
+        const icon = document.getElementById(`game-pop-icon-${safeUserId}`);
+        if (!pop) return;
+        const isVisible = pop.style.display === 'block';
+        document.querySelectorAll('.game-popover-dropdown').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('[id^="game-pop-icon-"]').forEach(el => el.className = 'fa-solid fa-chevron-down');
+        
+        pop.style.display = isVisible ? 'none' : 'block';
+        if (icon) {
+            icon.className = isVisible ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
+        }
     }
 };
+
+// Chiude i popover di gioco cliccando ovunque fuori
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.game-popover-dropdown') && !e.target.closest('button[onclick*="toggleGamePopover"]')) {
+        document.querySelectorAll('.game-popover-dropdown').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('[id^="game-pop-icon-"]').forEach(el => el.className = 'fa-solid fa-chevron-down');
+    }
+});
 
 window.UsersUI = UsersUI;
