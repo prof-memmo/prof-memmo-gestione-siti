@@ -319,6 +319,94 @@ const PortalApp = {
         if (identityEl) identityEl.style.display = 'flex';
     },
 
+    verifyClassCode: async function() {
+        const input = document.getElementById('identity-codice-classe');
+        const statusBox = document.getElementById('portal-class-status-box');
+        const code = (input ? input.value : '').trim().toUpperCase();
+
+        if (!statusBox) return;
+
+        if (!code) {
+            statusBox.style.display = 'block';
+            statusBox.style.background = '#fef2f2';
+            statusBox.style.border = '1px solid #fecaca';
+            statusBox.style.color = '#dc2626';
+            statusBox.innerHTML = 'Inserisci un codice classe per verificarlo.';
+            return;
+        }
+
+        const btnSearch = document.getElementById('btn-portal-search-class');
+        const origText = btnSearch ? btnSearch.innerHTML : '';
+        if (btnSearch) {
+            btnSearch.disabled = true;
+            btnSearch.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        }
+
+        try {
+            const db = firebase.firestore();
+            let foundDoc = null;
+
+            // Cerca in collection 'classes'
+            const q1 = await db.collection('classes').where('code', '==', code).get().catch(() => ({ empty: true }));
+            if (q1 && !q1.empty) foundDoc = q1.docs[0];
+
+            if (!foundDoc) {
+                const q2 = await db.collection('classes').where('codice', '==', code).get().catch(() => ({ empty: true }));
+                if (q2 && !q2.empty) foundDoc = q2.docs[0];
+            }
+
+            if (!foundDoc) {
+                const docById = await db.collection('classes').doc(code).get().catch(() => ({ exists: false }));
+                if (docById && docById.exists) foundDoc = docById;
+            }
+
+            if (!foundDoc) {
+                const qFanta = await db.collection('fanta_teams').where('joinCode', '==', code).get().catch(() => ({ empty: true }));
+                if (qFanta && !qFanta.empty) foundDoc = qFanta.docs[0];
+            }
+
+            if (!foundDoc) {
+                statusBox.style.display = 'block';
+                statusBox.style.background = '#fef2f2';
+                statusBox.style.border = '1px solid #fecaca';
+                statusBox.style.color = '#dc2626';
+                statusBox.innerHTML = `⚠️ Nessuna classe trovata con il codice <strong>"${code}"</strong>.<br>Puoi lasciarlo vuoto e inserirlo più tardi o ricontrollare con il tuo docente.`;
+                return;
+            }
+
+            const cData = foundDoc.data() || {};
+            const className = cData.name || cData.nome || cData.className || code;
+            const schoolName = cData.school || cData.scuola || cData.istituto || (cData.anagrafica && cData.anagrafica.scuola) || '';
+            const cityName = cData.city || cData.citta || (cData.anagrafica && cData.anagrafica.citta) || '';
+            const teacherName = cData.teacherName || cData.teacher || cData.docente || cData.ownerName || (cData.teacherEmail ? cData.teacherEmail.split('@')[0] : 'Docente');
+
+            // Auto-compila scuola e citta se trovate
+            const elScuola = document.getElementById('identity-scuola');
+            const elCitta = document.getElementById('identity-citta');
+            if (schoolName && elScuola) elScuola.value = schoolName;
+            if (cityName && elCitta) elCitta.value = cityName;
+
+            statusBox.style.display = 'block';
+            statusBox.style.background = '#ecfdf5';
+            statusBox.style.border = '1.5px solid #10b981';
+            statusBox.style.color = '#065f46';
+            statusBox.innerHTML = `🎉 <strong>Classe Trovata:</strong> ${className} (${code})<br>👨‍🏫 <strong>Docente:</strong> ${teacherName} &bull; 🏫 <strong>Scuola:</strong> ${schoolName || 'Certificata'}`;
+
+        } catch (e) {
+            console.error("Errore verifica codice classe onboarding:", e);
+            statusBox.style.display = 'block';
+            statusBox.style.background = '#fef2f2';
+            statusBox.style.border = '1px solid #fecaca';
+            statusBox.style.color = '#dc2626';
+            statusBox.textContent = "Errore durante la verifica della classe: " + e.message;
+        } finally {
+            if (btnSearch) {
+                btnSearch.disabled = false;
+                btnSearch.innerHTML = origText;
+            }
+        }
+    },
+
     backToRoleSelection: function() {
         const onboardingEl = document.getElementById('portal-onboarding');
         const identityEl = document.getElementById('portal-identity');
