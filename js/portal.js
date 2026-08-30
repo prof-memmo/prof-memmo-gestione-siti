@@ -279,23 +279,26 @@ const PortalApp = {
         
         // Configura il badge del ruolo e i campi dello Step 2
         const roleBadge = document.getElementById('identity-role-badge');
+        const scuolaGroup = document.getElementById('identity-scuola-group');
         const codeBox = document.getElementById('identity-code-box');
         const labelScuola = document.getElementById('label-scuola');
         const labelCitta = document.getElementById('label-citta');
         
         if (this.pendingRole === 'docente') {
             if (roleBadge) roleBadge.textContent = '👨‍🏫';
+            if (scuolaGroup) scuolaGroup.style.display = 'block';
             if (codeBox) codeBox.style.display = 'none';
             if (labelScuola) labelScuola.textContent = '🏫 Istituto Scolastico / Scuola *';
             if (labelCitta) labelCitta.textContent = '📍 Città della Scuola *';
         } else if (this.pendingRole === 'viandante') {
             if (roleBadge) roleBadge.textContent = '🌍';
+            if (scuolaGroup) scuolaGroup.style.display = 'none';
             if (codeBox) codeBox.style.display = 'none';
-            if (labelScuola) labelScuola.textContent = '🏫 Scuola / Occupazione (facoltativo)';
-            if (labelCitta) labelCitta.textContent = '📍 Città (facoltativo)';
+            if (labelCitta) labelCitta.textContent = '📍 La tua Città';
         } else {
             // Studente
             if (roleBadge) roleBadge.textContent = '🎓';
+            if (scuolaGroup) scuolaGroup.style.display = 'block';
             if (codeBox) codeBox.style.display = 'block';
             if (labelScuola) labelScuola.textContent = '🏫 Scuola / Istituto';
             if (labelCitta) labelCitta.textContent = '📍 Città';
