@@ -124,6 +124,8 @@ const CrossProjectsService = {
                         email: data.email || (doc.id.includes('@') ? doc.id : ''),
                         ruolo: data.role || data.ruolo || 'studente',
                         classe: data.teamId || data.classe || data.class || 'N/A',
+                        citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
+                        scuola: data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '',
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'Fantaletteratura', giocoColor: '#a855f7', giocoIcon: 'fa-dragon',
@@ -144,6 +146,8 @@ const CrossProjectsService = {
                         email: data.email || (doc.id.includes('@') ? doc.id : ''),
                         ruolo: data.role || data.ruolo || 'studente',
                         classe: data.classId || data.classe || data.class || 'N/A',
+                        citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
+                        scuola: data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '',
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'La Rotta degli Eroi', giocoColor: '#3b82f6', giocoIcon: 'fa-ship',
@@ -164,6 +168,8 @@ const CrossProjectsService = {
                         email: data.email || (doc.id.includes('@') ? doc.id : ''),
                         ruolo: data.role || data.ruolo || 'studente',
                         classe: data.classId || data.classe || data.class || 'N/A',
+                        citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
+                        scuola: data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '',
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'Palestra di Riflessione', giocoColor: '#22c55e', giocoIcon: 'fa-brain',
@@ -184,6 +190,8 @@ const CrossProjectsService = {
                         email: data.email || (doc.id.includes('@') ? doc.id : ''),
                         ruolo: data.role || data.ruolo || 'studente',
                         classe: data.classId || data.classe || data.class || 'N/A',
+                        citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
+                        scuola: data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '',
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'La Corte della Commedia', giocoColor: '#ef4444', giocoIcon: 'fa-book-open',
@@ -204,6 +212,8 @@ const CrossProjectsService = {
                         email: data.email || (doc.id.includes('@') ? doc.id : ''),
                         ruolo: data.role || data.ruolo || 'studente',
                         classe: data.classId || data.classe || data.class || 'N/A',
+                        citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
+                        scuola: data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '',
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
                         gioco: 'Ops! Operazione Storia', giocoColor: '#eab308', giocoIcon: 'fa-clock-rotate-left',
@@ -226,6 +236,9 @@ const CrossProjectsService = {
                         ruolo: data.role || data.ruolo || 'studente',
                         statusAccount: data.statusAccount || data.statoAccount || 'active',
                         classe: data.classId || data.classe || data.class || 'N/A',
+                        citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
+                        scuola: data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '',
+                        anagrafica: data.anagrafica || {},
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
                         gioco: '', giocoColor: '#6366f1', giocoIcon: 'fa-globe',
@@ -251,6 +264,9 @@ const CrossProjectsService = {
                         ruolo: data.role || data.ruolo || 'studente',
                         statusAccount: data.statusAccount || data.statoAccount || 'active',
                         classe: data.classId || data.classe || data.class || data.teamId || 'N/A',
+                        citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
+                        scuola: data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '',
+                        anagrafica: data.anagrafica || {},
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
                         gioco: 'Ecosistema', giocoColor: '#6366f1', giocoIcon: 'fa-user-check',
@@ -320,6 +336,8 @@ const CrossProjectsService = {
                         role: u.ruolo || 'studente',
                         ruolo: u.ruolo || 'studente',
                         classId: u.classe || 'N/A',
+                        citta: u.citta || '',
+                        scuola: u.scuola || '',
                         avatar: u.avatar || '',
                         subscription: u.plan || 'base',
                         plan: u.plan || 'base',
@@ -358,9 +376,6 @@ const CrossProjectsService = {
                 u.ruolo = 'admin';
                 u.role = 'admin';
                 u.plan = 'docente_ecosistema';
-                if (!u.avatar) {
-                    u.avatar = 'assets/avatars/6.png';
-                }
             }
 
             const dedupeKey = emailKey || u.id;
@@ -397,10 +412,22 @@ const CrossProjectsService = {
                     }
                 }
 
-                if (u.isHubMaster && u.avatar) {
-                    existing.avatar = u.avatar;
-                } else if (!existing.avatar && u.avatar) {
-                    existing.avatar = u.avatar;
+                // Avatar dinamico
+                if (u.avatar) {
+                    if (u.isHubMaster || !existing.avatar || existing.avatar === 'assets/avatars/6.png') {
+                        existing.avatar = u.avatar;
+                    }
+                }
+
+                // Città e Scuola
+                if (u.citta && (u.isHubMaster || !existing.citta)) {
+                    existing.citta = u.citta;
+                }
+                if (u.scuola && (u.isHubMaster || !existing.scuola)) {
+                    existing.scuola = u.scuola;
+                }
+                if (u.anagrafica && Object.keys(u.anagrafica).length > 0 && (u.isHubMaster || !existing.anagrafica)) {
+                    existing.anagrafica = u.anagrafica;
                 }
 
                 if (u.classe && u.classe !== 'N/A' && (!existing.classe || existing.classe === 'N/A')) {
