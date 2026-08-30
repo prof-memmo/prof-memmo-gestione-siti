@@ -96,20 +96,40 @@ const UsersUI = {
             const isAdminOverride = !!user.admin_override;
             const isChecked = window.UsersUI.selectedUsers.has(user.id) ? 'checked' : '';
 
-            // Scadenza
+            // Calcolo esatto scadenza: esattamente 1 anno dopo la data di iscrizione (per TUTTI gli utenti)
+            const currentYear = new Date().getFullYear();
+            let finalScadenza = `31/12/${currentYear + 1}`;
+            let isExpired = false;
+
+            if (user.dataValue > 0) {
+                const dIscrizione = new Date(user.dataValue);
+                const dScadenza = new Date(dIscrizione);
+                dScadenza.setFullYear(dScadenza.getFullYear() + 1);
+                finalScadenza = dScadenza.toLocaleDateString('it-IT');
+                if (dScadenza < new Date()) isExpired = true;
+            } else {
+                finalScadenza = `31/12/${currentYear}`;
+            }
+
+            if (user.abbonamento_scadenza) {
+                finalScadenza = user.abbonamento_scadenza.replace(/-/g, '/').split('/').reverse().join('/');
+                if (new Date(user.abbonamento_scadenza) < new Date()) isExpired = true;
+            }
+
+            // Scadenza Cell: Super Admin ha "Mai", tutti gli altri utenti mostrano sempre la data reale
             let scadenzaCell = '';
             if (isAdminRole) {
-                scadenzaCell = '<span title="Super Admin / Accesso Completo" style="color:#f59e0b; font-weight:700;">👑 Mai</span>';
-            } else if (isAdminOverride) {
-                scadenzaCell = '<span title="Piano assegnato da Admin" style="color:#6366f1; font-weight:700;">⚙️ Mai</span>';
-            } else if (userPlan !== 'base') {
-                scadenzaCell = `<span style="color:#10b981; font-size:0.85rem;">${user.abbonamento_scadenza ? user.abbonamento_scadenza.replace(/-/g, '/').split('/').reverse().join('/') : scadenzaStr}</span>`;
+                scadenzaCell = '<span title="Super Admin / Accesso Permanente" style="color:#f59e0b; font-weight:700; font-size:0.82rem;">👑 Mai</span>';
             } else {
-                scadenzaCell = '<span style="color:var(--text-muted);">-</span>';
+                if (isExpired) {
+                    scadenzaCell = `<span title="Abbonamento Scaduto" style="color:#ef4444; font-weight:700; font-size:0.82rem;"><i class="fa-solid fa-triangle-exclamation"></i> ${finalScadenza}</span>`;
+                } else {
+                    scadenzaCell = `<span style="color:#10b981; font-weight:600; font-size:0.82rem;">${finalScadenza}</span>`;
+                }
             }
 
             // Badge piano
-            const overrideBadge = isAdminOverride ? ' <span title="Piano assegnato da Admin" style="font-size:0.75rem; background:#ede9fe; color:#6366f1; border-radius:4px; padding:1px 5px;">⚙️ Admin</span>' : '';
+            const overrideBadge = (isAdminOverride && !isAdminRole) ? ' <span title="Piano modificato dall\'Amministratore" style="font-size:0.75rem; background:#ede9fe; color:#6366f1; border-radius:4px; padding:1px 5px; font-weight:600;">⚙️ Admin</span>' : '';
             const superBadge = isAdminRole ? ' <span style="font-size:0.75rem; background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px;">👑</span>' : '';
 
             function getSafeAvatarUrl(avatar) {
@@ -128,37 +148,50 @@ const UsersUI = {
 
             const safeAvatar = getSafeAvatarUrl(user.avatar);
 
+            // Semplifica nome gioco eliminando ' / Hub' e abbreviando per pulizia estetica
+            let cleanGioco = (user.gioco || 'Hub')
+                .replace(' / Hub', '')
+                .replace('La Rotta degli Eroi', 'Eroi')
+                .replace('La Corte della Commedia', 'Commedia')
+                .replace('Palestra di Riflessione', 'Palestra');
+
             tr.innerHTML = `
-                <td style="text-align: center;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
-                <td style="padding: 10px;">
+                <td style="text-align: center; padding: 6px 4px;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
+                <td style="padding: 6px 8px 6px 4px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="${safeAvatar}" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; background: #ffffff; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        <div>
-                            <strong>${user.nome}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${user.email}</span>
+                        <img src="${safeAvatar}" alt="Avatar" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; background: #ffffff; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <div style="min-width: 0; max-width: 240px;">
+                            <strong style="font-size:0.88rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${user.nome}</strong>
+                            <span style="font-size:0.78rem; color:var(--text-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${user.email}">${user.email}</span>
                         </div>
                     </div>
                 </td>
-                <td style="padding: 10px;"><span class="badge" style="background:#f1f5f9; color:#475569; padding:4px 8px; border-radius:6px; font-weight:600; font-size:0.8rem;">${displayRole}</span></td>
-                <td style="padding: 10px; font-size:0.85rem; color:var(--text-muted);">${dataStr}</td>
-                <td style="padding: 10px; color:${user.giocoColor};"><i class="fa-solid ${user.giocoIcon}"></i> ${user.gioco}</td>
-                <td style="padding: 10px;">
-                    <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value)" style="padding: 5px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; outline: none; cursor: pointer; background: white; font-weight: 600;">
-                        <option value="base" ${userPlan === 'base' ? 'selected' : ''}>⚪ Base / Gratuito</option>
+                <td style="padding: 6px 4px;"><span class="badge" style="background:#f1f5f9; color:#475569; padding:2px 6px; border-radius:5px; font-weight:600; font-size:0.75rem; white-space: nowrap;">${displayRole}</span></td>
+                <td style="padding: 6px; font-size:0.82rem; color:var(--text-muted); white-space: nowrap;">${dataStr}</td>
+                <td style="padding: 6px; white-space: nowrap;">
+                    <div style="display: inline-flex; align-items: center; gap: 5px;">
+                        ${scadenzaCell}
+                        ${!isAdminRole ? `<button type="button" onclick="window.UsersUI.openEditExpiryModal('${user.id}', '${finalScadenza}')" title="Modifica data scadenza" style="background:none; border:none; padding:2px; cursor:pointer; color:#64748b; font-size:0.78rem; transition:color 0.2s;" onmouseover="this.style.color='#4f46e5'" onmouseout="this.style.color='#64748b'"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
+                    </div>
+                </td>
+                <td style="padding: 6px; color:${user.giocoColor}; white-space: nowrap; font-size:0.82rem; font-weight:600;"><i class="fa-solid ${user.giocoIcon}"></i> ${cleanGioco}</td>
+                <td style="padding: 6px;">
+                    <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value)" style="padding: 3px 6px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.8rem; outline: none; cursor: pointer; background: white; font-weight: 600; max-width: 125px;">
+                        <option value="base" ${userPlan === 'base' ? 'selected' : ''}>⚪ Base</option>
                         <option value="viandante" ${userPlan === 'viandante' ? 'selected' : ''}>🧭 Viandante</option>
                         <option value="docente_didattico" ${userPlan === 'docente_didattico' ? 'selected' : ''}>🟡 Docente Didattico</option>
                         <option value="docente_ecosistema" ${userPlan === 'docente_ecosistema' ? 'selected' : ''}>🟣 Docente Ecosistema</option>
-                    </select>${overrideBadge}${superBadge}
+                    </select>${superBadge}
                 </td>
-                <td style="padding: 10px;">${scadenzaCell}</td>
-                <td style="padding: 10px; text-align:center;">
-                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px;">
-                        <a href="https://prof-memmo.github.io/games/profilo.html?preview=${user.id}" target="_blank" title="Anteprima Profilo Utente" style="color: #6366f1; font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                <td style="padding: 6px; text-align:center;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                        <a href="https://prof-memmo.github.io/games/profilo.html?preview=${user.id}" target="_blank" title="Anteprima Profilo Utente" style="color: #6366f1; font-size: 1rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-eye"></i>
                         </a>
-                        <a href="mailto:${user.email || ''}" title="Invia Email" style="color: var(--primary-color); font-size: 1.15rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                        <a href="mailto:${user.email || ''}" title="Invia Email" style="color: var(--primary-color); font-size: 1rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-envelope"></i>
                         </a>
-                        <button type="button" style="background: none; border: none; padding: 0; color: #ef4444; font-size: 1.15rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="window.UsersUI.openDeleteUserModal('${user.id}')" title="Elimina Utente">
+                        <button type="button" style="background: none; border: none; padding: 0; color: #ef4444; font-size: 1rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="window.UsersUI.openDeleteUserModal('${user.id}')" title="Elimina Utente">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -561,6 +594,38 @@ const UsersUI = {
         }
     },
 
+    openEditExpiryModal: async function(userId, currentExpiry) {
+        const newDate = prompt(`📅 Modifica data di scadenza abbonamento (formato AAAA-MM-GG o GG/MM/AAAA):\n\nValore attuale: ${currentExpiry}`, currentExpiry);
+        if (!newDate || !newDate.trim()) return;
+
+        let cleanDate = newDate.trim();
+        // Normalizza formato GG/MM/AAAA in AAAA-MM-GG se necessario
+        if (cleanDate.includes('/')) {
+            const parts = cleanDate.split('/');
+            if (parts.length === 3) {
+                cleanDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+        }
+
+        try {
+            const firestore = (window.fbDb && window.fbDb.hub) ? window.fbDb.hub : (window.db || (typeof firebase !== 'undefined' ? firebase.firestore() : null));
+            if (firestore) {
+                await firestore.collection('hub_users').doc(userId).set({
+                    abbonamento_scadenza: cleanDate
+                }, { merge: true });
+                alert("✅ Data di scadenza aggiornata con successo.");
+                // Aggiorna l'utente in locale e ridisegna
+                const u = (this.allUsers || []).find(usr => usr.id === userId);
+                if (u) {
+                    u.abbonamento_scadenza = cleanDate;
+                    this.renderIscrittiTable(this.allUsers);
+                }
+            }
+        } catch(e) {
+            alert("Errore durante l'aggiornamento della scadenza: " + e.message);
+        }
+    },
+
     /**
      * Ordinamento della tabella
      */
@@ -571,13 +636,30 @@ const UsersUI = {
             this.currentSortAsc = !this.currentSortAsc; // Inverti
         } else {
             this.currentSortCol = column;
-            this.currentSortAsc = true;
+            this.currentSortAsc = (column === 'data' || column === 'scadenza') ? false : true;
         }
 
         this.allUsers.sort((a, b) => {
             if (column === 'data') {
                 let valA = a.dataValue || 0;
                 let valB = b.dataValue || 0;
+                if (valA < valB) return this.currentSortAsc ? -1 : 1;
+                if (valA > valB) return this.currentSortAsc ? 1 : -1;
+                return 0;
+            }
+
+            if (column === 'scadenza') {
+                const getExp = (u) => {
+                    if (u.abbonamento_scadenza) return new Date(u.abbonamento_scadenza).getTime();
+                    if (u.dataValue > 0) {
+                        const d = new Date(u.dataValue);
+                        d.setFullYear(d.getFullYear() + 1);
+                        return d.getTime();
+                    }
+                    return 0;
+                };
+                let valA = getExp(a);
+                let valB = getExp(b);
                 if (valA < valB) return this.currentSortAsc ? -1 : 1;
                 if (valA > valB) return this.currentSortAsc ? 1 : -1;
                 return 0;

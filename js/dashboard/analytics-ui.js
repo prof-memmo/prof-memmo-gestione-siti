@@ -9,6 +9,7 @@ const AnalyticsUI = {
     chartCanali: null,
     chartFasceEta: null,
     chartMaterie: null,
+    chartGeografia: null,
 
     activeGameFilter: 'all',
     expensesList: [],
@@ -48,6 +49,7 @@ const AnalyticsUI = {
         this.renderCanaliChart(stats.canali);
         this.renderFasceEtaChart(stats.fasceEta);
         this.renderMaterieChart(stats.materie);
+        this.renderGeografiaChart(stats.geografia);
     },
 
     filterByGame: function(gameName) {
@@ -72,6 +74,7 @@ const AnalyticsUI = {
         this.renderCanaliChart(stats.canali);
         this.renderFasceEtaChart(stats.fasceEta);
         this.renderMaterieChart(stats.materie);
+        this.renderGeografiaChart(stats.geografia);
     },
 
     initExpenses: function() {
@@ -122,6 +125,34 @@ const AnalyticsUI = {
         this.renderCanaliChart(stats.canali);
         this.renderFasceEtaChart(stats.fasceEta);
         this.renderMaterieChart(stats.materie);
+        this.renderGeografiaChart(stats.geografia);
+    },
+
+    resolveMacroArea: function(cityOrSchool) {
+        if (!cityOrSchool) return 'Non specificato';
+        const s = String(cityOrSchool).toLowerCase();
+
+        // Isole
+        if (s.includes('sicil') || s.includes('palermo') || s.includes('catania') || s.includes('messina') || s.includes('siracusa') || s.includes('trapani') || s.includes('agrigento') || s.includes('ragusa') || s.includes('caltanissetta') || s.includes('enna') || s.includes('sardegn') || s.includes('cagliari') || s.includes('sassari') || s.includes('nuoro') || s.includes('oristano') || s.includes('olbia') || s.includes('alghero')) {
+            return 'Isole';
+        }
+
+        // Sud
+        if (s.includes('campani') || s.includes('napoli') || s.includes('salerno') || s.includes('caserta') || s.includes('avellino') || s.includes('benevento') || s.includes('pugli') || s.includes('bari') || s.includes('foggia') || s.includes('taranto') || s.includes('brindisi') || s.includes('lecce') || s.includes('barletta') || s.includes('andria') || s.includes('trani') || s.includes('calabri') || s.includes('reggio cal') || s.includes('catanzaro') || s.includes('cosenza') || s.includes('crotone') || s.includes('vibo') || s.includes('basilicata') || s.includes('potenza') || s.includes('matera') || s.includes('abruzzo') || s.includes('l\'aquila') || s.includes('pescara') || s.includes('chieti') || s.includes('teramo') || s.includes('molise') || s.includes('campobasso') || s.includes('isernia')) {
+            return 'Sud';
+        }
+
+        // Centro
+        if (s.includes('lazio') || s.includes('roma') || s.includes('viterbo') || s.includes('rieti') || s.includes('latina') || s.includes('frosinone') || s.includes('toscana') || s.includes('firenze') || s.includes('pisa') || s.includes('livorno') || s.includes('siena') || s.includes('lucca') || s.includes('arezzo') || s.includes('pistoia') || s.includes('prato') || s.includes('grosseto') || s.includes('massa') || s.includes('carrara') || s.includes('umbria') || s.includes('perugia') || s.includes('terni') || s.includes('marche') || s.includes('ancona') || s.includes('pesaro') || s.includes('urbino') || s.includes('macerata') || s.includes('fermo') || s.includes('ascoli')) {
+            return 'Centro';
+        }
+
+        // Nord
+        if (s.includes('lombard') || s.includes('milano') || s.includes('brescia') || s.includes('bergamo') || s.includes('monza') || s.includes('como') || s.includes('varese') || s.includes('lecco') || s.includes('pavia') || s.includes('cremona') || s.includes('mantova') || s.includes('lodi') || s.includes('sondrio') || s.includes('piemonte') || s.includes('torino') || s.includes('novara') || s.includes('alessandria') || s.includes('asti') || s.includes('cuneo') || s.includes('vercelli') || s.includes('biella') || s.includes('verbania') || s.includes('veneto') || s.includes('venezia') || s.includes('verona') || s.includes('padova') || s.includes('vicenza') || s.includes('treviso') || s.includes('belluno') || s.includes('rovigo') || s.includes('emilia') || s.includes('bologna') || s.includes('parma') || s.includes('modena') || s.includes('reggio em') || s.includes('piacenza') || s.includes('ferrara') || s.includes('ravenna') || s.includes('forl') || s.includes('cesena') || s.includes('rimini') || s.includes('liguria') || s.includes('genova') || s.includes('savona') || s.includes('imperia') || s.includes('la spezia') || s.includes('trentino') || s.includes('trento') || s.includes('bolzano') || s.includes('friuli') || s.includes('trieste') || s.includes('udine') || s.includes('pordenone') || s.includes('gorizia') || s.includes('aosta')) {
+            return 'Nord';
+        }
+
+        return 'Non specificato';
     },
 
     processData: function(iscritti) {
@@ -148,6 +179,13 @@ const AnalyticsUI = {
             canali: {},
             fasceEta: {},
             materie: {},
+            geografia: {
+                'Nord': 0,
+                'Centro': 0,
+                'Sud': 0,
+                'Isole': 0,
+                'Non specificato': 0
+            },
             topGiocoName: 'N/A'
         };
 
@@ -208,6 +246,11 @@ const AnalyticsUI = {
                     stats.timelineByGame[g][key] = (stats.timelineByGame[g][key] || 0) + 1;
                 });
             }
+
+            // Elabora provenienza geografica (Città / Scuola / Anagrafica)
+            const cityOrSchool = user.citta || user.city || user.scuola || user.school || (user.anagrafica && (user.anagrafica.citta || user.anagrafica.scuola)) || '';
+            const macroArea = this.resolveMacroArea(cityOrSchool);
+            stats.geografia[macroArea] = (stats.geografia[macroArea] || 0) + 1;
 
             // Elabora dati Questionario (Survey)
             if (user.survey) {
@@ -754,6 +797,42 @@ const AnalyticsUI = {
                 },
                 plugins: {
                     legend: { display: false }
+                }
+            }
+        });
+    },
+
+    renderGeografiaChart: function(data) {
+        const ctx = document.getElementById('chart-geografia');
+        if (!ctx) return;
+        if (this.chartGeografia) this.chartGeografia.destroy();
+
+        const labels = ['Nord', 'Centro', 'Sud', 'Isole', 'Non specificato'];
+        const values = labels.map(k => (data && data[k]) || 0);
+
+        this.chartGeografia = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: [
+                        '#3b82f6', // Nord: Blu
+                        '#10b981', // Centro: Verde
+                        '#f59e0b', // Sud: Arancione/Oro
+                        '#8b5cf6', // Isole: Viola
+                        '#cbd5e1'  // Non specificato: Grigio chiaro
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: this.getTooltipWithPercentage()
                 }
             }
         });

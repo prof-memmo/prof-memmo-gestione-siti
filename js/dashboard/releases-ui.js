@@ -69,7 +69,7 @@ const ReleasesUI = {
             name: 'Ops! Operazione Storia',
             repo: 'ops-storia',
             liveUrl: 'https://prof-memmo.github.io/ops-storia/',
-            previewUrl: 'https://prof-memmo.github.io/ops-storia/preview/',
+            previewUrl: 'https://prof-memmo.github.io/ops-storia/',
             icon: 'fa-landmark',
             color: '#ef4444',
             description: 'Gioco storico per la scuola secondaria di primo grado.'

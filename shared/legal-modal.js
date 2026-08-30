@@ -310,6 +310,36 @@
     if (type === 'contatti') {
       window.open('https://prof-memmo.github.io/games/contatti.html', '_blank');
       return;
+    } else if (type === 'invita' || type === 'share') {
+      title.textContent = 'Invita un Collega';
+      var showcaseUrl = 'https://prof-memmo.github.io/games/';
+      var shareText = "Ti consiglio di dare un'occhiata all'Ecosistema Didattico del Prof. Memmo: giochi didattici interattivi, sfide e materiali per la scuola!";
+      var fullShareText = shareText + '\n\n🔗 Scopri di più qui: ' + showcaseUrl;
+      var encodedFullText = encodeURIComponent(fullShareText);
+      var encodedUrl = encodeURIComponent(showcaseUrl);
+
+      body.innerHTML = 
+        '<p style="font-size:0.95rem; color:#475569; margin:0 0 1.5rem 0; text-align:center; line-height:1.5;">' +
+          'Fai conoscere l\'Ecosistema Didattico e i giochi interattivi del Prof. Memmo ai tuoi colleghi docenti!' +
+        '</p>' +
+        '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; max-width:540px; margin:0 auto 0.5rem auto;">' +
+          '<a href="https://wa.me/?text=' + encodedFullText + '" target="_blank" style="padding:16px 12px; border-radius:14px; text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:#f8fafc; border:1.5px solid #e2e8f0; color:#0f172a; font-weight:700; font-size:0.85rem; letter-spacing:0.5px; transition:all 0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.03);">' +
+            '<i class="fa-brands fa-whatsapp" style="font-size:1.6rem; color:#25D366;"></i>' +
+            '<span>WHATSAPP</span>' +
+          '</a>' +
+          '<a href="https://classroom.google.com/u/0/share?url=' + encodedUrl + '" target="_blank" style="padding:16px 12px; border-radius:14px; text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:#f8fafc; border:1.5px solid #e2e8f0; color:#0f172a; font-weight:700; font-size:0.85rem; letter-spacing:0.5px; transition:all 0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.03);">' +
+            '<i class="fa-solid fa-graduation-cap" style="font-size:1.6rem; color:#F59E0B;"></i>' +
+            '<span>CLASSROOM</span>' +
+          '</a>' +
+          '<a href="https://teams.microsoft.com/share?href=' + encodedUrl + '&msgText=' + encodedFullText + '" target="_blank" style="padding:16px 12px; border-radius:14px; text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:#f8fafc; border:1.5px solid #e2e8f0; color:#0f172a; font-weight:700; font-size:0.85rem; letter-spacing:0.5px; transition:all 0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.03);">' +
+            '<i class="fa-solid fa-users-rectangle" style="font-size:1.6rem; color:#6366F1;"></i>' +
+            '<span>MS TEAMS</span>' +
+          '</a>' +
+          '<button type="button" id="pmCopyShareBtn" onclick="navigator.clipboard.writeText(\'' + fullShareText.replace(/'/g, "\\'") + '\').then(function(){ alert(\'Link e messaggio copiati negli appunti!\'); });" style="padding:16px 12px; border-radius:14px; text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:#f8fafc; border:1.5px solid #e2e8f0; color:#0f172a; font-weight:700; font-size:0.85rem; letter-spacing:0.5px; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.03);">' +
+            '<i class="fa-solid fa-copy" style="font-size:1.6rem; color:#64748b;"></i>' +
+            '<span>COPIA LINK</span>' +
+          '</button>' +
+        '</div>';
     } else if (type === 'privacy') {
       title.textContent = 'Privacy Policy';
       body.innerHTML = formatPlainTextToHTML(dynamicPrivacy);
@@ -324,6 +354,7 @@
   }
 
   window.openSharedModal = openSharedModal;
+  window.openSharedInviteModal = function() { openSharedModal('invita'); };
   window.closeSharedModal = closeSharedModal;
 
   // Controlla scadenze abbonamento al 31 Dicembre e notifiche dell'Ecosistema

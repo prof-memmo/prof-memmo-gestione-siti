@@ -13,14 +13,28 @@ const UserService = {
     /**
      * Struttura base per un nuovo utente centrale dell'Hub
      */
-    getDefaultProfile: function(uid, nome, email, ruoloIniziale = 'studente', fotoProfilo = '', surveyData = null, newsletterConsent = false) {
+    getDefaultProfile: function(uid, nome, email, ruoloIniziale = 'studente', identityData = {}, surveyData = null, newsletterConsent = false) {
+        const avatar = identityData.avatar || 'assets/avatars/6.png';
+        const scuola = (identityData.scuola || '').trim();
+        const citta = (identityData.citta || '').trim();
+        const classe = (identityData.classe || '').trim().toUpperCase();
+
         return {
             uid: uid,
             email: email,
+            nome: nome || 'Nuovo Utente',
+            scuola: scuola,
+            citta: citta,
+            classe: classe,
+            classId: classe,
+            avatar: avatar,
             anagrafica: {
-                nome: nome,
+                nome: nome || 'Nuovo Utente',
                 cognome: '',
-                avatar: fotoProfilo || '👤'
+                scuola: scuola,
+                citta: citta,
+                classe: classe,
+                avatar: avatar
             },
             role: ruoloIniziale,
             statusAccount: 'active',
@@ -51,16 +65,16 @@ const UserService = {
     /**
      * Crea un nuovo profilo utente centrale nell'Hub
      */
-    createUserProfile: async function(uid, nome, email, ruolo, surveyData = null, newsletterConsent = false) {
+    createUserProfile: async function(uid, nome, email, ruolo, identityData = {}, surveyData = null, newsletterConsent = false) {
         if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase Hub non inizializzato");
         
-        // I ruoli ammessi sono: studente, docente, viandante, admin
+        // I ruoli ammessi sono: studente, docente, viandante, amico_del_prof, admin
         const validRoles = ['studente', 'docente', 'viandante', 'amico_del_prof', 'admin'];
         if (!validRoles.includes(ruolo)) {
             ruolo = 'studente'; // fallback
         }
 
-        const newUser = this.getDefaultProfile(uid, nome, email, ruolo, '', surveyData, newsletterConsent);
+        const newUser = this.getDefaultProfile(uid, nome, email, ruolo, identityData, surveyData, newsletterConsent);
         await window.fbDb.hub.collection("hub_users").doc(uid).set(newUser, { merge: true });
         return newUser;
     },

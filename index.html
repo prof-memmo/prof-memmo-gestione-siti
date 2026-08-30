@@ -736,22 +736,25 @@
           <table class="game-table" id="hub-iscritti-table" style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>
               <tr>
-                <th style="width: 40px; text-align: center;">
+                <th style="width: 32px; text-align: center; padding: 8px 4px;">
                   <input type="checkbox" id="select-all-users" onchange="window.UsersUI.toggleAllUsers(this.checked)">
                 </th>
-                <th style="cursor:pointer;" onclick="HubApp.sortIscritti('nome')">
-                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                  <input type="text" id="search-iscritti" class="input-field" placeholder="Cerca utente per nome o email..." style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onkeyup="HubApp.filterIscritti()">
+                <th style="cursor:pointer; padding: 8px 6px; min-width: 220px; width: 250px;" onclick="HubApp.sortIscritti('nome')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 4px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nome / Email <i class="fa-solid fa-sort" style="margin-left:4px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <input type="text" id="search-iscritti" class="input-field" placeholder="Cerca nome / email..." style="padding: 4px 6px; font-size: 0.78rem; width: 100%; max-width: 220px; box-sizing: border-box;" onclick="event.stopPropagation()" onkeyup="HubApp.filterIscritti()">
                 </th>
-                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortIscritti('ruolo')">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Ruolo <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                <th style="cursor:pointer; vertical-align: top; padding: 8px 6px; width: 80px;" onclick="HubApp.sortIscritti('ruolo')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Ruolo <i class="fa-solid fa-sort" style="margin-left:4px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
-                <th style="cursor:pointer; vertical-align: top;" onclick="HubApp.sortIscritti('data')">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Data Iscrizione <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                <th style="cursor:pointer; vertical-align: top; padding: 8px 6px; width: 95px;" onclick="HubApp.sortIscritti('data')" title="Clicca per ordinare per data iscrizione">
+                  <div style="display: flex; align-items: center; white-space: nowrap; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Iscritto il <i class="fa-solid fa-sort" style="margin-left:4px; font-size:0.8em; color:var(--text-muted);"></i></div>
                 </th>
-                <th style="cursor:pointer;" onclick="HubApp.sortIscritti('gioco')">
-                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Gioco <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                  <select id="filter-gioco" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
+                <th style="cursor:pointer; vertical-align: top; padding: 8px 6px; width: 100px;" onclick="HubApp.sortIscritti('scadenza')" title="Clicca per ordinare per data scadenza">
+                  <div style="display: flex; align-items: center; white-space: nowrap; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Scadenza <i class="fa-solid fa-sort" style="margin-left:4px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                </th>
+                <th style="cursor:pointer; padding: 8px 6px; width: 85px; max-width: 90px;" onclick="HubApp.sortIscritti('gioco')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 4px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Gioco <i class="fa-solid fa-sort" style="margin-left:4px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <select id="filter-gioco" class="input-field" style="padding: 4px 6px; font-size: 0.78rem; width: 80px; max-width: 80px; box-sizing: border-box;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
                     <option value="all">Tutti</option>
                     <option value="La Rotta degli Eroi">Eroi</option>
                     <option value="La Corte della Commedia">Commedia</option>
@@ -759,18 +762,18 @@
                     <option value="Palestra di Riflessione">Palestra</option>
                   </select>
                 </th>
-                <th style="cursor:pointer;" onclick="HubApp.sortIscritti('piano')">
-                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 5px;">Stato / Piano <i class="fa-solid fa-sort" style="margin-left:5px; font-size:0.8em; color:var(--text-muted);"></i></div>
-                  <select id="filter-admin-override" class="input-field" style="padding: 6px; font-size: 0.85rem; font-weight:normal;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
+                <th style="cursor:pointer; padding: 8px 6px; width: 130px; max-width: 135px;" onclick="HubApp.sortIscritti('piano')">
+                  <div style="display: flex; align-items: center; white-space: nowrap; margin-bottom: 4px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Piano <i class="fa-solid fa-sort" style="margin-left:4px; font-size:0.8em; color:var(--text-muted);"></i></div>
+                  <select id="filter-admin-override" class="input-field" style="padding: 4px 6px; font-size: 0.78rem; width: 120px; max-width: 120px; box-sizing: border-box;" onclick="event.stopPropagation()" onchange="HubApp.filterIscritti()">
                     <option value="all">Tutti i piani</option>
-                    <option value="override">⚙️ Solo Admin Override</option>
+                    <option value="base">⚪ Base / Gratuito</option>
+                    <option value="viandante">🧭 Viandante</option>
+                    <option value="docente_didattico">🟡 Docente Didattico</option>
+                    <option value="docente_ecosistema">🟣 Docente Ecosistema</option>
                   </select>
                 </th>
-                <th style="vertical-align: top;">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Scadenza</div>
-                </th>
-                <th style="vertical-align: top;">
-                  <div style="display: flex; align-items: center; white-space: nowrap;">Azione</div>
+                <th style="vertical-align: top; text-align: center; padding: 8px 4px; width: 80px;">
+                  <div style="display: flex; align-items: center; justify-content: center; white-space: nowrap; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Azioni</div>
                 </th>
               </tr>
             </thead>
@@ -1691,6 +1694,14 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
             <h4 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.05rem;">📚 Materie più Amate</h4>
             <div style="position: relative; width: 100%; height: 260px;">
               <canvas id="chart-materie"></canvas>
+            </div>
+          </div>
+
+          <!-- Provenienza Geografica (Diagramma a Torta) -->
+          <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center;">
+            <h4 style="margin-top:0; margin-bottom: 15px; color:var(--text-main); font-size: 1.05rem;">🗺️ Provenienza Geografica</h4>
+            <div style="position: relative; width: 100%; height: 260px;">
+              <canvas id="chart-geografia"></canvas>
             </div>
           </div>
         </div>
@@ -2793,12 +2804,12 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   <script src="js/dashboard/messages-ui.js?v=20260828_1615"></script>
   <script src="js/dashboard/ecosistema-ui.js?v=20260828_1615"></script>
   <script src="js/dashboard/games-ui.js?v=20260828_1615"></script>
-  <script src="js/dashboard/users-ui.js?v=20260828_1615"></script>
+  <script src="js/dashboard/users-ui.js?v=20260830_1230"></script>
   <script src="js/dashboard/payments-ui.js?v=20260828_1615"></script>
   <script src="js/dashboard/vetrina-ui.js?v=20260828_1615"></script>
   
   <script src="js/dashboard/newsletter-ui.js?v=20260828_1615"></script>
-  <script src="js/dashboard/analytics-ui.js?v=20260828_1615"></script>
+  <script src="js/dashboard/analytics-ui.js?v=20260830_1215"></script>
   <script src="js/dashboard/notifications-ui.js?v=20260828_1615"></script>
   <script src="js/dashboard/legal-admin-ui.js?v=20260828_1615"></script>
   <script src="js/dashboard/impostazioni-ui.js?v=20260828_1615"></script>

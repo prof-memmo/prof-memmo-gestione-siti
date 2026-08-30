@@ -247,6 +247,14 @@ const PortalApp = {
     },
 
     pendingRole: 'studente',
+    pendingAvatar: 'assets/avatars/6.png',
+    pendingIdentity: {
+        nome: '',
+        scuola: '',
+        citta: '',
+        classe: '',
+        avatar: 'assets/avatars/6.png'
+    },
 
     toggleSingleOption: function(containerId, el) {
         const container = document.getElementById(containerId);
@@ -255,18 +263,188 @@ const PortalApp = {
         el.classList.add('selected');
     },
 
+    selectAvatar: function(el, avatarPath) {
+        this.pendingAvatar = avatarPath || 'assets/avatars/6.png';
+        const grid = document.getElementById('avatar-picker-grid');
+        if (grid) {
+            grid.querySelectorAll('.avatar-choice-item').forEach(item => item.classList.remove('selected'));
+        }
+        if (el) {
+            el.classList.add('selected');
+        }
+    },
+
     selectRole: function(ruolo) {
         this.pendingRole = ruolo || 'studente';
-        // Passa allo Step 2: Questionario 3 Domande
+        
+        // Configura il badge del ruolo e i campi dello Step 2
+        const roleBadge = document.getElementById('identity-role-badge');
+        const scuolaGroup = document.getElementById('identity-scuola-group');
+        const codeBox = document.getElementById('identity-code-box');
+        const labelScuola = document.getElementById('label-scuola');
+        const labelCitta = document.getElementById('label-citta');
+        
+        if (this.pendingRole === 'docente') {
+            if (roleBadge) roleBadge.textContent = '👨‍🏫';
+            if (scuolaGroup) scuolaGroup.style.display = 'block';
+            if (codeBox) codeBox.style.display = 'none';
+            if (labelScuola) labelScuola.textContent = '🏫 Istituto Scolastico / Scuola *';
+            if (labelCitta) labelCitta.textContent = '📍 Città della Scuola *';
+        } else if (this.pendingRole === 'viandante') {
+            if (roleBadge) roleBadge.textContent = '🌍';
+            if (scuolaGroup) scuolaGroup.style.display = 'none';
+            if (codeBox) codeBox.style.display = 'none';
+            if (labelCitta) labelCitta.textContent = '📍 La tua Città';
+        } else {
+            // Studente
+            if (roleBadge) roleBadge.textContent = '🎓';
+            if (scuolaGroup) scuolaGroup.style.display = 'block';
+            if (codeBox) codeBox.style.display = 'block';
+            if (labelScuola) labelScuola.textContent = '🏫 Scuola / Istituto';
+            if (labelCitta) labelCitta.textContent = '📍 Città';
+        }
+
+        // Precompila nome se disponibile dall'account Google
+        const nomeInput = document.getElementById('identity-nome');
+        if (nomeInput && !nomeInput.value && this.user && this.user.displayName) {
+            nomeInput.value = this.user.displayName;
+        }
+
+        // Passa allo Step 2: Identità & Personaggio
         const onboardingEl = document.getElementById('portal-onboarding');
+        const identityEl = document.getElementById('portal-identity');
         const surveyEl = document.getElementById('portal-survey');
         if (onboardingEl) onboardingEl.style.display = 'none';
+        if (surveyEl) surveyEl.style.display = 'none';
+        if (identityEl) identityEl.style.display = 'flex';
+    },
+
+    verifyClassCode: async function() {
+        const input = document.getElementById('identity-codice-classe');
+        const statusBox = document.getElementById('portal-class-status-box');
+        const code = (input ? input.value : '').trim().toUpperCase();
+
+        if (!statusBox) return;
+
+        if (!code) {
+            statusBox.style.display = 'block';
+            statusBox.style.background = '#fef2f2';
+            statusBox.style.border = '1px solid #fecaca';
+            statusBox.style.color = '#dc2626';
+            statusBox.innerHTML = 'Inserisci un codice classe per verificarlo.';
+            return;
+        }
+
+        const btnSearch = document.getElementById('btn-portal-search-class');
+        const origText = btnSearch ? btnSearch.innerHTML : '';
+        if (btnSearch) {
+            btnSearch.disabled = true;
+            btnSearch.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        }
+
+        try {
+            const db = firebase.firestore();
+            let foundDoc = null;
+
+            // Cerca in collection 'classes'
+            const q1 = await db.collection('classes').where('code', '==', code).get().catch(() => ({ empty: true }));
+            if (q1 && !q1.empty) foundDoc = q1.docs[0];
+
+            if (!foundDoc) {
+                const q2 = await db.collection('classes').where('codice', '==', code).get().catch(() => ({ empty: true }));
+                if (q2 && !q2.empty) foundDoc = q2.docs[0];
+            }
+
+            if (!foundDoc) {
+                const docById = await db.collection('classes').doc(code).get().catch(() => ({ exists: false }));
+                if (docById && docById.exists) foundDoc = docById;
+            }
+
+            if (!foundDoc) {
+                const qFanta = await db.collection('fanta_teams').where('joinCode', '==', code).get().catch(() => ({ empty: true }));
+                if (qFanta && !qFanta.empty) foundDoc = qFanta.docs[0];
+            }
+
+            if (!foundDoc) {
+                statusBox.style.display = 'block';
+                statusBox.style.background = '#fef2f2';
+                statusBox.style.border = '1px solid #fecaca';
+                statusBox.style.color = '#dc2626';
+                statusBox.innerHTML = `⚠️ Nessuna classe trovata con il codice <strong>"${code}"</strong>.<br>Puoi lasciarlo vuoto e inserirlo più tardi o ricontrollare con il tuo docente.`;
+                return;
+            }
+
+            const cData = foundDoc.data() || {};
+            const className = cData.name || cData.nome || cData.className || code;
+            const schoolName = cData.school || cData.scuola || cData.istituto || (cData.anagrafica && cData.anagrafica.scuola) || '';
+            const cityName = cData.city || cData.citta || (cData.anagrafica && cData.anagrafica.citta) || '';
+            const teacherName = cData.teacherName || cData.teacher || cData.docente || cData.ownerName || (cData.teacherEmail ? cData.teacherEmail.split('@')[0] : 'Docente');
+
+            // Auto-compila scuola e citta se trovate
+            const elScuola = document.getElementById('identity-scuola');
+            const elCitta = document.getElementById('identity-citta');
+            if (schoolName && elScuola) elScuola.value = schoolName;
+            if (cityName && elCitta) elCitta.value = cityName;
+
+            statusBox.style.display = 'block';
+            statusBox.style.background = '#ecfdf5';
+            statusBox.style.border = '1.5px solid #10b981';
+            statusBox.style.color = '#065f46';
+            statusBox.innerHTML = `🎉 <strong>Classe Trovata:</strong> ${className} (${code})<br>👨‍🏫 <strong>Docente:</strong> ${teacherName} &bull; 🏫 <strong>Scuola:</strong> ${schoolName || 'Certificata'}`;
+
+        } catch (e) {
+            console.error("Errore verifica codice classe onboarding:", e);
+            statusBox.style.display = 'block';
+            statusBox.style.background = '#fef2f2';
+            statusBox.style.border = '1px solid #fecaca';
+            statusBox.style.color = '#dc2626';
+            statusBox.textContent = "Errore durante la verifica della classe: " + e.message;
+        } finally {
+            if (btnSearch) {
+                btnSearch.disabled = false;
+                btnSearch.innerHTML = origText;
+            }
+        }
+    },
+
+    backToRoleSelection: function() {
+        const onboardingEl = document.getElementById('portal-onboarding');
+        const identityEl = document.getElementById('portal-identity');
+        const surveyEl = document.getElementById('portal-survey');
+        if (identityEl) identityEl.style.display = 'none';
+        if (surveyEl) surveyEl.style.display = 'none';
+        if (onboardingEl) onboardingEl.style.display = 'flex';
+    },
+
+    submitIdentity: function() {
+        const nome = (document.getElementById('identity-nome') ? document.getElementById('identity-nome').value : '').trim();
+        const scuola = (document.getElementById('identity-scuola') ? document.getElementById('identity-scuola').value : '').trim();
+        const citta = (document.getElementById('identity-citta') ? document.getElementById('identity-citta').value : '').trim();
+        const classe = (document.getElementById('identity-codice-classe') ? document.getElementById('identity-codice-classe').value : '').trim().toUpperCase();
+
+        if (!nome) {
+            alert("Per favore, inserisci il tuo Nome e Cognome.");
+            return;
+        }
+
+        this.pendingIdentity = {
+            nome: nome,
+            scuola: scuola,
+            citta: citta,
+            classe: this.pendingRole === 'studente' ? classe : '',
+            avatar: this.pendingAvatar || 'assets/avatars/6.png'
+        };
+
+        // Passa allo Step 3: Questionario 3 Domande
+        const identityEl = document.getElementById('portal-identity');
+        const surveyEl = document.getElementById('portal-survey');
+        if (identityEl) identityEl.style.display = 'none';
         if (surveyEl) surveyEl.style.display = 'flex';
     },
 
     submitSurvey: async function(skipped = false) {
         try {
-            const nome = this.user.displayName || "Nuovo Utente";
+            const nome = this.pendingIdentity.nome || (this.user.displayName || "Nuovo Utente");
             const email = this.user.email || "";
             let surveyData = null;
 
@@ -290,13 +468,20 @@ const PortalApp = {
             const surveyEl = document.getElementById('portal-survey');
             if (surveyEl) surveyEl.style.display = 'none';
 
-            await window.UserService.createUserProfile(this.user.uid, nome, email, this.pendingRole || 'studente', surveyData);
+            await window.UserService.createUserProfile(
+                this.user.uid, 
+                nome, 
+                email, 
+                this.pendingRole || 'studente', 
+                this.pendingIdentity, 
+                surveyData
+            );
             
             // Ricarica il profilo adesso che esiste
             await this.loadUserProfile();
         } catch(e) {
             console.error("Errore completamento onboarding:", e);
-            alert("Errore durante la registrazione del profilo.");
+            alert("Errore durante la registrazione del profilo: " + e.message);
         }
     },
 

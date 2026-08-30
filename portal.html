@@ -363,56 +363,99 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      user-select: none;
-      margin: 4px;
-    }
     .pill-option:hover {
       border-color: var(--accent);
-      background: #eef2ff;
-      color: var(--accent);
-      transform: translateY(-1px);
+      background: #f8fafc;
     }
+
     .pill-option.selected {
       background: var(--accent);
       color: white;
       border-color: var(--accent);
-      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+      box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+    }
+
+    .avatar-choice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .avatar-choice-item {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 3px solid #e2e8f0;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.2s ease;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1px;
+      box-sizing: border-box;
+    }
+
+    .avatar-choice-item:hover {
+      transform: scale(1.1);
+      border-color: #a5b4fc;
+    }
+
+    .avatar-choice-item.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+      transform: scale(1.12);
+    }
+
+    .avatar-choice-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
     }
   </style>
 </head>
 <body>
-
-  <!-- PORTAL LOGIN OVERLAY -->
-  <div id="portal-login-overlay" class="portal-container">
+  <!-- VISTA LOGIN/REGISTRAZIONE -->
+  <div class="portal-container" id="portal-login-overlay">
     <div class="portal-header">
-      <img src="assets/avatar.png" alt="Prof. Memmo" style="width: 100px; height: 100px; margin-bottom: 10px;">
+      <img src="assets/prof_memmo.png" alt="Prof. Memmo">
+      <h1>Ecosistema Didattico</h1>
+      <p>Prof. Memmo &bull; Accesso Unificato</p>
+    </div>
+
+    <!-- TABS LOGIN / REGISTRAZIONE -->
+    <div class="tabs">
+      <div class="tab active" onclick="PortalApp.switchTab('login')">Accedi / Registrati</div>
     </div>
 
     <div id="error-message"></div>
 
-    <!-- VISTA UNIFICATA (Login & Registrazione) -->
-    <div id="view-unified" class="view-section active">
+    <!-- VISTA UNIFICATA -->
+    <div id="view-login" class="view-section active">
       <form id="form-unified" onsubmit="event.preventDefault(); PortalApp.submitAuth();">
         <div class="checkbox-group">
           <input type="checkbox" id="reg-age" onchange="PortalApp.checkTerms()">
-          <label for="reg-age">Ho almeno 16 anni o sono sotto la supervisione di un adulto.</label>
+          <label for="reg-age">Dichiaro di avere più di 14 anni (o autorizzazione di un genitore/docente)</label>
         </div>
 
         <div class="checkbox-group">
           <input type="checkbox" id="reg-terms" onchange="PortalApp.checkTerms()">
-          <label for="reg-terms">Ho letto e accetto i <a href="#" onclick="event.preventDefault(); openLegalModal('termini')" class="link">Termini di Servizio</a> e la <a href="#" onclick="event.preventDefault(); openLegalModal('privacy')" class="link">Privacy Policy</a>.</label>
+          <label for="reg-terms">Accetto i <a href="#" onclick="event.preventDefault(); openLegalModal('termini')" class="link">Termini e Condizioni</a> e la <a href="#" onclick="event.preventDefault(); openLegalModal('privacy')" class="link">Privacy Policy</a></label>
         </div>
-        
-        <div class="checkbox-group">
+
+        <div class="checkbox-group" style="margin-bottom: 20px;">
           <input type="checkbox" id="reg-newsletter">
-          <label for="reg-newsletter">Acconsento a ricevere comunicazioni e newsletter didattiche dal Prof. Memmo.</label>
+          <label for="reg-newsletter">Desidero iscrivermi alla newsletter del Prof. Memmo (aggiornamenti didattici e novità)</label>
         </div>
 
         <button type="button" class="btn btn-google" id="btn-reg-google" onclick="PortalApp.loginGoogle()" style="margin-bottom: 20px;">
-          <i class="fa-brands fa-google" style="color:#DB4437;"></i> Entra o Registrati con Google
+          <i class="fa-brands fa-google" style="color: #ea4335;"></i> Entra o Registrati con Google
         </button>
 
-        <div class="divider">oppure</div>
+        <div class="divider">oppure con email</div>
 
         <div class="form-group">
           <label>Email</label>
@@ -481,6 +524,105 @@
       <button class="btn btn-google" style="margin: 0 auto; width: auto; padding: 10px 20px;" onclick="PortalApp.logout()">
         <i class="fa-solid fa-arrow-left"></i> Annulla ed esci
       </button>
+    </div>
+  </div>
+
+  <!-- VISTA ONBOARDING (STEP 2: IDENTITÀ, AVATAR, SCUOLA, CITTÀ, CODICE CLASSE) -->
+  <div id="portal-identity" style="display:none; width: 100%; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 25px 20px;">
+    <div style="background: white; width: 100%; max-width: 650px; border-radius: 24px; box-shadow: var(--shadow); padding: 35px; box-sizing: border-box;">
+      <div style="text-align: center; margin-bottom: 25px;">
+        <span style="font-size: 2.2rem; margin-bottom: 8px; display: inline-block;" id="identity-role-badge">🎓</span>
+        <h2 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 8px 0; color: var(--text-main);">Crea il tuo Profilo</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">Scegli il tuo avatar e compila i tuoi dati per entrare nell'Ecosistema:</p>
+      </div>
+
+      <form id="form-identity" onsubmit="event.preventDefault(); PortalApp.submitIdentity();">
+        <!-- SCELTA AVATAR -->
+        <div style="margin-bottom: 22px;">
+          <label style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); display: block; margin-bottom: 10px;">
+            🎭 Scegli il tuo Avatar Ufficiale
+          </label>
+          <div class="avatar-choice-grid" id="avatar-picker-grid">
+            <!-- 10 Avatar ufficiali -->
+            <div class="avatar-choice-item selected" data-avatar="assets/avatars/6.png" onclick="PortalApp.selectAvatar(this, 'assets/avatars/6.png')">
+              <img src="assets/avatars/6.png" alt="Avatar 6">
+            </div>
+            <div class="avatar-choice-item" data-avatar="assets/avatars/7.png" onclick="PortalApp.selectAvatar(this, 'assets/avatars/7.png')">
+              <img src="assets/avatars/7.png" alt="Avatar 7">
+            </div>
+            <div class="avatar-choice-item" data-avatar="assets/avatars/8.png" onclick="PortalApp.selectAvatar(this, 'assets/avatars/8.png')">
+              <img src="assets/avatars/8.png" alt="Avatar 8">
+            </div>
+            <div class="avatar-choice-item" data-avatar="assets/avatars/9.png" onclick="PortalApp.selectAvatar(this, 'assets/avatars/9.png')">
+              <img src="assets/avatars/9.png" alt="Avatar 9">
+            </div>
+            <div class="avatar-choice-item" data-avatar="assets/avatars/10.png" onclick="PortalApp.selectAvatar(this, 'assets/avatars/10.png')">
+              <img src="assets/avatars/10.png" alt="Avatar 10">
+            </div>
+            <div class="avatar-choice-item" data-avatar="assets/avatars/11.png" onclick="PortalApp.selectAvatar(this, 'assets/avatars/11.png')">
+              <img src="assets/avatars/11.png" alt="Avatar 11">
+            </div>
+            <div class="avatar-choice-item" data-avatar="assets/avatars/12.png" onclick="PortalApp.selectAvatar(this, 'assets/avatars/12.png')">
+              <img src="assets/avatars/12.png" alt="Avatar 12">
+            </div>
+            <div class="avatar-choice-item" data-avatar="assets/avatars/13.png" onclick="PortalApp.selectAvatar(this, 'assets/avatars/13.png')">
+              <img src="assets/avatars/13.png" alt="Avatar 13">
+            </div>
+            <div class="avatar-choice-item" data-avatar="assets/avatars/14.png" onclick="PortalApp.selectAvatar(this, 'assets/avatars/14.png')">
+              <img src="assets/avatars/14.png" alt="Avatar 14">
+            </div>
+            <div class="avatar-choice-item" data-avatar="assets/avatars/15.png" onclick="PortalApp.selectAvatar(this, 'assets/avatars/15.png')">
+              <img src="assets/avatars/15.png" alt="Avatar 15">
+            </div>
+          </div>
+        </div>
+
+        <!-- NOME E COGNOME -->
+        <div class="form-group">
+          <label for="identity-nome">Nome e Cognome *</label>
+          <input type="text" id="identity-nome" class="form-input" required placeholder="Es. Mario Rossi">
+        </div>
+
+        <!-- SCUOLA E CITTÀ -->
+        <div id="identity-school-box" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 15px;">
+          <div class="form-group" id="identity-scuola-group" style="margin-bottom: 0;">
+            <label for="identity-scuola" id="label-scuola">🏫 Scuola / Istituto</label>
+            <input type="text" id="identity-scuola" class="form-input" placeholder="Es. I.C. Dante Alighieri">
+          </div>
+          <div class="form-group" id="identity-citta-group" style="margin-bottom: 0;">
+            <label for="identity-citta" id="label-citta">📍 Città</label>
+            <input type="text" id="identity-citta" class="form-input" placeholder="Es. Roma, Milano, Napoli...">
+          </div>
+        </div>
+
+        <!-- CODICE CLASSE (Solo per Studente) -->
+        <div id="identity-code-box" class="form-group" style="display: none; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+          <label for="identity-codice-classe" style="color: #4338ca; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+            <i class="fa-solid fa-key"></i> Codice Classe (fornito dal tuo Docente)
+          </label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <input type="text" id="identity-codice-classe" class="form-input" placeholder="Es. MEMMO-3B" style="flex: 1; min-width: 140px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+            <button type="button" id="btn-portal-search-class" onclick="PortalApp.verifyClassCode()" class="btn btn-outline" style="padding: 10px 16px; font-size: 0.88rem; border-radius: 10px; font-weight: 700; border-color: #6366f1; color: #6366f1; background: white; cursor: pointer;">
+              <i class="fa-solid fa-magnifying-glass"></i> Verifica
+            </button>
+          </div>
+          
+          <div id="portal-class-status-box" style="display: none; margin-top: 10px; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem;"></div>
+
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 8px 0 0 0;">
+            💡 <i>Facoltativo: se il professore non ti ha ancora dato il codice, puoi lasciarlo vuoto e inserirlo più tardi dal tuo profilo.</i>
+          </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 25px;">
+          <button type="submit" class="btn btn-primary" style="padding: 14px; font-size: 1.05rem;" id="btn-identity-continue">
+            Continua verso il Questionario &rarr;
+          </button>
+          <button type="button" class="link" style="background: none; border: none; font-size: 0.88rem; color: var(--text-muted); margin-top: 5px;" onclick="PortalApp.backToRoleSelection()">
+            &larr; Cambia Ruolo
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -662,9 +804,9 @@
     }
   </script>
 
-  <script src="js/firebase-init.js?v=20260828_1855"></script>
-  <script src="js/services/auth/auth-service.js?v=20260828_1855"></script>
-  <script src="js/services/users/user-service.js?v=20260828_1855"></script>
-  <script src="js/portal.js?v=20260828_1855"></script>
+  <script src="js/firebase-init.js?v=20260830_1215"></script>
+  <script src="js/services/auth/auth-service.js?v=20260830_1215"></script>
+  <script src="js/services/users/user-service.js?v=20260830_1215"></script>
+  <script src="js/portal.js?v=20260830_1215"></script>
 </body>
 </html>
