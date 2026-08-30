@@ -358,7 +358,9 @@ const CrossProjectsService = {
                 u.ruolo = 'admin';
                 u.role = 'admin';
                 u.plan = 'docente_ecosistema';
-                u.avatar = 'assets/avatars/6.png';
+                if (!u.avatar) {
+                    u.avatar = 'assets/avatars/6.png';
+                }
             }
 
             const dedupeKey = emailKey || u.id;
