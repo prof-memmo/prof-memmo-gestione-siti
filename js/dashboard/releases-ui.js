@@ -112,8 +112,14 @@ const ReleasesUI = {
         return token || '';
     },
 
+    isLoading: false,
+
     checkAllSiteStatuses: async function() {
         console.log("🔍 ReleasesUI: Verifica stato anteprime su GitHub...");
+        this.isLoading = true;
+        this.renderSiteGrid();
+        this.selectSite(this.selectedSiteId);
+
         const token = await this.getGitHubToken();
         const headers = {
             "Accept": "application/vnd.github.v3+json",
@@ -123,7 +129,7 @@ const ReleasesUI = {
             headers["Authorization"] = `token ${token}`;
         }
 
-        for (const project of this.PROJECTS) {
+        await Promise.all(this.PROJECTS.map(async (project) => {
             try {
                 const res = await fetch(`https://api.github.com/repos/prof-memmo/${project.repo}/compare/main...preview`, {
                     headers: headers
@@ -157,7 +163,16 @@ const ReleasesUI = {
             } catch(e) {
                 console.warn(`Errore controllo compare per ${project.repo}:`, e);
             }
+        }));
+
+        this.isLoading = false;
+
+        // Seleziona automaticamente il primo sito con aggiornamenti in sospeso
+        const firstWithUpdates = this.PROJECTS.find(p => this.siteStatuses[p.id] && this.siteStatuses[p.id].aheadBy > 0);
+        if (firstWithUpdates) {
+            this.selectedSiteId = firstWithUpdates.id;
         }
+
         this.renderSiteGrid();
         this.selectSite(this.selectedSiteId);
     },
@@ -202,7 +217,16 @@ const ReleasesUI = {
 
         // Banner di Stato Anteprima vs Live con elenco dettagliato modifiche
         let statusBannerHtml = '';
-        if (status.isRateLimited) {
+        if (this.isLoading) {
+            statusBannerHtml = `
+                <div style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <div style="font-weight: 700; color: #475569; font-size: 0.95rem; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-spinner fa-spin" style="color: #6366f1; font-size: 1.1rem;"></i> Controllo modifiche su GitHub in corso...
+                    </div>
+                    <span style="font-size: 0.76rem; color: #64748b; background: #e2e8f0; padding: 3px 10px; border-radius: 10px;">Connessione API</span>
+                </div>
+            `;
+        } else if (status.isRateLimited) {
             statusBannerHtml = `
                 <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08);">
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
