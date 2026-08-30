@@ -90,11 +90,39 @@ const ReleasesUI = {
         ]);
     },
 
+    getGitHubToken: async function() {
+        let token = localStorage.getItem('hub_github_pat');
+        if (!token) {
+            const firestore = this.getFirestore();
+            if (firestore) {
+                try {
+                    const ecoSnap = await firestore.collection('hub_settings').doc('ecosistema').get();
+                    if (ecoSnap.exists && ecoSnap.data().github_token) {
+                        token = ecoSnap.data().github_token;
+                        localStorage.setItem('hub_github_pat', token);
+                    }
+                } catch(e) {}
+            }
+        }
+        return token || '';
+    },
+
     checkAllSiteStatuses: async function() {
         console.log("🔍 ReleasesUI: Verifica stato anteprime su GitHub...");
+        const token = await this.getGitHubToken();
+        const headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "ProfMemmoHub-ReleaseManager"
+        };
+        if (token) {
+            headers["Authorization"] = `token ${token}`;
+        }
+
         for (const project of this.PROJECTS) {
             try {
-                const res = await fetch(`https://api.github.com/repos/prof-memmo/${project.repo}/compare/main...preview`);
+                const res = await fetch(`https://api.github.com/repos/prof-memmo/${project.repo}/compare/main...preview`, {
+                    headers: headers
+                });
                 if (res.ok) {
                     const data = await res.json();
                     const aheadBy = data.ahead_by || 0;
@@ -112,6 +140,8 @@ const ReleasesUI = {
                         lastCommitMessage: lastCommit && lastCommit.commit ? lastCommit.commit.message : '',
                         lastCommitDate: lastCommit && lastCommit.commit && lastCommit.commit.author ? new Date(lastCommit.commit.author.date).toLocaleString('it-IT') : ''
                     };
+                } else if (res.status === 403) {
+                    console.warn(`GitHub API Rate Limit per ${project.repo}: autenticazione richiesta per superare le 60 chiamate/ora.`);
                 }
             } catch(e) {
                 console.warn(`Errore controllo compare per ${project.repo}:`, e);
@@ -400,21 +430,7 @@ const ReleasesUI = {
         btnExec.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Pubblicazione in corso...';
 
         try {
-            console.log(`🚀 ReleasesUI: Esecuzione rilascio per ${project.name} (repo: ${project.repo})...`);
-
-            const firestore = this.getFirestore();
-            let token = localStorage.getItem('hub_github_pat');
-
-            if (!token && firestore) {
-                try {
-                    const ecoSnap = await firestore.collection('hub_settings').doc('ecosistema').get();
-                    if (ecoSnap.exists && ecoSnap.data().github_token) {
-                        token = ecoSnap.data().github_token;
-                    }
-                } catch(e) {
-                    console.warn("Impossibile leggere token da Firestore:", e);
-                }
-            }
+            let token = await this.getGitHubToken();
 
             if (!token) {
                 token = prompt("🔑 Inserisci il Personal Access Token di GitHub per autorizzare i rilasci dall'Hub:");
@@ -426,6 +442,7 @@ const ReleasesUI = {
                 }
                 token = token.trim();
                 localStorage.setItem('hub_github_pat', token);
+                const firestore = this.getFirestore();
                 if (firestore) {
                     try {
                         await firestore.collection('hub_settings').doc('ecosistema').set({
