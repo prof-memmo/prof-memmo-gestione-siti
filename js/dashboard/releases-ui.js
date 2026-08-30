@@ -459,18 +459,42 @@ const ReleasesUI = {
                 results.push({ repo: targetRepo, status: res.status, ok: res.ok || res.status === 204 });
             }
 
-            // Registra nello storico su Firestore
+            // Registra nello storico su Firestore (cronologia completa)
             if (firestore) {
                 const authUser = (window.fbAuth && window.fbAuth.currentUser) || (window.firebase && firebase.auth && firebase.auth().currentUser);
+                const successCount = results.filter(r => r.ok).length;
+                const releaseRecord = {
+                    id: 'rel_' + Date.now(),
+                    siteId: siteId || (isAll ? "Tutto l'Ecosistema" : project.name),
+                    repo: project.repo,
+                    name: project.name,
+                    timestamp: new Date().toISOString(),
+                    author: authUser ? authUser.email : "prof.memmo@gmail.com",
+                    successCount: successCount,
+                    totalRepos: targetRepos.length,
+                    status: (successCount === targetRepos.length) ? 'success' : (successCount > 0 ? 'partial' : 'failed'),
+                    details: results
+                };
+
                 try {
-                    await firestore.collection("hub_settings").doc("releases_history").set({
-                        lastRelease: {
-                            repo: project.repo,
-                            siteId: siteId || (isAll ? "Tutto l'Ecosistema" : project.repo),
-                            timestamp: new Date().toISOString(),
-                            author: authUser ? authUser.email : "prof.memmo@gmail.com",
-                            details: results
+                    const histDoc = await firestore.collection("hub_settings").doc("releases_history").get();
+                    let historyList = [];
+                    if (histDoc.exists) {
+                        const data = histDoc.data() || {};
+                        if (Array.isArray(data.releases)) {
+                            historyList = data.releases;
+                        } else if (data.lastRelease) {
+                            historyList = [data.lastRelease];
                         }
+                    }
+
+                    // Aggiungi il nuovo rilascio in cima e mantieni gli ultimi 30
+                    historyList.unshift(releaseRecord);
+                    historyList = historyList.slice(0, 30);
+
+                    await firestore.collection("hub_settings").doc("releases_history").set({
+                        lastRelease: releaseRecord,
+                        releases: historyList
                     }, { merge: true });
                 } catch(e) {
                     console.warn("Avviso salvataggio storico Firestore:", e);
@@ -493,6 +517,17 @@ const ReleasesUI = {
         }
     },
 
+    toggleReleaseDetails: function(relId) {
+        const detailsEl = document.getElementById(`rel-details-${relId}`);
+        const iconEl = document.getElementById(`rel-icon-${relId}`);
+        if (!detailsEl) return;
+        const isHidden = detailsEl.style.display === 'none' || !detailsEl.style.display;
+        detailsEl.style.display = isHidden ? 'block' : 'none';
+        if (iconEl) {
+            iconEl.className = isHidden ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+        }
+    },
+
     loadHistory: async function() {
         const listEl = document.getElementById('release-history-list');
         const firestore = this.getFirestore();
@@ -500,26 +535,83 @@ const ReleasesUI = {
 
         try {
             const doc = await firestore.collection('hub_settings').doc('releases_history').get();
-            if (doc.exists && doc.data().lastRelease) {
-                const r = doc.data().lastRelease;
+            let releases = [];
+
+            if (doc.exists) {
+                const data = doc.data() || {};
+                if (Array.isArray(data.releases) && data.releases.length > 0) {
+                    releases = data.releases;
+                } else if (data.lastRelease) {
+                    releases = [data.lastRelease];
+                }
+            }
+
+            if (releases.length === 0) {
+                listEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 15px;">Nessun rilascio registrato nello storico.</div>';
+                return;
+            }
+
+            let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+
+            releases.forEach((r, idx) => {
                 const d = r.timestamp ? new Date(r.timestamp).toLocaleString('it-IT') : 'Recente';
-                listEl.innerHTML = `
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></div>
-                            <div>
-                                <strong style="color: var(--text-main); font-size: 0.9rem;">Ultimo rilascio: ${r.siteId || r.repo}</strong>
-                                <div style="font-size: 0.78rem; color: var(--text-muted);">Eseguito da ${r.author || 'Super Admin'} &bull; Repo: <code>${r.repo}</code></div>
+                const isAll = (r.repo === 'ALL' || r.siteId === "Tutto l'Ecosistema" || r.name === "Tutto l'Ecosistema");
+                const title = isAll ? "Rilascio Globale Ecosistema (Tutti i Siti)" : `Rilascio: ${r.name || r.siteId || r.repo}`;
+                const relId = r.id || `rel_${idx}`;
+                const isSuccess = r.status === 'success' || !r.status;
+                const statusColor = isSuccess ? '#10b981' : (r.status === 'partial' ? '#f59e0b' : '#ef4444');
+                const badgeText = isAll ? `${r.successCount || 6}/${r.totalRepos || 6} Siti Aggiornati` : `Repo: ${r.repo}`;
+
+                const detailsList = Array.isArray(r.details) ? r.details : [];
+
+                html += `
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); transition: all 0.2s;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                            <div style="display: flex; align-items: center; gap: 12px; min-width: 220px;">
+                                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${statusColor}; flex-shrink: 0; box-shadow: 0 0 0 3px ${statusColor}20;"></div>
+                                <div>
+                                    <div style="font-weight: 700; color: var(--text-main); font-size: 0.92rem;">${title}</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                                        Eseguito da <strong style="color: #475569;">${r.author || 'Super Admin'}</strong> &bull; 
+                                        <span class="badge" style="background: #f1f5f9; color: #475569; font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">${badgeText}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">${d}</span>
+                                ${detailsList.length > 0 ? `
+                                    <button type="button" onclick="ReleasesUI.toggleReleaseDetails('${relId}')" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                        <span>Dettagli</span> <i id="rel-icon-${relId}" class="fa-solid fa-chevron-down"></i>
+                                    </button>
+                                ` : ''}
                             </div>
                         </div>
-                        <div style="font-size: 0.8rem; color: #64748b; font-weight: 600;">${d}</div>
+
+                        ${detailsList.length > 0 ? `
+                            <div id="rel-details-${relId}" style="display: none; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; font-size: 0.8rem;">
+                                <div style="font-weight: 700; color: #475569; margin-bottom: 6px; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em;">Esito Sincronizzazione Repository:</div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px;">
+                                    ${detailsList.map(item => `
+                                        <div style="background: #f8fafc; padding: 5px 8px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                                            <code style="font-size: 0.75rem; color: #334155;">${item.repo}</code>
+                                            <span style="font-weight: 700; color: ${item.ok ? '#059669' : '#dc2626'}; font-size: 0.72rem;">
+                                                ${item.ok ? '<i class="fa-solid fa-check"></i> Pubblicato' : '<i class="fa-solid fa-xmark"></i> Errore ' + (item.status || '')}
+                                            </span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
-            } else {
-                listEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 10px;">Nessun rilascio recente registrato.</div>';
-            }
+            });
+
+            html += '</div>';
+            listEl.innerHTML = html;
+
         } catch(e) {
             console.warn("Errore caricamento storico rilasci:", e);
+            listEl.innerHTML = '<div style="text-align: center; color: #dc2626; font-size: 0.85rem; padding: 10px;">Errore nel caricamento della cronologia rilasci.</div>';
         }
     }
 };
