@@ -247,6 +247,14 @@ const PortalApp = {
     },
 
     pendingRole: 'studente',
+    pendingAvatar: 'assets/avatars/6.png',
+    pendingIdentity: {
+        nome: '',
+        scuola: '',
+        citta: '',
+        classe: '',
+        avatar: 'assets/avatars/6.png'
+    },
 
     toggleSingleOption: function(containerId, el) {
         const container = document.getElementById(containerId);
@@ -255,18 +263,97 @@ const PortalApp = {
         el.classList.add('selected');
     },
 
+    selectAvatar: function(el, avatarPath) {
+        this.pendingAvatar = avatarPath || 'assets/avatars/6.png';
+        const grid = document.getElementById('avatar-picker-grid');
+        if (grid) {
+            grid.querySelectorAll('.avatar-choice-item').forEach(item => item.classList.remove('selected'));
+        }
+        if (el) {
+            el.classList.add('selected');
+        }
+    },
+
     selectRole: function(ruolo) {
         this.pendingRole = ruolo || 'studente';
-        // Passa allo Step 2: Questionario 3 Domande
+        
+        // Configura il badge del ruolo e i campi dello Step 2
+        const roleBadge = document.getElementById('identity-role-badge');
+        const codeBox = document.getElementById('identity-code-box');
+        const labelScuola = document.getElementById('label-scuola');
+        const labelCitta = document.getElementById('label-citta');
+        
+        if (this.pendingRole === 'docente') {
+            if (roleBadge) roleBadge.textContent = '👨‍🏫';
+            if (codeBox) codeBox.style.display = 'none';
+            if (labelScuola) labelScuola.textContent = '🏫 Istituto Scolastico / Scuola *';
+            if (labelCitta) labelCitta.textContent = '📍 Città della Scuola *';
+        } else if (this.pendingRole === 'viandante') {
+            if (roleBadge) roleBadge.textContent = '🌍';
+            if (codeBox) codeBox.style.display = 'none';
+            if (labelScuola) labelScuola.textContent = '🏫 Scuola / Occupazione (facoltativo)';
+            if (labelCitta) labelCitta.textContent = '📍 Città (facoltativo)';
+        } else {
+            // Studente
+            if (roleBadge) roleBadge.textContent = '🎓';
+            if (codeBox) codeBox.style.display = 'block';
+            if (labelScuola) labelScuola.textContent = '🏫 Scuola / Istituto';
+            if (labelCitta) labelCitta.textContent = '📍 Città';
+        }
+
+        // Precompila nome se disponibile dall'account Google
+        const nomeInput = document.getElementById('identity-nome');
+        if (nomeInput && !nomeInput.value && this.user && this.user.displayName) {
+            nomeInput.value = this.user.displayName;
+        }
+
+        // Passa allo Step 2: Identità & Personaggio
         const onboardingEl = document.getElementById('portal-onboarding');
+        const identityEl = document.getElementById('portal-identity');
         const surveyEl = document.getElementById('portal-survey');
         if (onboardingEl) onboardingEl.style.display = 'none';
+        if (surveyEl) surveyEl.style.display = 'none';
+        if (identityEl) identityEl.style.display = 'flex';
+    },
+
+    backToRoleSelection: function() {
+        const onboardingEl = document.getElementById('portal-onboarding');
+        const identityEl = document.getElementById('portal-identity');
+        const surveyEl = document.getElementById('portal-survey');
+        if (identityEl) identityEl.style.display = 'none';
+        if (surveyEl) surveyEl.style.display = 'none';
+        if (onboardingEl) onboardingEl.style.display = 'flex';
+    },
+
+    submitIdentity: function() {
+        const nome = (document.getElementById('identity-nome') ? document.getElementById('identity-nome').value : '').trim();
+        const scuola = (document.getElementById('identity-scuola') ? document.getElementById('identity-scuola').value : '').trim();
+        const citta = (document.getElementById('identity-citta') ? document.getElementById('identity-citta').value : '').trim();
+        const classe = (document.getElementById('identity-codice-classe') ? document.getElementById('identity-codice-classe').value : '').trim().toUpperCase();
+
+        if (!nome) {
+            alert("Per favore, inserisci il tuo Nome e Cognome.");
+            return;
+        }
+
+        this.pendingIdentity = {
+            nome: nome,
+            scuola: scuola,
+            citta: citta,
+            classe: this.pendingRole === 'studente' ? classe : '',
+            avatar: this.pendingAvatar || 'assets/avatars/6.png'
+        };
+
+        // Passa allo Step 3: Questionario 3 Domande
+        const identityEl = document.getElementById('portal-identity');
+        const surveyEl = document.getElementById('portal-survey');
+        if (identityEl) identityEl.style.display = 'none';
         if (surveyEl) surveyEl.style.display = 'flex';
     },
 
     submitSurvey: async function(skipped = false) {
         try {
-            const nome = this.user.displayName || "Nuovo Utente";
+            const nome = this.pendingIdentity.nome || (this.user.displayName || "Nuovo Utente");
             const email = this.user.email || "";
             let surveyData = null;
 
@@ -290,13 +377,20 @@ const PortalApp = {
             const surveyEl = document.getElementById('portal-survey');
             if (surveyEl) surveyEl.style.display = 'none';
 
-            await window.UserService.createUserProfile(this.user.uid, nome, email, this.pendingRole || 'studente', surveyData);
+            await window.UserService.createUserProfile(
+                this.user.uid, 
+                nome, 
+                email, 
+                this.pendingRole || 'studente', 
+                this.pendingIdentity, 
+                surveyData
+            );
             
             // Ricarica il profilo adesso che esiste
             await this.loadUserProfile();
         } catch(e) {
             console.error("Errore completamento onboarding:", e);
-            alert("Errore durante la registrazione del profilo.");
+            alert("Errore durante la registrazione del profilo: " + e.message);
         }
     },
 
