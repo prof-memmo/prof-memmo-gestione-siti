@@ -149,12 +149,22 @@ const UsersUI = {
 
             const safeAvatar = getSafeAvatarUrl(user.avatar);
 
-            // Semplifica nome gioco eliminando ' / Hub' e abbreviando per pulizia estetica
-            let cleanGioco = (user.gioco || 'Hub')
+            // Semplifica e compatta la colonna gioco (badge compatto se multiscritto)
+            let rawGioco = (user.gioco || 'Hub')
                 .replace(' / Hub', '')
                 .replace('La Rotta degli Eroi', 'Eroi')
                 .replace('La Corte della Commedia', 'Commedia')
                 .replace('Palestra di Riflessione', 'Palestra');
+
+            const gameParts = rawGioco.split(' / ').map(s => s.trim()).filter(Boolean);
+            let cleanGiocoHtml = '';
+            if (gameParts.length >= 3) {
+                cleanGiocoHtml = `<span title="${gameParts.join(' • ')}" style="background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.25); padding:2px 7px; border-radius:6px; font-weight:700; font-size:0.75rem; white-space:nowrap; cursor:help;"><i class="fa-solid fa-layer-group"></i> Multiscritto (${gameParts.length})</span>`;
+            } else if (gameParts.length === 2) {
+                cleanGiocoHtml = `<span style="font-size:0.8rem; font-weight:600; color:${user.giocoColor || '#6366f1'}; white-space:nowrap;"><i class="fa-solid ${user.giocoIcon || 'fa-gamepad'}"></i> ${gameParts.join(' / ')}</span>`;
+            } else {
+                cleanGiocoHtml = `<span style="font-size:0.8rem; font-weight:600; color:${user.giocoColor || '#64748b'}; white-space:nowrap;"><i class="fa-solid ${user.giocoIcon || 'fa-gamepad'}"></i> ${gameParts[0] || 'Hub'}</span>`;
+            }
 
             tr.innerHTML = `
                 <td style="text-align: center; padding: 6px 4px;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
@@ -175,7 +185,7 @@ const UsersUI = {
                         ${!isAdminRole ? `<button type="button" onclick="window.UsersUI.openEditExpiryModal('${user.id}', '${finalScadenza}')" title="Modifica data scadenza" style="background:none; border:none; padding:2px; cursor:pointer; color:#64748b; font-size:0.78rem; transition:color 0.2s;" onmouseover="this.style.color='#4f46e5'" onmouseout="this.style.color='#64748b'"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
                     </div>
                 </td>
-                <td style="padding: 6px; color:${user.giocoColor}; white-space: nowrap; font-size:0.82rem; font-weight:600;"><i class="fa-solid ${user.giocoIcon}"></i> ${cleanGioco}</td>
+                <td style="padding: 6px; white-space: nowrap;">${cleanGiocoHtml}</td>
                 <td style="padding: 6px;">
                     <select onchange="window.UsersUI.updateUserPlan('${user.id}', this.value)" style="padding: 3px 6px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.8rem; outline: none; cursor: pointer; background: white; font-weight: 600; max-width: 125px;">
                         <option value="base" ${userPlan === 'base' ? 'selected' : ''}>⚪ Base</option>
