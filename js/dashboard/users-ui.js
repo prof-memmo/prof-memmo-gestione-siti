@@ -133,8 +133,11 @@ const UsersUI = {
             const overrideBadge = (isAdminOverride && !isAdminRole) ? ' <span title="Piano modificato dall\'Amministratore" style="font-size:0.75rem; background:#ede9fe; color:#6366f1; border-radius:4px; padding:1px 5px; font-weight:600;">⚙️ Admin</span>' : '';
             const superBadge = isAdminRole ? ' <span style="font-size:0.75rem; background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px;">👑</span>' : '';
 
-            function getSafeAvatarUrl(avatar) {
+            function getSafeAvatarUrl(avatar, isSuperAdminUser) {
                 const defaultAvatar = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
+                if (isSuperAdminUser && (!avatar || avatar === '1' || avatar === 'assets/avatars/1.png')) {
+                    return defaultAvatar;
+                }
                 if (!avatar) return defaultAvatar;
                 const aStr = String(avatar).trim();
                 if (!aStr || aStr === 'null' || aStr === 'undefined' || aStr === 'default') return defaultAvatar;
@@ -149,7 +152,7 @@ const UsersUI = {
                 return defaultAvatar;
             }
 
-            const safeAvatar = getSafeAvatarUrl(user.avatar);
+            const safeAvatar = getSafeAvatarUrl(user.avatar, isSuperAdmin);
 
             // Semplifica e compatta la colonna gioco (badge interattivo con popover)
             let rawGioco = (user.gioco || 'Hub')

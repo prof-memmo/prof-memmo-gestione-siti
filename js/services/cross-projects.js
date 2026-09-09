@@ -412,9 +412,16 @@ const CrossProjectsService = {
                     }
                 }
 
-                // Avatar dinamico
+                // Avatar dinamico: assegna l'avatar valorizzato e sovrascrive quello vecchio
                 if (u.avatar) {
-                    if (u.isHubMaster || !existing.avatar || existing.avatar === 'assets/avatars/6.png') {
+                    if (isMemmo) {
+                        // Per Prof. Memmo non accettare il fallback storico "1", ma il Mago o l'avatar scelto
+                        if (u.avatar !== '1' && u.avatar !== 'assets/avatars/1.png') {
+                            existing.avatar = u.avatar;
+                        } else if (!existing.avatar) {
+                            existing.avatar = 'assets/avatars/6.png';
+                        }
+                    } else {
                         existing.avatar = u.avatar;
                     }
                 }
