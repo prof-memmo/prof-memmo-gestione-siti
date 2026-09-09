@@ -133,32 +133,23 @@ const UsersUI = {
             const overrideBadge = (isAdminOverride && !isAdminRole) ? ' <span title="Piano modificato dall\'Amministratore" style="font-size:0.75rem; background:#ede9fe; color:#6366f1; border-radius:4px; padding:1px 5px; font-weight:600;">⚙️ Admin</span>' : '';
             const superBadge = isAdminRole ? ' <span style="font-size:0.75rem; background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px;">👑</span>' : '';
 
-            function getSafeAvatarUrl(avatar, userObj) {
+            function getSafeAvatarUrl(avatar) {
                 const defaultAvatar = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
-                const superAdminAvatar = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/branding/prof-memmo/prof-memmo-avatar.png';
-
-                // Se l'utente è Super Admin o ha email prof.memmo / prof-memmo
-                if (userObj && (userObj.role === 'admin' || userObj.isSuperAdmin || (userObj.email && userObj.email.toLowerCase().includes('prof.memmo')))) {
-                    return superAdminAvatar;
-                }
-
                 if (!avatar) return defaultAvatar;
                 const aStr = String(avatar).trim();
                 if (!aStr || aStr === 'null' || aStr === 'undefined' || aStr === 'default') return defaultAvatar;
-                if (aStr.includes('prof-memmo-avatar') || aStr.includes('branding/prof-memmo')) return superAdminAvatar;
                 if (aStr.startsWith('http://') || aStr.startsWith('https://') || aStr.startsWith('data:')) return aStr;
                 if (/^\d+$/.test(aStr)) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/${aStr}.png`;
                 if (aStr.startsWith('assets/avatars/')) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/${aStr}`;
                 if (aStr.startsWith('shared/')) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/${aStr}`;
                 if (aStr.includes('.png') || aStr.includes('.jpg') || aStr.includes('.jpeg') || aStr.includes('.webp')) {
                     const cleanName = aStr.split('/').pop();
-                    if (cleanName.includes('prof-memmo')) return superAdminAvatar;
                     return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/${cleanName}`;
                 }
                 return defaultAvatar;
             }
 
-            const safeAvatar = getSafeAvatarUrl(user.avatar, user);
+            const safeAvatar = getSafeAvatarUrl(user.avatar);
 
             // Semplifica e compatta la colonna gioco (badge interattivo con popover)
             let rawGioco = (user.gioco || 'Hub')
