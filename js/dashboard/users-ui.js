@@ -133,21 +133,26 @@ const UsersUI = {
             const overrideBadge = (isAdminOverride && !isAdminRole) ? ' <span title="Piano modificato dall\'Amministratore" style="font-size:0.75rem; background:#ede9fe; color:#6366f1; border-radius:4px; padding:1px 5px; font-weight:600;">⚙️ Admin</span>' : '';
             const superBadge = isAdminRole ? ' <span style="font-size:0.75rem; background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px;">👑</span>' : '';
 
-            function getSafeAvatarUrl(avatar) {
-                if (!avatar) return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
+            function getSafeAvatarUrl(avatar, isSuperAdminUser) {
+                const defaultAvatar = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
+                if (isSuperAdminUser && (!avatar || avatar === '1' || avatar === 'assets/avatars/1.png')) {
+                    return defaultAvatar;
+                }
+                if (!avatar) return defaultAvatar;
                 const aStr = String(avatar).trim();
+                if (!aStr || aStr === 'null' || aStr === 'undefined' || aStr === 'default') return defaultAvatar;
                 if (aStr.startsWith('http://') || aStr.startsWith('https://') || aStr.startsWith('data:')) return aStr;
                 if (/^\d+$/.test(aStr)) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/${aStr}.png`;
                 if (aStr.startsWith('assets/avatars/')) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/${aStr}`;
                 if (aStr.startsWith('shared/')) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/${aStr}`;
-                if (aStr.includes('.png') || aStr.includes('.jpg') || aStr.includes('.jpeg')) {
+                if (aStr.includes('.png') || aStr.includes('.jpg') || aStr.includes('.jpeg') || aStr.includes('.webp')) {
                     const cleanName = aStr.split('/').pop();
                     return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/${cleanName}`;
                 }
-                return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
+                return defaultAvatar;
             }
 
-            const safeAvatar = getSafeAvatarUrl(user.avatar);
+            const safeAvatar = getSafeAvatarUrl(user.avatar, isSuperAdmin);
 
             // Semplifica e compatta la colonna gioco (badge interattivo con popover)
             let rawGioco = (user.gioco || 'Hub')
@@ -203,7 +208,7 @@ const UsersUI = {
                 <td style="text-align: center; padding: 6px 4px;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
                 <td style="padding: 6px 8px 6px 4px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="${safeAvatar}" alt="Avatar" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; background: #ffffff; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <img src="${safeAvatar}" alt="Avatar" onerror="this.onerror=null; this.src='https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; background: #ffffff; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                         <div style="min-width: 0; max-width: 240px;">
                             <strong style="font-size:0.88rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${user.nome}</strong>
                             <span style="font-size:0.78rem; color:var(--text-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${user.email}">${user.email}</span>
