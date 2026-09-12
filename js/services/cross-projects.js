@@ -101,7 +101,7 @@ const CrossProjectsService = {
     fetchAllUsers: async function() {
         let result = {
             users: [],
-            stats: { eroi: 0, commedia: 0, fanta: 0, palestra: 0, ops: 0, studenti: 0, docenti: 0, viandanti: 0, scuoleSetSize: 0, total: 0 }
+            stats: { eroi: 0, commedia: 0, fanta: 0, palestra: 0, ops: 0, oratore: 0, studenti: 0, docenti: 0, viandanti: 0, scuoleSetSize: 0, total: 0 }
         };
         
         let eroiUsers = [];
@@ -499,6 +499,7 @@ const CrossProjectsService = {
             fanta: fantaUsers.length,
             palestra: palestraUsers.length,
             ops: opsUsers.length,
+            oratore: deduplicatedUsers.filter(u => String(u.gioco || '').toLowerCase().includes('oratore')).length,
             studenti: cStudenti,
             docenti: cDocenti,
             viandanti: cViandanti,

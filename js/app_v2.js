@@ -204,6 +204,7 @@ const HubApp = {
             else if (gameName.includes('Fanta')) targetId = 'game-filter-fanta';
             else if (gameName.includes('Palestra')) targetId = 'game-filter-palestra';
             else if (gameName.includes('Ops')) targetId = 'game-filter-ops';
+            else if (gameName.includes('Oratore')) targetId = 'game-filter-oratore';
         }
         const activeCard = document.getElementById(targetId);
         if (activeCard) activeCard.classList.add('active');
