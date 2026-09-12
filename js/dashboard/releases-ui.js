@@ -314,7 +314,7 @@ const ReleasesUI = {
                         <span style="background: #dbeafe; color: #1d4ed8; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; font-weight: 600;">Privato</span>
                     </div>
                     <p style="font-size: 0.82rem; color: #3b82f6; margin: 0 0 12px 0;">Versione di prova generata dal branch <code>preview</code>.</p>
-                    <a href="${project.previewUrl}" target="_blank" class="btn" style="width: 100%; box-sizing: border-box; background: #2563eb; color: white; text-decoration: none; font-size: 0.9rem; padding: 10px; text-align: center; justify-content: center;">
+                    <a href="${project.previewUrl}" target="_blank" rel="noopener noreferrer" class="btn" style="width: 100%; box-sizing: border-box; background: #2563eb; color: white; text-decoration: none; font-size: 0.9rem; padding: 10px; text-align: center; justify-content: center;">
                         <i class="fa-solid fa-arrow-up-right-from-square"></i> Apri e Prova Anteprima
                     </a>
                 </div>
@@ -328,7 +328,7 @@ const ReleasesUI = {
                         <span style="background: #e2e8f0; color: #475569; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; font-weight: 600;">Pubblico</span>
                     </div>
                     <p style="font-size: 0.82rem; color: #64748b; margin: 0 0 12px 0;">La versione attualmente online per studenti e docenti.</p>
-                    <a href="${project.liveUrl}" target="_blank" class="btn outline" style="width: 100%; box-sizing: border-box; font-size: 0.9rem; padding: 10px; text-align: center; justify-content: center;">
+                    <a href="${project.liveUrl}" target="_blank" rel="noopener noreferrer" class="btn outline" style="width: 100%; box-sizing: border-box; font-size: 0.9rem; padding: 10px; text-align: center; justify-content: center;">
                         <i class="fa-solid fa-arrow-up-right-from-square"></i> Apri Sito Ufficiale Live
                     </a>
                 </div>
