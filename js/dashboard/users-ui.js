@@ -160,7 +160,10 @@ const UsersUI = {
                 .replace(' / Hub', '')
                 .replace('La Rotta degli Eroi', 'Eroi')
                 .replace('La Corte della Commedia', 'Commedia')
+                .replace('FantaLetteratura', 'Fanta')
+                .replace('Fantaletteratura', 'Fanta')
                 .replace('Palestra di Riflessione', 'Palestra')
+                .replace('Ops! Operazione Storia', 'Ops')
                 .replace("L'Oratore", 'Oratore');
 
             const gameParts = rawGioco.split(' / ').map(s => s.trim()).filter(Boolean);
@@ -169,8 +172,9 @@ const UsersUI = {
                 'Commedia': { name: 'La Corte della Commedia', color: '#a855f7', icon: 'fa-masks-theater' },
                 'Fanta': { name: 'FantaLetteratura', color: '#f59e0b', icon: 'fa-feather-pointed' },
                 'Palestra': { name: 'Palestra di Riflessione', color: '#10b981', icon: 'fa-brain' },
-                'Ops': { name: 'Ops! Operazione Storia', color: '#ef4444', icon: 'fa-landmark' },
-                'Oratore': { name: "L'Oratore", color: '#d97706', icon: 'fa-microphone-lines' }
+                'Ops': { name: 'Ops! Operazione Storia', color: '#eab308', icon: 'fa-landmark' },
+                'Oratore': { name: "L'Oratore", color: '#d97706', icon: 'fa-microphone-lines' },
+                'Ecosistema': { name: 'Ecosistema Globale', color: '#6366f1', icon: 'fa-globe' }
             };
 
             let cleanGiocoHtml = '';
