@@ -15,6 +15,7 @@ const GamesUI = {
             { id: 'palestra-di-riflessione', name: 'Palestra di Riflessione' },
             { id: 'ops', name: 'Ops!' },
             { id: 'la-corte-della-commedia', name: 'La Corte della Commedia' },
+            { id: 'l-oratore', name: "L'Oratore" },
             { id: 'travel-agency', name: 'Travel Agency' },
             { id: 'il-mio-quaderno-alternativo', name: 'Il mio quaderno alternativo' },
             { id: 'la-roulette', name: 'La Roulette' }

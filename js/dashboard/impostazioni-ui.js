@@ -199,7 +199,7 @@ const ImpostazioniUI = {
                 stats: {
                     studenti: users.filter(u => (u.ruolo || '').includes('student')).length,
                     docenti: users.filter(u => (u.ruolo || '').includes('teacher') || (u.ruolo || '').includes('docente')).length,
-                    giochi: ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia']
+                    giochi: ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore"]
                 }
             };
 
