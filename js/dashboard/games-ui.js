@@ -85,6 +85,7 @@ const GamesUI = {
                 'il-mio-quaderno-alternativo': { shortDesc: "Percorsi alternativi all'IRC per esplorare temi etici, filosofici e civici in modo attivo e creativo, classe per classe.", longDesc: "Percorsi alternativi all'IRC per esplorare temi etici, filosofici e civici in modo attivo e creativo, classe per classe.", materia: "Alternativa alla Religione", giocatori: "Singolo", durata: "Intero anno scolastico", obiettivi: "Etica, cittadinanza, valori", classe: "Sec. di 1° grado", uso: "Classe" },
                 'la-corte-della-commedia': { shortDesc: "Trasforma la classe in un Tribunale Dantesco, dove gli studenti analizzano fascicoli processuali e dibattono per giudicare i personaggi della Divina Commedia.", longDesc: "Trasforma la classe in un Tribunale Dantesco, dove gli studenti analizzano fascicoli processuali e dibattono per giudicare i personaggi della Divina Commedia.", materia: "Letteratura", giocatori: "Squadre / Singoli", durata: "Intero anno scolastico", obiettivi: "Gamification, analisi testo", classe: "Sec. di 1° grado", uso: "Classe" },
                 'ops': { shortDesc: "Riscopri gli imprevisti storici e gli \"errori\" che hanno cambiato i destini del nostro passato.", longDesc: "Riscopri gli imprevisti storici e gli \"errori\" che hanno cambiato i destini del nostro passato.", materia: "Storia", giocatori: "2-4", durata: "45 min", obiettivi: "Causa-effetto, eventi storici", classe: "Sec. di 1° grado", uso: "Classe" },
+                'l-oratore': { shortDesc: "192 carte, mazzi tematici e sfide di retorica, oratoria e debate per LIM e classe (QCER A1-C2).", longDesc: "Sfide di oratoria, retorica viva e pensiero critico. 192 incipit persuasivi suddivisi su 8 mazzi tematici per la scuola secondaria.", materia: "Retorica / Debate / Italiano", giocatori: "Classe / LIM / Squadre", durata: "15-45 min", obiettivi: "Argomentazione, public speaking, pensiero critico", classe: "Sec. 1° e 2° grado", uso: "Classe, LIM" },
                 'la-roulette': { shortDesc: "Sfida a squadre per esplorare in modo casuale e interattivo diverse destinazioni del mondo.", longDesc: "Sfida a squadre per esplorare in modo casuale e interattivo diverse destinazioni del mondo.", materia: "Geografia", giocatori: "Classe intera (squadre)", durata: "30-45 min", obiettivi: "Ripasso, esplorazione rapida", classe: "Sec. di 1° grado", uso: "Classe, Ripasso" }
             };
             const defs = defaultGamesData[gameId] || {};
@@ -161,9 +162,17 @@ const GamesUI = {
                     if (data.isFreeBaseVersion !== undefined) {
                         allowed.base = data.isFreeBaseVersion === true;
                     }
-                    // Di default La Rotta, Corte, Ops etc. sono inclusi in Viandante ed Ecosistema
-                    if (allowed.viandante === undefined) allowed.viandante = true;
-                    if (allowed.docente_ecosistema === undefined) allowed.docente_ecosistema = true;
+                    if (gameId === 'l-oratore') {
+                        // L'Oratore è rigorosamente esclusivo di Piano Ecosistema Completo
+                        allowed.base = false;
+                        allowed.viandante = false;
+                        allowed.docente_didattico = false;
+                        allowed.docente_ecosistema = true;
+                    } else {
+                        // Di default La Rotta, Corte, Ops etc. sono inclusi in Viandante ed Ecosistema
+                        if (allowed.viandante === undefined) allowed.viandante = true;
+                        if (allowed.docente_ecosistema === undefined) allowed.docente_ecosistema = true;
+                    }
                 }
 
                 document.getElementById('edit-game-plan-base').checked = allowed.base === true;

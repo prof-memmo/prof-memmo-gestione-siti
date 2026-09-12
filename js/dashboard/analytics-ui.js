@@ -174,6 +174,7 @@ const AnalyticsUI = {
                 'Palestra di Riflessione': {},
                 'La Corte della Commedia': {},
                 'Ops! Operazione Storia': {},
+                "L'Oratore": {},
                 'Hub': {}
             },
             timeline: {},
@@ -623,7 +624,7 @@ const AnalyticsUI = {
 
         // Vista multi-gioco con linee separate distinte (NON mescolate insieme)
         const datasets = [];
-        const knownGames = ['Fantaletteratura', 'La Rotta degli Eroi', 'Palestra di Riflessione', 'La Corte della Commedia', 'Ops! Operazione Storia', 'Hub'];
+        const knownGames = ['Fantaletteratura', 'La Rotta degli Eroi', 'Palestra di Riflessione', 'La Corte della Commedia', 'Ops! Operazione Storia', "L'Oratore", 'Hub'];
 
         knownGames.forEach(gName => {
             const gTimeline = (timelineByGame && timelineByGame[gName]) || {};

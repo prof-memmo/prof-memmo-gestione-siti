@@ -353,7 +353,7 @@ const UsersUI = {
             return;
         }
 
-        const allColls = ['hub_users', 'eroi_users', 'fanta_users', 'palestra_users', 'corte_users', 'ops_users'];
+        const allColls = ['hub_users', 'eroi_users', 'fanta_users', 'palestra_users', 'corte_users', 'ops_users', 'oratore_users'];
         const selectedIds = Array.from(this.selectedUsers);
         let promises = [];
         
@@ -601,6 +601,7 @@ const UsersUI = {
                 'palestra': 'palestra_users',
                 'commedia': 'corte_users',
                 'ops': 'ops_users',
+                'oratore': 'oratore_users',
                 'hub': 'hub_users'
             };
             
@@ -608,7 +609,7 @@ const UsersUI = {
             
             if (deleteEverywhere) {
                 // Elimina ovunque: rimuovi da tutte le collezioni del database unico Hub
-                const allColls = ['hub_users', 'eroi_users', 'fanta_users', 'palestra_users', 'corte_users', 'ops_users'];
+                const allColls = ['hub_users', 'eroi_users', 'fanta_users', 'palestra_users', 'corte_users', 'ops_users', 'oratore_users'];
                 allColls.forEach(colName => {
                     promises.push(hubDb.collection(colName).doc(userId).delete());
                 });

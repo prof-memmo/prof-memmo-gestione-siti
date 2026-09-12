@@ -174,7 +174,8 @@ const PortalApp = {
                             palestra_riflessione: { enabled: true },
                             rotta_degli_eroi: { enabled: true },
                             corte_della_commedia: { enabled: true },
-                            ops_storia: { enabled: true }
+                            ops_storia: { enabled: true },
+                            l_oratore: { enabled: true }
                         }
                     };
                     await window.fbDb.hub.collection("hub_users").doc(this.user.uid).set(adminProfile, {merge: true});
@@ -207,7 +208,9 @@ const PortalApp = {
                     'fantaletteratura': isPreview ? 'https://prof-memmo.github.io/fantaletteratura/preview/' : 'https://prof-memmo.github.io/fantaletteratura/',
                     'palestra_riflessione': isPreview ? 'https://prof-memmo.github.io/palestra-di-riflessione/preview/' : 'https://prof-memmo.github.io/palestra-di-riflessione/',
                     'rotta_degli_eroi': isPreview ? 'https://prof-memmo.github.io/la-rotta-degli-eroi/preview/' : 'https://prof-memmo.github.io/la-rotta-degli-eroi/',
-                    'corte_della_commedia': isPreview ? 'https://prof-memmo.github.io/la-corte-della-commedia/preview/' : 'https://prof-memmo.github.io/la-corte-della-commedia/'
+                    'corte_della_commedia': isPreview ? 'https://prof-memmo.github.io/la-corte-della-commedia/preview/' : 'https://prof-memmo.github.io/la-corte-della-commedia/',
+                    'l_oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
+                    'oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/'
                 };
                 if (gameMap[redirectTarget]) {
                     window.location.replace(gameMap[redirectTarget]);
@@ -499,7 +502,8 @@ const PortalApp = {
             { id: 'palestra_riflessione', title: 'Palestra di Riflessione', icon: 'fa-brain', color: '#22c55e', desc: 'Esercita il pensiero logico e critico.' },
             { id: 'rotta_degli_eroi', title: 'La Rotta degli Eroi', icon: 'fa-ship', color: '#3b82f6', desc: 'Scegli la tua avventura e il tuo eroe.' },
             { id: 'corte_della_commedia', title: 'Corte della Commedia', icon: 'fa-gavel', color: '#ef4444', desc: 'Processa i personaggi storici.' },
-            { id: 'ops_storia', title: 'OPS Storia', icon: 'fa-hourglass', color: '#eab308', desc: 'Missioni storiche a tempo.' }
+            { id: 'ops_storia', title: 'OPS Storia', icon: 'fa-hourglass', color: '#eab308', desc: 'Missioni storiche a tempo.' },
+            { id: 'l_oratore', title: "L'Oratore", icon: 'fa-microphone-lines', color: '#d97706', desc: 'Sfide di retorica, oratoria e debate (QCER A1-C2).' }
         ];
 
         allPlatforms.forEach(p => {
@@ -535,7 +539,8 @@ const PortalApp = {
             'palestra_riflessione': 'https://prof-memmo.github.io/palestra-di-riflessione/index.html',
             'rotta_degli_eroi': 'https://prof-memmo.github.io/la-rotta-degli-eroi/index.html',
             'corte_della_commedia': 'https://prof-memmo.github.io/la-corte-della-commedia/index.html',
-            'ops_storia': 'https://prof-memmo.github.io/ops-storia/index.html'
+            'ops_storia': 'https://prof-memmo.github.io/ops-storia/index.html',
+            'l_oratore': 'https://prof-memmo.github.io/l-oratore/index.html'
         };
         if (urls[gameId]) {
             window.location.href = urls[gameId];

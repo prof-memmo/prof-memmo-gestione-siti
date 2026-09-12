@@ -89,6 +89,18 @@ const DiagnosticsService = {
             db_collection: 'ops_users',
             icon: 'fa-landmark',
             description: 'Gioco storico per la scuola secondaria di primo grado.'
+        },
+        {
+            id: 'l_oratore',
+            name: "L'Oratore",
+            repo: 'l-oratore',
+            url: 'https://prof-memmo.github.io/l-oratore/',
+            type: 'gioco',
+            active: true,
+            diagnostics_active: true,
+            db_collection: 'hub_didactic_overrides',
+            icon: 'fa-microphone-lines',
+            description: 'Gioco e sfide di oratoria, retorica viva e debate (QCER A1-C2).'
         }
     ],
 

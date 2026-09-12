@@ -320,6 +320,8 @@ const HubApp = {
 
         'Ops! Operazione Storia': `Oggetto: Richiesta Approvata - Benvenuto su Ops! Operazione Storia! ⏳\n\nGentile Docente,\n\nla tua richiesta di accesso a Ops! Operazione Storia è stata approvata!\n\nAccedi alla piattaforma per guidare gli studenti nelle indagini storiche e nelle missioni nel tempo:\nhttps://prof-memmo.github.io/games/giochi.html\n\nBuona esplorazione,\nProf. Memmo`,
 
+        "L'Oratore": `Oggetto: Richiesta Approvata - Benvenuto su L'Oratore! 🎙️\n\nGentile Docente,\n\nla tua richiesta di accesso a L'Oratore è stata approvata con successo!\n\nPuoi ora condurre le tue classi nelle sfide di oratoria, retorica viva e debate alla LIM con le 192 carte tematiche e i livelli QCER A1-C2.\n\nAccedi alla piattaforma:\nhttps://prof-memmo.github.io/l-oratore/\n\nBuona retorica e buone sfide in classe,\nProf. Memmo`,
+
         'abbonamento_attivo': `Oggetto: Il tuo abbonamento Prof. Memmo è attivo 🎉\n\nCiao [NOME],\n\nil tuo abbonamento all'Ecosistema Prof. Memmo è stato attivato con successo.\n\nPiano attivo: [PIANO]\n\nAccedi subito al tuo profilo e a tutte le piattaforme abilitate:\nhttps://prof-memmo.github.io/games/profilo.html\n\nA presto,\nProf. Memmo`,
 
         'abbonamento_pagamento': `Oggetto: Conferma Pagamento e Attivazione Piano - Prof. Memmo 🎉\n\nCiao [NOME],\n\nabbiamo ricevuto la conferma del tuo ordine e il tuo piano è ora attivo.\n\n--- RIEPILOGO ABBONAMENTO ---\nPiano: [PIANO]\nData: [DATA]\n\nAccedi subito al tuo profilo personale:\nhttps://prof-memmo.github.io/games/profilo.html\n\nGrazie per aver scelto l'Ecosistema Didattico Prof. Memmo!\nA presto,\nProf. Memmo`,

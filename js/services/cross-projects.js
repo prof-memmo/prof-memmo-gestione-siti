@@ -109,6 +109,7 @@ const CrossProjectsService = {
         let fantaUsers = [];
         let palestraUsers = [];
         let opsUsers = [];
+        let oratoreUsers = [];
         let hubUsers = [];
         let rootUsers = [];
 
@@ -225,6 +226,28 @@ const CrossProjectsService = {
             } catch(e) { console.warn("Ops Hub fetch error:", e); }
 
             try {
+                const snapOratore = await window.fbDb.hub.collection("oratore_users").get();
+                snapOratore.forEach(doc => {
+                    const data = doc.data() || {};
+                    oratoreUsers.push({
+                        id: doc.id,
+                        nome: (data.name || data.nome || data.displayName || 'Utente Oratore'),
+                        email: data.email || (doc.id.includes('@') ? doc.id : ''),
+                        ruolo: data.role || data.ruolo || 'docente',
+                        classe: data.classId || data.classe || data.class || 'N/A',
+                        citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
+                        scuola: data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '',
+                        avatar: data.avatar || data.photoURL || data.foto || '',
+                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
+                        gioco: "L'Oratore", giocoColor: '#d97706', giocoIcon: 'fa-microphone-lines',
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base'),
+                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
+                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
+                    });
+                });
+            } catch(e) { console.warn("Oratore Hub fetch error:", e); }
+
+            try {
                 const snapHub = await window.fbDb.hub.collection("hub_users").get();
                 snapHub.forEach(doc => {
                     const data = doc.data() || {};
@@ -310,6 +333,7 @@ const CrossProjectsService = {
             ...fantaUsers, 
             ...palestraUsers, 
             ...opsUsers, 
+            ...oratoreUsers, 
             ...restUsers, 
             ...rootUsers
         ];
@@ -328,6 +352,7 @@ const CrossProjectsService = {
                     else if (gLow.includes('commedia') || gLow.includes('corte')) targetColl = 'corte_users';
                     else if (gLow.includes('fanta')) targetColl = 'fanta_users';
                     else if (gLow.includes('ops') || gLow.includes('storia')) targetColl = 'ops_users';
+                    else if (gLow.includes('oratore')) targetColl = 'oratore_users';
 
                     const docPayload = {
                         nome: u.nome || '',
@@ -645,6 +670,14 @@ const CrossProjectsService = {
                 apiKey: "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY",
                 prefix: "ops_",
                 collections: ['users', 'classes', 'progress', 'archives', 'settings', 'game_sessions']
+            },
+            {
+                name: "L'Oratore",
+                key: "oratore",
+                appName: "Oratore",
+                projectId: "l-oratore",
+                prefix: "oratore_",
+                collections: ['users', 'settings', 'hub_didactic_overrides']
             }
         ];
 
