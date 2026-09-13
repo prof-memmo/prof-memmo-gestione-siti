@@ -423,12 +423,25 @@ const CrossProjectsService = {
 
             const dedupeKey = emailKey || u.id;
 
+            function normalizeGameName(name) {
+                if (!name) return '';
+                const n = String(name).trim();
+                const nLow = n.toLowerCase();
+                if (nLow.includes('fanta')) return 'FantaLetteratura';
+                if (nLow.includes('eroi') || nLow.includes('rotta')) return 'La Rotta degli Eroi';
+                if (nLow.includes('commedia') || nLow.includes('corte')) return 'La Corte della Commedia';
+                if (nLow.includes('palestra') || nLow.includes('riflessione')) return 'Palestra di Riflessione';
+                if (nLow.includes('ops') || nLow.includes('storia')) return 'Ops! Operazione Storia';
+                if (nLow.includes('oratore')) return "L'Oratore";
+                return n;
+            }
+
             if (uniqueUsersMap.has(dedupeKey)) {
                 let existing = uniqueUsersMap.get(dedupeKey);
                 
                 // Estrai e unisci tutti i giochi senza duplicati
-                let curParts = (existing.gioco || '').split(' / ').map(s => s.trim()).filter(Boolean);
-                let newParts = (u.gioco || '').split(' / ').map(s => s.trim()).filter(Boolean);
+                let curParts = (existing.gioco || '').split(' / ').map(s => normalizeGameName(s.trim())).filter(Boolean);
+                let newParts = (u.gioco || '').split(' / ').map(s => normalizeGameName(s.trim())).filter(Boolean);
                 let mergedSet = new Set([...curParts, ...newParts]);
                 mergedSet.delete('Hub');
                 mergedSet.delete('Ecosistema');
