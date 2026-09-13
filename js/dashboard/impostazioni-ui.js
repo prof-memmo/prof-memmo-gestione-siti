@@ -110,6 +110,7 @@ const ImpostazioniUI = {
             { name: 'Palestra di Riflessione', coll: 'palestra_users', icon: 'fa-brain', color: '#22c55e' },
             { name: 'La Corte della Commedia', coll: 'corte_users', icon: 'fa-gavel', color: '#ef4444' },
             { name: 'Ops! Operazione Storia', coll: 'ops_users', icon: 'fa-clock-rotate-left', color: '#eab308' },
+            { name: "L'Oratore (Overrides)", coll: 'hub_didactic_overrides', icon: 'fa-microphone-lines', color: '#d97706' },
             { name: 'Archivio Storico Globale', coll: 'hub_archives', icon: 'fa-box-archive', color: '#64748b' }
         ];
 
@@ -199,7 +200,7 @@ const ImpostazioniUI = {
                 stats: {
                     studenti: users.filter(u => (u.ruolo || '').includes('student')).length,
                     docenti: users.filter(u => (u.ruolo || '').includes('teacher') || (u.ruolo || '').includes('docente')).length,
-                    giochi: ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia']
+                    giochi: ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore"]
                 }
             };
 

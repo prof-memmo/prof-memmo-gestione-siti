@@ -40,6 +40,7 @@ const UsersUI = {
         setHtml('counter-fanta', stats.fanta);
         setHtml('counter-palestra', stats.palestra);
         setHtml('counter-ops', stats.ops);
+        setHtml('counter-oratore', stats.oratore);
         setHtml('counter-studenti', stats.studenti);
         setHtml('counter-docenti', stats.docenti);
         setHtml('counter-viandanti', stats.viandanti);
@@ -159,7 +160,11 @@ const UsersUI = {
                 .replace(' / Hub', '')
                 .replace('La Rotta degli Eroi', 'Eroi')
                 .replace('La Corte della Commedia', 'Commedia')
-                .replace('Palestra di Riflessione', 'Palestra');
+                .replace('FantaLetteratura', 'Fanta')
+                .replace('Fantaletteratura', 'Fanta')
+                .replace('Palestra di Riflessione', 'Palestra')
+                .replace('Ops! Operazione Storia', 'Ops')
+                .replace("L'Oratore", 'Oratore');
 
             const gameParts = rawGioco.split(' / ').map(s => s.trim()).filter(Boolean);
             const GAME_META = {
@@ -167,7 +172,9 @@ const UsersUI = {
                 'Commedia': { name: 'La Corte della Commedia', color: '#a855f7', icon: 'fa-masks-theater' },
                 'Fanta': { name: 'FantaLetteratura', color: '#f59e0b', icon: 'fa-feather-pointed' },
                 'Palestra': { name: 'Palestra di Riflessione', color: '#10b981', icon: 'fa-brain' },
-                'Ops': { name: 'Ops! Operazione Storia', color: '#ef4444', icon: 'fa-landmark' }
+                'Ops': { name: 'Ops! Operazione Storia', color: '#eab308', icon: 'fa-landmark' },
+                'Oratore': { name: "L'Oratore", color: '#d97706', icon: 'fa-microphone-lines' },
+                'Ecosistema': { name: 'Ecosistema Globale', color: '#6366f1', icon: 'fa-globe' }
             };
 
             let cleanGiocoHtml = '';
@@ -350,7 +357,7 @@ const UsersUI = {
             return;
         }
 
-        const allColls = ['hub_users', 'eroi_users', 'fanta_users', 'palestra_users', 'corte_users', 'ops_users'];
+        const allColls = ['hub_users', 'eroi_users', 'fanta_users', 'palestra_users', 'corte_users', 'ops_users', 'oratore_users'];
         const selectedIds = Array.from(this.selectedUsers);
         let promises = [];
         
@@ -562,6 +569,7 @@ const UsersUI = {
         if (lower.includes('palestra')) return 'palestra';
         if (lower.includes('commedia') || lower.includes('corte')) return 'commedia';
         if (lower.includes('ops')) return 'ops';
+        if (lower.includes('oratore')) return 'oratore';
         if (lower.includes('hub')) return 'hub';
         return null;
     },
@@ -597,6 +605,7 @@ const UsersUI = {
                 'palestra': 'palestra_users',
                 'commedia': 'corte_users',
                 'ops': 'ops_users',
+                'oratore': 'oratore_users',
                 'hub': 'hub_users'
             };
             
@@ -604,7 +613,7 @@ const UsersUI = {
             
             if (deleteEverywhere) {
                 // Elimina ovunque: rimuovi da tutte le collezioni del database unico Hub
-                const allColls = ['hub_users', 'eroi_users', 'fanta_users', 'palestra_users', 'corte_users', 'ops_users'];
+                const allColls = ['hub_users', 'eroi_users', 'fanta_users', 'palestra_users', 'corte_users', 'ops_users', 'oratore_users'];
                 allColls.forEach(colName => {
                     promises.push(hubDb.collection(colName).doc(userId).delete());
                 });
@@ -953,6 +962,7 @@ const UsersUI = {
                 else if (fg.includes('fanta')) matchesGioco = g.includes('fanta');
                 else if (fg.includes('palestra')) matchesGioco = g.includes('palestra');
                 else if (fg.includes('ops')) matchesGioco = g.includes('ops');
+                else if (fg.includes('oratore')) matchesGioco = g.includes('oratore');
                 else matchesGioco = g.includes(fg);
             }
 

@@ -21,6 +21,7 @@ const AnalyticsUI = {
         'Palestra di Riflessione': { color: '#22c55e', bg: 'rgba(34, 197, 94, 0.15)', icon: 'fa-brain' },
         'La Corte della Commedia': { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', icon: 'fa-book-open' },
         'Ops! Operazione Storia': { color: '#eab308', bg: 'rgba(234, 179, 8, 0.15)', icon: 'fa-clock-rotate-left' },
+        "L'Oratore": { color: '#d97706', bg: 'rgba(217, 119, 6, 0.15)', icon: 'fa-microphone-lines' },
         'Hub': { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.15)', icon: 'fa-globe' }
     },
 
@@ -173,6 +174,7 @@ const AnalyticsUI = {
                 'Palestra di Riflessione': {},
                 'La Corte della Commedia': {},
                 'Ops! Operazione Storia': {},
+                "L'Oratore": {},
                 'Hub': {}
             },
             timeline: {},
@@ -622,7 +624,7 @@ const AnalyticsUI = {
 
         // Vista multi-gioco con linee separate distinte (NON mescolate insieme)
         const datasets = [];
-        const knownGames = ['Fantaletteratura', 'La Rotta degli Eroi', 'Palestra di Riflessione', 'La Corte della Commedia', 'Ops! Operazione Storia', 'Hub'];
+        const knownGames = ['Fantaletteratura', 'La Rotta degli Eroi', 'Palestra di Riflessione', 'La Corte della Commedia', 'Ops! Operazione Storia', "L'Oratore", 'Hub'];
 
         knownGames.forEach(gName => {
             const gTimeline = (timelineByGame && timelineByGame[gName]) || {};

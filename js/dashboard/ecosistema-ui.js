@@ -72,7 +72,7 @@ const EcosistemaUI = {
         setVal('features-docente', '+ FantaLetteratura (Completo): Tornei, missioni\n+ Palestra (Completa): Analisi logica, testi B2\n+ Gestione Classi e Studenti\n+ Codici Classe privati\n+ Strumenti Docente e Dashboard avanzata\n- Non include La Rotta degli Eroi o Travel Agency');
         setVal('desc-ecosistema', "L'esperienza totale. Accesso illimitato a tutti i contenuti e strumenti.");
         setVal('btn-ecosistema', 'Ottieni Tutto');
-        setVal('features-ecosistema', '+ Tutto il piano Docente Completo Didattico\n+ La Rotta degli Eroi\n+ Travel Agency C.\n+ Tutti i futuri giochi completi in anteprima\n+ Assistenza dedicata');
+        setVal('features-ecosistema', '+ Tutto il piano Docente Completo Didattico\n+ La Rotta degli Eroi\n+ Travel Agency C.\n+ L\'Oratore (LIM, Retorica & Debate A1-C2)\n+ Tutti i futuri giochi completi in anteprima\n+ Assistenza dedicata');
 
         // Campi Come Funziona
         const cf = data.come_funziona_config || {};

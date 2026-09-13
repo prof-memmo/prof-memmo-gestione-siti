@@ -101,7 +101,7 @@ const CrossProjectsService = {
     fetchAllUsers: async function() {
         let result = {
             users: [],
-            stats: { eroi: 0, commedia: 0, fanta: 0, palestra: 0, ops: 0, studenti: 0, docenti: 0, viandanti: 0, scuoleSetSize: 0, total: 0 }
+            stats: { eroi: 0, commedia: 0, fanta: 0, palestra: 0, ops: 0, oratore: 0, studenti: 0, docenti: 0, viandanti: 0, scuoleSetSize: 0, total: 0 }
         };
         
         let eroiUsers = [];
@@ -109,6 +109,7 @@ const CrossProjectsService = {
         let fantaUsers = [];
         let palestraUsers = [];
         let opsUsers = [];
+        let oratoreUsers = [];
         let hubUsers = [];
         let rootUsers = [];
 
@@ -225,15 +226,54 @@ const CrossProjectsService = {
             } catch(e) { console.warn("Ops Hub fetch error:", e); }
 
             try {
+                const snapOratore = await window.fbDb.hub.collection("oratore_users").get();
+                snapOratore.forEach(doc => {
+                    const data = doc.data() || {};
+                    oratoreUsers.push({
+                        id: doc.id,
+                        nome: (data.name || data.nome || data.displayName || 'Utente Oratore'),
+                        email: data.email || (doc.id.includes('@') ? doc.id : ''),
+                        ruolo: data.role || data.ruolo || 'docente',
+                        classe: data.classId || data.classe || data.class || 'N/A',
+                        citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
+                        scuola: data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '',
+                        avatar: data.avatar || data.photoURL || data.foto || '',
+                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : 0,
+                        gioco: "L'Oratore", giocoColor: '#d97706', giocoIcon: 'fa-microphone-lines',
+                        plan: data.subscription || data.abbonamento || data.plan || (data.role === 'studente' ? 'studente' : 'base'),
+                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
+                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
+                    });
+                });
+            } catch(e) { console.warn("Oratore Hub fetch error:", e); }
+
+            try {
                 const snapHub = await window.fbDb.hub.collection("hub_users").get();
                 snapHub.forEach(doc => {
                     const data = doc.data() || {};
                     const nomeStr = data.anagrafica ? (data.anagrafica.nome + " " + (data.anagrafica.cognome || "")) : (data.nome || data.name || data.displayName || 'Utente');
+                    let userGiochi = [];
+                    if (data.platforms && typeof data.platforms === 'object') {
+                        if (data.platforms.eroi_users?.enabled || data.platforms.rotta_degli_eroi?.enabled) userGiochi.push('La Rotta degli Eroi');
+                        if (data.platforms.corte_users?.enabled || data.platforms.corte_della_commedia?.enabled) userGiochi.push('La Corte della Commedia');
+                        if (data.platforms.fanta_users?.enabled || data.platforms.fantaletteratura?.enabled) userGiochi.push('FantaLetteratura');
+                        if (data.platforms.palestra_users?.enabled || data.platforms.palestra_riflessione?.enabled) userGiochi.push('Palestra di Riflessione');
+                        if (data.platforms.ops_users?.enabled || data.platforms.ops_storia?.enabled) userGiochi.push('Ops! Operazione Storia');
+                        if (data.platforms.oratore_users?.enabled || data.platforms.l_oratore?.enabled || data.platforms.oratore?.enabled) userGiochi.push("L'Oratore");
+                    }
+                    const userPlan = data.abbonamento || data.plan || data.subscription || (data.role === 'studente' ? 'studente' : 'base');
+                    const userRole = data.role || data.ruolo || 'studente';
+                    if (userRole === 'admin' || String(userPlan).toLowerCase().includes('ecosistema')) {
+                        ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore"].forEach(g => {
+                            if (!userGiochi.includes(g)) userGiochi.push(g);
+                        });
+                    }
+
                     hubUsers.push({
                         id: doc.id,
                         nome: nomeStr.trim() || 'Utente',
                         email: data.email || '',
-                        ruolo: data.role || data.ruolo || 'studente',
+                        ruolo: userRole,
                         statusAccount: data.statusAccount || data.statoAccount || 'active',
                         classe: data.classId || data.classe || data.class || 'N/A',
                         citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
@@ -241,8 +281,8 @@ const CrossProjectsService = {
                         anagrafica: data.anagrafica || {},
                         avatar: data.avatar || data.photoURL || data.foto || '',
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
-                        gioco: '', giocoColor: '#6366f1', giocoIcon: 'fa-globe',
-                        plan: data.abbonamento || data.plan || data.subscription || (data.role === 'studente' ? 'studente' : 'base'),
+                        gioco: userGiochi.join(' / '), giocoColor: '#6366f1', giocoIcon: 'fa-globe',
+                        plan: userPlan,
                         admin_override: data.admin_override === true,
                         abbonamento_scadenza: data.abbonamento_scadenza || '',
                         isHubMaster: true,
@@ -310,6 +350,7 @@ const CrossProjectsService = {
             ...fantaUsers, 
             ...palestraUsers, 
             ...opsUsers, 
+            ...oratoreUsers, 
             ...restUsers, 
             ...rootUsers
         ];
@@ -328,6 +369,7 @@ const CrossProjectsService = {
                     else if (gLow.includes('commedia') || gLow.includes('corte')) targetColl = 'corte_users';
                     else if (gLow.includes('fanta')) targetColl = 'fanta_users';
                     else if (gLow.includes('ops') || gLow.includes('storia')) targetColl = 'ops_users';
+                    else if (gLow.includes('oratore')) targetColl = 'oratore_users';
 
                     const docPayload = {
                         nome: u.nome || '',
@@ -376,22 +418,41 @@ const CrossProjectsService = {
                 u.ruolo = 'admin';
                 u.role = 'admin';
                 u.plan = 'docente_ecosistema';
+                u.gioco = "La Rotta degli Eroi / La Corte della Commedia / FantaLetteratura / Palestra di Riflessione / Ops! Operazione Storia / L'Oratore";
             }
 
             const dedupeKey = emailKey || u.id;
 
+            function normalizeGameName(name) {
+                if (!name) return '';
+                const n = String(name).trim();
+                const nLow = n.toLowerCase();
+                if (nLow.includes('fanta')) return 'FantaLetteratura';
+                if (nLow.includes('eroi') || nLow.includes('rotta')) return 'La Rotta degli Eroi';
+                if (nLow.includes('commedia') || nLow.includes('corte')) return 'La Corte della Commedia';
+                if (nLow.includes('palestra') || nLow.includes('riflessione')) return 'Palestra di Riflessione';
+                if (nLow.includes('ops') || nLow.includes('storia')) return 'Ops! Operazione Storia';
+                if (nLow.includes('oratore')) return "L'Oratore";
+                return n;
+            }
+
             if (uniqueUsersMap.has(dedupeKey)) {
                 let existing = uniqueUsersMap.get(dedupeKey);
-                let curGioco = String(existing.gioco || '').replace(/\bHub\b/g, '').replace(/\s*\/\s*$/, '').replace(/^\s*\/\s*/, '').trim();
-                let newGioco = String(u.gioco || '').replace(/\bHub\b/g, '').replace(/\s*\/\s*$/, '').replace(/^\s*\/\s*/, '').trim();
                 
-                if (newGioco && !curGioco.includes(newGioco)) {
-                    existing.gioco = curGioco ? (curGioco + " / " + newGioco) : newGioco;
-                    if (u.giocoColor) existing.giocoColor = u.giocoColor;
-                    if (u.giocoIcon) existing.giocoIcon = u.giocoIcon;
-                } else if (curGioco) {
-                    existing.gioco = curGioco;
+                // Estrai e unisci tutti i giochi senza duplicati
+                let curParts = (existing.gioco || '').split(' / ').map(s => normalizeGameName(s.trim())).filter(Boolean);
+                let newParts = (u.gioco || '').split(' / ').map(s => normalizeGameName(s.trim())).filter(Boolean);
+                let mergedSet = new Set([...curParts, ...newParts]);
+                mergedSet.delete('Hub');
+                mergedSet.delete('Ecosistema');
+                
+                if (existing.ruolo === 'admin' || isMemmo || String(existing.plan || '').includes('ecosistema')) {
+                    ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore"].forEach(g => mergedSet.add(g));
                 }
+                
+                existing.gioco = Array.from(mergedSet).join(' / ');
+                if (u.giocoColor) existing.giocoColor = u.giocoColor;
+                if (u.giocoIcon) existing.giocoIcon = u.giocoIcon;
                 const exNome = String(existing.nome || '');
                 const uNome = String(u.nome || '');
                 if ((exNome === 'Anonimo' || exNome === '' || exNome.startsWith('Utente')) && uNome && uNome !== 'Anonimo' && !uNome.startsWith('Utente')) {
@@ -499,6 +560,7 @@ const CrossProjectsService = {
             fanta: fantaUsers.length,
             palestra: palestraUsers.length,
             ops: opsUsers.length,
+            oratore: deduplicatedUsers.filter(u => String(u.gioco || '').toLowerCase().includes('oratore')).length,
             studenti: cStudenti,
             docenti: cDocenti,
             viandanti: cViandanti,
@@ -644,6 +706,14 @@ const CrossProjectsService = {
                 apiKey: "AIzaSyD_8P554hXaLhzQC8cTpIggkQtUrmK4xVY",
                 prefix: "ops_",
                 collections: ['users', 'classes', 'progress', 'archives', 'settings', 'game_sessions']
+            },
+            {
+                name: "L'Oratore",
+                key: "oratore",
+                appName: "Oratore",
+                projectId: "l-oratore",
+                prefix: "oratore_",
+                collections: ['users', 'settings', 'hub_didactic_overrides']
             }
         ];
 

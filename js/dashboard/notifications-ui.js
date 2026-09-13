@@ -25,7 +25,8 @@ const NotificationsUI = {
                     { name: 'La Rotta degli Eroi' },
                     { name: 'La Corte della Commedia' },
                     { name: 'Palestra di Riflessione' },
-                    { name: 'Ops! Operazione Storia' }
+                    { name: 'Ops! Operazione Storia' },
+                    { name: "L'Oratore" }
                 ];
             }
 

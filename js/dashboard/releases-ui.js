@@ -73,6 +73,16 @@ const ReleasesUI = {
             icon: 'fa-landmark',
             color: '#ef4444',
             description: 'Gioco storico per la scuola secondaria di primo grado.'
+        },
+        {
+            id: 'oratore',
+            name: "L'Oratore",
+            repo: 'l-oratore',
+            liveUrl: 'https://prof-memmo.github.io/l-oratore/',
+            previewUrl: 'https://prof-memmo.github.io/l-oratore/preview/',
+            icon: 'fa-microphone-lines',
+            color: '#d97706',
+            description: 'L\'arte del racconto e della retorica: sfida oratoria e debate a squadre per la classe.'
         }
     ],
 
