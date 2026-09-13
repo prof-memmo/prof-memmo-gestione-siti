@@ -209,8 +209,12 @@ const PortalApp = {
                     'palestra_riflessione': isPreview ? 'https://prof-memmo.github.io/palestra-di-riflessione/preview/' : 'https://prof-memmo.github.io/palestra-di-riflessione/',
                     'rotta_degli_eroi': isPreview ? 'https://prof-memmo.github.io/la-rotta-degli-eroi/preview/' : 'https://prof-memmo.github.io/la-rotta-degli-eroi/',
                     'corte_della_commedia': isPreview ? 'https://prof-memmo.github.io/la-corte-della-commedia/preview/' : 'https://prof-memmo.github.io/la-corte-della-commedia/',
+                    'ops_storia': isPreview ? 'https://prof-memmo.github.io/ops-storia/preview/' : 'https://prof-memmo.github.io/ops-storia/',
+                    'ops-storia': isPreview ? 'https://prof-memmo.github.io/ops-storia/preview/' : 'https://prof-memmo.github.io/ops-storia/',
                     'l_oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
-                    'oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/'
+                    'oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
+                    'prezzi': isPreview ? 'https://prof-memmo.github.io/games/preview/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html',
+                    'prezzi.html': isPreview ? 'https://prof-memmo.github.io/games/preview/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html'
                 };
                 if (gameMap[redirectTarget]) {
                     window.location.replace(gameMap[redirectTarget]);
