@@ -136,8 +136,9 @@ const UsersUI = {
 
             function getSafeAvatarUrl(avatar, isSuperAdminUser) {
                 const defaultAvatar = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
-                if (isSuperAdminUser && (!avatar || avatar === '1' || avatar === 'assets/avatars/1.png')) {
-                    return defaultAvatar;
+                const adminMagoAvatar = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/9.png';
+                if (isSuperAdminUser) {
+                    return adminMagoAvatar;
                 }
                 if (!avatar) return defaultAvatar;
                 const aStr = String(avatar).trim();
@@ -154,6 +155,7 @@ const UsersUI = {
             }
 
             const safeAvatar = getSafeAvatarUrl(user.avatar, isSuperAdmin);
+            const fallbackAvatar = isSuperAdmin ? 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/9.png' : 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
 
             // Semplifica e compatta la colonna gioco (badge interattivo con popover)
             let rawGioco = (user.gioco || 'Hub')
@@ -178,25 +180,26 @@ const UsersUI = {
             };
 
             let cleanGiocoHtml = '';
-            const safeUserId = String(user.id || 'u_' + Math.random()).replace(/[^a-zA-Z0-9_-]/g, '_');
-
-            if (gameParts.length >= 2) {
+            if (gameParts.length > 1) {
+                const mainBadge = gameParts[0];
+                const countOthers = gameParts.length - 1;
+                const safeUserId = String(user.id).replace(/[^a-zA-Z0-9]/g, '_');
+                
                 cleanGiocoHtml = `
                     <div style="position: relative; display: inline-block;">
-                        <button type="button" onclick="event.stopPropagation(); window.UsersUI.toggleGamePopover('${safeUserId}')" style="background: rgba(99,102,241,0.1); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.76rem; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.2)'" onmouseout="this.style.background='rgba(99,102,241,0.1)'" title="Clicca per visualizzare i ${gameParts.length} giochi">
-                            <i class="fa-solid fa-layer-group"></i> Multiscritto (${gameParts.length}) <i id="game-pop-icon-${safeUserId}" class="fa-solid fa-chevron-down" style="font-size: 0.65rem;"></i>
+                        <button type="button" onclick="window.UsersUI.toggleGamePopover('${safeUserId}')" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; border-radius: 6px; padding: 2px 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;">
+                            <span>${mainBadge}</span>
+                            <span style="background: #4f46e5; color: #ffffff; border-radius: 10px; padding: 1px 5px; font-size: 0.7rem;">+${countOthers}</span>
+                            <i class="fa-solid fa-chevron-down" id="game-pop-icon-${safeUserId}" style="font-size: 0.65rem;"></i>
                         </button>
-                        <div id="game-popover-${safeUserId}" class="game-popover-dropdown" style="display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 1000; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05); padding: 8px 10px; min-width: 210px; text-align: left;">
-                            <div style="font-size: 0.68rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: space-between;">
-                                <span>Piattaforme Attive (${gameParts.length}):</span>
-                                <i class="fa-solid fa-xmark" style="cursor: pointer; padding: 2px;" onclick="event.stopPropagation(); window.UsersUI.toggleGamePopover('${safeUserId}')"></i>
-                            </div>
+                        <div id="game-popover-${safeUserId}" class="game-popover-dropdown" style="display: none; position: absolute; top: calc(100% + 5px); left: 0; z-index: 1000; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 8px; min-width: 180px;">
+                            <div style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #f1f5f9;">Piattaforme abilitate</div>
                             <div style="display: flex; flex-direction: column; gap: 4px;">
-                                ${gameParts.map(gp => {
-                                    const meta = GAME_META[gp] || { name: gp, color: '#6366f1', icon: 'fa-gamepad' };
+                                ${gameParts.map(g => {
+                                    const meta = GAME_META[g] || { name: g, color: '#6366f1', icon: 'fa-gamepad' };
                                     return `
-                                        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 600; color: #1e293b; padding: 4px 8px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9;">
-                                            <i class="fa-solid ${meta.icon}" style="color: ${meta.color}; width: 14px; text-align: center;"></i>
+                                        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: ${meta.color}; padding: 3px 6px; border-radius: 4px; background: #f8fafc;">
+                                            <i class="fa-solid ${meta.icon}"></i>
                                             <span>${meta.name}</span>
                                         </div>
                                     `;
@@ -215,7 +218,7 @@ const UsersUI = {
                 <td style="text-align: center; padding: 6px 4px;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
                 <td style="padding: 6px 8px 6px 4px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="${safeAvatar}" alt="Avatar" onerror="this.onerror=null; this.src='https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; background: #ffffff; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <img src="${safeAvatar}" alt="Avatar" onerror="this.onerror=null; this.src='${fallbackAvatar}';" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cbd5e1; background: #ffffff; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                         <div style="min-width: 0; max-width: 240px;">
                             <strong style="font-size:0.88rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${user.nome}</strong>
                             <span style="font-size:0.78rem; color:var(--text-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${user.email}">${user.email}</span>

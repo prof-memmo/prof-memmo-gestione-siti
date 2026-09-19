@@ -177,7 +177,7 @@ const CrossProjectsService = {
                     // Aggiorna o unifica se già presente
                     const existing = usersMap.get(dedupeKey);
                     if (isMemmo) {
-                        existing.avatar = 'assets/avatars/6.png'; // Avatar del Mago garantito
+                        existing.avatar = 'assets/avatars/9.png'; // Avatar del Mago (9.png) garantito
                         existing.nome = 'Prof. Memmo';
                         existing.ruolo = 'admin';
                         existing.plan = 'docente_ecosistema';
@@ -193,7 +193,7 @@ const CrossProjectsService = {
                         citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
                         scuola: finalScuola,
                         anagrafica: data.anagrafica || {},
-                        avatar: isMemmo ? 'assets/avatars/6.png' : (data.avatar || data.photoURL || data.foto || 'assets/avatars/6.png'),
+                        avatar: isMemmo ? 'assets/avatars/9.png' : (data.avatar || data.photoURL || data.foto || 'assets/avatars/6.png'),
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
                         gioco: userGiochi.length > 0 ? userGiochi.join(' / ') : 'Ecosistema',
                         giocoColor: '#6366f1',
