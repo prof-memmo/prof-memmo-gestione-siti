@@ -718,7 +718,15 @@
 
       <div class="glass-panel">
         <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-          <h3 style="color:var(--text-main); margin:0;">Tabella Iscritti Multi-Sito</h3>
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <h3 style="color:var(--text-main); margin:0;">Tabella Iscritti Multi-Sito</h3>
+            <button id="btn-purge-google-students" class="btn" onclick="window.UsersUI.purgeGoogleStudentsAction()" style="background: #ef4444; color: white; border: none; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-broom"></i> Pulizia Studenti Google (GDPR)
+            </button>
+            <button id="btn-seed-sandbox-class" class="btn" onclick="window.UsersUI.seedSandboxClassAction()" style="background: #6366f1; color: white; border: none; font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-flask"></i> Inizializza Sandbox (TEST-MEMMO)
+            </button>
+          </div>
           <div style="display: none; align-items: center; gap: 10px; flex-wrap: wrap;" id="bulk-actions-container">
             <span style="font-size: 0.85rem; font-weight: 700; color: #1e40af; background: #eff6ff; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 8px;" id="bulk-selected-badge">
               <span id="bulk-selected-count">0</span> selezionati

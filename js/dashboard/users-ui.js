@@ -1005,6 +1005,78 @@ const UsersUI = {
         if (icon) {
             icon.className = isVisible ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
         }
+    },
+
+    purgeGoogleStudentsAction: async function() {
+        if (!confirm("⚠️ SEI SICURO DI VOLER ELIMINARE TUTTI GLI STUDENTI GOOGLE?\n\nQuesta operazione rimuoverà dal database tutti i vecchi account studente registrati con Google/Email personale per conformità GDPR e azzererà la tabella multiscritto.")) return;
+        
+        const btn = document.getElementById('btn-purge-google-students');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Pulizia in corso...';
+        }
+        
+        try {
+            const db = firebase.firestore();
+            const snap = await db.collection('hub_users').where('role', '==', 'studente').get();
+            let count = 0;
+            for (const doc of snap.docs) {
+                const u = doc.data() || {};
+                const email = (u.email || '').toLowerCase();
+                const isGoogleOrEmail = email.includes('@') && !email.endsWith('@studenti.prof-memmo.local');
+                if (isGoogleOrEmail) {
+                    await db.collection('hub_users').doc(doc.id).delete();
+                    count++;
+                }
+            }
+            alert(`✅ Pulizia completata con successo! Rimossi ${count} record studente.`);
+            if (window.HubApp && window.HubApp.loadIscritti) {
+                window.HubApp.loadIscritti();
+            } else {
+                location.reload();
+            }
+        } catch (e) {
+            console.error("Errore pulizia studenti Google:", e);
+            alert("Errore durante la pulizia: " + e.message);
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-broom"></i> Pulizia Studenti Google';
+            }
+        }
+    },
+
+    seedSandboxClassAction: async function() {
+        if (!confirm("Vuoi creare o resettare la classe Sandbox 'TEST-MEMMO' su Firestore per l'Admin?")) return;
+        try {
+            const db = firebase.firestore();
+            const sandboxData = {
+                id: "test_class_prof_memmo",
+                name: "Classe Demo Test (Sandbox)",
+                code: "TEST-MEMMO",
+                isTest: true,
+                school: "Laboratorio Sperimentale Prof. Memmo",
+                city: "Roma",
+                teacherId: "prof.memmo@gmail.com",
+                teacherIds: ["prof.memmo@gmail.com"],
+                teacherEmail: "prof.memmo@gmail.com",
+                collaboratori: ["prof.aurora.test@gmail.com", "prof.dante.test@gmail.com"],
+                students: [
+                    { studentId: "s1", name: "Mario Rossi", nickname: "SuperMario", avatar: "1.png", claimed: true, studentAuthUid: "std_test_s1" },
+                    { studentId: "s2", name: "Lucia Bianchi", nickname: "Luce", avatar: "2.png", claimed: true, studentAuthUid: "std_test_s2" },
+                    { studentId: "s3", name: "Achille Esposito", nickname: "AchillePieVeloce", avatar: "3.png", claimed: true, studentAuthUid: "std_test_s3" },
+                    { studentId: "s4", name: "Beatrice Portinari", nickname: "Bice", avatar: "4.png", claimed: true, studentAuthUid: "std_test_s4" },
+                    { studentId: "s5", name: "Francesco Tasso", nickname: "IlPoeta", avatar: "5.png", claimed: true, studentAuthUid: "std_test_s5" },
+                    { studentId: "s6", name: "Elena Greco", nickname: "Spartana", avatar: "6.png", claimed: true, studentAuthUid: "std_test_s6" }
+                ],
+                createdAt: new Date().toISOString()
+            };
+            await db.collection('hub_classes').doc("test_class_prof_memmo").set(sandboxData, { merge: true });
+            alert("✅ Classe Sandbox 'TEST-MEMMO' inizializzata con successo su Firestore!");
+        } catch (e) {
+            console.error("Errore inizializzazione sandbox:", e);
+            alert("Errore inizializzazione sandbox: " + e.message);
+        }
     }
 };
 
