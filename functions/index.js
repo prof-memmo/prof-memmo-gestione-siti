@@ -1552,4 +1552,66 @@ exports.addStudentToRoster = functions.runWith({
     }
 });
 
+/**
+ * 6. Cloud Function: purgeGoogleStudents
+ * Elimina in blocco i vecchi account studente registrati con Google/Email personale.
+ * Riservata esclusivamente all'Amministratore (prof.memmo@gmail.com).
+ */
+exports.purgeGoogleStudents = functions.https.onCall(async (data, context) => {
+    try {
+        if (!context.auth || !context.auth.token || !context.auth.token.email || context.auth.token.email.toLowerCase() !== "prof.memmo@gmail.com") {
+            throw new functions.https.HttpsError("permission-denied", "Solo l'amministratore (prof.memmo@gmail.com) può eseguire la pulizia degli studenti Google.");
+        }
+
+        const report = {
+            deletedFromHub: 0,
+            deletedFromAuth: 0,
+            deletedFromGames: 0
+        };
+
+        const studentsSnap = await db.collection("hub_users").where("role", "==", "studente").get();
+
+        for (const doc of studentsSnap.docs) {
+            const u = doc.data() || {};
+            const uid = doc.id;
+            const email = (u.email || "").toLowerCase();
+
+            // Se lo studente ha un account Google / email personale (non il formato sintetico roster)
+            const isGoogleOrPersonalEmail = email.includes("@") && !email.endsWith("@studenti.prof-memmo.local");
+
+            if (isGoogleOrPersonalEmail) {
+                // 1. Elimina da hub_users
+                await db.collection("hub_users").doc(uid).delete();
+                report.deletedFromHub++;
+
+                // 2. Elimina dalle collezioni dei singoli giochi
+                if (email) {
+                    await db.collection("fanta_users").doc(email).delete().catch(() => {});
+                }
+                await db.collection("eroi_users").doc(uid).delete().catch(() => {});
+                await db.collection("palestra_users").doc(uid).delete().catch(() => {});
+                await db.collection("corte_users").doc(uid).delete().catch(() => {});
+                report.deletedFromGames++;
+
+                // 3. Elimina l'utente da Firebase Auth
+                try {
+                    await admin.auth().deleteUser(uid);
+                    report.deletedFromAuth++;
+                } catch (_) {}
+            }
+        }
+
+        console.log("🧹 Pulizia account studenti Google completata:", report);
+        return {
+            success: true,
+            report: report
+        };
+    } catch (err) {
+        console.error("Errore purgeGoogleStudents:", err);
+        if (err instanceof functions.https.HttpsError) throw err;
+        throw new functions.https.HttpsError("internal", "Errore durante la pulizia studenti: " + err.message);
+    }
+});
+
+
 
