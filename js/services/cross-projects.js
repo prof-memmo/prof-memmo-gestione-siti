@@ -129,7 +129,9 @@ const CrossProjectsService = {
             console.warn("Hub classes fetch error:", e);
         }
 
-        // 2. Fetch Utenti Centrali Unificati (hub_users)
+        // 2. Fetch Utenti Centrali Unificati (hub_users) con deduplicazione rigorosa per email/account
+        const usersMap = new Map();
+
         try {
             const snapHub = await window.fbDb.hub.collection("hub_users").get();
             snapHub.forEach(doc => {
@@ -169,32 +171,47 @@ const CrossProjectsService = {
                     scuoleSet.add(finalScuola.toLowerCase());
                 }
 
-                hubUsers.push({
-                    id: doc.id,
-                    nome: isMemmo ? 'Prof. Memmo' : (nomeStr.trim() || 'Utente'),
-                    email: isMemmo ? 'prof.memmo@gmail.com' : (data.email || ''),
-                    ruolo: userRole,
-                    statusAccount: data.statusAccount || data.statoAccount || 'active',
-                    classe: data.classId || data.classe || data.class || 'N/A',
-                    citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
-                    scuola: finalScuola,
-                    anagrafica: data.anagrafica || {},
-                    avatar: data.avatar || data.photoURL || data.foto || 'assets/avatars/6.png',
-                    dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
-                    gioco: userGiochi.length > 0 ? userGiochi.join(' / ') : 'Ecosistema',
-                    giocoColor: '#6366f1',
-                    giocoIcon: 'fa-globe',
-                    plan: userPlan,
-                    admin_override: data.admin_override === true || data.adminOverride === true,
-                    abbonamento_scadenza: data.abbonamento_scadenza || data.scadenza || '',
-                    isHubMaster: true,
-                    newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
-                    consents: data.consents || (data.newsletter ? { newsletter: true } : {})
-                });
+                const dedupeKey = isMemmo ? 'prof.memmo@gmail.com' : (emailKey || doc.id);
+
+                if (usersMap.has(dedupeKey)) {
+                    // Aggiorna o unifica se già presente
+                    const existing = usersMap.get(dedupeKey);
+                    if (isMemmo) {
+                        existing.avatar = 'assets/avatars/6.png'; // Avatar del Mago garantito
+                        existing.nome = 'Prof. Memmo';
+                        existing.ruolo = 'admin';
+                        existing.plan = 'docente_ecosistema';
+                    }
+                } else {
+                    usersMap.set(dedupeKey, {
+                        id: isMemmo ? 'prof_memmo_admin' : doc.id,
+                        nome: isMemmo ? 'Prof. Memmo' : (nomeStr.trim() || 'Utente'),
+                        email: isMemmo ? 'prof.memmo@gmail.com' : (data.email || ''),
+                        ruolo: userRole,
+                        statusAccount: data.statusAccount || data.statoAccount || 'active',
+                        classe: data.classId || data.classe || data.class || 'N/A',
+                        citta: data.citta || data.city || (data.anagrafica && data.anagrafica.citta) || '',
+                        scuola: finalScuola,
+                        anagrafica: data.anagrafica || {},
+                        avatar: isMemmo ? 'assets/avatars/6.png' : (data.avatar || data.photoURL || data.foto || 'assets/avatars/6.png'),
+                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
+                        gioco: userGiochi.length > 0 ? userGiochi.join(' / ') : 'Ecosistema',
+                        giocoColor: '#6366f1',
+                        giocoIcon: 'fa-globe',
+                        plan: userPlan,
+                        admin_override: data.admin_override === true || data.adminOverride === true,
+                        abbonamento_scadenza: data.abbonamento_scadenza || data.scadenza || '',
+                        isHubMaster: true,
+                        newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
+                        consents: data.consents || (data.newsletter ? { newsletter: true } : {})
+                    });
+                }
             });
         } catch(e) {
             console.warn("Hub users fetch error:", e);
         }
+
+        hubUsers = Array.from(usersMap.values());
 
         hubUsers.sort((a, b) => (b.dataValue || 0) - (a.dataValue || 0));
 
