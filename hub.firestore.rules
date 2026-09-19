@@ -54,6 +54,24 @@ service cloud.firestore {
       // Eliminazione: L'utente può eliminare il proprio profilo (GDPR), oppure l'amministratore.
       allow delete: if isOwner(userId) || isAdmin();
     }
+
+    // ==============================================================
+    // CLASSI E ROSTER CENTRALI DELL'ECOSISTEMA (hub_classes)
+    // ==============================================================
+    match /hub_classes/{classId} {
+      allow read: if request.auth != null || isAdmin();
+      allow create: if request.auth != null && (request.resource.data.teacherId == request.auth.uid || isAdmin());
+      allow update: if isAdmin() || (request.auth != null && (
+        resource.data.teacherId == request.auth.uid ||
+        (resource.data.teacherIds != null && resource.data.teacherIds.hasAny([request.auth.uid])) ||
+        (resource.data.teacherEmail != null && resource.data.teacherEmail.lower() == currentUserEmail()) ||
+        (resource.data.collaboratori != null && resource.data.collaboratori.hasAny([currentUserEmail()]))
+      ));
+      allow delete: if isAdmin() || (request.auth != null && (
+        resource.data.teacherId == request.auth.uid ||
+        (resource.data.teacherEmail != null && resource.data.teacherEmail.lower() == currentUserEmail())
+      ));
+    }
     
     // ==============================================================
     // STRUMENTI E IMPOSTAZIONI HUB (Esclusivi per l'Amministratore)

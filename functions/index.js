@@ -742,6 +742,12 @@ exports.onUserWriteSyncBrevo = functions.runWith({
     const email = (afterData.email || "").toLowerCase().trim();
     if (!email || !email.includes("@")) return null;
 
+    // Se l'utente è uno studente o un minore, escludi categoricamente da Brevo
+    const afterRole = getNormalizedRole(afterData);
+    if (afterRole === "studente" || afterData.role === "studente" || afterData.ruolo === "studente") {
+        return null;
+    }
+
     const hasConsentAfter = afterData.newsletter === true || (afterData.consents && afterData.consents.newsletter === true);
     const hasConsentBefore = beforeData ? (beforeData.newsletter === true || (beforeData.consents && beforeData.consents.newsletter === true)) : false;
 
@@ -1085,4 +1091,465 @@ exports.triggerReleaseAction = functions.runWith({
         throw new functions.https.HttpsError("internal", outerErr.message || "Errore sconosciuto durante il rilascio.");
     }
 });
+
+// =========================================================================
+// GESTIONE ROSTER CLASSI E ACCESSO AUTORITATIVO STUDENTI (CLAIMING)
+// =========================================================================
+
+/**
+ * 1. getRosterForClaiming
+ * Restituisce i dati minimi per il claiming iniziale della classe:
+ * - Nome classe, scuola
+ * - Lista degli studenti NON ancora attivati (claimed: false) con solo studentId e name.
+ */
+exports.getRosterForClaiming = functions.runWith({
+    maxInstances: 10,
+    timeoutSeconds: 15,
+    memory: "128MB"
+}).https.onCall(async (data, context) => {
+    const classCode = (data && data.classCode ? String(data.classCode) : "").trim().toUpperCase();
+    if (!classCode) {
+        throw new functions.https.HttpsError("invalid-argument", "Codice classe mancante o non valido.");
+    }
+
+    try {
+        const snap = await db.collection("hub_classes")
+            .where("code", "==", classCode)
+            .limit(1)
+            .get();
+
+        if (snap.empty) {
+            throw new functions.https.HttpsError("not-found", "Nessuna classe trovata con il codice specificato.");
+        }
+
+        const classDoc = snap.docs[0];
+        const classData = classDoc.data() || {};
+        const students = Array.isArray(classData.students) ? classData.students : [];
+
+        // Filtra solo gli studenti non ancora reclamati per il primo accesso
+        const unclaimed = students
+            .filter(s => s && s.claimed !== true)
+            .map(s => ({
+                studentId: s.studentId,
+                name: s.name || "Studente"
+            }));
+
+        // Restituisce anche l'elenco degli studenti già attivati per il login successivo
+        const claimed = students
+            .filter(s => s && s.claimed === true)
+            .map(s => ({
+                studentId: s.studentId,
+                name: s.name || "Studente",
+                nickname: s.nickname || s.name || "Studente",
+                avatar: s.avatar || "assets/avatars/6.png"
+            }));
+
+        return {
+            classId: classDoc.id,
+            className: classData.name || "",
+            school: classData.school || "",
+            city: classData.city || "",
+            teacherId: classData.teacherId || (classData.teacherIds ? classData.teacherIds[0] : ""),
+            unclaimedStudents: unclaimed,
+            claimedStudents: claimed
+        };
+    } catch (err) {
+        console.error("Errore getRosterForClaiming:", err);
+        if (err instanceof functions.https.HttpsError) throw err;
+        throw new functions.https.HttpsError("internal", "Errore durante il recupero della classe: " + err.message);
+    }
+});
+
+/**
+ * 2. claimStudentSlot
+ * Esegue il primo accesso dello studente:
+ * - Valida lo slot
+ * - Crea virtual Firebase Auth user con password e Custom Claims
+ * - Aggiorna lo slot in hub_classes
+ * - Restituisce il Custom Token
+ */
+exports.claimStudentSlot = functions.runWith({
+    maxInstances: 10,
+    timeoutSeconds: 20,
+    memory: "128MB"
+}).https.onCall(async (data, context) => {
+    const classCode = (data && data.classCode ? String(data.classCode) : "").trim().toUpperCase();
+    const studentId = (data && data.studentId ? String(data.studentId) : "").trim();
+    const nickname = (data && data.nickname ? String(data.nickname) : "").trim();
+    const password = (data && data.password ? String(data.password) : "").trim();
+    const avatar = (data && data.avatar ? String(data.avatar) : "assets/avatars/6.png").trim();
+
+    if (!classCode || !studentId || !nickname || !password) {
+        throw new functions.https.HttpsError("invalid-argument", "Dati obbligatori mancanti (codice classe, studente, nickname o password).");
+    }
+
+    if (password.length < 6) {
+        throw new functions.https.HttpsError("invalid-argument", "La password deve contenere almeno 6 caratteri.");
+    }
+
+    try {
+        const snap = await db.collection("hub_classes")
+            .where("code", "==", classCode)
+            .limit(1)
+            .get();
+
+        if (snap.empty) {
+            throw new functions.https.HttpsError("not-found", "Classe non trovata.");
+        }
+
+        const classDocRef = snap.docs[0].ref;
+        let claimedStudent = null;
+        let classDocId = snap.docs[0].id;
+        let className = "";
+        let primaryTeacherId = "";
+
+        // Esegui in transazione
+        await db.runTransaction(async (transaction) => {
+            const classSnap = await transaction.get(classDocRef);
+            if (!classSnap.exists) {
+                throw new functions.https.HttpsError("not-found", "Classe non trovata.");
+            }
+
+            const cData = classSnap.data() || {};
+            classDocId = classSnap.id;
+            className = cData.name || "";
+            primaryTeacherId = cData.teacherId || (cData.teacherIds ? cData.teacherIds[0] : "");
+            const students = Array.isArray(cData.students) ? [...cData.students] : [];
+
+            const sIdx = students.findIndex(s => s && s.studentId === studentId);
+            if (sIdx === -1) {
+                throw new functions.https.HttpsError("not-found", "Studente non trovato nel roster della classe.");
+            }
+
+            if (students[sIdx].claimed === true) {
+                throw new functions.https.HttpsError("already-exists", "Questo profilo studente è già stato attivato. Inserisci la password per accedere.");
+            }
+
+            const virtualUid = `stud_${classDocId}_${studentId}`;
+            const virtualEmail = `${virtualUid}@studente.profmemmo.it`;
+
+            // Aggiorna array
+            students[sIdx] = {
+                ...students[sIdx],
+                claimed: true,
+                nickname: nickname,
+                avatar: avatar,
+                studentAuthUid: virtualUid,
+                virtualEmail: virtualEmail,
+                claimedAt: new Date().toISOString()
+            };
+
+            claimedStudent = students[sIdx];
+
+            transaction.update(classDocRef, {
+                students: students,
+                lastUpdated: new Date().toISOString()
+            });
+        });
+
+        const virtualUid = `stud_${classDocId}_${studentId}`;
+        const virtualEmail = `${virtualUid}@studente.profmemmo.it`;
+
+        // Crea o aggiorna l'utente Auth
+        try {
+            await admin.auth().getUser(virtualUid);
+            await admin.auth().updateUser(virtualUid, {
+                password: password,
+                displayName: nickname,
+                email: virtualEmail
+            });
+        } catch (authNotFound) {
+            await admin.auth().createUser({
+                uid: virtualUid,
+                email: virtualEmail,
+                password: password,
+                displayName: nickname
+            });
+        }
+
+        // Imposta Custom Claims per le Security Rules
+        const customClaims = {
+            role: "studente",
+            classId: classDocId,
+            studentId: studentId,
+            teacherId: primaryTeacherId
+        };
+        await admin.auth().setCustomUserClaims(virtualUid, customClaims);
+
+        // Genera Custom Token
+        const customToken = await admin.auth().createCustomToken(virtualUid, customClaims);
+
+        console.log(`✅ Studente ${studentId} (${nickname}) attivato con successo nella classe ${classDocId}`);
+
+        return {
+            success: true,
+            customToken: customToken,
+            student: {
+                studentId: studentId,
+                name: claimedStudent.name,
+                nickname: nickname,
+                avatar: avatar,
+                classId: classDocId,
+                className: className,
+                role: "studente"
+            }
+        };
+    } catch (err) {
+        console.error("Errore claimStudentSlot:", err);
+        if (err instanceof functions.https.HttpsError) throw err;
+        throw new functions.https.HttpsError("internal", "Errore durante l'attivazione: " + err.message);
+    }
+});
+
+/**
+ * 3. studentLogin
+ * Permette l'accesso successivo dello studente con Codice Classe + StudentId (o Nickname) + Password:
+ * - Valida le credenziali e restituisce il Custom Token
+ */
+exports.studentLogin = functions.runWith({
+    maxInstances: 10,
+    timeoutSeconds: 15,
+    memory: "128MB"
+}).https.onCall(async (data, context) => {
+    const classCode = (data && data.classCode ? String(data.classCode) : "").trim().toUpperCase();
+    const studentId = (data && data.studentId ? String(data.studentId) : "").trim();
+    const password = (data && data.password ? String(data.password) : "").trim();
+
+    if (!classCode || !studentId || !password) {
+        throw new functions.https.HttpsError("invalid-argument", "Codice classe, identificativo studente e password sono obbligatori.");
+    }
+
+    try {
+        const snap = await db.collection("hub_classes")
+            .where("code", "==", classCode)
+            .limit(1)
+            .get();
+
+        if (snap.empty) {
+            throw new functions.https.HttpsError("not-found", "Classe non trovata.");
+        }
+
+        const classDoc = snap.docs[0];
+        const classData = classDoc.data() || {};
+        const students = Array.isArray(classData.students) ? classData.students : [];
+
+        const student = students.find(s => s && s.studentId === studentId);
+        if (!student) {
+            throw new functions.https.HttpsError("not-found", "Studente non trovato nella classe.");
+        }
+
+        if (!student.claimed || !student.studentAuthUid) {
+            throw new functions.https.HttpsError("failed-precondition", "Questo profilo non è ancora stato attivato. Esegui la prima attivazione.");
+        }
+
+        const virtualUid = student.studentAuthUid;
+        const virtualEmail = student.virtualEmail || `${virtualUid}@studente.profmemmo.it`;
+        const primaryTeacherId = classData.teacherId || (classData.teacherIds ? classData.teacherIds[0] : "");
+
+        // Assicura che i custom claims siano aggiornati
+        const customClaims = {
+            role: "studente",
+            classId: classDoc.id,
+            studentId: studentId,
+            teacherId: primaryTeacherId
+        };
+        await admin.auth().setCustomUserClaims(virtualUid, customClaims);
+
+        // Genera Custom Token
+        const customToken = await admin.auth().createCustomToken(virtualUid, customClaims);
+
+        return {
+            success: true,
+            customToken: customToken,
+            virtualEmail: virtualEmail,
+            student: {
+                studentId: studentId,
+                name: student.name,
+                nickname: student.nickname || student.name,
+                avatar: student.avatar || "assets/avatars/6.png",
+                classId: classDoc.id,
+                className: classData.name,
+                role: "studente"
+            }
+        };
+    } catch (err) {
+        console.error("Errore studentLogin:", err);
+        if (err instanceof functions.https.HttpsError) throw err;
+        throw new functions.https.HttpsError("internal", "Errore durante l'accesso studente: " + err.message);
+    }
+});
+
+/**
+ * 4. resetStudentSlot
+ * Riservata al docente: resetta lo slot dello studente se ha dimenticato la password
+ */
+exports.resetStudentSlot = functions.runWith({
+    maxInstances: 5,
+    timeoutSeconds: 15,
+    memory: "128MB"
+}).https.onCall(async (data, context) => {
+    if (!context.auth || !context.auth.uid) {
+        throw new functions.https.HttpsError("unauthenticated", "È necessario essere autenticati.");
+    }
+
+    const classId = (data && data.classId ? String(data.classId) : "").trim();
+    const studentId = (data && data.studentId ? String(data.studentId) : "").trim();
+
+    if (!classId || !studentId) {
+        throw new functions.https.HttpsError("invalid-argument", "ID classe o ID studente mancante.");
+    }
+
+    try {
+        const classRef = db.collection("hub_classes").doc(classId);
+        const classDoc = await classRef.get();
+
+        if (!classDoc.exists) {
+            throw new functions.https.HttpsError("not-found", "Classe non trovata.");
+        }
+
+        const classData = classDoc.data() || {};
+        const isOwner = classData.teacherId === context.auth.uid;
+        const isCollaborator = Array.isArray(classData.teacherIds) && classData.teacherIds.includes(context.auth.uid);
+        const isAdmin = context.auth.token.role === "admin" || (context.auth.token.email && context.auth.token.email.toLowerCase() === "prof.memmo@gmail.com");
+
+        if (!isOwner && !isCollaborator && !isAdmin) {
+            throw new functions.https.HttpsError("permission-denied", "Non hai i permessi per gestire questa classe.");
+        }
+
+        let virtualUidToDelete = null;
+
+        await db.runTransaction(async (transaction) => {
+            const snap = await transaction.get(classRef);
+            const cData = snap.data() || {};
+            const students = Array.isArray(cData.students) ? [...cData.students] : [];
+
+            const idx = students.findIndex(s => s && s.studentId === studentId);
+            if (idx === -1) {
+                throw new functions.https.HttpsError("not-found", "Studente non trovato nella classe.");
+            }
+
+            virtualUidToDelete = students[idx].studentAuthUid;
+
+            students[idx] = {
+                studentId: students[idx].studentId,
+                name: students[idx].name,
+                claimed: false,
+                nickname: null,
+                avatar: null,
+                studentAuthUid: null,
+                virtualEmail: null,
+                claimedAt: null
+            };
+
+            transaction.update(classRef, {
+                students: students,
+                lastUpdated: new Date().toISOString()
+            });
+        });
+
+        // Elimina virtual auth user se presente
+        if (virtualUidToDelete) {
+            try {
+                await admin.auth().deleteUser(virtualUidToDelete);
+            } catch (e) {
+                console.warn(`Avviso cancellazione Auth user ${virtualUidToDelete}:`, e.message);
+            }
+        }
+
+        console.log(`🔄 Slot studente ${studentId} resettato per la classe ${classId} da ${context.auth.uid}`);
+
+        return {
+            success: true,
+            message: "Slot studente reimpostato. L'alunno può ora attivare nuovamente il profilo."
+        };
+    } catch (err) {
+        console.error("Errore resetStudentSlot:", err);
+        if (err instanceof functions.https.HttpsError) throw err;
+        throw new functions.https.HttpsError("internal", "Errore durante il reset: " + err.message);
+    }
+});
+
+/**
+ * 5. addStudentToRoster
+ * Permette al docente di aggiungere un nuovo studente al roster di una classe esistente
+ */
+exports.addStudentToRoster = functions.runWith({
+    maxInstances: 5,
+    timeoutSeconds: 15,
+    memory: "128MB"
+}).https.onCall(async (data, context) => {
+    if (!context.auth || !context.auth.uid) {
+        throw new functions.https.HttpsError("unauthenticated", "È necessario essere autenticati.");
+    }
+
+    const classId = (data && data.classId ? String(data.classId) : "").trim();
+    const studentName = (data && data.name ? String(data.name) : "").trim();
+
+    if (!classId || !studentName) {
+        throw new functions.https.HttpsError("invalid-argument", "ID classe o nome studente mancante.");
+    }
+
+    try {
+        const classRef = db.collection("hub_classes").doc(classId);
+        const classDoc = await classRef.get();
+
+        if (!classDoc.exists) {
+            throw new functions.https.HttpsError("not-found", "Classe non trovata.");
+        }
+
+        const classData = classDoc.data() || {};
+        const isOwner = classData.teacherId === context.auth.uid;
+        const isCollaborator = Array.isArray(classData.teacherIds) && classData.teacherIds.includes(context.auth.uid);
+        const isAdmin = context.auth.token.role === "admin" || (context.auth.token.email && context.auth.token.email.toLowerCase() === "prof.memmo@gmail.com");
+
+        if (!isOwner && !isCollaborator && !isAdmin) {
+            throw new functions.https.HttpsError("permission-denied", "Non hai i permessi per gestire questa classe.");
+        }
+
+        let newStudentObj = null;
+
+        await db.runTransaction(async (transaction) => {
+            const snap = await transaction.get(classRef);
+            const cData = snap.data() || {};
+            const students = Array.isArray(cData.students) ? [...cData.students] : [];
+
+            // Genera ID progressivo univoco es: s1, s2, ...
+            const existingNums = students
+                .map(s => parseInt((s.studentId || "").replace(/\D/g, ""), 10))
+                .filter(n => !isNaN(n));
+            const nextNum = existingNums.length > 0 ? Math.max(...existingNums) + 1 : students.length + 1;
+            const newStudentId = `s${nextNum}`;
+
+            newStudentObj = {
+                studentId: newStudentId,
+                name: studentName,
+                claimed: false,
+                nickname: null,
+                avatar: null,
+                studentAuthUid: null,
+                virtualEmail: null,
+                claimedAt: null
+            };
+
+            students.push(newStudentObj);
+
+            transaction.update(classRef, {
+                students: students,
+                lastUpdated: new Date().toISOString()
+            });
+        });
+
+        console.log(`➕ Aggiunto studente ${studentName} (${newStudentObj.studentId}) alla classe ${classId}`);
+
+        return {
+            success: true,
+            student: newStudentObj
+        };
+    } catch (err) {
+        console.error("Errore addStudentToRoster:", err);
+        if (err instanceof functions.https.HttpsError) throw err;
+        throw new functions.https.HttpsError("internal", "Errore durante l'aggiunta dello studente: " + err.message);
+    }
+});
+
 

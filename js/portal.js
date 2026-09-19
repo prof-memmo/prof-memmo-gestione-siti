@@ -1,6 +1,9 @@
 const PortalApp = {
     user: null,
     profile: null,
+    currentStudentClassCode: null,
+    currentClassData: null,
+    selectedStudentClaimAvatar: 'assets/avatars/6.png',
 
     init: function() {
         // Initialize Auth Service
@@ -9,6 +12,21 @@ const PortalApp = {
         } else {
             this.showError("Errore di inizializzazione Firebase.");
             return;
+        }
+
+        // Check if student code is passed via URL query parameter ?code=...
+        const urlParams = new URLSearchParams(window.location.search);
+        const codeParam = urlParams.get('code') || urlParams.get('classCode');
+        const roleParam = urlParams.get('role');
+        if (codeParam) {
+            this.switchPortalMode('studente');
+            const codeInput = document.getElementById('student-code-input');
+            if (codeInput) {
+                codeInput.value = codeParam.toUpperCase();
+                this.searchStudentClass();
+            }
+        } else if (roleParam === 'studente') {
+            this.switchPortalMode('studente');
         }
 
         // Listen for Auth changes
@@ -30,6 +48,313 @@ const PortalApp = {
                 if (onboarding) onboarding.style.display = 'none';
             }
         });
+    },
+
+    // --- Mode & Tab Controls ---
+
+    switchPortalMode: function(mode) {
+        this.hideError();
+        const tabDocente = document.getElementById('tab-nav-docente');
+        const tabStudente = document.getElementById('tab-nav-studente');
+        const secDocente = document.getElementById('section-docente');
+        const secStudente = document.getElementById('section-studente');
+
+        if (mode === 'studente') {
+            if (tabDocente) {
+                tabDocente.classList.remove('active');
+                tabDocente.style.background = 'transparent';
+                tabDocente.style.color = '#475569';
+                tabDocente.style.boxShadow = 'none';
+            }
+            if (tabStudente) {
+                tabStudente.classList.add('active');
+                tabStudente.style.background = '#ffffff';
+                tabStudente.style.color = '#4f46e5';
+                tabStudente.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+            }
+            if (secDocente) secDocente.style.display = 'none';
+            if (secStudente) secStudente.style.display = 'block';
+        } else {
+            if (tabStudente) {
+                tabStudente.classList.remove('active');
+                tabStudente.style.background = 'transparent';
+                tabStudente.style.color = '#475569';
+                tabStudente.style.boxShadow = 'none';
+            }
+            if (tabDocente) {
+                tabDocente.classList.add('active');
+                tabDocente.style.background = '#ffffff';
+                tabDocente.style.color = '#4f46e5';
+                tabDocente.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+            }
+            if (secStudente) secStudente.style.display = 'none';
+            if (secDocente) secDocente.style.display = 'block';
+        }
+    },
+
+    switchStudentSubTab: function(subTab) {
+        this.hideError();
+        const btnClaim = document.getElementById('subtab-claim');
+        const btnLogin = document.getElementById('subtab-login');
+        const viewClaim = document.getElementById('subview-student-claim');
+        const viewLogin = document.getElementById('subview-student-login');
+
+        if (subTab === 'claim') {
+            if (btnClaim) {
+                btnClaim.style.background = '#ffffff';
+                btnClaim.style.color = 'var(--accent, #4f46e5)';
+                btnClaim.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+            }
+            if (btnLogin) {
+                btnLogin.style.background = 'transparent';
+                btnLogin.style.color = '#64748b';
+                btnLogin.style.boxShadow = 'none';
+            }
+            if (viewClaim) viewClaim.style.display = 'block';
+            if (viewLogin) viewLogin.style.display = 'none';
+        } else {
+            if (btnLogin) {
+                btnLogin.style.background = '#ffffff';
+                btnLogin.style.color = 'var(--accent, #4f46e5)';
+                btnLogin.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+            }
+            if (btnClaim) {
+                btnClaim.style.background = 'transparent';
+                btnClaim.style.color = '#64748b';
+                btnClaim.style.boxShadow = 'none';
+            }
+            if (viewClaim) viewClaim.style.display = 'none';
+            if (viewLogin) viewLogin.style.display = 'block';
+        }
+    },
+
+    selectStudentClaimAvatar: function(el, avatarPath) {
+        this.selectedStudentClaimAvatar = avatarPath || 'assets/avatars/6.png';
+        const grid = document.getElementById('student-claim-avatar-grid');
+        if (grid) {
+            grid.querySelectorAll('.avatar-choice-item').forEach(item => item.classList.remove('selected'));
+        }
+        if (el) {
+            el.classList.add('selected');
+        }
+    },
+
+    resetStudentCodeStep: function() {
+        this.hideError();
+        this.currentStudentClassCode = null;
+        this.currentClassData = null;
+        const viewStepCode = document.getElementById('view-student-step-code');
+        const viewStepRoster = document.getElementById('view-student-step-roster');
+        if (viewStepCode) viewStepCode.style.display = 'block';
+        if (viewStepRoster) viewStepRoster.style.display = 'none';
+    },
+
+    searchStudentClass: async function() {
+        this.hideError();
+        const codeInput = document.getElementById('student-code-input');
+        const code = (codeInput ? codeInput.value : '').trim().toUpperCase();
+
+        if (!code) {
+            this.showError("Inserisci il codice classe.");
+            return;
+        }
+
+        const btnSearch = document.getElementById('btn-student-find-class');
+        const origText = btnSearch ? btnSearch.innerHTML : '';
+        if (btnSearch) {
+            btnSearch.disabled = true;
+            btnSearch.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Ricerca classe...';
+        }
+
+        try {
+            const functions = firebase.functions ? firebase.functions() : firebase.app().functions();
+            const getRoster = functions.httpsCallable('getRosterForClaiming');
+            const res = await getRoster({ classCode: code });
+
+            const data = res.data;
+            if (!data || !data.success) {
+                throw new Error((data && data.message) || "Impossibile recuperare i dati della classe.");
+            }
+
+            this.currentStudentClassCode = code;
+            this.currentClassData = data;
+
+            // Aggiorna Banner Classe
+            const nameEl = document.getElementById('student-found-class-name');
+            const subEl = document.getElementById('student-found-class-sub');
+            if (nameEl) nameEl.textContent = `Classe: ${data.className} (${code})`;
+            if (subEl) subEl.textContent = `Docente: ${data.teacherName} • ${data.school || ''} ${data.city ? '(' + data.city + ')' : ''}`;
+
+            // Popola Dropdown Claim (non ancora attivati)
+            const claimSelect = document.getElementById('student-claim-select');
+            if (claimSelect) {
+                claimSelect.innerHTML = '<option value="">-- Seleziona il tuo nome --</option>';
+                const unclaimedList = data.unclaimed || [];
+                if (unclaimedList.length === 0) {
+                    claimSelect.innerHTML += '<option value="" disabled>Tutti gli studenti hanno già attivato il profilo!</option>';
+                } else {
+                    unclaimedList.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = s.name;
+                        claimSelect.appendChild(opt);
+                    });
+                }
+            }
+
+            // Popola Dropdown Login (già attivati)
+            const loginSelect = document.getElementById('student-login-select');
+            if (loginSelect) {
+                loginSelect.innerHTML = '<option value="">-- Seleziona il tuo profilo --</option>';
+                const claimedList = data.claimed || [];
+                if (claimedList.length === 0) {
+                    loginSelect.innerHTML += '<option value="" disabled>Nessuno studente ha ancora attivato la password</option>';
+                } else {
+                    claimedList.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = `${s.name} (${s.nickname || 'Senza Nickname'})`;
+                        loginSelect.appendChild(opt);
+                    });
+                }
+            }
+
+            // Mostra vista roster
+            const viewStepCode = document.getElementById('view-student-step-code');
+            const viewStepRoster = document.getElementById('view-student-step-roster');
+            if (viewStepCode) viewStepCode.style.display = 'none';
+            if (viewStepRoster) viewStepRoster.style.display = 'block';
+
+            // Se ci sono studenti non attivati mostra claim per default, altrimenti login
+            if ((data.unclaimed || []).length > 0) {
+                this.switchStudentSubTab('claim');
+            } else {
+                this.switchStudentSubTab('login');
+            }
+
+        } catch (e) {
+            console.error("Errore ricerca classe studente:", e);
+            this.showError("Errore verifica codice classe: " + (e.message || e));
+        } finally {
+            if (btnSearch) {
+                btnSearch.disabled = false;
+                btnSearch.innerHTML = origText;
+            }
+        }
+    },
+
+    submitStudentClaim: async function() {
+        this.hideError();
+        const studentId = (document.getElementById('student-claim-select') ? document.getElementById('student-claim-select').value : '').trim();
+        const nickname = (document.getElementById('student-claim-nickname') ? document.getElementById('student-claim-nickname').value : '').trim();
+        const password = (document.getElementById('student-claim-password') ? document.getElementById('student-claim-password').value : '').trim();
+        const passwordConfirm = (document.getElementById('student-claim-password-confirm') ? document.getElementById('student-claim-password-confirm').value : '').trim();
+
+        if (!this.currentStudentClassCode || !studentId) {
+            this.showError("Seleziona il tuo nome dall'elenco della classe.");
+            return;
+        }
+
+        if (!nickname) {
+            this.showError("Scegli un Nickname per il gioco.");
+            return;
+        }
+
+        if (!password || password.length < 4) {
+            this.showError("La password deve contenere almeno 4 caratteri.");
+            return;
+        }
+
+        if (password !== passwordConfirm) {
+            this.showError("Le due password inserite non coincidono.");
+            return;
+        }
+
+        const btn = document.getElementById('btn-student-submit-claim');
+        const origText = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione profilo in corso...';
+        }
+
+        try {
+            const functions = firebase.functions ? firebase.functions() : firebase.app().functions();
+            const claimFn = functions.httpsCallable('claimStudentSlot');
+            const res = await claimFn({
+                classCode: this.currentStudentClassCode,
+                studentId: studentId,
+                nickname: nickname,
+                password: password,
+                avatar: this.selectedStudentClaimAvatar || 'assets/avatars/6.png'
+            });
+
+            const data = res.data;
+            if (!data || !data.success || !data.customToken) {
+                throw new Error((data && data.message) || "Errore durante l'attivazione del profilo studente.");
+            }
+
+            // Accesso immediato con Custom Token Firebase Auth
+            await window.fbAuth.signInWithCustomToken(data.customToken);
+            // onAuthStateChanged si occuperà del redirect automatico
+
+        } catch (e) {
+            console.error("Errore claim studente:", e);
+            this.showError("Attivazione non riuscita: " + (e.message || e));
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }
+        }
+    },
+
+    submitStudentLogin: async function() {
+        this.hideError();
+        const studentId = (document.getElementById('student-login-select') ? document.getElementById('student-login-select').value : '').trim();
+        const password = (document.getElementById('student-login-password') ? document.getElementById('student-login-password').value : '').trim();
+
+        if (!this.currentStudentClassCode || !studentId) {
+            this.showError("Seleziona il tuo profilo dall'elenco.");
+            return;
+        }
+
+        if (!password) {
+            this.showError("Inserisci la password.");
+            return;
+        }
+
+        const btn = document.getElementById('btn-student-submit-login');
+        const origText = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Accesso in corso...';
+        }
+
+        try {
+            const functions = firebase.functions ? firebase.functions() : firebase.app().functions();
+            const loginFn = functions.httpsCallable('studentLogin');
+            const res = await loginFn({
+                classCode: this.currentStudentClassCode,
+                studentId: studentId,
+                password: password
+            });
+
+            const data = res.data;
+            if (!data || !data.success || !data.customToken) {
+                throw new Error((data && data.message) || "Credenziali non corrette.");
+            }
+
+            // Accesso con Custom Token Firebase Auth
+            await window.fbAuth.signInWithCustomToken(data.customToken);
+            // onAuthStateChanged si occuperà del redirect automatico
+
+        } catch (e) {
+            console.error("Errore login studente:", e);
+            this.showError("Accesso non riuscito: " + (e.message || e));
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }
+        }
     },
 
     // --- UI Controls ---

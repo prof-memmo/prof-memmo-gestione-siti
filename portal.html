@@ -13,6 +13,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-functions-compat.js"></script>
   
   <style>
     :root {
@@ -426,65 +427,218 @@
       <p>Prof. Memmo &bull; Accesso Unificato</p>
     </div>
 
-    <!-- TABS LOGIN / REGISTRAZIONE -->
-    <div class="tabs">
-      <div class="tab active" onclick="PortalApp.switchTab('login')">Accedi / Registrati</div>
+    <!-- TABS PRINCIPALI: DOCENTE / VIANDANTE vs STUDENTE -->
+    <div class="tabs" style="display: flex; gap: 8px; margin-bottom: 20px; background: #f1f5f9; padding: 4px; border-radius: 12px;">
+      <button type="button" class="tab active" id="tab-nav-docente" onclick="PortalApp.switchPortalMode('docente')" style="flex: 1; border: none; background: transparent; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 0.92rem; color: #475569; cursor: pointer; transition: all 0.2s;">
+        👨‍🏫 Docente / Viandante
+      </button>
+      <button type="button" class="tab" id="tab-nav-studente" onclick="PortalApp.switchPortalMode('studente')" style="flex: 1; border: none; background: transparent; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 0.92rem; color: #475569; cursor: pointer; transition: all 0.2s;">
+        🎒 Studente
+      </button>
     </div>
 
     <div id="error-message"></div>
 
-    <!-- VISTA UNIFICATA -->
-    <div id="view-login" class="view-section active">
-      <form id="form-unified" onsubmit="event.preventDefault(); PortalApp.submitAuth();">
-        <div class="checkbox-group">
-          <input type="checkbox" id="reg-age" onchange="PortalApp.checkTerms()">
-          <label for="reg-age">Dichiaro di avere più di 14 anni (o autorizzazione di un genitore/docente)</label>
-        </div>
+    <!-- SEZIONE DOCENTE / VIANDANTE (Inalterata) -->
+    <div id="section-docente">
+      <!-- VISTA UNIFICATA -->
+      <div id="view-login" class="view-section active">
+        <form id="form-unified" onsubmit="event.preventDefault(); PortalApp.submitAuth();">
+          <div class="checkbox-group">
+            <input type="checkbox" id="reg-age" onchange="PortalApp.checkTerms()">
+            <label for="reg-age">Dichiaro di avere più di 14 anni (o autorizzazione di un genitore/docente)</label>
+          </div>
 
-        <div class="checkbox-group">
-          <input type="checkbox" id="reg-terms" onchange="PortalApp.checkTerms()">
-          <label for="reg-terms">Accetto i <a href="#" onclick="event.preventDefault(); openLegalModal('termini')" class="link">Termini e Condizioni</a> e la <a href="#" onclick="event.preventDefault(); openLegalModal('privacy')" class="link">Privacy Policy</a></label>
-        </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="reg-terms" onchange="PortalApp.checkTerms()">
+            <label for="reg-terms">Accetto i <a href="#" onclick="event.preventDefault(); openLegalModal('termini')" class="link">Termini e Condizioni</a> e la <a href="#" onclick="event.preventDefault(); openLegalModal('privacy')" class="link">Privacy Policy</a></label>
+          </div>
 
-        <div class="checkbox-group" style="margin-bottom: 20px;">
-          <input type="checkbox" id="reg-newsletter">
-          <label for="reg-newsletter">Desidero iscrivermi alla newsletter del Prof. Memmo (aggiornamenti didattici e novità)</label>
-        </div>
+          <div class="checkbox-group" style="margin-bottom: 20px;">
+            <input type="checkbox" id="reg-newsletter">
+            <label for="reg-newsletter">Desidero iscrivermi alla newsletter del Prof. Memmo (aggiornamenti didattici e novità)</label>
+          </div>
 
-        <button type="button" class="btn btn-google" id="btn-reg-google" onclick="PortalApp.loginGoogle()" style="margin-bottom: 20px;">
-          <i class="fa-brands fa-google" style="color: #ea4335;"></i> Entra o Registrati con Google
-        </button>
+          <button type="button" class="btn btn-google" id="btn-reg-google" onclick="PortalApp.loginGoogle()" style="margin-bottom: 20px;">
+            <i class="fa-brands fa-google" style="color: #ea4335;"></i> Entra o Registrati con Google
+          </button>
 
-        <div class="divider">oppure con email</div>
+          <div class="divider">oppure con email</div>
 
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="reg-email" class="form-input" required placeholder="La tua email">
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="reg-password" class="form-input" required placeholder="La tua password (min. 6 car.)" minlength="6">
-        </div>
-        <div class="forgot-password" style="margin-top:-10px; margin-bottom:15px; text-align:right;">
-          <a class="link" onclick="PortalApp.switchTab('reset')">Hai dimenticato la password?</a>
-        </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="reg-email" class="form-input" required placeholder="La tua email">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="reg-password" class="form-input" required placeholder="La tua password (min. 6 car.)" minlength="6">
+          </div>
+          <div class="forgot-password" style="margin-top:-10px; margin-bottom:15px; text-align:right;">
+            <a class="link" onclick="PortalApp.switchTab('reset')">Hai dimenticato la password?</a>
+          </div>
 
-        <button type="submit" class="btn btn-primary" id="btn-reg-email">Entra / Registrati con Email</button>
-      </form>
+          <button type="submit" class="btn btn-primary" id="btn-reg-email">Entra / Registrati con Email</button>
+        </form>
+      </div>
+
+      <!-- VISTA RECUPERO PASSWORD -->
+      <div id="view-reset" class="view-section">
+        <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 20px;">Inserisci la tua email per ricevere un link di ripristino della password.</p>
+        <form id="form-reset" onsubmit="event.preventDefault(); PortalApp.resetPassword();">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="reset-email" class="form-input" required placeholder="La tua email">
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-reset-submit">Invia Link di Ripristino</button>
+        </form>
+        <div style="text-align:center; margin-top:15px;">
+          <a class="link" onclick="PortalApp.switchTab('login')">Torna al Login</a>
+        </div>
+      </div>
     </div>
 
-    <!-- VISTA RECUPERO PASSWORD -->
-    <div id="view-reset" class="view-section">
-      <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 20px;">Inserisci la tua email per ricevere un link di ripristino della password.</p>
-      <form id="form-reset" onsubmit="event.preventDefault(); PortalApp.resetPassword();">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="reset-email" class="form-input" required placeholder="La tua email">
+    <!-- SEZIONE STUDENTE (Zero Email / Roster Claiming Architecture) -->
+    <div id="section-studente" style="display: none;">
+      <!-- STEP 1 STUDENTE: INSERIMENTO CODICE CLASSE -->
+      <div id="view-student-step-code">
+        <div style="text-align: center; margin-bottom: 18px;">
+          <div style="font-size: 2.5rem; margin-bottom: 6px;">🔑</div>
+          <h3 style="font-family: var(--font-display); font-size: 1.3rem; margin: 0 0 6px; color: var(--text-main);">Inserisci il Codice Classe</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">Inserisci il codice fornito dal tuo professore per accedere al gioco.</p>
         </div>
-        <button type="submit" class="btn btn-primary" id="btn-reset-submit">Invia Link di Ripristino</button>
-      </form>
-      <div style="text-align:center; margin-top:15px;">
-        <a class="link" onclick="PortalApp.switchTab('login')">Torna al Login</a>
+
+        <form id="form-student-find-class" onsubmit="event.preventDefault(); PortalApp.searchStudentClass();">
+          <div class="form-group">
+            <input type="text" id="student-code-input" class="form-input" required placeholder="Es. MEMMO-7K9P" style="text-transform: uppercase; font-size: 1.25rem; font-weight: 800; letter-spacing: 2px; text-align: center; padding: 14px;">
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-student-find-class" style="width: 100%; padding: 14px; font-size: 1.05rem;">
+            Trova la mia Classe <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px; margin-top: 20px; font-size: 0.82rem; color: #166534; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-shield-halved" style="font-size: 1.1rem; color: #22c55e;"></i>
+          <span><strong>Accesso Protetto:</strong> Non è richiesta alcuna email personale o dato sensibile.</span>
+        </div>
+      </div>
+
+      <!-- STEP 2 STUDENTE: ROSTER, CLAIMING & LOGIN -->
+      <div id="view-student-step-roster" style="display: none;">
+        <!-- Banner info classe trovata -->
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 14px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-weight: 800; color: #1e40af; font-size: 1rem;" id="student-found-class-name">Classe 3°B</div>
+            <div style="font-size: 0.8rem; color: #475569;" id="student-found-class-sub">Docente: Prof. Rossi &bull; Scuola Dante</div>
+          </div>
+          <button type="button" onclick="PortalApp.resetStudentCodeStep()" style="border: none; background: white; border: 1px solid #cbd5e1; color: #475569; padding: 6px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">
+            ↺ Cambia
+          </button>
+        </div>
+
+        <!-- Sub-tabs: Primo Accesso (Attiva) vs Ho già una password (Accedi) -->
+        <div style="display: flex; gap: 6px; margin-bottom: 16px; background: #f8fafc; padding: 4px; border-radius: 10px; border: 1px solid #e2e8f0;">
+          <button type="button" class="tab-sub active" id="subtab-claim" onclick="PortalApp.switchStudentSubTab('claim')" style="flex: 1; border: none; background: white; padding: 8px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.08); cursor: pointer;">
+            ✨ Primo Accesso (Attiva)
+          </button>
+          <button type="button" class="tab-sub" id="subtab-login" onclick="PortalApp.switchStudentSubTab('login')" style="flex: 1; border: none; background: transparent; padding: 8px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; color: #64748b; cursor: pointer;">
+            🔑 Ho già la Password
+          </button>
+        </div>
+
+        <!-- Sub-view 1: CLAIMING (Primo Accesso) -->
+        <div id="subview-student-claim">
+          <form id="form-student-claim" onsubmit="event.preventDefault(); PortalApp.submitStudentClaim();">
+            <div class="form-group">
+              <label for="student-claim-select">1. Seleziona il tuo Nome dall'elenco *</label>
+              <select id="student-claim-select" class="form-input" required style="font-weight: 600; padding: 10px;">
+                <option value="">-- Seleziona il tuo nome --</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="student-claim-nickname">2. Scegli il tuo Nickname di Gioco *</label>
+              <input type="text" id="student-claim-nickname" class="form-input" required placeholder="Es. Fenice99, DantePro...">
+            </div>
+
+            <!-- Avatar Picker Studente -->
+            <div style="margin-bottom: 16px;">
+              <label style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); display: block; margin-bottom: 8px;">
+                3. Scegli il tuo Avatar Ufficiale
+              </label>
+              <div class="avatar-choice-grid" id="student-claim-avatar-grid" style="grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 8px;">
+                <div class="avatar-choice-item selected" data-avatar="assets/avatars/6.png" onclick="PortalApp.selectStudentClaimAvatar(this, 'assets/avatars/6.png')">
+                  <img src="assets/avatars/6.png" alt="Avatar 6">
+                </div>
+                <div class="avatar-choice-item" data-avatar="assets/avatars/7.png" onclick="PortalApp.selectStudentClaimAvatar(this, 'assets/avatars/7.png')">
+                  <img src="assets/avatars/7.png" alt="Avatar 7">
+                </div>
+                <div class="avatar-choice-item" data-avatar="assets/avatars/8.png" onclick="PortalApp.selectStudentClaimAvatar(this, 'assets/avatars/8.png')">
+                  <img src="assets/avatars/8.png" alt="Avatar 8">
+                </div>
+                <div class="avatar-choice-item" data-avatar="assets/avatars/9.png" onclick="PortalApp.selectStudentClaimAvatar(this, 'assets/avatars/9.png')">
+                  <img src="assets/avatars/9.png" alt="Avatar 9">
+                </div>
+                <div class="avatar-choice-item" data-avatar="assets/avatars/10.png" onclick="PortalApp.selectStudentClaimAvatar(this, 'assets/avatars/10.png')">
+                  <img src="assets/avatars/10.png" alt="Avatar 10">
+                </div>
+                <div class="avatar-choice-item" data-avatar="assets/avatars/11.png" onclick="PortalApp.selectStudentClaimAvatar(this, 'assets/avatars/11.png')">
+                  <img src="assets/avatars/11.png" alt="Avatar 11">
+                </div>
+                <div class="avatar-choice-item" data-avatar="assets/avatars/12.png" onclick="PortalApp.selectStudentClaimAvatar(this, 'assets/avatars/12.png')">
+                  <img src="assets/avatars/12.png" alt="Avatar 12">
+                </div>
+                <div class="avatar-choice-item" data-avatar="assets/avatars/13.png" onclick="PortalApp.selectStudentClaimAvatar(this, 'assets/avatars/13.png')">
+                  <img src="assets/avatars/13.png" alt="Avatar 13">
+                </div>
+                <div class="avatar-choice-item" data-avatar="assets/avatars/14.png" onclick="PortalApp.selectStudentClaimAvatar(this, 'assets/avatars/14.png')">
+                  <img src="assets/avatars/14.png" alt="Avatar 14">
+                </div>
+                <div class="avatar-choice-item" data-avatar="assets/avatars/15.png" onclick="PortalApp.selectStudentClaimAvatar(this, 'assets/avatars/15.png')">
+                  <img src="assets/avatars/15.png" alt="Avatar 15">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="student-claim-password">4. Crea la tua Password segreta *</label>
+              <input type="password" id="student-claim-password" class="form-input" required placeholder="Minimo 4 caratteri" minlength="4">
+            </div>
+
+            <div class="form-group">
+              <label for="student-claim-password-confirm">5. Conferma Password *</label>
+              <input type="password" id="student-claim-password-confirm" class="form-input" required placeholder="Ripeti la password" minlength="4">
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="btn-student-submit-claim" style="width: 100%; padding: 14px; font-size: 1rem; margin-top: 10px;">
+              Attiva Profilo e Gioca 🚀
+            </button>
+          </form>
+        </div>
+
+        <!-- Sub-view 2: LOGIN CON PASSWORD (Studenti già attivati) -->
+        <div id="subview-student-login" style="display: none;">
+          <form id="form-student-login" onsubmit="event.preventDefault(); PortalApp.submitStudentLogin();">
+            <div class="form-group">
+              <label for="student-login-select">Seleziona il tuo Profilo *</label>
+              <select id="student-login-select" class="form-input" required style="font-weight: 600; padding: 10px;">
+                <option value="">-- Seleziona il tuo profilo --</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="student-login-password">La tua Password *</label>
+              <input type="password" id="student-login-password" class="form-input" required placeholder="Inserisci la password che hai scelto">
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="btn-student-submit-login" style="width: 100%; padding: 14px; font-size: 1rem; margin-top: 10px;">
+              Entra nel Gioco 🚀
+            </button>
+
+            <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 15px;">
+              💡 <i>Hai dimenticato la password? Chiedi al tuo Docente di reimpostarla con 1 click dal suo pannello classi.</i>
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   </div>
