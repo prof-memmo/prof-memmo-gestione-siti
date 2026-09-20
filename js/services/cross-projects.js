@@ -147,6 +147,22 @@ const CrossProjectsService = {
                 const isMemmo = emailKey === 'prof.memmo@gmail.com' || (data.nome && data.nome.toLowerCase().includes('profmemmo'));
                 const nomeStr = data.anagrafica ? ((data.anagrafica.nome || '') + " " + (data.anagrafica.cognome || '')) : (data.nome || data.name || data.displayName || 'Utente');
                 
+                // ESCLUDI E PURGA account fittizi di test
+                const TEST_EMAILS = [
+                    'testhero12345@gmail.com',
+                    'test@example.com',
+                    'docente.aurora@gmail.com',
+                    'achille.studente@gmail.com',
+                    'ulisse.studente@gmail.com',
+                    'artu.studente@gmail.com'
+                ];
+                if (TEST_EMAILS.includes(emailKey)) {
+                    if (window.fbDb && window.fbDb.hub && doc.id) {
+                        window.fbDb.hub.collection("hub_users").doc(doc.id).delete().catch(() => {});
+                    }
+                    return;
+                }
+
                 let userGiochi = [];
                 if (data.platforms && typeof data.platforms === 'object') {
                     if (data.platforms.eroi_users?.enabled || data.platforms.rotta_degli_eroi?.enabled) userGiochi.push('La Rotta degli Eroi');
@@ -160,10 +176,15 @@ const CrossProjectsService = {
                 const userPlan = isMemmo ? 'docente_ecosistema' : (data.abbonamento || data.plan || data.subscription || 'base');
                 const userRole = isMemmo ? 'admin' : (rawRole.includes('docente') || rawRole.includes('teacher') || rawRole.includes('prof') ? 'docente' : (rawRole === 'admin' ? 'admin' : 'viandante'));
 
-                if (userRole === 'admin' || String(userPlan).toLowerCase().includes('ecosistema')) {
-                    ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore"].forEach(g => {
-                        if (!userGiochi.includes(g)) userGiochi.push(g);
-                    });
+                const planLower = String(userPlan).toLowerCase();
+                if (userRole === 'admin' || planLower === 'docente_ecosistema' || planLower.includes('ecosistema')) {
+                    userGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore"];
+                } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
+                    userGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia'];
+                } else if (planLower === 'viandante') {
+                    userGiochi = ['La Rotta degli Eroi', 'FantaLetteratura', 'Palestra di Riflessione'];
+                } else if (userGiochi.length === 0) {
+                    userGiochi = ['Palestra di Riflessione', 'FantaLetteratura'];
                 }
 
                 const finalScuola = (data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '').trim();
@@ -195,9 +216,9 @@ const CrossProjectsService = {
                         anagrafica: data.anagrafica || {},
                         avatar: isMemmo ? 'assets/avatars/9.png' : (data.avatar || data.photoURL || data.foto || 'assets/avatars/6.png'),
                         dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
-                        gioco: userGiochi.length > 0 ? userGiochi.join(' / ') : 'Ecosistema',
+                        gioco: userGiochi.join(' / '),
                         giocoColor: '#6366f1',
-                        giocoIcon: 'fa-globe',
+                        giocoIcon: 'fa-gamepad',
                         plan: userPlan,
                         admin_override: data.admin_override === true || data.adminOverride === true,
                         abbonamento_scadenza: data.abbonamento_scadenza || data.scadenza || '',
