@@ -419,27 +419,65 @@
   </style>
 </head>
 <body>
-  <!-- VISTA LOGIN/REGISTRAZIONE -->
-  <div class="portal-container" id="portal-login-overlay">
-    <div class="portal-header">
+  <!-- VISTA 0: SCELTA DEL PROFILO / RUOLO A MONTE (3 PORTE D'INGRESSO) -->
+  <div id="portal-door-selection" style="display: flex; width: 100%; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 25px 20px; box-sizing: border-box;">
+    <div style="text-align: center; margin-bottom: 2.5rem; max-width: 650px;">
+      <img src="assets/prof_memmo.png" alt="Prof. Memmo" style="width: 90px; border-radius: 50%; margin-bottom: 12px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.12));">
+      <h1 style="font-size: 2.3rem; font-family: var(--font-display); color: var(--text-main); margin: 0 0 8px 0; font-weight: 800;">Ecosistema Didattico</h1>
+      <p style="color: var(--text-muted); font-size: 1.05rem; margin: 0;">Prof. Memmo &bull; Scegli il tuo profilo per accedere:</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; width: 100%; max-width: 950px; margin-bottom: 2rem;">
+      <!-- Card Docente -->
+      <div class="platform-card" style="text-align: center; border-radius: 20px; padding: 30px 22px; cursor: pointer;" onclick="PortalApp.selectEntryDoor('docente')">
+        <div style="font-size: 3.5rem; margin-bottom: 12px;">👨‍🏫</div>
+        <h3 style="font-family: var(--font-display); font-size: 1.4rem; color: var(--text-main); margin: 0 0 8px 0;">DOCENTE</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin: 0 0 16px 0;">Crea classi didattiche, assegna compiti, monitora i progressi e usa gli strumenti LIM.</p>
+        <span style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #eef2ff; color: #4338ca; padding: 8px 16px; border-radius: 100px; font-weight: 700; font-size: 0.85rem; width: 100%; box-sizing: border-box;">
+          Entra come Docente &rarr;
+        </span>
+      </div>
+
+      <!-- Card Viandante -->
+      <div class="platform-card" style="text-align: center; border-radius: 20px; padding: 30px 22px; cursor: pointer;" onclick="PortalApp.selectEntryDoor('viandante')">
+        <div style="font-size: 3.5rem; margin-bottom: 12px;">🌍</div>
+        <h3 style="font-family: var(--font-display); font-size: 1.4rem; color: var(--text-main); margin: 0 0 8px 0;">VIANDANTE</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin: 0 0 16px 0;">Per appassionati, visitatori e sostenitori che vogliono provare i giochi aperti e la modalità libera.</p>
+        <span style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #fef3c7; color: #b45309; padding: 8px 16px; border-radius: 100px; font-weight: 700; font-size: 0.85rem; width: 100%; box-sizing: border-box;">
+          Entra come Viandante &rarr;
+        </span>
+      </div>
+
+      <!-- Card Studente -->
+      <div class="platform-card" style="text-align: center; border-radius: 20px; padding: 30px 22px; cursor: pointer;" onclick="PortalApp.selectEntryDoor('studente')">
+        <div style="font-size: 3.5rem; margin-bottom: 12px;">🎒</div>
+        <h3 style="font-family: var(--font-display); font-size: 1.4rem; color: var(--text-main); margin: 0 0 8px 0;">STUDENTE</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin: 0 0 16px 0;">Accesso protetto con il Codice Classe del tuo professore. Zero email personali richieste.</p>
+        <span style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #ecfdf5; color: #065f46; padding: 8px 16px; border-radius: 100px; font-weight: 700; font-size: 0.85rem; width: 100%; box-sizing: border-box;">
+          Entra con Codice Classe &rarr;
+        </span>
+      </div>
+    </div>
+
+    <div style="text-align: center; max-width: 600px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
+      🔒 <i>Piattaforma educativa sicura &bull; Conforme alle linee guida di tutela della privacy GDPR Scuola &bull; Contenuti certificati Patamu.</i>
+    </div>
+  </div>
+
+  <!-- VISTA LOGIN/REGISTRAZIONE (CARD DELLO SCREENSHOT) -->
+  <div class="portal-container" id="portal-login-overlay" style="display: none;">
+    <div class="portal-header" style="margin-bottom: 20px;">
       <img src="assets/prof_memmo.png" alt="Prof. Memmo">
       <h1>Ecosistema Didattico</h1>
       <p>Prof. Memmo &bull; Accesso Unificato</p>
-    </div>
-
-    <!-- TABS PRINCIPALI: DOCENTE / VIANDANTE vs STUDENTE -->
-    <div class="tabs" style="display: flex; gap: 8px; margin-bottom: 20px; background: #f1f5f9; padding: 4px; border-radius: 12px;">
-      <button type="button" class="tab active" id="tab-nav-docente" onclick="PortalApp.switchPortalMode('docente')" style="flex: 1; border: none; background: transparent; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 0.92rem; color: #475569; cursor: pointer; transition: all 0.2s;">
-        👨‍🏫 Docente / Viandante
-      </button>
-      <button type="button" class="tab" id="tab-nav-studente" onclick="PortalApp.switchPortalMode('studente')" style="flex: 1; border: none; background: transparent; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 0.92rem; color: #475569; cursor: pointer; transition: all 0.2s;">
-        🎒 Studente
-      </button>
+      <div id="auth-role-badge" style="display: inline-block; margin-top: 10px; padding: 6px 18px; border-radius: 100px; font-weight: 700; font-size: 0.88rem; background: #eef2ff; color: #4338ca;">
+        Accesso Docenti
+      </div>
     </div>
 
     <div id="error-message"></div>
 
-    <!-- SEZIONE DOCENTE / VIANDANTE (Inalterata) -->
+    <!-- SEZIONE DOCENTE / VIANDANTE -->
     <div id="section-docente">
       <!-- VISTA UNIFICATA -->
       <div id="view-login" class="view-section active">
@@ -479,6 +517,12 @@
 
           <button type="submit" class="btn btn-primary" id="btn-reg-email">Entra / Registrati con Email</button>
         </form>
+
+        <div style="text-align: center; margin-top: 20px;">
+          <button type="button" onclick="PortalApp.backToDoorSelection()" style="background: none; border: none; font-size: 0.88rem; color: var(--text-muted); cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+            &larr; Cambia Profilo / Ruolo
+          </button>
+        </div>
       </div>
 
       <!-- VISTA RECUPERO PASSWORD -->
@@ -640,44 +684,12 @@
           </form>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- VISTA ONBOARDING A CARD (STEP 1: RUOLO) -->
-  <div id="portal-onboarding" style="display:none; width: 100%; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
-    <div style="text-align: center; margin-bottom: 3rem; max-width: 600px;">
-      <h1 style="font-size: 2.5rem; font-family: var(--font-display); color: var(--text-main); margin-bottom: 10px;">Benvenuto! Scegli il tuo profilo</h1>
-      <p style="color: var(--text-muted); font-size: 1.1rem;">Questa scelta determinerà il tuo accesso ai mondi di gioco.</p>
-    </div>
-
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; width: 100%; max-width: 900px; margin-bottom: 2rem;">
-      <!-- Card Studente -->
-      <div class="platform-card" style="text-align: center;" onclick="PortalApp.selectRole('studente')">
-        <div style="font-size: 4rem; margin-bottom: 15px;">🎓</div>
-        <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin: 0 0 10px 0;">STUDENTE</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">Entra per giocare, imparare e completare le missioni assegnate dal tuo docente.</p>
+      <div style="text-align: center; margin-top: 20px;">
+        <button type="button" onclick="PortalApp.backToDoorSelection()" style="background: none; border: none; font-size: 0.88rem; color: var(--text-muted); cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+          &larr; Cambia Profilo / Ruolo
+        </button>
       </div>
-
-      <!-- Card Docente -->
-      <div class="platform-card" style="text-align: center;" onclick="PortalApp.selectRole('docente')">
-        <div style="font-size: 4rem; margin-bottom: 15px;">👨‍🏫</div>
-        <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin: 0 0 10px 0;">DOCENTE</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">Crea classi, assegna compiti, monitora i progressi e gestisci i tuoi studenti.</p>
-      </div>
-
-      <!-- Card Viandante -->
-      <div class="platform-card" style="text-align: center;" onclick="PortalApp.selectRole('viandante')">
-        <div style="font-size: 4rem; margin-bottom: 15px;">🌍</div>
-        <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin: 0 0 10px 0;">VIANDANTE</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">Per appassionati e sostenitori che vogliono visitare e provare i giochi didattici.</p>
-      </div>
-    </div>
-
-    <div style="text-align: center; max-width: 500px;">
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Scegliendo un ruolo accetti i <a href="#" onclick="event.preventDefault(); openLegalModal('termini')" class="link">Termini di Servizio</a> e la <a href="#" onclick="event.preventDefault(); openLegalModal('privacy')" class="link">Privacy Policy</a>.</p>
-      <button class="btn btn-google" style="margin: 0 auto; width: auto; padding: 10px 20px;" onclick="PortalApp.logout()">
-        <i class="fa-solid fa-arrow-left"></i> Annulla ed esci
-      </button>
     </div>
   </div>
 

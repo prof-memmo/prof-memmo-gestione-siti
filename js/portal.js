@@ -14,19 +14,27 @@ const PortalApp = {
             return;
         }
 
-        // Check if student code is passed via URL query parameter ?code=...
+        // Check if student code or role is passed via URL query parameter
         const urlParams = new URLSearchParams(window.location.search);
         const codeParam = urlParams.get('code') || urlParams.get('classCode');
         const roleParam = urlParams.get('role');
+        const storedRole = sessionStorage.getItem('pm_entry_role');
+
         if (codeParam) {
-            this.switchPortalMode('studente');
+            this.selectEntryDoor('studente');
             const codeInput = document.getElementById('student-code-input');
             if (codeInput) {
                 codeInput.value = codeParam.toUpperCase();
                 this.searchStudentClass();
             }
         } else if (roleParam === 'studente') {
-            this.switchPortalMode('studente');
+            this.selectEntryDoor('studente');
+        } else if (roleParam === 'docente') {
+            this.selectEntryDoor('docente');
+        } else if (roleParam === 'viandante') {
+            this.selectEntryDoor('viandante');
+        } else if (storedRole) {
+            this.pendingRole = storedRole;
         }
 
         // Listen for Auth changes
@@ -43,53 +51,77 @@ const PortalApp = {
                 this.user = null;
                 this.profile = null;
                 const loginOverlay = document.getElementById('portal-login-overlay');
-                const onboarding = document.getElementById('portal-onboarding');
-                if (loginOverlay) loginOverlay.style.display = 'block';
-                if (onboarding) onboarding.style.display = 'none';
+                const doorSelection = document.getElementById('portal-door-selection');
+                const identityEl = document.getElementById('portal-identity');
+                const surveyEl = document.getElementById('portal-survey');
+                
+                if (identityEl) identityEl.style.display = 'none';
+                if (surveyEl) surveyEl.style.display = 'none';
+                
+                if (!roleParam && !codeParam) {
+                    if (loginOverlay) loginOverlay.style.display = 'none';
+                    if (doorSelection) doorSelection.style.display = 'flex';
+                }
             }
         });
     },
 
-    // --- Mode & Tab Controls ---
+    // --- Door & Mode Controls ---
 
-    switchPortalMode: function(mode) {
+    selectEntryDoor: function(role) {
         this.hideError();
-        const tabDocente = document.getElementById('tab-nav-docente');
-        const tabStudente = document.getElementById('tab-nav-studente');
+        this.pendingRole = role || 'docente';
+        sessionStorage.setItem('pm_entry_role', this.pendingRole);
+
+        const doorEl = document.getElementById('portal-door-selection');
+        const loginOverlay = document.getElementById('portal-login-overlay');
         const secDocente = document.getElementById('section-docente');
         const secStudente = document.getElementById('section-studente');
+        const badgeRole = document.getElementById('auth-role-badge');
 
-        if (mode === 'studente') {
-            if (tabDocente) {
-                tabDocente.classList.remove('active');
-                tabDocente.style.background = 'transparent';
-                tabDocente.style.color = '#475569';
-                tabDocente.style.boxShadow = 'none';
-            }
-            if (tabStudente) {
-                tabStudente.classList.add('active');
-                tabStudente.style.background = '#ffffff';
-                tabStudente.style.color = '#4f46e5';
-                tabStudente.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-            }
+        if (doorEl) doorEl.style.display = 'none';
+        if (loginOverlay) loginOverlay.style.display = 'block';
+
+        if (role === 'studente') {
             if (secDocente) secDocente.style.display = 'none';
             if (secStudente) secStudente.style.display = 'block';
+            if (badgeRole) {
+                badgeRole.textContent = 'Accesso Studenti';
+                badgeRole.style.background = '#ecfdf5';
+                badgeRole.style.color = '#065f46';
+            }
         } else {
-            if (tabStudente) {
-                tabStudente.classList.remove('active');
-                tabStudente.style.background = 'transparent';
-                tabStudente.style.color = '#475569';
-                tabStudente.style.boxShadow = 'none';
-            }
-            if (tabDocente) {
-                tabDocente.classList.add('active');
-                tabDocente.style.background = '#ffffff';
-                tabDocente.style.color = '#4f46e5';
-                tabDocente.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-            }
             if (secStudente) secStudente.style.display = 'none';
             if (secDocente) secDocente.style.display = 'block';
+            if (badgeRole) {
+                if (role === 'docente') {
+                    badgeRole.textContent = 'Accesso Docenti';
+                    badgeRole.style.background = '#eef2ff';
+                    badgeRole.style.color = '#4338ca';
+                } else {
+                    badgeRole.textContent = 'Accesso Viandanti';
+                    badgeRole.style.background = '#fef3c7';
+                    badgeRole.style.color = '#b45309';
+                }
+            }
         }
+    },
+
+    backToDoorSelection: function() {
+        this.hideError();
+        const doorEl = document.getElementById('portal-door-selection');
+        const loginOverlay = document.getElementById('portal-login-overlay');
+        const identityEl = document.getElementById('portal-identity');
+        const surveyEl = document.getElementById('portal-survey');
+
+        if (loginOverlay) loginOverlay.style.display = 'none';
+        if (identityEl) identityEl.style.display = 'none';
+        if (surveyEl) surveyEl.style.display = 'none';
+        if (doorEl) doorEl.style.display = 'flex';
+    },
+
+    switchPortalMode: function(mode) {
+        this.selectEntryDoor(mode);
     },
 
     switchStudentSubTab: function(subTab) {
@@ -513,12 +545,10 @@ const PortalApp = {
             let snap = await window.fbDb.hub.collection("hub_users").doc(this.user.uid).get();
             
             if (!snap.exists) {
-                // Mostra la UI di onboarding a Card
-                const loginOverlay = document.getElementById('portal-login-overlay');
-                const onboarding = document.getElementById('portal-onboarding');
-                if (loginOverlay) loginOverlay.style.display = 'none';
-                if (onboarding) onboarding.style.display = 'flex';
-                return; // Fermiamo qui l'esecuzione.
+                // Recupera il ruolo selezionato alla porta d'ingresso
+                const targetRole = this.pendingRole || sessionStorage.getItem('pm_entry_role') || 'docente';
+                this.selectRole(targetRole);
+                return; // Fermiamo qui l'esecuzione per completare identità e questionario.
             }
 
             this.profile = snap.data();
@@ -740,12 +770,7 @@ const PortalApp = {
     },
 
     backToRoleSelection: function() {
-        const onboardingEl = document.getElementById('portal-onboarding');
-        const identityEl = document.getElementById('portal-identity');
-        const surveyEl = document.getElementById('portal-survey');
-        if (identityEl) identityEl.style.display = 'none';
-        if (surveyEl) surveyEl.style.display = 'none';
-        if (onboardingEl) onboardingEl.style.display = 'flex';
+        this.backToDoorSelection();
     },
 
     submitIdentity: function() {
