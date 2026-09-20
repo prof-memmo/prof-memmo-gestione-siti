@@ -588,21 +588,24 @@
     <!-- VISTA GESTIONE GIOCHI -->
     <div id="view-gestione-giochi" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-gamepad" style="color:#10b981;"></i> Gestione Giochi & Pop-up</h2>
+        <h2><i class="fa-solid fa-gamepad" style="color:#10b981;"></i> Gestione Giochi &amp; Vetrina</h2>
       </div>
       <div class="glass-panel" style="margin-bottom: 20px;">
-        <p style="margin-bottom: 20px; color: var(--text-main); font-size: 1.05rem;">Qui puoi controllare quali giochi sono attualmente accessibili. Se un gioco è disattivato, il link nell'archivio verrà bloccato e i tentativi di accesso diretto mostreranno il pop-up predefinito ("Lavori in corso").</p>
+        <p style="margin-bottom: 20px; color: var(--text-main); font-size: 1rem; line-height: 1.5;">
+          Da qui puoi controllare in modo indipendente la <strong>Presenza in Vetrina</strong> (se la card compare o è nascosta nel catalogo pubblico del sito) e lo <strong>Stato di Accesso</strong> (se il gioco è aperto o bloccato con il pop-up predefinito <em>"Lavori in corso"</em>).
+        </p>
         <div class="table-responsive" style="overflow-x:auto;">
           <table class="game-table" style="width:100%; border-collapse: collapse; text-align: left;">
             <thead>
               <tr style="border-bottom:1px solid #e5e7eb;">
                 <th style="padding:15px 10px; color: var(--text-muted);">Nome Gioco / Materiale</th>
-                <th style="padding:15px 10px; color: var(--text-muted); text-align: center;">Visibilità Hub</th>
+                <th style="padding:15px 10px; color: var(--text-muted); text-align: center;">Visibilità Vetrina</th>
+                <th style="padding:15px 10px; color: var(--text-muted); text-align: center;">Accesso Gioco</th>
                 <th style="padding:15px 10px; color: var(--text-muted); text-align: right;">Azioni</th>
               </tr>
             </thead>
             <tbody id="games-list-body">
-              <tr><td colspan="3" style="text-align:center; padding:20px;">Caricamento in corso...</td></tr>
+              <tr><td colspan="4" style="text-align:center; padding:20px;">Caricamento in corso...</td></tr>
             </tbody>
           </table>
         </div>
@@ -729,6 +732,9 @@
             <button class="btn" onclick="window.UsersUI.openBulkEditPlanModal()" style="background: #6366f1 !important; color: #ffffff !important; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-crown" style="color:#ffffff;"></i> <span style="color:#ffffff;">Modifica Piano Selezionati</span>
             </button>
+            <button class="btn" onclick="window.UsersUI.openBulkExpiryModal()" style="background: #0284c7 !important; color: #ffffff !important; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-calendar-days" style="color:#ffffff;"></i> <span style="color:#ffffff;">Modifica Scadenza Selezionati</span>
+            </button>
             <button class="btn" onclick="window.UsersUI.openBulkDeleteModal()" style="background: #ef4444 !important; color: #ffffff !important; border: none; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-trash" style="color:#ffffff;"></i> <span style="color:#ffffff;">Elimina Selezionati</span>
             </button>
@@ -848,6 +854,42 @@
                 <div style="display: flex; gap: 12px; justify-content: flex-end;">
                     <button class="btn btn-secondary" onclick="document.getElementById('modal-bulk-plan').style.display = 'none';" style="flex:1; border: 1px solid var(--border-color); background: white; color: var(--text-main); font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer;">Annulla</button>
                     <button class="btn btn-primary" onclick="window.UsersUI.executeBulkPlan()" style="flex:1; background: #6366f1; border: none; color: white; font-weight: 700; padding: 10px; border-radius: 8px; cursor: pointer;">Conferma Assegnazione</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Modifica Massiva Scadenza -->
+    <div id="modal-bulk-expiry" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); z-index: 999999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+        <div style="background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); border: 1px solid var(--border-color); max-width: 480px; width: 100%; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+                <h3 style="margin: 0; font-size: 1.15rem; color: #0284c7; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-calendar-days"></i> Modifica Scadenza Massiva
+                </h3>
+                <span onclick="document.getElementById('modal-bulk-expiry').style.display = 'none';" style="font-size: 1.5rem; color: var(--text-muted); cursor: pointer; line-height: 1;">&times;</span>
+            </div>
+            <div style="padding: 24px; text-align: left;">
+                <p style="margin-top: 0; font-size: 0.95rem; color: var(--text-main);">
+                    Imposta la nuova data di scadenza per i <strong id="bulk-expiry-count">0</strong> utenti selezionati:
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px;">
+                    <div>
+                        <label style="font-size: 0.82rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Data Scadenza:</label>
+                        <input type="date" id="bulk-expiry-date-input" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; font-weight: 600; outline: none; background: white; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #64748b; display: block; margin-bottom: 6px;">Scelte rapide:</label>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn outline" onclick="window.UsersUI.setBulkExpiryPreset('31-dec')" style="font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer;">📅 31 Dicembre</button>
+                            <button type="button" class="btn outline" onclick="window.UsersUI.setBulkExpiryPreset('31-aug')" style="font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer;">🎓 31 Agosto</button>
+                            <button type="button" class="btn outline" onclick="window.UsersUI.setBulkExpiryPreset('+1-year')" style="font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer;">⏳ +1 Anno</button>
+                            <button type="button" class="btn outline" onclick="window.UsersUI.setBulkExpiryPreset('remove')" style="font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; border: 1px solid #fee2e2; background: #fff5f5; color: #dc2626; cursor: pointer;">♾️ Nessuna (Illimitato)</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('modal-bulk-expiry').style.display = 'none';" style="flex:1; border: 1px solid var(--border-color); background: white; color: var(--text-main); font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer;">Annulla</button>
+                    <button class="btn btn-primary" onclick="window.UsersUI.executeBulkExpiry()" style="flex:1; background: #0284c7; border: none; color: white; font-weight: 700; padding: 10px; border-radius: 8px; cursor: pointer;">Conferma Scadenza</button>
                 </div>
             </div>
         </div>
@@ -2799,40 +2841,40 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   </div>
 
   <!-- Scripts -->
-  <script src="js/firebase-init.js?v=20260830_1830"></script>
-  <script src="js/services/auth/auth-service.js?v=20260830_1830"></script>
-  <script src="js/utils/ai-prompts.js?v=20260830_1830"></script>
-  <script src="js/utils/db-fixer.js?v=20260830_1830"></script>
+  <script src="js/firebase-init.js?v=20260919_1550"></script>
+  <script src="js/services/auth/auth-service.js?v=20260919_1550"></script>
+  <script src="js/utils/ai-prompts.js?v=20260919_1550"></script>
+  <script src="js/utils/db-fixer.js?v=20260919_1550"></script>
   
   <!-- Services -->
-  <script src="js/services/cross-projects.js?v=20260909_2355"></script>
-  <script src="js/services/users/user-service.js?v=20260909_2355"></script>
-  <script src="js/services/messages/messages-service.js?v=20260909_2355"></script>
-  <script src="js/services/games/games-service.js?v=20260910_0025"></script>
-  <script src="js/config/brevo-keys.js?v=20260910_0025"></script>
-  <script src="js/services/newsletter/newsletter-service.js?v=20260910_0025"></script>
-  <script src="js/services/payments/payments-service.js?v=20260910_0025"></script>
-  <script src="js/services/ecosystem/ecosystem-service.js?v=20260910_0025"></script>
-  <script src="js/services/archive/archive-service.js?v=20260910_0025"></script>
-  <script src="js/services/diagnostics/diagnostics-service.js?v=20260910_0025"></script>
+  <script src="js/services/cross-projects.js?v=20260919_1550"></script>
+  <script src="js/services/users/user-service.js?v=20260919_1550"></script>
+  <script src="js/services/messages/messages-service.js?v=20260919_1550"></script>
+  <script src="js/services/games/games-service.js?v=20260919_1550"></script>
+  <script src="js/config/brevo-keys.js?v=20260919_1550"></script>
+  <script src="js/services/newsletter/newsletter-service.js?v=20260919_1550"></script>
+  <script src="js/services/payments/payments-service.js?v=20260919_1550"></script>
+  <script src="js/services/ecosystem/ecosystem-service.js?v=20260919_1550"></script>
+  <script src="js/services/archive/archive-service.js?v=20260919_1550"></script>
+  <script src="js/services/diagnostics/diagnostics-service.js?v=20260919_1550"></script>
   
   <!-- UI Modules -->
-  <script src="js/dashboard/messages-ui.js?v=20260910_0025"></script>
-  <script src="js/dashboard/ecosistema-ui.js?v=20260910_0025"></script>
-  <script src="js/dashboard/games-ui.js?v=20260910_0025"></script>
-  <script src="js/dashboard/users-ui.js?v=20260910_0025"></script>
-  <script src="js/dashboard/payments-ui.js?v=20260910_0025"></script>
-  <script src="js/dashboard/vetrina-ui.js?v=20260910_0025"></script>
+  <script src="js/dashboard/messages-ui.js?v=20260920_1640"></script>
+  <script src="js/dashboard/ecosistema-ui.js?v=20260920_1640"></script>
+  <script src="js/dashboard/games-ui.js?v=20260920_1640"></script>
+  <script src="js/dashboard/users-ui.js?v=20260920_1657"></script>
+  <script src="js/dashboard/payments-ui.js?v=20260920_1640"></script>
+  <script src="js/dashboard/vetrina-ui.js?v=20260920_1640"></script>
   
-  <script src="js/dashboard/newsletter-ui.js?v=20260910_0025"></script>
-  <script src="js/dashboard/analytics-ui.js?v=20260910_0025"></script>
-  <script src="js/dashboard/notifications-ui.js?v=20260910_0025"></script>
-  <script src="js/dashboard/legal-admin-ui.js?v=20260910_0025"></script>
-  <script src="js/dashboard/impostazioni-ui.js?v=20260910_0025"></script>
-  <script src="js/dashboard/diagnostics-ui.js?v=20260910_0025"></script>
-  <script src="js/dashboard/releases-ui.js?v=20260913_1125"></script>
+  <script src="js/dashboard/newsletter-ui.js?v=20260920_1640"></script>
+  <script src="js/dashboard/analytics-ui.js?v=20260920_1640"></script>
+  <script src="js/dashboard/notifications-ui.js?v=20260920_1640"></script>
+  <script src="js/dashboard/legal-admin-ui.js?v=20260920_1640"></script>
+  <script src="js/dashboard/impostazioni-ui.js?v=20260920_1640"></script>
+  <script src="js/dashboard/diagnostics-ui.js?v=20260920_1640"></script>
+  <script src="js/dashboard/releases-ui.js?v=20260920_1640"></script>
   
-  <script src="js/app_v2.js?v=20260910_0025"></script>
+  <script src="js/app_v2.js?v=20260920_1640"></script>
   <script>
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');

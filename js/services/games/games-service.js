@@ -24,6 +24,13 @@ const GamesService = {
         }, { merge: true });
     },
 
+    updateGameVetrina: async function(gameId, visibleInVetrina) {
+        if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase non inizializzato");
+        return window.fbDb.hub.collection('games_status').doc(gameId).set({
+            visibleInVetrina: visibleInVetrina
+        }, { merge: true });
+    },
+
     getGameDetails: async function(gameId) {
         if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase non inizializzato");
         const doc = await window.fbDb.hub.collection('games_status').doc(gameId).get();
