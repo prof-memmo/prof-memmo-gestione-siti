@@ -771,6 +771,8 @@
                     <option value="La Corte della Commedia">Commedia</option>
                     <option value="Fantaletteratura">Fanta</option>
                     <option value="Palestra di Riflessione">Palestra</option>
+                    <option value="Ops! Operazione Storia">Ops!</option>
+                    <option value="L'Oratore">Oratore</option>
                   </select>
                 </th>
                 <th style="cursor:pointer; padding: 8px 6px; width: 130px; max-width: 135px;" onclick="HubApp.sortIscritti('piano')">
@@ -2613,22 +2615,6 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
           <button onclick="ImpostazioniUI.archiviaAnnoGlobale()" class="btn" style="background:#d97706; color:white; font-weight:800; border:none; padding:10px 22px; border-radius:8px; cursor:pointer; box-shadow: 0 4px 12px rgba(217,119,6,0.25);">
             <i class="fa-solid fa-box-archive"></i> Esegui Archiviazione Anno
           </button>
-        </div>
-      </div>
-
-      <!-- 4. Manutenzione Database & GDPR: Pulizia Account Studenti Google (Zero-Email) -->
-      <div class="glass-panel" style="margin-bottom:24px; border: 1px solid rgba(16, 185, 129, 0.4); background: rgba(240, 253, 244, 0.6);">
-        <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:15px;">
-          <div>
-            <h3 style="margin:0 0 6px 0; color:#059669;"><i class="fa-solid fa-user-shield"></i> Pulizia Account Studenti Google (Zero-Email / GDPR)</h3>
-            <p style="color:#64748b; font-size:0.85rem; margin:0; max-width: 700px;">
-              Rimuove in modo controllato e sicuro i vecchi account studente registrati con Google/email personale da <code>hub_users</code> e dai database di gioco. <strong>Tutti i Docenti, i Viandanti, le Classi e i Roster interni rimangono protetti al 100%.</strong> Include anteprima interattiva con selezione prima dell'eliminazione.
-            </p>
-          </div>
-          <button onclick="ImpostazioniUI.openPurgeStudentsModal()" class="btn" style="background:#059669; color:white; font-weight:800; border:none; padding:10px 22px; border-radius:8px; cursor:pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.25);">
-            <i class="fa-solid fa-broom"></i> Avvia Pulizia Studenti Google
-          </button>
-        </div>
       </div>
     </div>
 
@@ -3061,45 +3047,6 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
         <button id="btn-execute-release" onclick="ReleasesUI.executeRelease()" class="btn" style="background: #10b981; color: white; font-weight: 700; padding: 10px 22px; border: none; border-radius: 8px; cursor: pointer; opacity: 0.5;" disabled>
           <i class="fa-solid fa-rocket"></i> Conferma e Pubblica Live
         </button>
-      </div>
-    </div>
-  </div>
-  <!-- Modal Pulizia Account Studenti Google (GDPR/Zero-Email) -->
-  <div id="modal-purge-students" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
-    <div class="glass-panel" style="background: #ffffff; color: var(--text-main); width: 100%; max-width: 800px; max-height: 90vh; display: flex; flex-direction: column; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); border: 1px solid var(--border-color); padding: 25px; box-sizing: border-box;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
-        <h3 style="margin: 0; font-size: 1.25rem; color: #059669; display: flex; align-items: center; gap: 10px;">
-          <i class="fa-solid fa-user-shield"></i> Pulizia Account Studenti Google (GDPR / Zero-Email)
-        </h3>
-        <button onclick="document.getElementById('modal-purge-students').style.display='none'" style="background: transparent; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer;">&times;</button>
-      </div>
-
-      <!-- KPI summary banner -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px;">
-          <span style="font-size: 0.78rem; font-weight: 700; color: #15803d; display: block; text-transform: uppercase;">🛡️ Docenti &amp; Viandanti Protetti:</span>
-          <span id="purge-protected-count" style="font-size: 1.3rem; font-weight: 800; color: #166534;">-</span>
-        </div>
-        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px;">
-          <span style="font-size: 0.78rem; font-weight: 700; color: #b91c1c; display: block; text-transform: uppercase;">🧹 Account Studenti Google Rilevati:</span>
-          <span id="purge-candidates-count" style="font-size: 1.3rem; font-weight: 800; color: #991b1b;">-</span>
-        </div>
-      </div>
-
-      <div id="purge-status-message" style="margin-bottom: 12px; font-size: 0.88rem; padding: 10px 14px; border-radius: 8px;"></div>
-
-      <div id="purge-candidates-container" style="flex: 1; min-height: 180px; max-height: 320px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px;"></div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 12px;">
-        <span style="font-size: 0.85rem; color: #64748b;">
-          Selezionati: <strong id="purge-selected-badge" style="color:#059669;">0</strong> studenti
-        </span>
-        <div style="display: flex; gap: 10px;">
-          <button onclick="document.getElementById('modal-purge-students').style.display='none'" class="btn outline" style="border-color: #cbd5e1; color: #64748b;">Annulla</button>
-          <button id="btn-confirm-purge-students" onclick="ImpostazioniUI.executePurgeStudents()" class="btn" style="background: #dc2626; color: white; font-weight: 700; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;" disabled>
-            <i class="fa-solid fa-trash-can"></i> Elimina Studenti Selezionati
-          </button>
-        </div>
       </div>
     </div>
   </div>
