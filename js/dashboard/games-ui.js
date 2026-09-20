@@ -32,22 +32,34 @@ const GamesUI = {
                 if (['ops', 'la-corte-della-commedia', 'la-roulette'].includes(game.id)) {
                     defaultActive = false;
                 }
-                const data = statusMap[game.id] || { isActive: defaultActive, popupType: 'wip_text' };
+                const data = statusMap[game.id] || { isActive: defaultActive, visibleInVetrina: true, popupType: 'wip_text' };
+                const isVetrinaVisible = data.visibleInVetrina !== false;
+                const isAccessOpen = !!data.isActive;
                 
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = '1px solid #e5e7eb';
                 
                 tr.innerHTML = `
-                    <td style="padding:15px 10px; font-weight: 500;">${game.name}</td>
+                    <td style="padding:15px 10px; font-weight: 600; color: var(--text-main); font-size: 0.95rem;">
+                        <i class="fa-solid fa-gamepad" style="color: #6366f1; margin-right: 6px;"></i> ${game.name}
+                    </td>
                     <td style="padding:15px 10px; text-align: center;">
-                        <button class="btn btn-sm" onclick="HubApp.toggleGameStatus('${game.id}', ${!data.isActive})" 
-                            style="background:${data.isActive ? '#10b981' : '#ef4444'}; color:white; padding:6px 12px; border:none; border-radius:20px; cursor:pointer; font-weight:600; width: 120px;">
-                            ${data.isActive ? '<i class="fa-solid fa-check"></i> Attivo' : '<i class="fa-solid fa-xmark"></i> Nascosto'}
+                        <button class="btn btn-sm" onclick="window.GamesUI.toggleGameVetrina('${game.id}', ${!isVetrinaVisible})" 
+                            title="${isVetrinaVisible ? 'Visibile nel catalogo del sito vetrina' : 'Nascosto dal catalogo del sito vetrina'}"
+                            style="background:${isVetrinaVisible ? '#10b981' : '#64748b'}; color:white; padding:6px 14px; border:none; border-radius:20px; cursor:pointer; font-weight:600; font-size: 0.8rem; width: 130px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                            ${isVetrinaVisible ? '<i class="fa-solid fa-eye"></i> In Vetrina' : '<i class="fa-solid fa-eye-slash"></i> Nascosto'}
+                        </button>
+                    </td>
+                    <td style="padding:15px 10px; text-align: center;">
+                        <button class="btn btn-sm" onclick="window.GamesUI.toggleGameStatus('${game.id}', ${!isAccessOpen})" 
+                            title="${isAccessOpen ? 'Accessibile e operativo' : 'Bloccato con pop-up Lavori in corso'}"
+                            style="background:${isAccessOpen ? '#059669' : '#d97706'}; color:white; padding:6px 14px; border:none; border-radius:20px; cursor:pointer; font-weight:600; font-size: 0.8rem; width: 155px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                            ${isAccessOpen ? '<i class="fa-solid fa-circle-check"></i> Aperto' : '<i class="fa-solid fa-person-digging"></i> Lavori in corso'}
                         </button>
                     </td>
                     <td style="padding:15px 10px; text-align: right;">
                         <button class="btn btn-sm" onclick="HubApp.editGame('${game.id}', '${game.name}')" 
-                            style="background:#3b82f6; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:500;">
+                            style="background:#4f46e5; color:white; padding:6px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size: 0.82rem; transition: transform 0.15s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-pen-to-square"></i> Modifica Card
                         </button>
                     </td>
@@ -57,15 +69,25 @@ const GamesUI = {
         });
     },
 
+    toggleGameVetrina: function(gameId, targetVetrina) {
+        if (!window.GamesService) return;
+        
+        window.GamesService.updateGameVetrina(gameId, targetVetrina).then(() => {
+            console.log("Game vetrina visibility updated");
+        }).catch((err) => {
+            console.error("Firebase write error:", err);
+            alert("Errore salvataggio visibilità vetrina: " + err.message);
+        });
+    },
+
     toggleGameStatus: function(gameId, targetStatus) {
         if (!window.GamesService) return;
         
         window.GamesService.updateGameStatus(gameId, targetStatus).then(() => {
             console.log("Game status updated");
-            alert("Stato aggiornato con successo!");
         }).catch((err) => {
             console.error("Firebase write error:", err);
-            alert("Errore di salvataggio su Firebase! Probabilmente mancano i permessi nel database (Regole di sicurezza). Dettagli: " + err.message);
+            alert("Errore salvataggio stato gioco: " + err.message);
         });
     },
 

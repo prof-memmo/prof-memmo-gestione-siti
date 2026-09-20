@@ -305,6 +305,7 @@ const HubApp = {
 
 
     toggleGameStatus: function(gameId, targetStatus) { if(window.GamesUI) window.GamesUI.toggleGameStatus(gameId, targetStatus); },
+    toggleGameVetrina: function(gameId, targetVetrina) { if(window.GamesUI) window.GamesUI.toggleGameVetrina(gameId, targetVetrina); },
     editGame: function(gameId, gameName) { if(window.GamesUI) window.GamesUI.editGame(gameId, gameName); },
     saveGameInfo: function() { if(window.GamesUI) window.GamesUI.saveGameInfo(); },
 

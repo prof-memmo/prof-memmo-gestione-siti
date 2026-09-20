@@ -588,21 +588,24 @@
     <!-- VISTA GESTIONE GIOCHI -->
     <div id="view-gestione-giochi" class="hub-view">
       <div class="hub-header">
-        <h2><i class="fa-solid fa-gamepad" style="color:#10b981;"></i> Gestione Giochi & Pop-up</h2>
+        <h2><i class="fa-solid fa-gamepad" style="color:#10b981;"></i> Gestione Giochi &amp; Vetrina</h2>
       </div>
       <div class="glass-panel" style="margin-bottom: 20px;">
-        <p style="margin-bottom: 20px; color: var(--text-main); font-size: 1.05rem;">Qui puoi controllare quali giochi sono attualmente accessibili. Se un gioco è disattivato, il link nell'archivio verrà bloccato e i tentativi di accesso diretto mostreranno il pop-up predefinito ("Lavori in corso").</p>
+        <p style="margin-bottom: 20px; color: var(--text-main); font-size: 1rem; line-height: 1.5;">
+          Da qui puoi controllare in modo indipendente la <strong>Presenza in Vetrina</strong> (se la card compare o è nascosta nel catalogo pubblico del sito) e lo <strong>Stato di Accesso</strong> (se il gioco è aperto o bloccato con il pop-up predefinito <em>"Lavori in corso"</em>).
+        </p>
         <div class="table-responsive" style="overflow-x:auto;">
           <table class="game-table" style="width:100%; border-collapse: collapse; text-align: left;">
             <thead>
               <tr style="border-bottom:1px solid #e5e7eb;">
                 <th style="padding:15px 10px; color: var(--text-muted);">Nome Gioco / Materiale</th>
-                <th style="padding:15px 10px; color: var(--text-muted); text-align: center;">Visibilità Hub</th>
+                <th style="padding:15px 10px; color: var(--text-muted); text-align: center;">Visibilità Vetrina</th>
+                <th style="padding:15px 10px; color: var(--text-muted); text-align: center;">Accesso Gioco</th>
                 <th style="padding:15px 10px; color: var(--text-muted); text-align: right;">Azioni</th>
               </tr>
             </thead>
             <tbody id="games-list-body">
-              <tr><td colspan="3" style="text-align:center; padding:20px;">Caricamento in corso...</td></tr>
+              <tr><td colspan="4" style="text-align:center; padding:20px;">Caricamento in corso...</td></tr>
             </tbody>
           </table>
         </div>
