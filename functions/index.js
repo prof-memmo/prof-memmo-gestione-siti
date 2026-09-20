@@ -1563,45 +1563,106 @@ exports.purgeGoogleStudents = functions.https.onCall(async (data, context) => {
             throw new functions.https.HttpsError("permission-denied", "Solo l'amministratore (prof.memmo@gmail.com) può eseguire la pulizia degli studenti Google.");
         }
 
+        const dryRun = data && data.dryRun === true;
+        const selectedUids = Array.isArray(data?.selectedUids) ? new Set(data.selectedUids) : null;
+
+        // 1. Raccogli email/uid di TUTTI i docenti proprietari o collaboratori di classe
+        const teacherEmails = new Set(["prof.memmo@gmail.com"]);
+        const teacherUids = new Set([context.auth.uid]);
+
+        try {
+            const classSnaps = await db.collection("hub_classes").get();
+            classSnaps.docs.forEach(cd => {
+                const cdata = cd.data() || {};
+                if (cdata.teacherEmail) teacherEmails.add(cdata.teacherEmail.toLowerCase().trim());
+                if (cdata.teacherUid) teacherUids.add(cdata.teacherUid);
+                if (cdata.teacherId) teacherUids.add(cdata.teacherId);
+                if (Array.isArray(cdata.collaboratori)) {
+                    cdata.collaboratori.forEach(em => teacherEmails.add(String(em).toLowerCase().trim()));
+                }
+            });
+        } catch (_) {}
+
         const report = {
+            dryRun: dryRun,
+            protectedCount: 0,
+            candidates: [],
             deletedFromHub: 0,
             deletedFromAuth: 0,
             deletedFromGames: 0
         };
 
-        const studentsSnap = await db.collection("hub_users").where("role", "==", "studente").get();
+        const usersSnap = await db.collection("hub_users").get();
 
-        for (const doc of studentsSnap.docs) {
+        for (const doc of usersSnap.docs) {
             const u = doc.data() || {};
             const uid = doc.id;
-            const email = (u.email || "").toLowerCase();
+            const email = (u.email || "").toLowerCase().trim();
+            const rawRole = String(u.role || u.ruolo || "").toLowerCase();
+            const plan = String(u.plan || u.subscription || u.abbonamento || "").toLowerCase();
+            const hasOverride = u.admin_override === true || u.adminOverride === true;
 
-            // Se lo studente ha un account Google / email personale (non il formato sintetico roster)
+            // SALVAGUARDIA: È un docente, viandante o account protetto?
+            const isProtected = teacherEmails.has(email) || 
+                                teacherUids.has(uid) || 
+                                hasOverride || 
+                                rawRole.includes("docente") || 
+                                rawRole.includes("teacher") || 
+                                rawRole.includes("admin") || 
+                                rawRole.includes("viandante") || 
+                                plan.includes("docente") || 
+                                plan.includes("ecosistema") || 
+                                plan.includes("didattic") || 
+                                plan.includes("viandante") || 
+                                email === "prof.memmo@gmail.com";
+
+            if (isProtected) {
+                report.protectedCount++;
+                continue;
+            }
+
+            // CANDIDATO: studente o mock test email
             const isGoogleOrPersonalEmail = email.includes("@") && !email.endsWith("@studenti.prof-memmo.local");
+            const isStudentRole = rawRole === "studente" || rawRole === "student" || rawRole === "" || rawRole === "base";
 
-            if (isGoogleOrPersonalEmail) {
-                // 1. Elimina da hub_users
-                await db.collection("hub_users").doc(uid).delete();
-                report.deletedFromHub++;
+            if (isGoogleOrPersonalEmail && isStudentRole) {
+                const candidateInfo = {
+                    uid: uid,
+                    nome: u.nome || u.name || (u.anagrafica && u.anagrafica.nome) || "Studente",
+                    email: email,
+                    classe: u.classe || u.classId || "N/D",
+                    scuola: u.scuola || u.school || (u.anagrafica && u.anagrafica.scuola) || "N/D",
+                    createdAt: u.createdAt || u.joinedAt || null
+                };
 
-                // 2. Elimina dalle collezioni dei singoli giochi
-                if (email) {
-                    await db.collection("fanta_users").doc(email).delete().catch(() => {});
+                report.candidates.push(candidateInfo);
+
+                if (!dryRun) {
+                    if (!selectedUids || selectedUids.has(uid)) {
+                        // 1. Elimina da hub_users
+                        await db.collection("hub_users").doc(uid).delete();
+                        report.deletedFromHub++;
+
+                        // 2. Elimina dai singoli giochi
+                        if (email) {
+                            await db.collection("fanta_users").doc(email).delete().catch(() => {});
+                        }
+                        await db.collection("eroi_users").doc(uid).delete().catch(() => {});
+                        await db.collection("palestra_users").doc(uid).delete().catch(() => {});
+                        await db.collection("corte_users").doc(uid).delete().catch(() => {});
+                        report.deletedFromGames++;
+
+                        // 3. Elimina da Firebase Auth
+                        try {
+                            await admin.auth().deleteUser(uid);
+                            report.deletedFromAuth++;
+                        } catch (_) {}
+                    }
                 }
-                await db.collection("eroi_users").doc(uid).delete().catch(() => {});
-                await db.collection("palestra_users").doc(uid).delete().catch(() => {});
-                await db.collection("corte_users").doc(uid).delete().catch(() => {});
-                report.deletedFromGames++;
-
-                // 3. Elimina l'utente da Firebase Auth
-                try {
-                    await admin.auth().deleteUser(uid);
-                    report.deletedFromAuth++;
-                } catch (_) {}
             }
         }
 
-        console.log("🧹 Pulizia account studenti Google completata:", report);
+        console.log("🧹 Esito purgeGoogleStudents:", report);
         return {
             success: true,
             report: report
