@@ -446,6 +446,93 @@ const UsersUI = {
             alert("Errore durante l'assegnazione del piano: " + e.message);
         }
     },
+
+    // 4. Modifica Massiva Scadenza Abbonamento
+    openBulkExpiryModal: function() {
+        if (!this.selectedUsers || this.selectedUsers.size === 0) {
+            alert("Seleziona almeno un utente dalla tabella con la casella di spunta.");
+            return;
+        }
+        const modal = document.getElementById('modal-bulk-expiry');
+        if (modal) {
+            const countEl = document.getElementById('bulk-expiry-count');
+            if (countEl) countEl.textContent = this.selectedUsers.size;
+            
+            // Imposta come default la data di fine anno corrente
+            const dateInput = document.getElementById('bulk-expiry-date-input');
+            if (dateInput) {
+                const currentYear = new Date().getFullYear();
+                dateInput.value = `${currentYear}-12-31`;
+            }
+            modal.style.display = 'flex';
+        }
+    },
+
+    setBulkExpiryPreset: function(preset) {
+        const input = document.getElementById('bulk-expiry-date-input');
+        if (!input) return;
+        const now = new Date();
+        const curYear = now.getFullYear();
+
+        if (preset === '31-dec') {
+            input.value = `${curYear}-12-31`;
+        } else if (preset === '31-aug') {
+            // Se siamo già dopo agosto, metti l'agosto del prossimo anno
+            const targetYear = (now.getMonth() >= 8) ? curYear + 1 : curYear;
+            input.value = `${targetYear}-08-31`;
+        } else if (preset === '+1-year') {
+            const nextYearDate = new Date(now);
+            nextYearDate.setFullYear(curYear + 1);
+            const yyyy = nextYearDate.getFullYear();
+            const mm = String(nextYearDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(nextYearDate.getDate()).padStart(2, '0');
+            input.value = `${yyyy}-${mm}-${dd}`;
+        } else if (preset === 'remove') {
+            input.value = '';
+        }
+    },
+
+    executeBulkExpiry: async function() {
+        const input = document.getElementById('bulk-expiry-date-input');
+        const cleanDate = input ? (input.value ? input.value.trim() : null) : null;
+
+        const hubDb = (window.fbDb && window.fbDb.hub) || (window.firebase && window.firebase.firestore ? window.firebase.firestore() : null);
+        if (!hubDb) {
+            alert("Database Hub non connesso.");
+            return;
+        }
+
+        const selectedIds = Array.from(this.selectedUsers);
+        let promises = [];
+
+        selectedIds.forEach(id => {
+            promises.push(hubDb.collection('hub_users').doc(id).set({
+                abbonamento_scadenza: cleanDate,
+                scadenza: cleanDate,
+                lastUpdated: new Date().toISOString()
+            }, { merge: true }));
+
+            const usr = (this.allUsers || []).find(u => String(u.id) === String(id));
+            if (usr) {
+                usr.abbonamento_scadenza = cleanDate;
+                usr.scadenza = cleanDate;
+            }
+        });
+
+        try {
+            await Promise.allSettled(promises);
+            const modal = document.getElementById('modal-bulk-expiry');
+            if (modal) modal.style.display = 'none';
+
+            this.clearSelection();
+            this.filterIscritti();
+            const msgDate = cleanDate ? `al ${cleanDate.replace(/-/g, '/').split('/').reverse().join('/')}` : 'rimossa (accesso illimitato)';
+            alert(`✅ Data di scadenza aggiornata ${msgDate} per ${selectedIds.length} utenti.`);
+        } catch (e) {
+            console.error("Errore aggiornamento scadenza massivo:", e);
+            alert("Errore durante l'aggiornamento della scadenza: " + e.message);
+        }
+    },
     
     updateUserPlan: async function(userId, newPlan, userEmail, userName) {
         if (!userId) return;
