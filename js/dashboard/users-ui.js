@@ -772,13 +772,16 @@ const UsersUI = {
             const firestore = (window.fbDb && window.fbDb.hub) ? window.fbDb.hub : (window.db || (typeof firebase !== 'undefined' ? firebase.firestore() : null));
             if (firestore) {
                 await firestore.collection('hub_users').doc(userId).set({
-                    abbonamento_scadenza: cleanDate
+                    abbonamento_scadenza: cleanDate,
+                    scadenza: cleanDate,
+                    lastUpdated: new Date().toISOString()
                 }, { merge: true });
                 alert("✅ Data di scadenza aggiornata con successo.");
                 // Aggiorna l'utente in locale e ridisegna
                 const u = (this.allUsers || []).find(usr => usr.id === userId);
                 if (u) {
                     u.abbonamento_scadenza = cleanDate;
+                    u.scadenza = cleanDate;
                     this.renderIscrittiTable(this.allUsers);
                 }
             }
