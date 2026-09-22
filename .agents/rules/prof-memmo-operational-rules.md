@@ -35,12 +35,19 @@ Tutti gli agenti AI e i programmatori che operano sui repository dell'Ecosistema
 
 ---
 
-### ART. 5 - AUDIT AUTOMATICO ANTI-REGRESSIONE OBBLIGATORIO (PRE-COMMIT)
-Prima di considerare conclusa qualsiasi modifica e prima di effettuare il push su Git, l'agente DEVE eseguire una verifica programmatica automatica:
-1. **Audit Sintassi CSS**: Conteggio e bilanciamento matematico perfetto delle parentesi graffe { e } su tutti i fogli di stile (scarto zero).
-2. **Audit Database JSON**: Validazione di tutti i file JSON tramite parser automatico per certificare l'assenza di errori di sintassi, virgole mancanti o codifica.
-3. **Audit Coerenza DOM / JS**: Verifica che nessun metodo JS referenzi ID o classi cancellati o inesistenti.
-4. **Audit Working Tree**: Controllo di git diff e git status per verificare che non ci siano file sporchi o modifiche collaterali non intenzionali.
+### ART. 5 - AUDIT AUTOMATICO ANTI-REGRESSIONE E VERIFICA VISIVA OBBLIGATORIA (PRE-COMMIT)
+Prima di considerare conclusa qualsiasi modifica e prima di effettuare il push su Git, l'agente DEVE eseguire una verifica programmatica e visiva rigorosa:
+1. **Audit Sintassi CSS Totale (File esterni e tag `<style>` inline)**:
+   - Conteggio e bilanciamento matematico perfetto delle parentesi graffe `{` e `}` su tutti i file `.css` e su tutti i tag `<style>` embedded nelle pagine HTML (scarto zero tollerato).
+   - Verifica di chiusura esplicita di ogni selettore e proprietà con `;` e `}`.
+2. **Audit Visivo Obbligatorio (Browser Subagent / Visual Testing)**:
+   - Per qualsiasi modifica che tocca HTML, CSS o flussi di navigazione/onboarding/login, l'agente ha il divieto assoluto di concludere il task senza aver prima eseguito una verifica con il browser reale/subagent.
+   - L'agente deve catturare gli screenshot di collaudo per ogni sotto-vista (es. Scelta Ruolo, Accesso Docente, Codice Classe Studente, Roster Claiming, Onboarding Profilo) e confermare visivamente proporzioni, griglie e allineamenti.
+3. **Defensive UI Pattern (Contenimento Forzato Asset & Immagini)**:
+   - Nessuna immagine, avatar, badge o icona può essere inserita senza stili o classi di contenimento protetto (`max-width: 100%; max-height: 100%; object-fit: cover; aspect-ratio: 1/1;` e dimensioni fisse sul container) per impedire il rendering sformato anche in caso di anomalie di stile.
+4. **Audit Database JSON**: Validazione di tutti i file JSON tramite parser automatico per certificare l'assenza di errori di sintassi, virgole mancanti o codifica.
+5. **Audit Coerenza DOM / JS**: Verifica che nessun metodo JS referenzi ID o classi cancellati o inesistenti.
+6. **Audit Working Tree**: Controllo di git diff e git status per verificare che non ci siano file sporchi o modifiche collaterali non intenzionali.
 
 ---
 

@@ -652,7 +652,72 @@ const DiagnosticsService = {
             });
         }
 
-        // Calcola conteggi e stato complessivo
+        // -------------------------------------------------------------
+        // 9. INTEGRITÀ FRONTEND, CSS & LAYOUT UI (Sentinel Check)
+        // -------------------------------------------------------------
+        try {
+            let cssErrors = [];
+            let totalStylesChecked = 0;
+
+            // 1. Controllo bilanciamento parentesi graffe in tutti i tag <style> del documento
+            const styleTags = document.querySelectorAll('style');
+            styleTags.forEach((st, idx) => {
+                totalStylesChecked++;
+                const text = st.textContent || '';
+                const openCount = (text.match(/\{/g) || []).length;
+                const closeCount = (text.match(/\}/g) || []).length;
+                if (openCount !== closeCount) {
+                    cssErrors.push(`Blocco <style> #${idx + 1} sbilanciato ({=${openCount}, }=${closeCount})`);
+                }
+            });
+
+            // 2. Controllo regole difensive di contenimento su elementi grafici e avatar presenti
+            const avatarItems = document.querySelectorAll('.avatar-choice-item, .avatar-option, .user-avatar-img');
+            let unconstrainedAvatars = 0;
+            avatarItems.forEach(item => {
+                const computed = window.getComputedStyle(item);
+                const width = parseFloat(computed.width);
+                const height = parseFloat(computed.height);
+                if (width > 120 || height > 120) {
+                    unconstrainedAvatars++;
+                }
+            });
+
+            if (cssErrors.length === 0 && unconstrainedAvatars === 0) {
+                results.items.push({
+                    id: 'frontend_css_sentinel',
+                    category: 'Frontend & Visual Layout',
+                    name: 'Integrità Sintassi CSS & Layout Grafico',
+                    status: 'ok',
+                    badge: '✓ PERFETTO',
+                    details: `Tutti i ${totalStylesChecked} blocchi di stile CSS risultano sintatticamente bilanciati. Regole di contenimento avatar e layout verificate senza anomalie.`,
+                    actionNeeded: null,
+                    timestamp: `${timestamp.date} ${timestamp.time}`
+                });
+            } else {
+                results.items.push({
+                    id: 'frontend_css_sentinel',
+                    category: 'Frontend & Visual Layout',
+                    name: 'Integrità Sintassi CSS & Layout Grafico',
+                    status: 'error',
+                    badge: '✕ ANOMALIA VISIVA',
+                    details: `Rilevati errori nel rendering: ${cssErrors.concat(unconstrainedAvatars > 0 ? [`${unconstrainedAvatars} avatar fuori scala/non vincolati`] : []).join('; ')}.`,
+                    actionNeeded: 'Correggere immediatamente le regole CSS o il bilanciamento delle parentesi graffe prima di rilasciare.',
+                    timestamp: `${timestamp.date} ${timestamp.time}`
+                });
+            }
+        } catch (e) {
+            results.items.push({
+                id: 'frontend_css_sentinel',
+                category: 'Frontend & Visual Layout',
+                name: 'Integrità Sintassi CSS & Layout Grafico',
+                status: 'warning',
+                badge: '⚠ DA VERIFICARE',
+                details: `Verifica frontend parziale: ${e.message}`,
+                actionNeeded: null,
+                timestamp: `${timestamp.date} ${timestamp.time}`
+            });
+        }
         results.summary.total = results.items.length;
         results.summary.working = results.items.filter(i => i.status === 'ok').length;
         results.summary.warnings = results.items.filter(i => i.status === 'warning').length;
