@@ -15,6 +15,7 @@ const DiagnosticsService = {
             active: true,
             diagnostics_active: true,
             db_collection: 'hub_users',
+            db_collections: ['hub_users', 'hub_settings', 'games_status', 'vetrina'],
             icon: 'fa-house',
             description: 'Vetrina pubblica principale, catalogo giochi e portale di accesso.'
         },
@@ -27,6 +28,7 @@ const DiagnosticsService = {
             active: true,
             diagnostics_active: true,
             db_collection: 'hub_settings',
+            db_collections: ['hub_settings', 'hub_users', 'hub_classes', 'hub_posta_inviata', 'hub_transactions'],
             icon: 'fa-shield-halved',
             description: 'Console di amministrazione centrale, gestione iscritti, notifiche e impostazioni.'
         },
@@ -39,6 +41,7 @@ const DiagnosticsService = {
             active: true,
             diagnostics_active: true,
             db_collection: 'eroi_users',
+            db_collections: ['eroi_users', 'eroi_classes', 'eroi_pending_requests', 'eroi_archives', 'eroi_settings'],
             icon: 'fa-ship',
             description: 'Gioco di ruolo didattico su epica classica e letteratura.'
         },
@@ -51,6 +54,7 @@ const DiagnosticsService = {
             active: true,
             diagnostics_active: true,
             db_collection: 'corte_users',
+            db_collections: ['corte_users', 'corte_classes', 'corte_courts', 'corte_sentences', 'corte_xpLogs', 'corte_progress', 'corte_settings'],
             icon: 'fa-masks-theater',
             description: 'Gioco didattico sulla Divina Commedia di Dante Alighieri.'
         },
@@ -63,6 +67,7 @@ const DiagnosticsService = {
             active: true,
             diagnostics_active: true,
             db_collection: 'fanta_users',
+            db_collections: ['fanta_users', 'fanta_teams', 'fanta_missions', 'fanta_tournaments', 'fanta_pending_requests', 'fanta_settings'],
             icon: 'fa-feather-pointed',
             description: 'Lega letteraria e sfide narrative per studenti e classi.'
         },
@@ -75,6 +80,7 @@ const DiagnosticsService = {
             active: true,
             diagnostics_active: true,
             db_collection: 'palestra_users',
+            db_collections: ['palestra_users', 'palestra_classes', 'palestra_progress', 'palestra_settings', 'palestra_archives'],
             icon: 'fa-brain',
             description: 'Palestra di logica, comprensione del testo e pensiero critico.'
         },
@@ -87,6 +93,7 @@ const DiagnosticsService = {
             active: true,
             diagnostics_active: true,
             db_collection: 'ops_users',
+            db_collections: ['ops_users', 'ops_rooms', 'ops_saved_games', 'ops_classes', 'ops_progress', 'ops_settings'],
             icon: 'fa-landmark',
             description: 'Gioco storico per la scuola secondaria di primo grado.'
         },
@@ -99,6 +106,7 @@ const DiagnosticsService = {
             active: true,
             diagnostics_active: true,
             db_collection: 'hub_didactic_overrides',
+            db_collections: ['hub_didactic_overrides', 'hub_settings'],
             icon: 'fa-microphone-lines',
             description: 'Gioco e sfide di oratoria, retorica viva e debate (QCER A1-C2).'
         }
@@ -591,27 +599,30 @@ const DiagnosticsService = {
         }
 
         // -------------------------------------------------------------
-        // 8. COLLEGAMENTI HUB <-> SITI & BRIDGE DI SICUREZZA
+        // 8. COLLEGAMENTI HUB <-> SITI & BRIDGE DI SICUREZZA (MULTI-COLLEZIONE)
         // -------------------------------------------------------------
         try {
             if (window.fbDb && window.fbDb.hub) {
-                // Raccoglie dinamicamente tutte le collezioni DB dei progetti registrati
+                // Raccoglie dinamicamente tutte le collezioni DB (principali e operative) dei progetti registrati
                 const collectionsToCheck = [];
                 for (const p of projects) {
-                    if (p.db_collection && !collectionsToCheck.some(c => c.coll === p.db_collection)) {
-                        collectionsToCheck.push({ coll: p.db_collection, name: p.name });
+                    const colls = p.db_collections || (p.db_collection ? [p.db_collection] : []);
+                    for (const c of colls) {
+                        if (!collectionsToCheck.some(item => item.coll === c)) {
+                            collectionsToCheck.push({ coll: c, projectName: p.name });
+                        }
                     }
                 }
 
                 let allAccessible = true;
-                const inaccessibleColls = [];
+                const inaccessibleDetails = [];
 
                 for (const g of collectionsToCheck) {
                     try {
                         await window.fbDb.hub.collection(g.coll).limit(1).get();
                     } catch (e) {
                         allAccessible = false;
-                        inaccessibleColls.push(g.name);
+                        inaccessibleDetails.push(`"${g.coll}" (${g.projectName}: ${e.message || 'Permesso negato'})`);
                     }
                 }
 
@@ -619,10 +630,10 @@ const DiagnosticsService = {
                     results.items.push({
                         id: 'hub_bridge',
                         category: 'Collegamenti & Sincronizzazione',
-                        name: 'Collegamenti Hub ↔ Siti (Bridge Database)',
+                        name: 'Collegamenti Hub ↔ Siti (Bridge Database & Sicurezza Firestore)',
                         status: 'ok',
                         badge: '✓ FUNZIONANTE',
-                        details: `Tutte le ${collectionsToCheck.length} collezioni di gioco registrate dialogano correttamente con l'Hub centrale senza blocchi di sicurezza.`,
+                        details: `Tutte le ${collectionsToCheck.length} collezioni di gioco (profili, classi, stanze live, salvataggi e progressi) dialogano correttamente con l'Hub senza blocchi di sicurezza.`,
                         actionNeeded: null,
                         timestamp: `${timestamp.date} ${timestamp.time}`
                     });
@@ -630,11 +641,11 @@ const DiagnosticsService = {
                     results.items.push({
                         id: 'hub_bridge',
                         category: 'Collegamenti & Sincronizzazione',
-                        name: 'Collegamenti Hub ↔ Siti (Bridge Database)',
+                        name: 'Collegamenti Hub ↔ Siti (Bridge Database & Sicurezza Firestore)',
                         status: 'warning',
                         badge: '⚠ DA VERIFICARE',
-                        details: `Alcune collezioni di gioco hanno risposto con accesso limitato: ${inaccessibleColls.join(', ')}.`,
-                        actionNeeded: 'Controllare le regole di sicurezza Firestore in hub.firestore.rules.',
+                        details: `Rilevati problemi di accesso su ${inaccessibleDetails.length} collezioni: ${inaccessibleDetails.join(', ')}.`,
+                        actionNeeded: 'Controllare le regole di sicurezza Firestore in hub.firestore.rules per includere le collezioni mancanti.',
                         timestamp: `${timestamp.date} ${timestamp.time}`
                     });
                 }
@@ -643,11 +654,11 @@ const DiagnosticsService = {
             results.items.push({
                 id: 'hub_bridge',
                 category: 'Collegamenti & Sincronizzazione',
-                name: 'Collegamenti Hub ↔ Siti (Bridge Database)',
+                name: 'Collegamenti Hub ↔ Siti (Bridge Database & Sicurezza Firestore)',
                 status: 'warning',
                 badge: '⚠ DA VERIFICARE',
                 details: `Verifica bridge incompleta: ${e.message}`,
-                actionNeeded: 'Controllare la sincronizzazione Firebase.',
+                actionNeeded: 'Controllare la sincronizzazione Firebase e la connessione.',
                 timestamp: `${timestamp.date} ${timestamp.time}`
             });
         }
