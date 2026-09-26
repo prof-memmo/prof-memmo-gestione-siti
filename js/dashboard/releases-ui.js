@@ -90,6 +90,135 @@ const ReleasesUI = {
     siteStatuses: {},
     history: [],
 
+    parseCommit: function(rawMessage) {
+        if (!rawMessage) return {
+            type: 'update',
+            badge: '⚡ Aggiornamento',
+            badgeColor: '#6366f1',
+            italianExplanation: 'Miglioramenti generali e ottimizzazione del codice',
+            original: ''
+        };
+
+        const firstLine = rawMessage.split('\n')[0].trim();
+        
+        // Controlla se è presente una descrizione esplicita in italiano (es. "Descrizione:", "IT:", "Spiegazione:")
+        let customItalianNote = '';
+        const noteMatch = rawMessage.match(/(?:(?:IT|Descrizione|Spiegazione|Italiano|Nota):\s*)([^\n\r]+)/i);
+        if (noteMatch) {
+            customItalianNote = noteMatch[1].trim();
+        }
+
+        // Riconoscimento formato Conventional Commits: type(scope): subject
+        const ccMatch = firstLine.match(/^([a-zA-Z0-9_\-]+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/);
+
+        let type = 'update';
+        let scope = '';
+        let subject = firstLine;
+
+        if (ccMatch) {
+            type = ccMatch[1].toLowerCase();
+            scope = ccMatch[2] ? ccMatch[2].trim() : '';
+            subject = ccMatch[4].trim();
+        }
+
+        const typeConfig = {
+            feat: { badge: '🚀 Nuova Funzione', color: '#059669' },
+            fix: { badge: '🛠️ Correzione Bug', color: '#d97706' },
+            docs: { badge: '📚 Regole & Documenti', color: '#7c3aed' },
+            style: { badge: '🎨 Grafica & Layout', color: '#db2777' },
+            refactor: { badge: '⚡ Ottimizzazione Codice', color: '#4f46e5' },
+            perf: { badge: '⚡ Prestazioni', color: '#0284c7' },
+            test: { badge: '🧪 Test & Sicurezza', color: '#0d9488' },
+            chore: { badge: '🔧 Manutenzione', color: '#475569' },
+            sync: { badge: '🔄 Sincronizzazione', color: '#2563eb' },
+            revert: { badge: '⏪ Ripristino Versione', color: '#dc2626' },
+            build: { badge: '📦 Build & Asset', color: '#7c2d12' },
+            ci: { badge: '⚙️ Pipeline CI/CD', color: '#334155' }
+        };
+
+        const curType = typeConfig[type] || { badge: '⚡ Aggiornamento', color: '#6366f1' };
+
+        let italian = customItalianNote;
+
+        if (!italian) {
+            let translated = subject;
+
+            // Dizionario per frasi chiave tecniche e specifiche del progetto
+            const dictionary = [
+                [/sync operational rules v2\.0 with Article 5 visual & defensive standards/gi, "Sincronizzate le regole operative v2.0 con gli standard visivi e difensivi dell'Articolo 5 (Palestra di Riflessione)"],
+                [/sync operational rules v2\.0/gi, "Sincronizzazione regole operative v2.0"],
+                [/operational rules/gi, "regole operative"],
+                [/visual & defensive standards/gi, "standard visivi e di sicurezza difensiva"],
+                [/Article 5 visual & defensive standards/gi, "standard visivi e difensivi dell'Articolo 5"],
+                [/article 5/gi, "Articolo 5 (Palestra di Riflessione)"],
+                [/zero-downtime/gi, "rilascio continuo a zero interruzioni (Zero-Downtime)"],
+                [/single sign-on|sso/gi, "accesso unificato SSO"],
+                [/auth session|authentication/gi, "autenticazione e sessione utente"],
+                [/floating dockbar|dockbar|dock bar/gi, "dock bar fluttuante"],
+                [/patamu badge|patamu/gi, "badge e tutela legale Patamu"],
+                [/audio player|audio tracking/gi, "lettore audio e tracciamento ascolto"],
+                [/game mechanics|gamification/gi, "dinamiche di gioco e punteggi"],
+                [/user profile|profile view/gi, "profilo e scheda utente"],
+                [/bug fix|bug fixes/gi, "risoluzione problemi e anomalie"],
+                [/responsive layout|mobile responsiveness/gi, "adattamento per smartphone e tablet"],
+                [/preflight check|safeguards/gi, "diagnostica di sicurezza pre-rilascio"],
+                [/landing page/gi, "pagina principale"],
+                [/leaderboard/gi, "classifica generale"],
+                [/quiz engine/gi, "motore di verifica e quiz"]
+            ];
+
+            dictionary.forEach(([reg, rep]) => {
+                translated = translated.replace(reg, rep);
+            });
+
+            // Traduzione verbi e azioni principali all'inizio del messaggio
+            translated = translated
+                .replace(/^sync(ing|ed)?\s+/i, "Sincronizzazione di ")
+                .replace(/^add(ing|ed)?\s+/i, "Aggiunto: ")
+                .replace(/^create(ing|d)?\s+/i, "Creazione di ")
+                .replace(/^update(ing|d)?\s+/i, "Aggiornato: ")
+                .replace(/^fix(ing|ed)?\s+/i, "Risolto: ")
+                .replace(/^remove(ing|d)?\s+/i, "Rimosso: ")
+                .replace(/^improve(ing|d)?\s+/i, "Migliorato: ")
+                .replace(/^enhance(ing|d)?\s+/i, "Potenziato: ")
+                .replace(/^implement(ing|ed)?\s+/i, "Implementato: ")
+                .replace(/^refactor(ing|ed)?\s+/i, "Riorganizzato: ")
+                .replace(/^clean\s*up\s+/i, "Pulizia e ottimizzazione di ")
+                .replace(/^integrate\s+/i, "Integrato: ");
+
+            translated = translated.charAt(0).toUpperCase() + translated.slice(1);
+
+            if (scope) {
+                const scopeMap = {
+                    rules: 'Regole',
+                    ui: 'Interfaccia',
+                    auth: 'Autenticazione',
+                    navbar: 'Navigazione',
+                    dockbar: 'Dock Bar',
+                    audio: 'Audio',
+                    db: 'Database',
+                    release: 'Rilascio',
+                    game: 'Gioco',
+                    admin: 'Pannello Admin',
+                    theme: 'Tema Grafico'
+                };
+                const scopeLabel = scopeMap[scope.toLowerCase()] || scope;
+                italian = `[${scopeLabel}] ${translated}`;
+            } else {
+                italian = translated;
+            }
+        }
+
+        return {
+            type: type,
+            badge: curType.badge,
+            badgeColor: curType.color,
+            scope: scope,
+            italianExplanation: italian,
+            original: firstLine
+        };
+    },
+
     init: async function() {
         console.log("🚀 ReleasesUI: Inizializzazione modulo Rilasci...");
         this.renderSiteGrid();
@@ -254,17 +383,38 @@ const ReleasesUI = {
             `;
         } else if (status.aheadBy > 0) {
             const commitListHtml = (status.commits && status.commits.length > 0) 
-                ? status.commits.map((c, i) => `
-                    <li style="margin-bottom: 6px; font-size: 0.85rem; color: #4c1d95; line-height: 1.4;">
-                        <span style="font-weight: 700; color: #7c3aed;">#${i + 1}</span> <em>"${c.message}"</em>
-                        ${c.date ? `<span style="color: #6d28d9; font-size: 0.75rem; margin-left: 6px;">(${c.date})</span>` : ''}
-                    </li>
-                `).join('')
-                : `<li><em>"${status.lastCommitMessage || 'Miglioramenti piattaforma'}"</em></li>`;
+                ? status.commits.map((c, i) => {
+                    const parsed = ReleasesUI.parseCommit(c.message);
+                    return `
+                        <li style="margin-bottom: 10px; list-style-type: none; background: #ffffff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 10px 14px; box-shadow: 0 2px 6px rgba(124, 58, 237, 0.05);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 5px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 800; color: #7c3aed; font-size: 0.85rem;">#${i + 1}</span>
+                                    <span style="background: ${parsed.badgeColor}15; color: ${parsed.badgeColor}; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; border: 1px solid ${parsed.badgeColor}30;">
+                                        ${parsed.badge}
+                                    </span>
+                                </div>
+                                ${c.date ? `<span style="color: #6d28d9; font-size: 0.74rem; font-weight: 600;"><i class="fa-regular fa-clock"></i> ${c.date}</span>` : ''}
+                            </div>
+                            
+                            <!-- Spiegazione in Italiano -->
+                            <div style="font-weight: 700; color: #1e1b4b; font-size: 0.88rem; margin: 4px 0 6px 0; line-height: 1.4;">
+                                <i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 4px;"></i> ${parsed.italianExplanation}
+                            </div>
+
+                            <!-- Dettaglio Tecnico Originale Preservato -->
+                            <div style="font-size: 0.76rem; color: #64748b; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background: #f8fafc; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 6px; word-break: break-all;">
+                                <i class="fa-solid fa-code" style="color: #94a3b8; font-size: 0.7rem;"></i>
+                                <span>${c.message}</span>
+                            </div>
+                        </li>
+                    `;
+                }).join('')
+                : `<li style="list-style-type: none; background: #ffffff; padding: 8px 12px; border-radius: 8px; color: #4c1d95; font-size: 0.85rem;"><em>${status.lastCommitMessage || 'Miglioramenti piattaforma'}</em></li>`;
 
             statusBannerHtml = `
                 <div style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1.5px solid #c4b5fd; border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.08);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
                         <div style="font-weight: 800; color: #5b21b6; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-sparkles" style="color: #8b5cf6; font-size: 1.2rem;"></i> Nuova Versione Pronta in Anteprima!
                         </div>
@@ -272,10 +422,10 @@ const ReleasesUI = {
                             ⚡ ${status.aheadBy} ${status.aheadBy === 1 ? 'Aggiornamento' : 'Aggiornamenti'} da Pubblicare
                         </span>
                     </div>
-                    <div style="font-size: 0.88rem; color: #5b21b6; font-weight: 700; margin-bottom: 6px;">
+                    <div style="font-size: 0.88rem; color: #5b21b6; font-weight: 700; margin-bottom: 8px;">
                         Elenco dettagliato modifiche pronte per il rilascio:
                     </div>
-                    <ul style="margin: 0; padding-left: 1.2rem; list-style-type: disc;">
+                    <ul style="margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px;">
                         ${commitListHtml}
                     </ul>
                 </div>
@@ -751,17 +901,25 @@ const ReleasesUI = {
                                 ${changesList.length > 0 ? `
                                     <div style="padding-top: 8px; border-top: 1px dashed #e2e8f0;">
                                         <div style="font-weight: 700; color: #475569; margin-bottom: 6px; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em;">Modifiche &amp; Commit Inclusi (${changesList.length}):</div>
-                                        <div style="display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; padding-right: 4px;">
-                                            ${changesList.map((ch, cIdx) => `
-                                                <div style="background: #f8fafc; padding: 4px 8px; border-radius: 5px; border-left: 3px solid #6366f1; font-size: 0.76rem; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                                                    <div>
-                                                        <span style="font-weight: 700; color: #6366f1;">#${cIdx + 1}</span> 
-                                                        <span style="color: #1e293b; font-weight: 600;">&ldquo;${ch.message}&rdquo;</span>
-                                                        ${isAll ? `<span class="badge" style="background: #e0e7ff; color: #4338ca; font-size: 0.68rem; padding: 1px 5px; border-radius: 4px; margin-left: 4px;">${ch.siteName || ch.repo}</span>` : ''}
+                                        <div style="display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; padding-right: 4px;">
+                                            ${changesList.map((ch, cIdx) => {
+                                                const parsed = ReleasesUI.parseCommit(ch.message);
+                                                return `
+                                                    <div style="background: #f8fafc; padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; border-left: 3px solid ${parsed.badgeColor}; font-size: 0.76rem; display: flex; flex-direction: column; gap: 3px;">
+                                                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                                <span style="font-weight: 800; color: ${parsed.badgeColor};">#${cIdx + 1}</span>
+                                                                <span style="font-weight: 700; color: #1e293b;">${parsed.italianExplanation}</span>
+                                                                ${isAll ? `<span class="badge" style="background: #e0e7ff; color: #4338ca; font-size: 0.68rem; padding: 1px 5px; border-radius: 4px;">${ch.siteName || ch.repo}</span>` : ''}
+                                                            </div>
+                                                            <span style="color: #64748b; font-size: 0.7rem; white-space: nowrap;">${ch.date}</span>
+                                                        </div>
+                                                        <div style="font-size: 0.72rem; color: #64748b; font-family: ui-monospace, monospace; background: #ffffff; padding: 2px 6px; border-radius: 4px; border: 1px solid #f1f5f9; display: inline-flex; align-items: center; gap: 4px;">
+                                                            <i class="fa-solid fa-code" style="font-size: 0.68rem; color: #94a3b8;"></i> <span>${ch.message}</span>
+                                                        </div>
                                                     </div>
-                                                    <span style="color: #64748b; font-size: 0.7rem; white-space: nowrap;">${ch.date}</span>
-                                                </div>
-                                            `).join('')}
+                                                `;
+                                            }).join('')}
                                         </div>
                                     </div>
                                 ` : ''}
