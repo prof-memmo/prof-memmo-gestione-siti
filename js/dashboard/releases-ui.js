@@ -140,6 +140,7 @@ const ReleasesUI = {
         const curType = typeConfig[type] || { badge: '⚡ Aggiornamento', color: '#6366f1' };
 
         const scopeMap = {
+            archive: 'Archivio & Pulizia',
             filters: 'Filtri di Ricerca',
             filter: 'Filtri',
             rules: 'Regole & Sicurezza',
@@ -159,7 +160,14 @@ const ReleasesUI = {
             game: 'Attività & Giochi',
             games: 'Attività & Giochi',
             admin: 'Pannello Admin',
-            theme: 'Tema Grafico'
+            theme: 'Tema Grafico',
+            gdpr: 'Privacy & GDPR',
+            portal: 'Portale & Accessi',
+            users: 'Gestione Utenti',
+            avatar: 'Avatar & Profili',
+            hub: 'Hub Centrale',
+            multiscritto: 'Tabella Multiscritto',
+            diagnostics: 'Diagnostica & Check'
         };
         const scopeLabel = scope ? (scopeMap[scope.toLowerCase()] || scope) : '';
 
@@ -186,8 +194,12 @@ const ReleasesUI = {
 
         let s = subject.trim();
 
-        // 1. Frasi esatte note e ricorrenti nell'Ecosistema Prof. Memmo
+        // 1. Mappatura completa e naturale per tutti i commit dell'Ecosistema Prof. Memmo
         const exactPhrases = [
+            {
+                pattern: /ensure\s+archive\s+modal\s+and\s+danger\s+zone\s+are\s+always\s+accessible\s+and\s+responsive/i,
+                replacement: 'Garantita la piena accessibilità e responsività della finestra modale di archiviazione e della danger zone'
+            },
             {
                 pattern: /add\s+Ops\s+and\s+Oratore\s+to\s+filter-gioco\s+select\s+and\s+remove\s+unrequested\s+purge\s+UI/i,
                 replacement: 'Aggiunti "Ops! Storia" e "L\'Oratore" al menu filtro giochi e rimossa l\'interfaccia di eliminazione non richiesta'
@@ -205,12 +217,92 @@ const ReleasesUI = {
                 replacement: 'Aggiornamento dei tag di versione dei file per forzare il caricamento immediato senza cache'
             },
             {
+                pattern: /full\s+natural\s+Italian\s+translation\s+for\s+release\s+descriptions\s+and\s+commits/i,
+                replacement: 'Traduzione integrale e naturale in italiano per le descrizioni dei rilasci e dei commit'
+            },
+            {
                 pattern: /sync\s+operational\s+rules\s+v2\.0\s+with\s+Article\s+5\s+visual\s+&\s+defensive\s+standards/i,
                 replacement: 'Sincronizzazione delle regole operative v2.0 con gli standard visivi e difensivi dell\'Articolo 5 (Palestra di Riflessione)'
             },
             {
                 pattern: /bilanciamento\s+media\s+query\s+calendario\s+e\s+aggiornamento\s+regole\s+operative/i,
                 replacement: 'Bilanciamento delle media query del calendario e aggiornamento delle regole operative'
+            },
+            {
+                pattern: /add\s+safe\s+Google\s+students\s+purge\s+tool\s+with\s+dry-run\s+preview\s+and\s+teacher\s+safeguards/i,
+                replacement: 'Aggiunto strumento sicuro di pulizia studenti Google con anteprima simulata e tutele per i docenti'
+            },
+            {
+                pattern: /implementata\s+selezione\s+ruolo\s+a\s+monte\s+a\s+3\s+porte\s+e\s+auth\s+card\s+unificata/i,
+                replacement: 'Implementata la selezione del ruolo a monte a 3 porte con card di autenticazione unificata'
+            },
+            {
+                pattern: /ensure\s+both\s+abbonamento_scadenza\s+and\s+scadenza\s+are\s+updated\s+on\s+single\s+expiry\s+edit/i,
+                replacement: 'Garantito l\'aggiornamento simultaneo di entrambe le scadenze abbonamento in fase di modifica'
+            },
+            {
+                pattern: /separate\s+vetrina\s+visibility\s+toggle\s+and\s+game\s+access\s+toggle/i,
+                replacement: 'Separati i selettori di visibilità in vetrina e di accesso al gioco'
+            },
+            {
+                pattern: /aggiunta\s+modifica\s+massiva\s+data\s+scadenza\s+abbonamento\s+con\s+preset\s+rapidi/i,
+                replacement: 'Aggiunta la modifica massiva della data di scadenza abbonamento con preset rapidi'
+            },
+            {
+                pattern: /purge\s+legacy\s+test\s+users,\s+dynamically\s+map\s+and\s+update\s+game\s+platform\s+badges\s+per\s+subscription\s+plan/i,
+                replacement: 'Rimossi gli utenti di test obsoleti e aggiornati dinamicamente i badge delle piattaforme per piano'
+            },
+            {
+                pattern: /accurately\s+bind\s+Prof\.\s+Memmo\s+to\s+wizard\/mago\s+avatar\s+\(9\.png\)\s+and\s+fix\s+fallback\s+in\s+users-ui/i,
+                replacement: 'Collegato correttamente l\'avatar del Mago a Prof. Memmo e corretto il fallback nella gestione utenti'
+            },
+            {
+                pattern: /bump\s+script\s+query\s+version\s+strings\s+to\s+force\s+load\s+of\s+deduplicated\s+single\s+prof\.memmo\s+master\s+entry\s+and\s+neutralize\s+legacy\s+db\s+fixer/i,
+                replacement: 'Aggiornate le versioni degli script per forzare il caricamento dell\'account master unico e disattivato il vecchio db fixer'
+            },
+            {
+                pattern: /guarantee\s+exactly\s+one\s+prof\.memmo@gmail\.com\s+master\s+entry\s+with\s+wizard\s+avatar\s+\(6\.png\)/i,
+                replacement: 'Garantita la presenza di un unico account master prof.memmo@gmail.com con avatar mago'
+            },
+            {
+                pattern: /decouple\s+multiscritto\s+table\s+from\s+legacy\s+databases\s+and\s+filter\s+out\s+obsolete\s+student\s+accounts/i,
+                replacement: 'Disaccoppiata la tabella multiscritto dai vecchi database e filtrati gli account studenti obsoleti'
+            },
+            {
+                pattern: /keep\s+admin\s+users\s+UI\s+original\s+and\s+remove\s+unrequested\s+buttons/i,
+                replacement: 'Ripristinata l\'interfaccia originale della gestione utenti rimuovendo i pulsanti non richiesti'
+            },
+            {
+                pattern: /add\s+1-click\s+purgeGoogleStudents\s+and\s+seedSandboxClass\s+buttons\s+to\s+users\s+dashboard/i,
+                replacement: 'Aggiunti pulsanti rapidi per la pulizia studenti Google e il popolamento classe sandbox'
+            },
+            {
+                pattern: /add\s+purgeGoogleStudents\s+Cloud\s+Function\s+to\s+clean\s+legacy\s+Google\s+student\s+accounts/i,
+                replacement: 'Aggiunta Cloud Function per la pulizia degli account studenti Google non più attivi'
+            },
+            {
+                pattern: /add\s+hub_classes\s+rules,\s+roster\s+claiming\s+Cloud\s+Functions\s+and\s+unified\s+student\s+login\s+portal/i,
+                replacement: 'Aggiunte regole per hub_classes, Cloud Functions per l\'associazione classi e portale studenti unificato'
+            },
+            {
+                pattern: /espansione\s+check\s+pre-rilascio\s+a\s+salvaguardia\s+integrale\s+a\s+360\s+gradi/i,
+                replacement: 'Espansi i controlli pre-rilascio con salvaguardia e diagnostica integrale a 360 gradi'
+            },
+            {
+                pattern: /consolidamento\s+regole\s+operative\s+v2\.0\s+anti-regressione\s+e\s+salvaguardia\s+ecosistema/i,
+                replacement: 'Consolidamento delle regole operative v2.0 anti-regressione e salvaguardia dell\'ecosistema'
+            },
+            {
+                pattern: /expand\s+SSO\s+gameMap\s+with\s+ops_storia\s+and\s+prezzi\s+mappings/i,
+                replacement: 'Estesa la mappatura SSO dei giochi con Ops! Storia e la gestione listini prezzi'
+            },
+            {
+                pattern: /normalize\s+game\s+names\s+to\s+eliminate\s+duplicate\s+FantaLetteratura\s+and\s+update\s+release\s+targets/i,
+                replacement: 'Normalizzati i nomi dei giochi per eliminare i duplicati e aggiornati i target di rilascio'
+            },
+            {
+                pattern: /extract\s+full\s+active\s+platforms\s+from\s+hub_users\s+and\s+map\s+Multiscritto\s+with\s+L'Oratore\s+and\s+Ops/i,
+                replacement: 'Estratte tutte le piattaforme attive da hub_users e mappata la tabella Multiscritto con L\'Oratore e Ops! Storia'
             }
         ];
 
@@ -221,14 +313,20 @@ const ReleasesUI = {
         }
 
         // 2. Controllo se la frase è già scritta in italiano naturale
-        const italianMarkers = /\b(e|ed|il|lo|la|i|gli|le|un|uno|una|di|da|in|con|su|per|tra|fra|delle|degli|della|dello|del|dei|aggiornamento|aggiunta|correzione|modifica|gestione|regole|sincronizzazione|interfaccia|salvataggi|partite|bilanciamento)\b/i;
-        const hasEnglishVerbs = /\b(add|update|fix|remove|sync|with|and|from|to|for|chore|feat|refactor|clean)\b/i.test(s);
+        const italianMarkers = /\b(e|ed|il|lo|la|i|gli|le|un|uno|una|di|da|in|con|su|per|tra|fra|delle|degli|della|dello|del|dei|aggiornamento|aggiunta|correzione|modifica|gestione|regole|sincronizzazione|interfaccia|salvataggi|partite|bilanciamento|garantito|garantita)\b/i;
+        const hasEnglishVerbs = /\b(add|update|fix|remove|sync|with|and|from|to|for|chore|feat|refactor|clean|ensure)\b/i.test(s);
         if (italianMarkers.test(s) && !hasEnglishVerbs) {
             return s.charAt(0).toUpperCase() + s.slice(1);
         }
 
         // 3. Traduzione contestuale profonda termini tecnici, congiunzioni e verbi
         const replacements = [
+            [/\bensure\s+/gi, 'Garantita: '],
+            [/\bare always accessible and responsive\b/gi, 'sono sempre accessibili e responsive'],
+            [/\balways accessible\b/gi, 'sempre accessibile'],
+            [/\bdanger zone\b/gi, 'sezione danger zone'],
+            [/\barchive modal\b/gi, 'finestra modale di archiviazione'],
+            [/\bmodal\b/gi, 'finestra modale'],
             [/\bdual technical and italian commit explanations\b/gi, 'doppia spiegazione tecnica e in italiano dei commit'],
             [/\btechnical and italian commit explanations\b/gi, 'spiegazione tecnica e in italiano dei commit'],
             [/\bcommit explanations\b/gi, 'spiegazioni dei rilasci'],
