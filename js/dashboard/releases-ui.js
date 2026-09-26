@@ -95,6 +95,7 @@ const ReleasesUI = {
             type: 'update',
             badge: '⚡ Aggiornamento',
             badgeColor: '#6366f1',
+            scopeLabel: 'Generale',
             italianExplanation: 'Miglioramenti generali e ottimizzazione del codice',
             original: ''
         };
@@ -125,7 +126,7 @@ const ReleasesUI = {
             feat: { badge: '🚀 Nuova Funzione', color: '#059669' },
             fix: { badge: '🛠️ Correzione Bug', color: '#d97706' },
             docs: { badge: '📚 Regole & Documenti', color: '#7c3aed' },
-            style: { badge: '🎨 Grafica & Layout', color: '#db2777' },
+            style: { badge: '🎨 Grafica & Stile', color: '#db2777' },
             refactor: { badge: '⚡ Ottimizzazione Codice', color: '#4f46e5' },
             perf: { badge: '⚡ Prestazioni', color: '#0284c7' },
             test: { badge: '🧪 Test & Sicurezza', color: '#0d9488' },
@@ -138,75 +139,34 @@ const ReleasesUI = {
 
         const curType = typeConfig[type] || { badge: '⚡ Aggiornamento', color: '#6366f1' };
 
-        let italian = customItalianNote;
+        const scopeMap = {
+            filters: 'Filtri di Ricerca',
+            filter: 'Filtri',
+            rules: 'Regole & Sicurezza',
+            rule: 'Regole',
+            releases: 'Gestione Rilasci',
+            release: 'Rilascio',
+            cache: 'Aggiornamento Cache',
+            css: 'Stile Grafico',
+            style: 'Grafica & UI',
+            ui: 'Interfaccia Utente',
+            auth: 'Autenticazione & Login',
+            navbar: 'Barra di Navigazione',
+            dockbar: 'Dock Bar Fluttuante',
+            audio: 'Lettore Audio',
+            db: 'Database Cloud',
+            database: 'Database Cloud',
+            game: 'Attività & Giochi',
+            games: 'Attività & Giochi',
+            admin: 'Pannello Admin',
+            theme: 'Tema Grafico'
+        };
+        const scopeLabel = scope ? (scopeMap[scope.toLowerCase()] || scope) : '';
 
-        if (!italian) {
-            let translated = subject;
+        let italianExplanation = customItalianNote;
 
-            // Dizionario per frasi chiave tecniche e specifiche del progetto
-            const dictionary = [
-                [/sync operational rules v2\.0 with Article 5 visual & defensive standards/gi, "Sincronizzate le regole operative v2.0 con gli standard visivi e difensivi dell'Articolo 5 (Palestra di Riflessione)"],
-                [/sync operational rules v2\.0/gi, "Sincronizzazione regole operative v2.0"],
-                [/operational rules/gi, "regole operative"],
-                [/visual & defensive standards/gi, "standard visivi e di sicurezza difensiva"],
-                [/Article 5 visual & defensive standards/gi, "standard visivi e difensivi dell'Articolo 5"],
-                [/article 5/gi, "Articolo 5 (Palestra di Riflessione)"],
-                [/zero-downtime/gi, "rilascio continuo a zero interruzioni (Zero-Downtime)"],
-                [/single sign-on|sso/gi, "accesso unificato SSO"],
-                [/auth session|authentication/gi, "autenticazione e sessione utente"],
-                [/floating dockbar|dockbar|dock bar/gi, "dock bar fluttuante"],
-                [/patamu badge|patamu/gi, "badge e tutela legale Patamu"],
-                [/audio player|audio tracking/gi, "lettore audio e tracciamento ascolto"],
-                [/game mechanics|gamification/gi, "dinamiche di gioco e punteggi"],
-                [/user profile|profile view/gi, "profilo e scheda utente"],
-                [/bug fix|bug fixes/gi, "risoluzione problemi e anomalie"],
-                [/responsive layout|mobile responsiveness/gi, "adattamento per smartphone e tablet"],
-                [/preflight check|safeguards/gi, "diagnostica di sicurezza pre-rilascio"],
-                [/landing page/gi, "pagina principale"],
-                [/leaderboard/gi, "classifica generale"],
-                [/quiz engine/gi, "motore di verifica e quiz"]
-            ];
-
-            dictionary.forEach(([reg, rep]) => {
-                translated = translated.replace(reg, rep);
-            });
-
-            // Traduzione verbi e azioni principali all'inizio del messaggio
-            translated = translated
-                .replace(/^sync(ing|ed)?\s+/i, "Sincronizzazione di ")
-                .replace(/^add(ing|ed)?\s+/i, "Aggiunto: ")
-                .replace(/^create(ing|d)?\s+/i, "Creazione di ")
-                .replace(/^update(ing|d)?\s+/i, "Aggiornato: ")
-                .replace(/^fix(ing|ed)?\s+/i, "Risolto: ")
-                .replace(/^remove(ing|d)?\s+/i, "Rimosso: ")
-                .replace(/^improve(ing|d)?\s+/i, "Migliorato: ")
-                .replace(/^enhance(ing|d)?\s+/i, "Potenziato: ")
-                .replace(/^implement(ing|ed)?\s+/i, "Implementato: ")
-                .replace(/^refactor(ing|ed)?\s+/i, "Riorganizzato: ")
-                .replace(/^clean\s*up\s+/i, "Pulizia e ottimizzazione di ")
-                .replace(/^integrate\s+/i, "Integrato: ");
-
-            translated = translated.charAt(0).toUpperCase() + translated.slice(1);
-
-            if (scope) {
-                const scopeMap = {
-                    rules: 'Regole',
-                    ui: 'Interfaccia',
-                    auth: 'Autenticazione',
-                    navbar: 'Navigazione',
-                    dockbar: 'Dock Bar',
-                    audio: 'Audio',
-                    db: 'Database',
-                    release: 'Rilascio',
-                    game: 'Gioco',
-                    admin: 'Pannello Admin',
-                    theme: 'Tema Grafico'
-                };
-                const scopeLabel = scopeMap[scope.toLowerCase()] || scope;
-                italian = `[${scopeLabel}] ${translated}`;
-            } else {
-                italian = translated;
-            }
+        if (!italianExplanation) {
+            italianExplanation = this.translateToItalian(subject);
         }
 
         return {
@@ -214,9 +174,159 @@ const ReleasesUI = {
             badge: curType.badge,
             badgeColor: curType.color,
             scope: scope,
-            italianExplanation: italian,
+            scopeLabel: scopeLabel,
+            italianExplanation: scopeLabel ? `[${scopeLabel}] ${italianExplanation}` : italianExplanation,
+            rawItalian: italianExplanation,
             original: firstLine
         };
+    },
+
+    translateToItalian: function(subject) {
+        if (!subject) return 'Miglioramenti generali e ottimizzazione del codice';
+
+        let s = subject.trim();
+
+        // 1. Frasi esatte note e ricorrenti nell'Ecosistema Prof. Memmo
+        const exactPhrases = [
+            {
+                pattern: /add\s+Ops\s+and\s+Oratore\s+to\s+filter-gioco\s+select\s+and\s+remove\s+unrequested\s+purge\s+UI/i,
+                replacement: 'Aggiunti "Ops! Storia" e "L\'Oratore" al menu filtro giochi e rimossa l\'interfaccia di eliminazione non richiesta'
+            },
+            {
+                pattern: /sync\s+hub\.firestore\.rules\s+with\s+ops_rooms\s+and\s+ops_saved_games/i,
+                replacement: 'Sincronizzazione delle regole di sicurezza Firestore con le stanze e i salvataggi di Ops! Storia'
+            },
+            {
+                pattern: /support\s+dual\s+technical\s+and\s+italian\s+commit\s+explanations\s+in\s+dashboard/i,
+                replacement: 'Supporto per la doppia spiegazione tecnica e in italiano dei commit nella dashboard'
+            },
+            {
+                pattern: /update\s+asset\s+version\s+tags\s+to\s+force\s+fresh\s+load/i,
+                replacement: 'Aggiornamento dei tag di versione dei file per forzare il caricamento immediato senza cache'
+            },
+            {
+                pattern: /sync\s+operational\s+rules\s+v2\.0\s+with\s+Article\s+5\s+visual\s+&\s+defensive\s+standards/i,
+                replacement: 'Sincronizzazione delle regole operative v2.0 con gli standard visivi e difensivi dell\'Articolo 5 (Palestra di Riflessione)'
+            },
+            {
+                pattern: /bilanciamento\s+media\s+query\s+calendario\s+e\s+aggiornamento\s+regole\s+operative/i,
+                replacement: 'Bilanciamento delle media query del calendario e aggiornamento delle regole operative'
+            }
+        ];
+
+        for (const item of exactPhrases) {
+            if (item.pattern.test(s)) {
+                return item.replacement;
+            }
+        }
+
+        // 2. Controllo se la frase è già scritta in italiano naturale
+        const italianMarkers = /\b(e|ed|il|lo|la|i|gli|le|un|uno|una|di|da|in|con|su|per|tra|fra|delle|degli|della|dello|del|dei|aggiornamento|aggiunta|correzione|modifica|gestione|regole|sincronizzazione|interfaccia|salvataggi|partite|bilanciamento)\b/i;
+        const hasEnglishVerbs = /\b(add|update|fix|remove|sync|with|and|from|to|for|chore|feat|refactor|clean)\b/i.test(s);
+        if (italianMarkers.test(s) && !hasEnglishVerbs) {
+            return s.charAt(0).toUpperCase() + s.slice(1);
+        }
+
+        // 3. Traduzione contestuale profonda termini tecnici, congiunzioni e verbi
+        const replacements = [
+            [/\bdual technical and italian commit explanations\b/gi, 'doppia spiegazione tecnica e in italiano dei commit'],
+            [/\btechnical and italian commit explanations\b/gi, 'spiegazione tecnica e in italiano dei commit'],
+            [/\bcommit explanations\b/gi, 'spiegazioni dei rilasci'],
+            [/\bin dashboard\b/gi, 'nella dashboard'],
+            [/\bin admin panel\b/gi, 'nel pannello di amministrazione'],
+            [/\basset version tags\b/gi, 'tag di versione dei file'],
+            [/\bto force fresh load\b/gi, 'per forzare il caricamento immediato senza cache'],
+            [/\bforce fresh load\b/gi, 'forzatura caricamento senza cache'],
+            [/\bfilter-gioco select\b/gi, 'menu filtro giochi'],
+            [/\bfilter select\b/gi, 'menu di selezione filtri'],
+            [/\bunrequested purge UI\b/gi, 'interfaccia di eliminazione non richiesta'],
+            [/\bpurge UI\b/gi, 'interfaccia di eliminazione'],
+            [/\bhub\.firestore\.rules\b/gi, 'regole di sicurezza Firestore dell\'Hub'],
+            [/\bfirestore\.rules\b/gi, 'regole di sicurezza del database Firestore'],
+            [/\bops_rooms and ops_saved_games\b/gi, 'stanze e salvataggi di Ops! Storia'],
+            [/\bops_rooms\b/gi, 'stanze di gioco Ops! Storia'],
+            [/\bops_saved_games\b/gi, 'partite salvate Ops! Storia'],
+            [/\boperational rules v2\.0\b/gi, 'regole operative v2.0'],
+            [/\boperational rules\b/gi, 'regole operative'],
+            [/\bvisual & defensive standards\b/gi, 'standard visivi e di sicurezza difensiva'],
+            [/\bdefensive standards\b/gi, 'standard di protezione difensiva'],
+            [/\bArticle 5\b/gi, 'Articolo 5 (Palestra di Riflessione)'],
+            [/\bzero-downtime\b/gi, 'zero interruzioni (Zero-Downtime)'],
+            [/\bsingle sign-on\b/gi, 'accesso unificato SSO'],
+            [/\bfloating dockbar\b|\bdockbar\b|\bdock bar\b/gi, 'dock bar fluttuante'],
+            [/\bpatamu badge\b|\bpatamu\b/gi, 'badge di tutela legale Patamu'],
+            [/\baudio player\b|\baudio tracking\b/gi, 'lettore audio e tracciamento ascolto'],
+            [/\bgame mechanics\b|\bgamification\b/gi, 'dinamiche di gioco e punteggi'],
+            [/\buser profile\b|\bprofile view\b/gi, 'profilo e scheda utente'],
+            [/\bresponsive layout\b|\bmobile responsiveness\b/gi, 'adattamento per smartphone e tablet'],
+            [/\bpreflight check\b|\bsafeguards\b/gi, 'diagnostica di sicurezza pre-rilascio'],
+            [/\blanding page\b/gi, 'pagina principale'],
+            [/\bleaderboard\b/gi, 'classifica generale'],
+            [/\bquiz engine\b/gi, 'motore dei quiz'],
+            [/\bstory quest\b/gi, 'avventura narrativa'],
+            [/\bmedia query\b/gi, 'regole di adattamento responsive'],
+            [/\bcache buster\b|\bcache-busting\b/gi, 'aggiornamento forzato della cache'],
+            [/\bdark mode\b/gi, 'modalità scura'],
+            [/\blight mode\b/gi, 'modalità chiara'],
+
+            [/\bOps and Oratore\b/gi, '"Ops! Storia" e "L\'Oratore"'],
+            [/\bOps\b/g, 'Ops! Storia'],
+            [/\bOratore\b/g, 'L\'Oratore'],
+            [/\bPalestra\b/g, 'Palestra di Riflessione'],
+            [/\bFantaletteratura\b/g, 'FantaLetteratura'],
+            [/\bRotta\b/g, 'La Rotta degli Eroi'],
+            [/\bCommedia\b/g, 'La Corte della Commedia'],
+
+            // Verbi e azioni
+            [/^add\s+/i, 'Aggiunto: '],
+            [/^adding\s+/i, 'Aggiunta di: '],
+            [/^added\s+/i, 'Aggiunto: '],
+            [/^sync\s+/i, 'Sincronizzazione di: '],
+            [/^syncing\s+/i, 'Sincronizzazione di: '],
+            [/^update\s+/i, 'Aggiornato: '],
+            [/^updating\s+/i, 'Aggiornamento di: '],
+            [/^updated\s+/i, 'Aggiornato: '],
+            [/^fix\s+/i, 'Risolto: '],
+            [/^fixing\s+/i, 'Correzione di: '],
+            [/^fixed\s+/i, 'Corretto: '],
+            [/^remove\s+/i, 'Rimosso: '],
+            [/^removing\s+/i, 'Rimozione di: '],
+            [/^removed\s+/i, 'Rimosso: '],
+            [/^improve\s+/i, 'Migliorato: '],
+            [/^improving\s+/i, 'Miglioramento di: '],
+            [/^improved\s+/i, 'Migliorato: '],
+            [/^enhance\s+/i, 'Potenziato: '],
+            [/^implement\s+/i, 'Implementato: '],
+            [/^implemented\s+/i, 'Implementato: '],
+            [/^refactor\s+/i, 'Riorganizzato: '],
+            [/^clean up\s+|^cleanup\s+/i, 'Pulizia e ottimizzazione di: '],
+            [/^integrate\s+/i, 'Integrato: '],
+            [/^support\s+/i, 'Supporto per: '],
+            [/^enable\s+/i, 'Abilitato: '],
+            [/^disable\s+/i, 'Disabilitato: '],
+
+            // Preposizioni interne
+            [/\s+with\s+/gi, ' con '],
+            [/\s+and\s+/gi, ' e '],
+            [/\s+to\s+/gi, ' a '],
+            [/\s+for\s+/gi, ' per '],
+            [/\s+from\s+/gi, ' da '],
+            [/\s+in\s+/gi, ' in '],
+            [/\s+on\s+/gi, ' su '],
+            [/\s+all\s+/gi, ' tutti i '],
+            [/\s+new\s+/gi, ' nuovo '],
+            [/\s+view\s+/gi, ' schermata '],
+            [/\s+button\s+/gi, ' pulsante '],
+            [/\s+modal\s+/gi, ' finestra modale ']
+        ];
+
+        let res = s;
+        for (const [regex, rep] of replacements) {
+            res = res.replace(regex, rep);
+        }
+
+        res = res.replace(/\s{2,}/g, ' ').trim();
+        return res.charAt(0).toUpperCase() + res.slice(1);
     },
 
     init: async function() {
