@@ -456,6 +456,16 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /ops_rooms/{roomId} {
+      // Accesso aperto a host e dispositivi partecipanti tramite codice stanza
+      allow read, write: if true;
+    }
+
+    match /ops_saved_games/{saveId} {
+      allow read: if isAdmin() || (request.auth != null && (resource == null || resource.data.userId == request.auth.uid || isOpsAuthorized()));
+      allow create, update, delete: if isAdmin() || (request.auth != null && (request.resource.data.userId == request.auth.uid || resource.data.userId == request.auth.uid));
+    }
+
     match /ops_settings/{docId} {
       allow read: if isAdmin() || isOpsAuthorized();
       allow write: if isAdmin();

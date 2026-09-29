@@ -364,6 +364,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
     .pill-option:hover {
       border-color: var(--accent);
       background: #f8fafc;
@@ -378,14 +379,17 @@
 
     .avatar-choice-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
-      gap: 10px;
-      margin-bottom: 20px;
+      grid-template-columns: repeat(5, 52px);
+      justify-content: center;
+      gap: 14px;
+      margin: 0 auto 20px auto;
     }
 
     .avatar-choice-item {
       width: 52px;
       height: 52px;
+      max-width: 52px;
+      max-height: 52px;
       border-radius: 50%;
       border: 3px solid #e2e8f0;
       cursor: pointer;
@@ -397,6 +401,7 @@
       justify-content: center;
       padding: 1px;
       box-sizing: border-box;
+      flex-shrink: 0;
     }
 
     .avatar-choice-item:hover {
@@ -413,8 +418,11 @@
     .avatar-choice-item img {
       width: 100%;
       height: 100%;
+      max-width: 100%;
+      max-height: 100%;
       object-fit: cover;
       border-radius: 50%;
+      display: block;
     }
   </style>
 </head>
@@ -609,7 +617,7 @@
               <label style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); display: block; margin-bottom: 8px;">
                 3. Scegli il tuo Avatar Ufficiale
               </label>
-              <div class="avatar-choice-grid" id="student-claim-avatar-grid" style="grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 8px;">
+              <div class="avatar-choice-grid" id="student-claim-avatar-grid">
                 <div class="avatar-choice-item selected" data-avatar="assets/avatars/6.png" onclick="PortalApp.selectStudentClaimAvatar(this, 'assets/avatars/6.png')">
                   <img src="assets/avatars/6.png" alt="Avatar 6">
                 </div>
@@ -849,7 +857,7 @@
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <button type="button" class="btn btn-primary" style="padding: 14px; font-size: 1.05rem;" onclick="PortalApp.submitSurvey(false)">
-          Completa e Inizia 🚀
+          Inizia 🚀
         </button>
         <button type="button" class="link" style="background: none; border: none; font-size: 0.88rem; color: var(--text-muted); margin-top: 5px;" onclick="PortalApp.submitSurvey(true)">
           Salta questo passaggio per ora &rarr;

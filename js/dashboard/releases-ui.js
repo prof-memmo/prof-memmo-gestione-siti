@@ -90,6 +90,343 @@ const ReleasesUI = {
     siteStatuses: {},
     history: [],
 
+    parseCommit: function(rawMessage) {
+        if (!rawMessage) return {
+            type: 'update',
+            badge: '⚡ Aggiornamento',
+            badgeColor: '#6366f1',
+            scopeLabel: 'Generale',
+            italianExplanation: 'Miglioramenti generali e ottimizzazione del codice',
+            original: ''
+        };
+
+        const firstLine = rawMessage.split('\n')[0].trim();
+        
+        // Controlla se è presente una descrizione esplicita in italiano (es. "Descrizione:", "IT:", "Spiegazione:")
+        let customItalianNote = '';
+        const noteMatch = rawMessage.match(/(?:(?:IT|Descrizione|Spiegazione|Italiano|Nota):\s*)([^\n\r]+)/i);
+        if (noteMatch) {
+            customItalianNote = noteMatch[1].trim();
+        }
+
+        // Riconoscimento formato Conventional Commits: type(scope): subject
+        const ccMatch = firstLine.match(/^([a-zA-Z0-9_\-]+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/);
+
+        let type = 'update';
+        let scope = '';
+        let subject = firstLine;
+
+        if (ccMatch) {
+            type = ccMatch[1].toLowerCase();
+            scope = ccMatch[2] ? ccMatch[2].trim() : '';
+            subject = ccMatch[4].trim();
+        }
+
+        const typeConfig = {
+            feat: { badge: '🚀 Nuova Funzione', color: '#059669' },
+            fix: { badge: '🛠️ Correzione Bug', color: '#d97706' },
+            docs: { badge: '📚 Regole & Documenti', color: '#7c3aed' },
+            style: { badge: '🎨 Grafica & Stile', color: '#db2777' },
+            refactor: { badge: '⚡ Ottimizzazione Codice', color: '#4f46e5' },
+            perf: { badge: '⚡ Prestazioni', color: '#0284c7' },
+            test: { badge: '🧪 Test & Sicurezza', color: '#0d9488' },
+            chore: { badge: '🔧 Manutenzione', color: '#475569' },
+            sync: { badge: '🔄 Sincronizzazione', color: '#2563eb' },
+            revert: { badge: '⏪ Ripristino Versione', color: '#dc2626' },
+            build: { badge: '📦 Build & Asset', color: '#7c2d12' },
+            ci: { badge: '⚙️ Pipeline CI/CD', color: '#334155' }
+        };
+
+        const curType = typeConfig[type] || { badge: '⚡ Aggiornamento', color: '#6366f1' };
+
+        const scopeMap = {
+            archive: 'Archivio & Pulizia',
+            filters: 'Filtri di Ricerca',
+            filter: 'Filtri',
+            rules: 'Regole & Sicurezza',
+            rule: 'Regole',
+            releases: 'Gestione Rilasci',
+            release: 'Rilascio',
+            cache: 'Aggiornamento Cache',
+            css: 'Stile Grafico',
+            style: 'Grafica & UI',
+            ui: 'Interfaccia Utente',
+            auth: 'Autenticazione & Login',
+            navbar: 'Barra di Navigazione',
+            dockbar: 'Dock Bar Fluttuante',
+            audio: 'Lettore Audio',
+            db: 'Database Cloud',
+            database: 'Database Cloud',
+            game: 'Attività & Giochi',
+            games: 'Attività & Giochi',
+            admin: 'Pannello Admin',
+            theme: 'Tema Grafico',
+            gdpr: 'Privacy & GDPR',
+            portal: 'Portale & Accessi',
+            users: 'Gestione Utenti',
+            avatar: 'Avatar & Profili',
+            hub: 'Hub Centrale',
+            multiscritto: 'Tabella Multiscritto',
+            diagnostics: 'Diagnostica & Check'
+        };
+        const scopeLabel = scope ? (scopeMap[scope.toLowerCase()] || scope) : '';
+
+        let italianExplanation = customItalianNote;
+
+        if (!italianExplanation) {
+            italianExplanation = this.translateToItalian(subject);
+        }
+
+        return {
+            type: type,
+            badge: curType.badge,
+            badgeColor: curType.color,
+            scope: scope,
+            scopeLabel: scopeLabel,
+            italianExplanation: scopeLabel ? `[${scopeLabel}] ${italianExplanation}` : italianExplanation,
+            rawItalian: italianExplanation,
+            original: firstLine
+        };
+    },
+
+    translateToItalian: function(subject) {
+        if (!subject) return 'Miglioramenti generali e ottimizzazione del codice';
+
+        let s = subject.trim();
+
+        // 1. Mappatura completa e naturale per tutti i commit dell'Ecosistema Prof. Memmo
+        const exactPhrases = [
+            {
+                pattern: /ensure\s+archive\s+modal\s+and\s+danger\s+zone\s+are\s+always\s+accessible\s+and\s+responsive/i,
+                replacement: 'Garantita la piena accessibilità e responsività della finestra modale di archiviazione e della danger zone'
+            },
+            {
+                pattern: /add\s+Ops\s+and\s+Oratore\s+to\s+filter-gioco\s+select\s+and\s+remove\s+unrequested\s+purge\s+UI/i,
+                replacement: 'Aggiunti "Ops! Storia" e "L\'Oratore" al menu filtro giochi e rimossa l\'interfaccia di eliminazione non richiesta'
+            },
+            {
+                pattern: /sync\s+hub\.firestore\.rules\s+with\s+ops_rooms\s+and\s+ops_saved_games/i,
+                replacement: 'Sincronizzazione delle regole di sicurezza Firestore con le stanze e i salvataggi di Ops! Storia'
+            },
+            {
+                pattern: /support\s+dual\s+technical\s+and\s+italian\s+commit\s+explanations\s+in\s+dashboard/i,
+                replacement: 'Supporto per la doppia spiegazione tecnica e in italiano dei commit nella dashboard'
+            },
+            {
+                pattern: /update\s+asset\s+version\s+tags\s+to\s+force\s+fresh\s+load/i,
+                replacement: 'Aggiornamento dei tag di versione dei file per forzare il caricamento immediato senza cache'
+            },
+            {
+                pattern: /full\s+natural\s+Italian\s+translation\s+for\s+release\s+descriptions\s+and\s+commits/i,
+                replacement: 'Traduzione integrale e naturale in italiano per le descrizioni dei rilasci e dei commit'
+            },
+            {
+                pattern: /sync\s+operational\s+rules\s+v2\.0\s+with\s+Article\s+5\s+visual\s+&\s+defensive\s+standards/i,
+                replacement: 'Sincronizzazione delle regole operative v2.0 con gli standard visivi e difensivi dell\'Articolo 5 (Palestra di Riflessione)'
+            },
+            {
+                pattern: /bilanciamento\s+media\s+query\s+calendario\s+e\s+aggiornamento\s+regole\s+operative/i,
+                replacement: 'Bilanciamento delle media query del calendario e aggiornamento delle regole operative'
+            },
+            {
+                pattern: /add\s+safe\s+Google\s+students\s+purge\s+tool\s+with\s+dry-run\s+preview\s+and\s+teacher\s+safeguards/i,
+                replacement: 'Aggiunto strumento sicuro di pulizia studenti Google con anteprima simulata e tutele per i docenti'
+            },
+            {
+                pattern: /implementata\s+selezione\s+ruolo\s+a\s+monte\s+a\s+3\s+porte\s+e\s+auth\s+card\s+unificata/i,
+                replacement: 'Implementata la selezione del ruolo a monte a 3 porte con card di autenticazione unificata'
+            },
+            {
+                pattern: /ensure\s+both\s+abbonamento_scadenza\s+and\s+scadenza\s+are\s+updated\s+on\s+single\s+expiry\s+edit/i,
+                replacement: 'Garantito l\'aggiornamento simultaneo di entrambe le scadenze abbonamento in fase di modifica'
+            },
+            {
+                pattern: /separate\s+vetrina\s+visibility\s+toggle\s+and\s+game\s+access\s+toggle/i,
+                replacement: 'Separati i selettori di visibilità in vetrina e di accesso al gioco'
+            },
+            {
+                pattern: /aggiunta\s+modifica\s+massiva\s+data\s+scadenza\s+abbonamento\s+con\s+preset\s+rapidi/i,
+                replacement: 'Aggiunta la modifica massiva della data di scadenza abbonamento con preset rapidi'
+            },
+            {
+                pattern: /purge\s+legacy\s+test\s+users,\s+dynamically\s+map\s+and\s+update\s+game\s+platform\s+badges\s+per\s+subscription\s+plan/i,
+                replacement: 'Rimossi gli utenti di test obsoleti e aggiornati dinamicamente i badge delle piattaforme per piano'
+            },
+            {
+                pattern: /accurately\s+bind\s+Prof\.\s+Memmo\s+to\s+wizard\/mago\s+avatar\s+\(9\.png\)\s+and\s+fix\s+fallback\s+in\s+users-ui/i,
+                replacement: 'Collegato correttamente l\'avatar del Mago a Prof. Memmo e corretto il fallback nella gestione utenti'
+            },
+            {
+                pattern: /bump\s+script\s+query\s+version\s+strings\s+to\s+force\s+load\s+of\s+deduplicated\s+single\s+prof\.memmo\s+master\s+entry\s+and\s+neutralize\s+legacy\s+db\s+fixer/i,
+                replacement: 'Aggiornate le versioni degli script per forzare il caricamento dell\'account master unico e disattivato il vecchio db fixer'
+            },
+            {
+                pattern: /guarantee\s+exactly\s+one\s+prof\.memmo@gmail\.com\s+master\s+entry\s+with\s+wizard\s+avatar\s+\(6\.png\)/i,
+                replacement: 'Garantita la presenza di un unico account master prof.memmo@gmail.com con avatar mago'
+            },
+            {
+                pattern: /decouple\s+multiscritto\s+table\s+from\s+legacy\s+databases\s+and\s+filter\s+out\s+obsolete\s+student\s+accounts/i,
+                replacement: 'Disaccoppiata la tabella multiscritto dai vecchi database e filtrati gli account studenti obsoleti'
+            },
+            {
+                pattern: /keep\s+admin\s+users\s+UI\s+original\s+and\s+remove\s+unrequested\s+buttons/i,
+                replacement: 'Ripristinata l\'interfaccia originale della gestione utenti rimuovendo i pulsanti non richiesti'
+            },
+            {
+                pattern: /add\s+1-click\s+purgeGoogleStudents\s+and\s+seedSandboxClass\s+buttons\s+to\s+users\s+dashboard/i,
+                replacement: 'Aggiunti pulsanti rapidi per la pulizia studenti Google e il popolamento classe sandbox'
+            },
+            {
+                pattern: /add\s+purgeGoogleStudents\s+Cloud\s+Function\s+to\s+clean\s+legacy\s+Google\s+student\s+accounts/i,
+                replacement: 'Aggiunta Cloud Function per la pulizia degli account studenti Google non più attivi'
+            },
+            {
+                pattern: /add\s+hub_classes\s+rules,\s+roster\s+claiming\s+Cloud\s+Functions\s+and\s+unified\s+student\s+login\s+portal/i,
+                replacement: 'Aggiunte regole per hub_classes, Cloud Functions per l\'associazione classi e portale studenti unificato'
+            },
+            {
+                pattern: /espansione\s+check\s+pre-rilascio\s+a\s+salvaguardia\s+integrale\s+a\s+360\s+gradi/i,
+                replacement: 'Espansi i controlli pre-rilascio con salvaguardia e diagnostica integrale a 360 gradi'
+            },
+            {
+                pattern: /consolidamento\s+regole\s+operative\s+v2\.0\s+anti-regressione\s+e\s+salvaguardia\s+ecosistema/i,
+                replacement: 'Consolidamento delle regole operative v2.0 anti-regressione e salvaguardia dell\'ecosistema'
+            },
+            {
+                pattern: /expand\s+SSO\s+gameMap\s+with\s+ops_storia\s+and\s+prezzi\s+mappings/i,
+                replacement: 'Estesa la mappatura SSO dei giochi con Ops! Storia e la gestione listini prezzi'
+            },
+            {
+                pattern: /normalize\s+game\s+names\s+to\s+eliminate\s+duplicate\s+FantaLetteratura\s+and\s+update\s+release\s+targets/i,
+                replacement: 'Normalizzati i nomi dei giochi per eliminare i duplicati e aggiornati i target di rilascio'
+            },
+            {
+                pattern: /extract\s+full\s+active\s+platforms\s+from\s+hub_users\s+and\s+map\s+Multiscritto\s+with\s+L'Oratore\s+and\s+Ops/i,
+                replacement: 'Estratte tutte le piattaforme attive da hub_users e mappata la tabella Multiscritto con L\'Oratore e Ops! Storia'
+            }
+        ];
+
+        for (const item of exactPhrases) {
+            if (item.pattern.test(s)) {
+                return item.replacement;
+            }
+        }
+
+        // 2. Controllo se la frase è già scritta in italiano naturale
+        const italianMarkers = /\b(e|ed|il|lo|la|i|gli|le|un|uno|una|di|da|in|con|su|per|tra|fra|delle|degli|della|dello|del|dei|aggiornamento|aggiunta|correzione|modifica|gestione|regole|sincronizzazione|interfaccia|salvataggi|partite|bilanciamento|garantito|garantita)\b/i;
+        const hasEnglishVerbs = /\b(add|update|fix|remove|sync|with|and|from|to|for|chore|feat|refactor|clean|ensure)\b/i.test(s);
+        if (italianMarkers.test(s) && !hasEnglishVerbs) {
+            return s.charAt(0).toUpperCase() + s.slice(1);
+        }
+
+        // 3. Traduzione contestuale profonda termini tecnici, congiunzioni e verbi
+        const replacements = [
+            [/\bensure\s+/gi, 'Garantita: '],
+            [/\bare always accessible and responsive\b/gi, 'sono sempre accessibili e responsive'],
+            [/\balways accessible\b/gi, 'sempre accessibile'],
+            [/\bdanger zone\b/gi, 'sezione danger zone'],
+            [/\barchive modal\b/gi, 'finestra modale di archiviazione'],
+            [/\bmodal\b/gi, 'finestra modale'],
+            [/\bdual technical and italian commit explanations\b/gi, 'doppia spiegazione tecnica e in italiano dei commit'],
+            [/\btechnical and italian commit explanations\b/gi, 'spiegazione tecnica e in italiano dei commit'],
+            [/\bcommit explanations\b/gi, 'spiegazioni dei rilasci'],
+            [/\bin dashboard\b/gi, 'nella dashboard'],
+            [/\bin admin panel\b/gi, 'nel pannello di amministrazione'],
+            [/\basset version tags\b/gi, 'tag di versione dei file'],
+            [/\bto force fresh load\b/gi, 'per forzare il caricamento immediato senza cache'],
+            [/\bforce fresh load\b/gi, 'forzatura caricamento senza cache'],
+            [/\bfilter-gioco select\b/gi, 'menu filtro giochi'],
+            [/\bfilter select\b/gi, 'menu di selezione filtri'],
+            [/\bunrequested purge UI\b/gi, 'interfaccia di eliminazione non richiesta'],
+            [/\bpurge UI\b/gi, 'interfaccia di eliminazione'],
+            [/\bhub\.firestore\.rules\b/gi, 'regole di sicurezza Firestore dell\'Hub'],
+            [/\bfirestore\.rules\b/gi, 'regole di sicurezza del database Firestore'],
+            [/\bops_rooms and ops_saved_games\b/gi, 'stanze e salvataggi di Ops! Storia'],
+            [/\bops_rooms\b/gi, 'stanze di gioco Ops! Storia'],
+            [/\bops_saved_games\b/gi, 'partite salvate Ops! Storia'],
+            [/\boperational rules v2\.0\b/gi, 'regole operative v2.0'],
+            [/\boperational rules\b/gi, 'regole operative'],
+            [/\bvisual & defensive standards\b/gi, 'standard visivi e di sicurezza difensiva'],
+            [/\bdefensive standards\b/gi, 'standard di protezione difensiva'],
+            [/\bArticle 5\b/gi, 'Articolo 5 (Palestra di Riflessione)'],
+            [/\bzero-downtime\b/gi, 'zero interruzioni (Zero-Downtime)'],
+            [/\bsingle sign-on\b/gi, 'accesso unificato SSO'],
+            [/\bfloating dockbar\b|\bdockbar\b|\bdock bar\b/gi, 'dock bar fluttuante'],
+            [/\bpatamu badge\b|\bpatamu\b/gi, 'badge di tutela legale Patamu'],
+            [/\baudio player\b|\baudio tracking\b/gi, 'lettore audio e tracciamento ascolto'],
+            [/\bgame mechanics\b|\bgamification\b/gi, 'dinamiche di gioco e punteggi'],
+            [/\buser profile\b|\bprofile view\b/gi, 'profilo e scheda utente'],
+            [/\bresponsive layout\b|\bmobile responsiveness\b/gi, 'adattamento per smartphone e tablet'],
+            [/\bpreflight check\b|\bsafeguards\b/gi, 'diagnostica di sicurezza pre-rilascio'],
+            [/\blanding page\b/gi, 'pagina principale'],
+            [/\bleaderboard\b/gi, 'classifica generale'],
+            [/\bquiz engine\b/gi, 'motore dei quiz'],
+            [/\bstory quest\b/gi, 'avventura narrativa'],
+            [/\bmedia query\b/gi, 'regole di adattamento responsive'],
+            [/\bcache buster\b|\bcache-busting\b/gi, 'aggiornamento forzato della cache'],
+            [/\bdark mode\b/gi, 'modalità scura'],
+            [/\blight mode\b/gi, 'modalità chiara'],
+
+            [/\bOps and Oratore\b/gi, '"Ops! Storia" e "L\'Oratore"'],
+            [/\bOps\b/g, 'Ops! Storia'],
+            [/\bOratore\b/g, 'L\'Oratore'],
+            [/\bPalestra\b/g, 'Palestra di Riflessione'],
+            [/\bFantaletteratura\b/g, 'FantaLetteratura'],
+            [/\bRotta\b/g, 'La Rotta degli Eroi'],
+            [/\bCommedia\b/g, 'La Corte della Commedia'],
+
+            // Verbi e azioni
+            [/^add\s+/i, 'Aggiunto: '],
+            [/^adding\s+/i, 'Aggiunta di: '],
+            [/^added\s+/i, 'Aggiunto: '],
+            [/^sync\s+/i, 'Sincronizzazione di: '],
+            [/^syncing\s+/i, 'Sincronizzazione di: '],
+            [/^update\s+/i, 'Aggiornato: '],
+            [/^updating\s+/i, 'Aggiornamento di: '],
+            [/^updated\s+/i, 'Aggiornato: '],
+            [/^fix\s+/i, 'Risolto: '],
+            [/^fixing\s+/i, 'Correzione di: '],
+            [/^fixed\s+/i, 'Corretto: '],
+            [/^remove\s+/i, 'Rimosso: '],
+            [/^removing\s+/i, 'Rimozione di: '],
+            [/^removed\s+/i, 'Rimosso: '],
+            [/^improve\s+/i, 'Migliorato: '],
+            [/^improving\s+/i, 'Miglioramento di: '],
+            [/^improved\s+/i, 'Migliorato: '],
+            [/^enhance\s+/i, 'Potenziato: '],
+            [/^implement\s+/i, 'Implementato: '],
+            [/^implemented\s+/i, 'Implementato: '],
+            [/^refactor\s+/i, 'Riorganizzato: '],
+            [/^clean up\s+|^cleanup\s+/i, 'Pulizia e ottimizzazione di: '],
+            [/^integrate\s+/i, 'Integrato: '],
+            [/^support\s+/i, 'Supporto per: '],
+            [/^enable\s+/i, 'Abilitato: '],
+            [/^disable\s+/i, 'Disabilitato: '],
+
+            // Preposizioni interne
+            [/\s+with\s+/gi, ' con '],
+            [/\s+and\s+/gi, ' e '],
+            [/\s+to\s+/gi, ' a '],
+            [/\s+for\s+/gi, ' per '],
+            [/\s+from\s+/gi, ' da '],
+            [/\s+in\s+/gi, ' in '],
+            [/\s+on\s+/gi, ' su '],
+            [/\s+all\s+/gi, ' tutti i '],
+            [/\s+new\s+/gi, ' nuovo '],
+            [/\s+view\s+/gi, ' schermata '],
+            [/\s+button\s+/gi, ' pulsante '],
+            [/\s+modal\s+/gi, ' finestra modale ']
+        ];
+
+        let res = s;
+        for (const [regex, rep] of replacements) {
+            res = res.replace(regex, rep);
+        }
+
+        res = res.replace(/\s{2,}/g, ' ').trim();
+        return res.charAt(0).toUpperCase() + res.slice(1);
+    },
+
     init: async function() {
         console.log("🚀 ReleasesUI: Inizializzazione modulo Rilasci...");
         this.renderSiteGrid();
@@ -254,17 +591,38 @@ const ReleasesUI = {
             `;
         } else if (status.aheadBy > 0) {
             const commitListHtml = (status.commits && status.commits.length > 0) 
-                ? status.commits.map((c, i) => `
-                    <li style="margin-bottom: 6px; font-size: 0.85rem; color: #4c1d95; line-height: 1.4;">
-                        <span style="font-weight: 700; color: #7c3aed;">#${i + 1}</span> <em>"${c.message}"</em>
-                        ${c.date ? `<span style="color: #6d28d9; font-size: 0.75rem; margin-left: 6px;">(${c.date})</span>` : ''}
-                    </li>
-                `).join('')
-                : `<li><em>"${status.lastCommitMessage || 'Miglioramenti piattaforma'}"</em></li>`;
+                ? status.commits.map((c, i) => {
+                    const parsed = ReleasesUI.parseCommit(c.message);
+                    return `
+                        <li style="margin-bottom: 10px; list-style-type: none; background: #ffffff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 10px 14px; box-shadow: 0 2px 6px rgba(124, 58, 237, 0.05);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 5px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 800; color: #7c3aed; font-size: 0.85rem;">#${i + 1}</span>
+                                    <span style="background: ${parsed.badgeColor}15; color: ${parsed.badgeColor}; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; border: 1px solid ${parsed.badgeColor}30;">
+                                        ${parsed.badge}
+                                    </span>
+                                </div>
+                                ${c.date ? `<span style="color: #6d28d9; font-size: 0.74rem; font-weight: 600;"><i class="fa-regular fa-clock"></i> ${c.date}</span>` : ''}
+                            </div>
+                            
+                            <!-- Spiegazione in Italiano -->
+                            <div style="font-weight: 700; color: #1e1b4b; font-size: 0.88rem; margin: 4px 0 6px 0; line-height: 1.4;">
+                                <i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 4px;"></i> ${parsed.italianExplanation}
+                            </div>
+
+                            <!-- Dettaglio Tecnico Originale Preservato -->
+                            <div style="font-size: 0.76rem; color: #64748b; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background: #f8fafc; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 6px; word-break: break-all;">
+                                <i class="fa-solid fa-code" style="color: #94a3b8; font-size: 0.7rem;"></i>
+                                <span>${c.message}</span>
+                            </div>
+                        </li>
+                    `;
+                }).join('')
+                : `<li style="list-style-type: none; background: #ffffff; padding: 8px 12px; border-radius: 8px; color: #4c1d95; font-size: 0.85rem;"><em>${status.lastCommitMessage || 'Miglioramenti piattaforma'}</em></li>`;
 
             statusBannerHtml = `
                 <div style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1.5px solid #c4b5fd; border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.08);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
                         <div style="font-weight: 800; color: #5b21b6; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-sparkles" style="color: #8b5cf6; font-size: 1.2rem;"></i> Nuova Versione Pronta in Anteprima!
                         </div>
@@ -272,10 +630,10 @@ const ReleasesUI = {
                             ⚡ ${status.aheadBy} ${status.aheadBy === 1 ? 'Aggiornamento' : 'Aggiornamenti'} da Pubblicare
                         </span>
                     </div>
-                    <div style="font-size: 0.88rem; color: #5b21b6; font-weight: 700; margin-bottom: 6px;">
+                    <div style="font-size: 0.88rem; color: #5b21b6; font-weight: 700; margin-bottom: 8px;">
                         Elenco dettagliato modifiche pronte per il rilascio:
                     </div>
-                    <ul style="margin: 0; padding-left: 1.2rem; list-style-type: disc;">
+                    <ul style="margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px;">
                         ${commitListHtml}
                     </ul>
                 </div>
@@ -751,17 +1109,25 @@ const ReleasesUI = {
                                 ${changesList.length > 0 ? `
                                     <div style="padding-top: 8px; border-top: 1px dashed #e2e8f0;">
                                         <div style="font-weight: 700; color: #475569; margin-bottom: 6px; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em;">Modifiche &amp; Commit Inclusi (${changesList.length}):</div>
-                                        <div style="display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; padding-right: 4px;">
-                                            ${changesList.map((ch, cIdx) => `
-                                                <div style="background: #f8fafc; padding: 4px 8px; border-radius: 5px; border-left: 3px solid #6366f1; font-size: 0.76rem; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                                                    <div>
-                                                        <span style="font-weight: 700; color: #6366f1;">#${cIdx + 1}</span> 
-                                                        <span style="color: #1e293b; font-weight: 600;">&ldquo;${ch.message}&rdquo;</span>
-                                                        ${isAll ? `<span class="badge" style="background: #e0e7ff; color: #4338ca; font-size: 0.68rem; padding: 1px 5px; border-radius: 4px; margin-left: 4px;">${ch.siteName || ch.repo}</span>` : ''}
+                                        <div style="display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; padding-right: 4px;">
+                                            ${changesList.map((ch, cIdx) => {
+                                                const parsed = ReleasesUI.parseCommit(ch.message);
+                                                return `
+                                                    <div style="background: #f8fafc; padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; border-left: 3px solid ${parsed.badgeColor}; font-size: 0.76rem; display: flex; flex-direction: column; gap: 3px;">
+                                                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                                <span style="font-weight: 800; color: ${parsed.badgeColor};">#${cIdx + 1}</span>
+                                                                <span style="font-weight: 700; color: #1e293b;">${parsed.italianExplanation}</span>
+                                                                ${isAll ? `<span class="badge" style="background: #e0e7ff; color: #4338ca; font-size: 0.68rem; padding: 1px 5px; border-radius: 4px;">${ch.siteName || ch.repo}</span>` : ''}
+                                                            </div>
+                                                            <span style="color: #64748b; font-size: 0.7rem; white-space: nowrap;">${ch.date}</span>
+                                                        </div>
+                                                        <div style="font-size: 0.72rem; color: #64748b; font-family: ui-monospace, monospace; background: #ffffff; padding: 2px 6px; border-radius: 4px; border: 1px solid #f1f5f9; display: inline-flex; align-items: center; gap: 4px;">
+                                                            <i class="fa-solid fa-code" style="font-size: 0.68rem; color: #94a3b8;"></i> <span>${ch.message}</span>
+                                                        </div>
                                                     </div>
-                                                    <span style="color: #64748b; font-size: 0.7rem; white-space: nowrap;">${ch.date}</span>
-                                                </div>
-                                            `).join('')}
+                                                `;
+                                            }).join('')}
                                         </div>
                                     </div>
                                 ` : ''}
