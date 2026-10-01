@@ -18,7 +18,8 @@ const GamesUI = {
             { id: 'l-oratore', name: "L'Oratore" },
             { id: 'travel-agency', name: 'Travel Agency' },
             { id: 'il-mio-quaderno-alternativo', name: 'Il mio quaderno alternativo' },
-            { id: 'la-roulette', name: 'La Roulette' }
+            { id: 'la-roulette', name: 'La Roulette' },
+            { id: 'fuori-registro', name: 'Fuori Registro' }
         ];
 
         window.GamesService.listenToGamesStatus(statusMap => {

@@ -416,6 +416,14 @@ const CrossProjectsService = {
                 projectId: "l-oratore",
                 prefix: "oratore_",
                 collections: ['users', 'settings', 'hub_didactic_overrides']
+            },
+            {
+                name: "Fuori Registro",
+                key: "fuori_registro",
+                appName: "FuoriRegistro",
+                projectId: "fuori-registro",
+                prefix: "fuori_registro_",
+                collections: ['thoughts', 'settings', 'stats']
             }
         ];
 
