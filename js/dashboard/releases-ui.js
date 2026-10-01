@@ -83,16 +83,6 @@ const ReleasesUI = {
             icon: 'fa-microphone-lines',
             color: '#d97706',
             description: 'L\'arte del racconto e della retorica: sfida oratoria e debate a squadre per la classe.'
-        },
-        {
-            id: 'fuori_registro',
-            name: 'Fuori Registro',
-            repo: 'fuori-registro',
-            liveUrl: 'https://prof-memmo.github.io/fuori-registro/',
-            previewUrl: 'https://prof-memmo.github.io/fuori-registro/preview/',
-            icon: 'fa-feather-pointed',
-            color: '#d4af37',
-            description: 'Spazio libero, protetto e anonimo: dove finiscono le parole che hai dentro.'
         }
     ],
 
