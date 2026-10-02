@@ -205,6 +205,10 @@ const HubApp = {
             else if (gameName.includes('Palestra')) targetId = 'game-filter-palestra';
             else if (gameName.includes('Ops')) targetId = 'game-filter-ops';
             else if (gameName.includes('Oratore')) targetId = 'game-filter-oratore';
+            else if (gameName.includes('Ruota') || gameName.includes('Roulette')) targetId = 'game-filter-ruota';
+            else if (gameName.includes('Travel')) targetId = 'game-filter-travel';
+            else if (gameName.includes('Quaderno')) targetId = 'game-filter-quaderno';
+            else if (gameName.includes('Fuori')) targetId = 'game-filter-fuori-registro';
         }
         const activeCard = document.getElementById(targetId);
         if (activeCard) activeCard.classList.add('active');

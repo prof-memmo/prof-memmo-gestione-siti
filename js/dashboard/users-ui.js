@@ -41,6 +41,10 @@ const UsersUI = {
         setHtml('counter-palestra', stats.palestra);
         setHtml('counter-ops', stats.ops);
         setHtml('counter-oratore', stats.oratore);
+        setHtml('counter-ruota', stats.ruota);
+        setHtml('counter-travel', stats.travel);
+        setHtml('counter-quaderno', stats.quaderno);
+        setHtml('counter-fuoriregistro', stats.fuoriregistro);
         setHtml('counter-studenti', stats.studenti);
         setHtml('counter-docenti', stats.docenti);
         setHtml('counter-viandanti', stats.viandanti);
@@ -166,7 +170,12 @@ const UsersUI = {
                 .replace('Fantaletteratura', 'Fanta')
                 .replace('Palestra di Riflessione', 'Palestra')
                 .replace('Ops! Operazione Storia', 'Ops')
-                .replace("L'Oratore", 'Oratore');
+                .replace("L'Oratore", 'Oratore')
+                .replace("La Ruota Geografica", 'Ruota Geo')
+                .replace("La Roulette", 'Ruota Geo')
+                .replace("Travel Agency", 'Travel')
+                .replace("Il mio quaderno alternativo", 'Quaderno')
+                .replace("Fuori Registro", 'Fuori Reg.');
 
             const gameParts = rawGioco.split(' / ').map(s => s.trim()).filter(Boolean);
             const GAME_META = {
@@ -176,6 +185,10 @@ const UsersUI = {
                 'Palestra': { name: 'Palestra di Riflessione', color: '#10b981', icon: 'fa-brain' },
                 'Ops': { name: 'Ops! Operazione Storia', color: '#eab308', icon: 'fa-landmark' },
                 'Oratore': { name: "L'Oratore", color: '#d97706', icon: 'fa-microphone-lines' },
+                'Ruota Geo': { name: 'La Ruota Geografica', color: '#0ea5e9', icon: 'fa-earth-europe' },
+                'Travel': { name: 'Travel Agency', color: '#06b6d4', icon: 'fa-plane' },
+                'Quaderno': { name: 'Il mio quaderno alternativo', color: '#84cc16', icon: 'fa-book-bookmark' },
+                'Fuori Reg.': { name: 'Fuori Registro', color: '#f43f5e', icon: 'fa-file-lines' },
                 'Ecosistema': { name: 'Ecosistema Globale', color: '#6366f1', icon: 'fa-globe' }
             };
 
@@ -1069,6 +1082,10 @@ const UsersUI = {
                 else if (fg.includes('palestra')) matchesGioco = g.includes('palestra');
                 else if (fg.includes('ops')) matchesGioco = g.includes('ops');
                 else if (fg.includes('oratore')) matchesGioco = g.includes('oratore');
+                else if (fg.includes('ruota') || fg.includes('roulette')) matchesGioco = g.includes('ruota') || g.includes('roulette');
+                else if (fg.includes('travel')) matchesGioco = g.includes('travel');
+                else if (fg.includes('quaderno')) matchesGioco = g.includes('quaderno');
+                else if (fg.includes('fuori') || fg.includes('registro')) matchesGioco = g.includes('fuori') || g.includes('registro');
                 else matchesGioco = g.includes(fg);
             }
 

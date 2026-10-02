@@ -687,6 +687,26 @@
                 <div class="materia-label" style="font-size: 0.75rem;">Oratore</div>
                 <div class="materia-value" id="counter-oratore" style="font-size: 1.2rem; margin-top: 2px;">--</div>
             </div>
+            <div class="hub-card hub-game-filter" id="game-filter-ruota" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="HubApp.filterByGameCard('La Ruota Geografica')" title="Filtra La Ruota Geografica">
+                <img src="assets/ruota-geografica-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Ruota Geo</div>
+                <div class="materia-value" id="counter-ruota" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+            <div class="hub-card hub-game-filter" id="game-filter-travel" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="HubApp.filterByGameCard('Travel Agency')" title="Filtra Travel Agency">
+                <img src="assets/travelagency-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Travel</div>
+                <div class="materia-value" id="counter-travel" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+            <div class="hub-card hub-game-filter" id="game-filter-quaderno" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="HubApp.filterByGameCard('Il mio quaderno alternativo')" title="Filtra Il mio quaderno alternativo">
+                <img src="assets/quaderno-alternativo-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Quaderno</div>
+                <div class="materia-value" id="counter-quaderno" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
+            <div class="hub-card hub-game-filter" id="game-filter-fuori-registro" style="padding: 10px 5px; min-width: 70px; flex: 1; cursor: pointer;" onclick="HubApp.filterByGameCard('Fuori Registro')" title="Filtra Fuori Registro">
+                <img src="assets/fuori-registro-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="materia-label" style="font-size: 0.75rem;">Fuori Reg.</div>
+                <div class="materia-value" id="counter-fuoriregistro" style="font-size: 1.2rem; margin-top: 2px;">--</div>
+            </div>
           </div>
         </div>
       </div>
@@ -774,6 +794,10 @@
                     <option value="Palestra di Riflessione">Palestra</option>
                     <option value="Ops! Operazione Storia">Ops!</option>
                     <option value="L'Oratore">Oratore</option>
+                    <option value="La Ruota Geografica">Ruota Geo</option>
+                    <option value="Travel Agency">Travel</option>
+                    <option value="Il mio quaderno alternativo">Quaderno</option>
+                    <option value="Fuori Registro">Fuori Reg.</option>
                   </select>
                 </th>
                 <th style="cursor:pointer; padding: 8px 6px; width: 130px; max-width: 135px;" onclick="HubApp.sortIscritti('piano')">
@@ -972,6 +996,10 @@
                 <option value="Palestra di Riflessione">Palestra di Riflessione</option>
                 <option value="Ops! Operazione Storia">Ops! Operazione Storia</option>
                 <option value="L'Oratore">L'Oratore</option>
+                <option value="La Ruota Geografica">La Ruota Geografica</option>
+                <option value="Travel Agency">Travel Agency</option>
+                <option value="Il mio quaderno alternativo">Il mio quaderno alternativo</option>
+                <option value="Fuori Registro">Fuori Registro</option>
               </optgroup>
               <optgroup label="Abbonamenti">
                 <option value="abbonamento_attivo">✅ Abbonamento Attivato</option>
@@ -1121,6 +1149,22 @@
                   <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
                     <input type="checkbox" class="notif-game-cb" value="L'Oratore" checked onchange="window.NotificationsUI.onGameCbChange()">
                     <span>L'Oratore</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
+                    <input type="checkbox" class="notif-game-cb" value="La Ruota Geografica" checked onchange="window.NotificationsUI.onGameCbChange()">
+                    <span>La Ruota Geografica</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
+                    <input type="checkbox" class="notif-game-cb" value="Travel Agency" checked onchange="window.NotificationsUI.onGameCbChange()">
+                    <span>Travel Agency</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
+                    <input type="checkbox" class="notif-game-cb" value="Il mio quaderno alternativo" checked onchange="window.NotificationsUI.onGameCbChange()">
+                    <span>Il mio quaderno alternativo</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
+                    <input type="checkbox" class="notif-game-cb" value="Fuori Registro" checked onchange="window.NotificationsUI.onGameCbChange()">
+                    <span>Fuori Registro</span>
                   </label>
                   <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #334155;">
                     <input type="checkbox" class="notif-game-cb" value="Sito Vetrina & Profilo" checked onchange="window.NotificationsUI.onGameCbChange()">
@@ -1546,6 +1590,11 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
               <option value="La Corte della Commedia">La Corte della Commedia</option>
               <option value="Palestra di Riflessione">Palestra di Riflessione</option>
               <option value="Ops! Operazione Storia">Ops! Operazione Storia</option>
+              <option value="L'Oratore">L'Oratore</option>
+              <option value="La Ruota Geografica">La Ruota Geografica</option>
+              <option value="Travel Agency">Travel Agency</option>
+              <option value="Il mio quaderno alternativo">Il mio quaderno alternativo</option>
+              <option value="Fuori Registro">Fuori Registro</option>
             </select>
           </div>
         </div>
@@ -1605,6 +1654,10 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
             <option value="La Corte della Commedia">📖 La Corte della Commedia</option>
             <option value="Ops! Operazione Storia">⏳ Ops! Operazione Storia</option>
             <option value="L'Oratore">🎙️ L'Oratore</option>
+            <option value="La Ruota Geografica">🌍 La Ruota Geografica</option>
+            <option value="Travel Agency">✈️ Travel Agency</option>
+            <option value="Il mio quaderno alternativo">📖 Il mio quaderno alternativo</option>
+            <option value="Fuori Registro">📝 Fuori Registro</option>
             <option value="Hub">🌐 Hub Centrale</option>
           </select>
         </div>
