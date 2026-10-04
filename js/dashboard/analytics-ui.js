@@ -108,11 +108,17 @@ const AnalyticsUI = {
         const stats = this.processData(filteredUsers);
         this.updateKPIs(stats, filteredUsers.length);
 
-        // Aggiorna il valore Incassato nel pannello superiore (filtrato per date)
-        const earnings = this.calculateEarnings(this.iscrittiAggregati, dateFrom, dateTo);
+        // Aggiorna il valore Incassato nel pannello superiore (basato su incassi reali Stripe)
+        let realIncassato = 0;
+        if (window.PaymentsUI && typeof window.PaymentsUI.getNetEarnings === 'function') {
+            realIncassato = Math.max(0, window.PaymentsUI.getNetEarnings(dateFrom, dateTo));
+        } else {
+            const earnings = this.calculateEarnings(this.iscrittiAggregati, dateFrom, dateTo);
+            realIncassato = earnings.total;
+        }
         const elIncassato = document.getElementById('analytics-incassato-display');
         if (elIncassato) {
-            elIncassato.textContent = earnings.total.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+            elIncassato.textContent = realIncassato.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
         }
 
         // Aggiorna Spese e Guadagno con il nuovo filtro date
@@ -329,13 +335,19 @@ const AnalyticsUI = {
         if (elTotAbb) elTotAbb.textContent = pc.totaleAbbonati;
         if (elTotAbbPct) elTotAbbPct.textContent = `${calcPct(pc.totaleAbbonati)}% a pagamento`;
 
-        // Aggiorna il pannello Incassato Anno Corrente (rispettando il filtro date attivo)
+        // Aggiorna il pannello Incassato Anno Corrente (basato su incassi reali Stripe)
         const dateFrom = document.getElementById('analytics-date-from') ? document.getElementById('analytics-date-from').value : '';
         const dateTo = document.getElementById('analytics-date-to') ? document.getElementById('analytics-date-to').value : '';
-        const earnings = this.calculateEarnings(this.iscrittiAggregati, dateFrom || null, dateTo || null);
+        let realIncassato = 0;
+        if (window.PaymentsUI && typeof window.PaymentsUI.getNetEarnings === 'function') {
+            realIncassato = Math.max(0, window.PaymentsUI.getNetEarnings(dateFrom || null, dateTo || null));
+        } else {
+            const earnings = this.calculateEarnings(this.iscrittiAggregati, dateFrom || null, dateTo || null);
+            realIncassato = earnings.total;
+        }
         const elIncassato = document.getElementById('analytics-incassato-display');
         if (elIncassato) {
-            elIncassato.textContent = earnings.total.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+            elIncassato.textContent = realIncassato.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
         }
         // Aggiorna Disponibilità Residua
         const elMassimale = document.getElementById('analytics-massimale-display');
@@ -343,7 +355,7 @@ const AnalyticsUI = {
         if (elMassimale && elResiduo) {
             const massimaleText = elMassimale.textContent.replace(/[^0-9.,]/g, '').replace(',', '.');
             const massimale = parseFloat(massimaleText) || 4500;
-            const residuo = Math.max(0, massimale - earnings.total);
+            const residuo = Math.max(0, massimale - realIncassato);
             elResiduo.textContent = residuo.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
         }
     },
