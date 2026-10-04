@@ -18,7 +18,8 @@ const GamesUI = {
             { id: 'l-oratore', name: "L'Oratore" },
             { id: 'travel-agency', name: 'Travel Agency' },
             { id: 'il-mio-quaderno-alternativo', name: 'Il mio quaderno alternativo' },
-            { id: 'la-roulette', name: 'La Roulette' }
+            { id: 'la-ruota-geografica', name: 'La Ruota Geografica' },
+            { id: 'fuori-registro', name: 'Fuori Registro' }
         ];
 
         window.GamesService.listenToGamesStatus(statusMap => {
@@ -29,7 +30,7 @@ const GamesUI = {
 
             defaultGames.forEach(game => {
                 let defaultActive = true;
-                if (['ops', 'la-corte-della-commedia', 'la-roulette'].includes(game.id)) {
+                if (['ops', 'la-corte-della-commedia', 'la-ruota-geografica', 'la-roulette'].includes(game.id)) {
                     defaultActive = false;
                 }
                 const data = statusMap[game.id] || { isActive: defaultActive, visibleInVetrina: true, popupType: 'wip_text' };
@@ -108,6 +109,7 @@ const GamesUI = {
                 'la-corte-della-commedia': { shortDesc: "Trasforma la classe in un Tribunale Dantesco, dove gli studenti analizzano fascicoli processuali e dibattono per giudicare i personaggi della Divina Commedia.", longDesc: "Trasforma la classe in un Tribunale Dantesco, dove gli studenti analizzano fascicoli processuali e dibattono per giudicare i personaggi della Divina Commedia.", materia: "Letteratura", giocatori: "Squadre / Singoli", durata: "Intero anno scolastico", obiettivi: "Gamification, analisi testo", classe: "Sec. di 1° grado", uso: "Classe" },
                 'ops': { shortDesc: "Riscopri gli imprevisti storici e gli \"errori\" che hanno cambiato i destini del nostro passato.", longDesc: "Riscopri gli imprevisti storici e gli \"errori\" che hanno cambiato i destini del nostro passato.", materia: "Storia", giocatori: "2-4", durata: "45 min", obiettivi: "Causa-effetto, eventi storici", classe: "Sec. di 1° grado", uso: "Classe" },
                 'l-oratore': { shortDesc: "192 carte, mazzi tematici e sfide di retorica, oratoria e debate per LIM e classe (QCER A1-C2).", longDesc: "Sfide di oratoria, retorica viva e pensiero critico. 192 incipit persuasivi suddivisi su 8 mazzi tematici per la scuola secondaria.", materia: "Retorica / Debate / Italiano", giocatori: "Classe / LIM / Squadre", durata: "15-45 min", obiettivi: "Argomentazione, public speaking, pensiero critico", classe: "Sec. 1° e 2° grado", uso: "Classe, LIM" },
+                'la-ruota-geografica': { shortDesc: "Sfida a squadre per esplorare in modo casuale e interattivo diverse destinazioni del mondo.", longDesc: "Sfida a squadre per esplorare in modo casuale e interattivo diverse destinazioni del mondo.", materia: "Geografia", giocatori: "Classe intera (squadre)", durata: "30-45 min", obiettivi: "Ripasso, esplorazione rapida", classe: "Sec. di 1° grado", uso: "Classe, Ripasso" },
                 'la-roulette': { shortDesc: "Sfida a squadre per esplorare in modo casuale e interattivo diverse destinazioni del mondo.", longDesc: "Sfida a squadre per esplorare in modo casuale e interattivo diverse destinazioni del mondo.", materia: "Geografia", giocatori: "Classe intera (squadre)", durata: "30-45 min", obiettivi: "Ripasso, esplorazione rapida", classe: "Sec. di 1° grado", uso: "Classe, Ripasso" }
             };
             const defs = defaultGamesData[gameId] || {};
