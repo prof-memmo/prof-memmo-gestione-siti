@@ -616,6 +616,9 @@ const PortalApp = {
                     'oratore': isPreview ? 'https://loratore.profmemmo.it/preview/' : 'https://loratore.profmemmo.it/',
                     'supplenze': isPreview ? 'https://gestionalesostituzioni.profmemmo.it/preview/' : 'https://gestionalesostituzioni.profmemmo.it/',
                     'gestionale_sostituzioni': isPreview ? 'https://gestionalesostituzioni.profmemmo.it/preview/' : 'https://gestionalesostituzioni.profmemmo.it/',
+                    'profilo': isPreview ? 'https://profmemmo.it/preview/profilo.html' : 'https://profmemmo.it/profilo.html',
+                    'vetrina': isPreview ? 'https://profmemmo.it/preview/' : 'https://profmemmo.it/',
+                    'accedi': isPreview ? 'https://profmemmo.it/preview/profilo.html' : 'https://profmemmo.it/profilo.html',
                     'prezzi': isPreview ? 'https://profmemmo.it/preview/prezzi.html' : 'https://profmemmo.it/prezzi.html',
                     'prezzi.html': isPreview ? 'https://profmemmo.it/preview/prezzi.html' : 'https://profmemmo.it/prezzi.html'
                 };
@@ -634,6 +637,16 @@ const PortalApp = {
                 }
             }
 
+            const defaultSsoPayload = encodeURIComponent(JSON.stringify({
+                uid: this.user.uid,
+                email: this.user.email || '',
+                name: (this.profile && this.profile.anagrafica && this.profile.anagrafica.nome) || this.user.displayName || '',
+                role: (this.profile && (this.profile.role || this.profile.ruolo)) || 'docente',
+                avatar: (this.profile && (this.profile.avatar || (this.profile.anagrafica && this.profile.anagrafica.avatar))) || 'assets/avatars/6.png',
+                subscription: (this.profile && (this.profile.subscription || this.profile.abbonamento)) || 'base',
+                ts: Date.now()
+            }));
+
             // Controllo monetizzazione per redirect
             try {
                 const ecoDoc = await window.fbDb.hub.collection('hub_settings').doc('ecosistema').get();
@@ -645,7 +658,7 @@ const PortalApp = {
                     const prezziUrl = isPreview 
                         ? 'https://profmemmo.it/preview/prezzi.html' 
                         : 'https://profmemmo.it/prezzi.html';
-                    window.location.replace(prezziUrl);
+                    window.location.replace(`${prezziUrl}#pm_sso=${defaultSsoPayload}`);
                     return;
                 }
             } catch(ecoErr) {
@@ -656,7 +669,7 @@ const PortalApp = {
             const profileUrl = isPreview 
                 ? 'https://profmemmo.it/preview/profilo.html' 
                 : 'https://profmemmo.it/profilo.html';
-            window.location.replace(profileUrl);
+            window.location.replace(`${profileUrl}#pm_sso=${defaultSsoPayload}`);
             return;
 
         } catch(e) {
