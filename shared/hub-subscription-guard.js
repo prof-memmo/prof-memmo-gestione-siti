@@ -33,9 +33,32 @@
         },
 
         init: function () {
+            this.checkSsoPayload();
             this.injectStyles();
             this.injectOverlay();
             this.listenGameStatus();
+        },
+
+        checkSsoPayload: function () {
+            if (window.location.hash && window.location.hash.includes('pm_sso=')) {
+                try {
+                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                    const rawSso = hashParams.get('pm_sso');
+                    if (rawSso) {
+                        const ssoData = JSON.parse(decodeURIComponent(rawSso));
+                        if (ssoData && ssoData.uid && (Date.now() - ssoData.ts < 300000)) {
+                            sessionStorage.setItem('pm_sso_session', JSON.stringify(ssoData));
+                            localStorage.setItem('pm_current_user', JSON.stringify(ssoData));
+                            window.dispatchEvent(new CustomEvent('pm_sso_login', { detail: ssoData }));
+                        }
+                        if (window.history && window.history.replaceState) {
+                            window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+                        }
+                    }
+                } catch (e) {
+                    console.warn("HubSubscriptionGuard: SSO Hash Parse Error:", e);
+                }
+            }
         },
 
         normalizePlanKey: function (rawPlan) {

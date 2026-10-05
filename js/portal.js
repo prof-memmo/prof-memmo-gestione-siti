@@ -620,7 +620,16 @@ const PortalApp = {
                     'prezzi.html': isPreview ? 'https://profmemmo.it/preview/prezzi.html' : 'https://profmemmo.it/prezzi.html'
                 };
                 if (gameMap[redirectTarget]) {
-                    window.location.replace(gameMap[redirectTarget]);
+                    const ssoPayload = encodeURIComponent(JSON.stringify({
+                        uid: this.user.uid,
+                        email: this.user.email || '',
+                        name: (this.profile && this.profile.anagrafica && this.profile.anagrafica.nome) || this.user.displayName || '',
+                        role: (this.profile && (this.profile.role || this.profile.ruolo)) || 'docente',
+                        avatar: (this.profile && (this.profile.avatar || (this.profile.anagrafica && this.profile.anagrafica.avatar))) || 'assets/avatars/6.png',
+                        subscription: (this.profile && (this.profile.subscription || this.profile.abbonamento)) || 'base',
+                        ts: Date.now()
+                    }));
+                    window.location.replace(`${gameMap[redirectTarget]}#pm_sso=${ssoPayload}`);
                     return;
                 }
             }
