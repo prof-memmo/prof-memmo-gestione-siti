@@ -8,14 +8,14 @@
  *
  * Utilizzo:
  *   <script>window.HUB_GAME_ID = "fantaletteratura";</script>
- *   <script src="https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/hub-subscription-guard.js"></script>
+ *   <script src="https://gestionesiti.profmemmo.it/shared/hub-subscription-guard.js"></script>
  */
 
 (function () {
     'use strict';
 
     const SUPER_ADMIN_EMAIL = 'prof.memmo@gmail.com';
-    const HUB_PORTAL_URL = 'https://prof-memmo.github.io/games/prezzi.html';
+    const HUB_PORTAL_URL = 'https://profmemmo.it/prezzi.html';
 
     const HubSubscriptionGuard = {
         gameId: window.HUB_GAME_ID || 'fantaletteratura',
@@ -33,9 +33,32 @@
         },
 
         init: function () {
+            this.checkSsoPayload();
             this.injectStyles();
             this.injectOverlay();
             this.listenGameStatus();
+        },
+
+        checkSsoPayload: function () {
+            if (window.location.hash && window.location.hash.includes('pm_sso=')) {
+                try {
+                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                    const rawSso = hashParams.get('pm_sso');
+                    if (rawSso) {
+                        const ssoData = JSON.parse(decodeURIComponent(rawSso));
+                        if (ssoData && ssoData.uid && (Date.now() - ssoData.ts < 300000)) {
+                            sessionStorage.setItem('pm_sso_session', JSON.stringify(ssoData));
+                            localStorage.setItem('pm_current_user', JSON.stringify(ssoData));
+                            window.dispatchEvent(new CustomEvent('pm_sso_login', { detail: ssoData }));
+                        }
+                        if (window.history && window.history.replaceState) {
+                            window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+                        }
+                    }
+                } catch (e) {
+                    console.warn("HubSubscriptionGuard: SSO Hash Parse Error:", e);
+                }
+            }
         },
 
         normalizePlanKey: function (rawPlan) {
@@ -171,7 +194,7 @@
                         <a href="${HUB_PORTAL_URL}" class="pm-guard-btn-upgrade" id="pm-guard-cta-btn">
                             <i class="fa-solid fa-crown"></i> Scopri i Piani &amp; Abbonati
                         </a>
-                        <a href="https://prof-memmo.github.io/games/giochi.html" class="pm-guard-btn-back">
+                        <a href="https://profmemmo.it/giochi.html" class="pm-guard-btn-back">
                             Torna al Catalogo Giochi
                         </a>
                     </div>

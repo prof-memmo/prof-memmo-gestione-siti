@@ -139,8 +139,8 @@ const UsersUI = {
             const superBadge = isAdminRole ? ' <span style="font-size:0.75rem; background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px;">👑</span>' : '';
 
             function getSafeAvatarUrl(avatar, isSuperAdminUser) {
-                const defaultAvatar = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
-                const adminMagoAvatar = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/9.png';
+                const defaultAvatar = 'https://gestionesiti.profmemmo.it/shared/assets/avatars/6.png';
+                const adminMagoAvatar = 'https://gestionesiti.profmemmo.it/shared/assets/avatars/9.png';
                 if (isSuperAdminUser) {
                     return adminMagoAvatar;
                 }
@@ -148,18 +148,18 @@ const UsersUI = {
                 const aStr = String(avatar).trim();
                 if (!aStr || aStr === 'null' || aStr === 'undefined' || aStr === 'default') return defaultAvatar;
                 if (aStr.startsWith('http://') || aStr.startsWith('https://') || aStr.startsWith('data:')) return aStr;
-                if (/^\d+$/.test(aStr)) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/${aStr}.png`;
-                if (aStr.startsWith('assets/avatars/')) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/${aStr}`;
-                if (aStr.startsWith('shared/')) return `https://prof-memmo.github.io/prof-memmo-gestione-siti/${aStr}`;
+                if (/^\d+$/.test(aStr)) return `https://gestionesiti.profmemmo.it/shared/assets/avatars/${aStr}.png`;
+                if (aStr.startsWith('assets/avatars/')) return `https://gestionesiti.profmemmo.it/shared/${aStr}`;
+                if (aStr.startsWith('shared/')) return `https://gestionesiti.profmemmo.it/${aStr}`;
                 if (aStr.includes('.png') || aStr.includes('.jpg') || aStr.includes('.jpeg') || aStr.includes('.webp')) {
                     const cleanName = aStr.split('/').pop();
-                    return `https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/${cleanName}`;
+                    return `https://gestionesiti.profmemmo.it/shared/assets/avatars/${cleanName}`;
                 }
                 return defaultAvatar;
             }
 
             const safeAvatar = getSafeAvatarUrl(user.avatar, isSuperAdmin);
-            const fallbackAvatar = isSuperAdmin ? 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/9.png' : 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
+            const fallbackAvatar = isSuperAdmin ? 'https://gestionesiti.profmemmo.it/shared/assets/avatars/9.png' : 'https://gestionesiti.profmemmo.it/shared/assets/avatars/6.png';
 
             // Semplifica e compatta la colonna gioco (badge interattivo con popover)
             let rawGioco = (user.gioco || 'Hub')
@@ -257,7 +257,7 @@ const UsersUI = {
                 </td>
                 <td style="padding: 6px; text-align:center;">
                     <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                        <a href="https://prof-memmo.github.io/games/profilo.html?preview=${user.id}" target="_blank" title="Anteprima Profilo Utente" style="color: #6366f1; font-size: 1rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                        <a href="https://profmemmo.it/profilo.html?preview=${user.id}" target="_blank" title="Anteprima Profilo Utente" style="color: #6366f1; font-size: 1rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-eye"></i>
                         </a>
                         <a href="mailto:${user.email || ''}" title="Invia Email" style="color: var(--primary-color); font-size: 1rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
@@ -620,7 +620,7 @@ const UsersUI = {
         } catch(e) { /* usa default */ }
 
         if (!templateText) {
-            templateText = `Ciao [NOME],\n\nIl tuo abbonamento all'Ecosistema Prof. Memmo è attivo!\n\nPiano: [PIANO]\n\nAccedi ora: https://prof-memmo.github.io/games/\n\nA presto,\nProf. Memmo`;
+            templateText = `Ciao [NOME],\n\nIl tuo abbonamento all'Ecosistema Prof. Memmo è attivo!\n\nPiano: [PIANO]\n\nAccedi ora: https://profmemmo.it/\n\nA presto,\nProf. Memmo`;
         }
 
         const body = templateText
