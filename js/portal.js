@@ -603,49 +603,22 @@ const PortalApp = {
 
             if (redirectTarget) {
                 const gameMap = {
-                    'fantaletteratura': isPreview ? 'https://fantaletteratura.profmemmo.it/preview/' : 'https://fantaletteratura.profmemmo.it/',
-                    'palestra_riflessione': isPreview ? 'https://palestradiriflessione.profmemmo.it/preview/' : 'https://palestradiriflessione.profmemmo.it/',
-                    'palestra-di-riflessione': isPreview ? 'https://palestradiriflessione.profmemmo.it/preview/' : 'https://palestradiriflessione.profmemmo.it/',
-                    'rotta_degli_eroi': isPreview ? 'https://larottadeglieroi.profmemmo.it/preview/' : 'https://larottadeglieroi.profmemmo.it/',
-                    'la-rotta-degli-eroi': isPreview ? 'https://larottadeglieroi.profmemmo.it/preview/' : 'https://larottadeglieroi.profmemmo.it/',
-                    'corte_della_commedia': isPreview ? 'https://lacortedellacommedia.profmemmo.it/preview/' : 'https://lacortedellacommedia.profmemmo.it/',
-                    'la-corte-della-commedia': isPreview ? 'https://lacortedellacommedia.profmemmo.it/preview/' : 'https://lacortedellacommedia.profmemmo.it/',
-                    'ops_storia': isPreview ? 'https://opsstoria.profmemmo.it/preview/' : 'https://opsstoria.profmemmo.it/',
-                    'ops-storia': isPreview ? 'https://opsstoria.profmemmo.it/preview/' : 'https://opsstoria.profmemmo.it/',
-                    'l_oratore': isPreview ? 'https://loratore.profmemmo.it/preview/' : 'https://loratore.profmemmo.it/',
-                    'oratore': isPreview ? 'https://loratore.profmemmo.it/preview/' : 'https://loratore.profmemmo.it/',
-                    'supplenze': isPreview ? 'https://gestionalesostituzioni.profmemmo.it/preview/' : 'https://gestionalesostituzioni.profmemmo.it/',
-                    'gestionale_sostituzioni': isPreview ? 'https://gestionalesostituzioni.profmemmo.it/preview/' : 'https://gestionalesostituzioni.profmemmo.it/',
-                    'profilo': isPreview ? 'https://profmemmo.it/preview/profilo.html' : 'https://profmemmo.it/profilo.html',
-                    'vetrina': isPreview ? 'https://profmemmo.it/preview/' : 'https://profmemmo.it/',
-                    'accedi': isPreview ? 'https://profmemmo.it/preview/profilo.html' : 'https://profmemmo.it/profilo.html',
-                    'prezzi': isPreview ? 'https://profmemmo.it/preview/prezzi.html' : 'https://profmemmo.it/prezzi.html',
-                    'prezzi.html': isPreview ? 'https://profmemmo.it/preview/prezzi.html' : 'https://profmemmo.it/prezzi.html'
+                    'fantaletteratura': isPreview ? 'https://prof-memmo.github.io/fantaletteratura/preview/' : 'https://prof-memmo.github.io/fantaletteratura/',
+                    'palestra_riflessione': isPreview ? 'https://prof-memmo.github.io/palestra-di-riflessione/preview/' : 'https://prof-memmo.github.io/palestra-di-riflessione/',
+                    'rotta_degli_eroi': isPreview ? 'https://prof-memmo.github.io/la-rotta-degli-eroi/preview/' : 'https://prof-memmo.github.io/la-rotta-degli-eroi/',
+                    'corte_della_commedia': isPreview ? 'https://prof-memmo.github.io/la-corte-della-commedia/preview/' : 'https://prof-memmo.github.io/la-corte-della-commedia/',
+                    'ops_storia': isPreview ? 'https://prof-memmo.github.io/ops-storia/preview/' : 'https://prof-memmo.github.io/ops-storia/',
+                    'ops-storia': isPreview ? 'https://prof-memmo.github.io/ops-storia/preview/' : 'https://prof-memmo.github.io/ops-storia/',
+                    'l_oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
+                    'oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
+                    'prezzi': isPreview ? 'https://prof-memmo.github.io/games/preview/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html',
+                    'prezzi.html': isPreview ? 'https://prof-memmo.github.io/games/preview/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html'
                 };
                 if (gameMap[redirectTarget]) {
-                    const ssoPayload = encodeURIComponent(JSON.stringify({
-                        uid: this.user.uid,
-                        email: this.user.email || '',
-                        name: (this.profile && this.profile.anagrafica && this.profile.anagrafica.nome) || this.user.displayName || '',
-                        role: (this.profile && (this.profile.role || this.profile.ruolo)) || 'docente',
-                        avatar: (this.profile && (this.profile.avatar || (this.profile.anagrafica && this.profile.anagrafica.avatar))) || 'assets/avatars/6.png',
-                        subscription: (this.profile && (this.profile.subscription || this.profile.abbonamento)) || 'base',
-                        ts: Date.now()
-                    }));
-                    window.location.replace(`${gameMap[redirectTarget]}#pm_sso=${ssoPayload}`);
+                    window.location.replace(gameMap[redirectTarget]);
                     return;
                 }
             }
-
-            const defaultSsoPayload = encodeURIComponent(JSON.stringify({
-                uid: this.user.uid,
-                email: this.user.email || '',
-                name: (this.profile && this.profile.anagrafica && this.profile.anagrafica.nome) || this.user.displayName || '',
-                role: (this.profile && (this.profile.role || this.profile.ruolo)) || 'docente',
-                avatar: (this.profile && (this.profile.avatar || (this.profile.anagrafica && this.profile.anagrafica.avatar))) || 'assets/avatars/6.png',
-                subscription: (this.profile && (this.profile.subscription || this.profile.abbonamento)) || 'base',
-                ts: Date.now()
-            }));
 
             // Controllo monetizzazione per redirect
             try {
@@ -656,9 +629,9 @@ const PortalApp = {
 
                 if (isMonetActive && userRole !== 'studente' && userSub === 'base' && !redirectTarget) {
                     const prezziUrl = isPreview 
-                        ? 'https://profmemmo.it/preview/prezzi.html' 
-                        : 'https://profmemmo.it/prezzi.html';
-                    window.location.replace(`${prezziUrl}#pm_sso=${defaultSsoPayload}`);
+                        ? 'https://prof-memmo.github.io/games/preview/prezzi.html' 
+                        : 'https://prof-memmo.github.io/games/prezzi.html';
+                    window.location.replace(prezziUrl);
                     return;
                 }
             } catch(ecoErr) {
@@ -667,9 +640,9 @@ const PortalApp = {
 
             // Altrimenti va SEMPRE all'Area Profilo ufficiale
             const profileUrl = isPreview 
-                ? 'https://profmemmo.it/preview/profilo.html' 
-                : 'https://profmemmo.it/profilo.html';
-            window.location.replace(`${profileUrl}#pm_sso=${defaultSsoPayload}`);
+                ? 'https://prof-memmo.github.io/games/preview/profilo.html' 
+                : 'https://prof-memmo.github.io/games/profilo.html';
+            window.location.replace(profileUrl);
             return;
 
         } catch(e) {
@@ -913,7 +886,7 @@ const PortalApp = {
                 await this.loadUserProfile();
             } else {
                 // In modalità preview / test
-                const profileUrl = 'https://profmemmo.it/profilo.html';
+                const profileUrl = 'https://prof-memmo.github.io/games/profilo.html';
                 console.log("Onboarding docente completato con successo:", { nome, email, identity: this.pendingIdentity, survey: surveyData });
                 alert("🎉 Profilo Docente creato con successo! Verrai indirizzato alla tua dashboard.");
             }
@@ -970,19 +943,12 @@ const PortalApp = {
     },
     openPlatform: function(gameId) {
         const urls = {
-            'fantaletteratura': 'https://fantaletteratura.profmemmo.it/',
-            'palestra_riflessione': 'https://palestradiriflessione.profmemmo.it/',
-            'palestra-di-riflessione': 'https://palestradiriflessione.profmemmo.it/',
-            'rotta_degli_eroi': 'https://larottadeglieroi.profmemmo.it/',
-            'la-rotta-degli-eroi': 'https://larottadeglieroi.profmemmo.it/',
-            'corte_della_commedia': 'https://lacortedellacommedia.profmemmo.it/',
-            'la-corte-della-commedia': 'https://lacortedellacommedia.profmemmo.it/',
-            'ops_storia': 'https://opsstoria.profmemmo.it/',
-            'ops-storia': 'https://opsstoria.profmemmo.it/',
-            'l_oratore': 'https://loratore.profmemmo.it/',
-            'oratore': 'https://loratore.profmemmo.it/',
-            'supplenze': 'https://gestionalesostituzioni.profmemmo.it/',
-            'gestionale_sostituzioni': 'https://gestionalesostituzioni.profmemmo.it/'
+            'fantaletteratura': 'https://prof-memmo.github.io/fantaletteratura/index.html',
+            'palestra_riflessione': 'https://prof-memmo.github.io/palestra-di-riflessione/index.html',
+            'rotta_degli_eroi': 'https://prof-memmo.github.io/la-rotta-degli-eroi/index.html',
+            'corte_della_commedia': 'https://prof-memmo.github.io/la-corte-della-commedia/index.html',
+            'ops_storia': 'https://prof-memmo.github.io/ops-storia/index.html',
+            'l_oratore': 'https://prof-memmo.github.io/l-oratore/index.html'
         };
         if (urls[gameId]) {
             window.location.href = urls[gameId];
