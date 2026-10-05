@@ -8,8 +8,8 @@ const ReleasesUI = {
             id: 'hub_admin',
             name: 'Hub Dashboard Admin',
             repo: 'prof-memmo-gestione-siti',
-            liveUrl: 'https://prof-memmo.github.io/prof-memmo-gestione-siti/',
-            previewUrl: 'https://prof-memmo.github.io/prof-memmo-gestione-siti/preview/',
+            liveUrl: 'https://gestionesiti.profmemmo.it/',
+            previewUrl: 'https://gestionesiti.profmemmo.it/preview/',
             icon: 'fa-shield-halved',
             color: '#6366f1',
             description: 'Console di amministrazione centrale e strumenti di gestione.'
@@ -18,8 +18,8 @@ const ReleasesUI = {
             id: 'hub_vetrina',
             name: 'Portale & Vetrina Giochi',
             repo: 'games',
-            liveUrl: 'https://prof-memmo.github.io/games/',
-            previewUrl: 'https://prof-memmo.github.io/games/preview/',
+            liveUrl: 'https://profmemmo.it/',
+            previewUrl: 'https://profmemmo.it/preview/',
             icon: 'fa-store',
             color: '#ec4899',
             description: 'Vetrina pubblica principale, accesso unificato e catalogo giochi.'

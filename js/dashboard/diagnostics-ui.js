@@ -434,14 +434,14 @@ const DiagnosticsUI = {
         };
 
         // Trova l'URL corrispondente dal registro dinamico
-        let baseUrl = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/index.html';
+        let baseUrl = 'https://gestionesiti.profmemmo.it/index.html';
         const found = this.currentProjects.find(p => p.id === selectedTargetId);
         if (found) {
             baseUrl = found.url;
         } else if (selectedTargetId === 'profilo') {
-            baseUrl = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/profilo.html';
+            baseUrl = 'https://gestionesiti.profmemmo.it/profilo.html';
         } else if (selectedTargetId === 'giochi_hub') {
-            baseUrl = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/giochi.html';
+            baseUrl = 'https://gestionesiti.profmemmo.it/giochi.html';
         }
 
         const previewParam = `previewRole=${encodeURIComponent(selectedRole)}&previewMode=true&timestamp=${Date.now()}`;
