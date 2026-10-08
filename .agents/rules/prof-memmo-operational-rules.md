@@ -1,5 +1,5 @@
 # REGOLE OPERATIVE DI SICUREZZA PER L'ECOSISTEMA PROF. MEMMO
-# Versione 2.0 - Consolidata e Blindata (16 Settembre 2026)
+# Versione 2.1 - Consolidata e Blindata con Audit E2E Multidominio (Ottobre 2026)
 
 Tutti gli agenti AI e i programmatori che operano sui repository dell'Ecosistema Prof. Memmo DEVONO rispettare rigorosamente le seguenti regole inderogabili.
 
@@ -60,3 +60,24 @@ Prima di considerare conclusa qualsiasi modifica e prima di effettuare il push s
 ### ART. 7 - GESTIONE BRANCH E PUSH GIT
 - Tutti i test, le verifiche e le nuove implementazioni DEVONO essere committati e spinti esclusivamente sul branch **preview** (git push origin preview).
 - E' fatto divieto assoluto di eseguire il push diretto sul branch main a meno di esplicito comando di rilascio in produzione da parte dell'utente.
+
+---
+
+### ART. 8 - AUDIT AUTOMATICO E2E HTTP DI TUTTI GLI ASSET E DOMINI (RETE & RUNTIME ZERO-404)
+Prima di considerare conclusa qualsiasi sessione di lavoro o rilascio, è fatto obbligo inderogabile di eseguire la scansione automatica di integrità di rete su TUTTI i siti e sottodomini dell'Ecosistema Prof. Memmo, senza alcuna esclusione:
+1. **Elenco Completo e Obbligatorio dei Siti dell'Ecosistema (Nessuna omissione ammessa)**:
+   - **Hub Centrale & Admin (Superadmin)**: `https://profmemmo.it` e `https://profmemmo.it/portal.html` (repo `prof-memmo-admin-gestione-generale`)
+   - **Sito Vetrina & Games&Co.**: `https://games.profmemmo.it`, `/giochi.html`, `/prezzi.html`, `/profilo.html`, `/accedi.html` (repo `prof-memmo-games`)
+   - **FantaLetteratura**: `https://fantaletteratura.profmemmo.it` (repo `fantaletteratura`)
+   - **Palestra di Riflessione**: `https://palestradiriflessione.profmemmo.it` (repo `palestra-di-riflessione`)
+   - **La Rotta degli Eroi**: `https://larottadeglieroi.profmemmo.it` (repo `la-rotta-degli-eroi`)
+   - **La Corte della Commedia**: `https://lacortedellacommedia.profmemmo.it` (repo `la-corte-della-commedia`)
+   - **L'Oratore**: `https://loratore.profmemmo.it` (repo `l-oratore`)
+   - **Ops! Storia**: `https://opsstoria.profmemmo.it` (repo `ops-storia`)
+   - **Supplenze App**: `https://prof-memmo.github.io/supplenze-app/` / `https://supplenze.profmemmo.it` (repo `supplenze-app`)
+   (e i relativi percorsi di collaudo `/preview/` prima del merge in produzione).
+2. **Criteri di Conformità di Rete (Tolleranza Zero)**:
+   - **Zero 404 / 500 / 503**: Ogni singolo foglio di stile CSS, script JS, font web, immagine, logo, video e manifest collegato alle pagine deve rispondere con HTTP 200 OK.
+   - **Coerenza di radice (No 404 da basePath)**: Divieto assoluto di prefissi di sottocartella su progetti ospitati su domini o sottodomini autonomi (es. Next.js `basePath: ''` per domini root).
+   - **Encoding rigoroso degli URI**: Nessun percorso di immagine o video può contenere spazi grezzi o apici conflittuali negli attributi HTML (devono essere codificati con `%20` o normalizzati a livello di filesystem).
+   - **Esecuzione Automatica Obbligatoria**: L'agente DEVE eseguire lo script `tools/audit_ecosistema.py` (o comando programmatico equivalente su tutti i 9 siti) e allegare l'esito 100% verde nel resoconto finale.
