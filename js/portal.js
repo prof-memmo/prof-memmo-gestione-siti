@@ -615,9 +615,11 @@ const PortalApp = {
 
             // Salva cookie di sessione per tutto il dominio principale (.profmemmo.it)
             try {
-                const domainPart = isCustomDomain ? '; domain=.profmemmo.it' : '';
                 const encodedPayload = encodeURIComponent(JSON.stringify(sessionPayload));
-                document.cookie = `pm_sso_session=${encodedPayload}; path=/${domainPart}; max-age=2592000; SameSite=Lax; Secure`;
+                const cookieString = isCustomDomain
+                    ? `pm_sso_session=${encodedPayload}; path=/; domain=.profmemmo.it; max-age=2592000; SameSite=Lax; Secure`
+                    : `pm_sso_session=${encodedPayload}; path=/; max-age=2592000; SameSite=Lax`;
+                document.cookie = cookieString;
             } catch (cookieErr) {
                 console.warn("Impossibile salvare cookie SSO:", cookieErr);
             }

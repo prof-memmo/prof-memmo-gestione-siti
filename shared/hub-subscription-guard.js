@@ -15,7 +15,7 @@
     'use strict';
 
     const SUPER_ADMIN_EMAIL = 'prof.memmo@gmail.com';
-    const HUB_PORTAL_URL = 'https://prof-memmo.github.io/games/prezzi.html';
+    const HUB_PORTAL_URL = 'https://games.profmemmo.it/prezzi.html';
 
     const HubSubscriptionGuard = {
         gameId: window.HUB_GAME_ID || 'fantaletteratura',
@@ -172,7 +172,7 @@
                         <a href="${HUB_PORTAL_URL}" class="pm-guard-btn-upgrade" id="pm-guard-cta-btn">
                             <i class="fa-solid fa-crown"></i> Scopri i Piani &amp; Abbonati
                         </a>
-                        <a href="https://prof-memmo.github.io/games/giochi.html" class="pm-guard-btn-back">
+                        <a href="https://games.profmemmo.it/giochi.html" class="pm-guard-btn-back">
                             Torna al Catalogo Giochi
                         </a>
                     </div>
@@ -414,7 +414,7 @@
             const userRole = isSuperAdmin ? 'admin' : (session.role || 'docente');
             const userPlan = isSuperAdmin ? 'docente_ecosistema' : (session.subscription || 'base');
             const userName = session.displayName || (isSuperAdmin ? 'Prof. Memmo' : 'Docente');
-            const userAvatar = session.avatar || 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
+            const userAvatar = session.avatar || 'https://profmemmo.it/shared/assets/avatars/6.png';
 
             try {
                 // Salva sessione unificata nello storage
