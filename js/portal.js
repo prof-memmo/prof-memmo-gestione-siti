@@ -670,7 +670,13 @@ const PortalApp = {
                         : (isCustomDomain ? 'https://games.profmemmo.it/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html'),
                     'prezzi.html': isPreview 
                         ? (isCustomDomain ? 'https://games.profmemmo.it/preview/prezzi.html' : 'https://prof-memmo.github.io/games/preview/prezzi.html')
-                        : (isCustomDomain ? 'https://games.profmemmo.it/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html')
+                        : (isCustomDomain ? 'https://games.profmemmo.it/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html'),
+                    'profilo': isPreview 
+                        ? (isCustomDomain ? 'https://games.profmemmo.it/preview/profilo.html' : 'https://prof-memmo.github.io/games/preview/profilo.html')
+                        : (isCustomDomain ? 'https://games.profmemmo.it/profilo.html' : 'https://prof-memmo.github.io/games/profilo.html'),
+                    'profilo.html': isPreview 
+                        ? (isCustomDomain ? 'https://games.profmemmo.it/preview/profilo.html' : 'https://prof-memmo.github.io/games/preview/profilo.html')
+                        : (isCustomDomain ? 'https://games.profmemmo.it/profilo.html' : 'https://prof-memmo.github.io/games/profilo.html')
                 };
                 if (gameMap[redirectTarget]) {
                     const targetBase = gameMap[redirectTarget];

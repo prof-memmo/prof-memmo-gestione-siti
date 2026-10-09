@@ -467,6 +467,38 @@
                     window.Auth.avatar = userAvatar;
                     if (typeof window.Auth.updateUI === 'function') window.Auth.updateUI();
                 }
+
+                // La Rotta degli Eroi
+                const eroiUser = {
+                    uid: session.uid || 'sso_' + Math.random().toString(36).substr(2, 9),
+                    name: userName,
+                    displayName: userName,
+                    email: session.email,
+                    role: userRole,
+                    plan: userPlan,
+                    avatar: userAvatar
+                };
+                localStorage.setItem('eroi_user', JSON.stringify(eroiUser));
+                if (window.Auth) {
+                    window.Auth._user = eroiUser;
+                    if (typeof window.Auth._resolveReady === 'function') window.Auth._resolveReady();
+                }
+
+                // La Corte della Commedia
+                const commediaUser = {
+                    uid: session.uid || 'sso_' + Math.random().toString(36).substr(2, 9),
+                    name: userName,
+                    displayName: userName,
+                    email: session.email,
+                    role: userRole,
+                    plan: userPlan,
+                    avatar: userAvatar
+                };
+                localStorage.setItem('commedia_user', JSON.stringify(commediaUser));
+                localStorage.setItem('user', JSON.stringify(commediaUser));
+
+                // Sessione unificata per il portale e il profilo
+                localStorage.setItem('pm_sso_session', JSON.stringify(session));
             } catch (e) {
                 console.warn("SSO storage update warning:", e);
             }
@@ -474,7 +506,7 @@
             // Sincronizza UI header e nasconde eventuali blocchi
             this.syncHeaderUI(userName, userRole, userAvatar);
 
-            if (this.isPlanAllowed(userPlan)) {
+            if (isSuperAdmin || this.isPlanAllowed(userPlan)) {
                 this.hideBlockOverlay();
             }
         },
