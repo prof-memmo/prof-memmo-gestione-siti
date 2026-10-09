@@ -109,6 +109,19 @@ const DiagnosticsService = {
             db_collections: ['hub_didactic_overrides', 'hub_settings'],
             icon: 'fa-microphone-lines',
             description: 'Gioco e sfide di oratoria, retorica viva e debate (QCER A1-C2).'
+        },
+        {
+            id: 'historygram',
+            name: 'HistoryGram',
+            repo: 'historygram',
+            url: 'https://historygram.profmemmo.it',
+            type: 'gioco',
+            active: true,
+            diagnostics_active: true,
+            db_collection: 'historygram_sessions',
+            db_collections: ['historygram_sessions'],
+            icon: 'fa-feather-pointed',
+            description: "Social network storico didattico: Revolution Influencer ('800) e Riforma vs Controriforma ('500)."
         }
     ],
 

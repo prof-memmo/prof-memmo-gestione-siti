@@ -83,6 +83,16 @@ const ReleasesUI = {
             icon: 'fa-microphone-lines',
             color: '#d97706',
             description: 'L\'arte del racconto e della retorica: sfida oratoria e debate a squadre per la classe.'
+        },
+        {
+            id: 'historygram',
+            name: 'HistoryGram',
+            repo: 'historygram',
+            liveUrl: 'https://historygram.profmemmo.it/',
+            previewUrl: 'https://historygram.profmemmo.it/preview/',
+            icon: 'fa-feather-pointed',
+            color: '#833ab4',
+            description: "Social network della storia: Revolution Influencer ('800) e Riforma vs Controriforma ('500)."
         }
     ],
 

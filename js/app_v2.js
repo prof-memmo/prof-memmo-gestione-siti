@@ -209,9 +209,13 @@ const HubApp = {
             else if (gameName.includes('Travel')) targetId = 'game-filter-travel';
             else if (gameName.includes('Quaderno')) targetId = 'game-filter-quaderno';
             else if (gameName.includes('Fuori')) targetId = 'game-filter-fuori-registro';
+            else if (gameName.includes('History') || gameName.includes('history') || gameName.includes('histori')) targetId = 'game-filter-historygram';
         }
         const activeCard = document.getElementById(targetId);
-        if (activeCard) activeCard.classList.add('active');
+        if (activeCard) {
+            activeCard.classList.add('active');
+            activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
 
         if (window.UsersUI) window.UsersUI.filterIscritti();
         const table = document.getElementById('hub-iscritti-table');

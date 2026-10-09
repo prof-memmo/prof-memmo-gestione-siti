@@ -615,9 +615,11 @@ const PortalApp = {
 
             // Salva cookie di sessione per tutto il dominio principale (.profmemmo.it)
             try {
-                const domainPart = isCustomDomain ? '; domain=.profmemmo.it' : '';
                 const encodedPayload = encodeURIComponent(JSON.stringify(sessionPayload));
-                document.cookie = `pm_sso_session=${encodedPayload}; path=/${domainPart}; max-age=2592000; SameSite=Lax; Secure`;
+                const cookieString = isCustomDomain
+                    ? `pm_sso_session=${encodedPayload}; path=/; domain=.profmemmo.it; max-age=2592000; SameSite=Lax; Secure`
+                    : `pm_sso_session=${encodedPayload}; path=/; max-age=2592000; SameSite=Lax`;
+                document.cookie = cookieString;
             } catch (cookieErr) {
                 console.warn("Impossibile salvare cookie SSO:", cookieErr);
             }
@@ -660,6 +662,9 @@ const PortalApp = {
                     'l-oratore': isPreview 
                         ? (isCustomDomain ? 'https://loratore.profmemmo.it/preview/' : 'https://prof-memmo.github.io/l-oratore/preview/')
                         : (isCustomDomain ? 'https://loratore.profmemmo.it/' : 'https://prof-memmo.github.io/l-oratore/'),
+                    'historygram': isPreview 
+                        ? (isCustomDomain ? 'https://historygram.profmemmo.it/preview/' : 'https://prof-memmo.github.io/historygram/preview/')
+                        : (isCustomDomain ? 'https://historygram.profmemmo.it/' : 'https://prof-memmo.github.io/historygram/'),
                     'prezzi': isPreview 
                         ? (isCustomDomain ? 'https://games.profmemmo.it/preview/prezzi.html' : 'https://prof-memmo.github.io/games/preview/prezzi.html')
                         : (isCustomDomain ? 'https://games.profmemmo.it/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html'),
@@ -969,7 +974,8 @@ const PortalApp = {
             { id: 'rotta_degli_eroi', title: 'La Rotta degli Eroi', icon: 'fa-ship', color: '#3b82f6', desc: 'Scegli la tua avventura e il tuo eroe.' },
             { id: 'corte_della_commedia', title: 'Corte della Commedia', icon: 'fa-gavel', color: '#ef4444', desc: 'Processa i personaggi storici.' },
             { id: 'ops_storia', title: 'OPS Storia', icon: 'fa-hourglass', color: '#eab308', desc: 'Missioni storiche a tempo.' },
-            { id: 'l_oratore', title: "L'Oratore", icon: 'fa-microphone-lines', color: '#d97706', desc: 'Sfide di retorica, oratoria e debate (QCER A1-C2).' }
+            { id: 'l_oratore', title: "L'Oratore", icon: 'fa-microphone-lines', color: '#d97706', desc: 'Sfide di retorica, oratoria e debate (QCER A1-C2).' },
+            { id: 'historygram', title: 'HistoryGram', icon: 'fa-feather-pointed', color: '#833ab4', desc: "Social network della storia: Revolution Influencer ('800) e Riforma vs Controriforma ('500)." }
         ];
 
         allPlatforms.forEach(p => {
@@ -1006,7 +1012,8 @@ const PortalApp = {
             'rotta_degli_eroi': 'https://prof-memmo.github.io/la-rotta-degli-eroi/index.html',
             'corte_della_commedia': 'https://prof-memmo.github.io/la-corte-della-commedia/index.html',
             'ops_storia': 'https://prof-memmo.github.io/ops-storia/index.html',
-            'l_oratore': 'https://prof-memmo.github.io/l-oratore/index.html'
+            'l_oratore': 'https://prof-memmo.github.io/l-oratore/index.html',
+            'historygram': 'https://historygram.profmemmo.it/index.html'
         };
         if (urls[gameId]) {
             window.location.href = urls[gameId];
