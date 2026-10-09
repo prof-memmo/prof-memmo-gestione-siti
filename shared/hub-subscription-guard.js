@@ -36,6 +36,7 @@
             this.injectStyles();
             this.injectOverlay();
             this.listenGameStatus();
+            this.checkSsoBridge();
         },
 
         normalizePlanKey: function (rawPlan) {
@@ -363,6 +364,155 @@
                 overlay.classList.remove('pm-guard-active');
             }
             document.body.style.overflow = '';
+        },
+
+        checkSsoBridge: function () {
+            let session = null;
+
+            // 1. Controlla prima l'hash URL (#pm_sso=...)
+            if (window.location.hash && window.location.hash.includes('pm_sso=')) {
+                try {
+                    const rawHash = window.location.hash.substring(1);
+                    const params = new URLSearchParams(rawHash);
+                    const ssoRaw = params.get('pm_sso');
+                    if (ssoRaw) {
+                        session = JSON.parse(decodeURIComponent(ssoRaw));
+                        params.delete('pm_sso');
+                        const remaining = params.toString();
+                        const newUrl = window.location.pathname + window.location.search + (remaining ? '#' + remaining : '');
+                        window.history.replaceState(null, '', newUrl);
+                    }
+                } catch (e) {
+                    console.warn("SSO hash bridge error:", e);
+                }
+            }
+
+            // 2. Se non presente nell'hash, cerca nel cookie di dominio (.profmemmo.it)
+            if (!session) {
+                try {
+                    const cookies = document.cookie.split(';');
+                    for (let c of cookies) {
+                        const parts = c.trim().split('=');
+                        if (parts[0] === 'pm_sso_session' && parts[1]) {
+                            session = JSON.parse(decodeURIComponent(parts.slice(1).join('=')));
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("SSO cookie bridge error:", e);
+                }
+            }
+
+            // 3. Se trovata una sessione SSO valida, applicala
+            if (session && session.email) {
+                this.applySessionToGame(session);
+            }
+        },
+
+        applySessionToGame: function (session) {
+            const isSuperAdmin = (session.email.toLowerCase() === SUPER_ADMIN_EMAIL);
+            const userRole = isSuperAdmin ? 'admin' : (session.role || 'docente');
+            const userPlan = isSuperAdmin ? 'docente_ecosistema' : (session.subscription || 'base');
+            const userName = session.displayName || (isSuperAdmin ? 'Prof. Memmo' : 'Docente');
+            const userAvatar = session.avatar || 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
+
+            try {
+                // Salva sessione unificata nello storage
+                localStorage.setItem('hub_user_session', JSON.stringify(session));
+                localStorage.setItem('hub_user_name', userName);
+                localStorage.setItem('hub_user_avatar', userAvatar);
+                localStorage.setItem('hub_user_role', userRole);
+                localStorage.setItem('hub_user_plan', userPlan);
+
+                // Fantaletteratura
+                localStorage.setItem('fanta_user_name', userName);
+                localStorage.setItem('fanta_user_avatar', userAvatar);
+                localStorage.setItem('fanta_user_role', userRole);
+
+                // Palestra di Riflessione
+                const palestraUser = {
+                    uid: session.uid || 'sso_' + Math.random().toString(36).substr(2, 9),
+                    name: userName,
+                    avatar: userAvatar,
+                    role: userRole,
+                    piano: userPlan,
+                    points: 0,
+                    isGuest: false,
+                    email: session.email,
+                    setupComplete: true
+                };
+                localStorage.setItem('palestra_user', JSON.stringify(palestraUser));
+                localStorage.setItem('palestra_user_plan', userPlan);
+                if (window.Auth) {
+                    window.Auth._user = palestraUser;
+                    if (typeof window.hideLoginOverlay === 'function') {
+                        window.hideLoginOverlay();
+                    }
+                }
+
+                // L'Oratore
+                const oratoreUser = {
+                    role: userRole,
+                    plan: userPlan,
+                    name: userName,
+                    avatar: userAvatar,
+                    xp: 150
+                };
+                localStorage.setItem('pm_oratore_user', JSON.stringify(oratoreUser));
+                if (window.Auth && (!window.Auth.user || window.Auth.role === 'guest')) {
+                    window.Auth.user = oratoreUser;
+                    window.Auth.role = userRole;
+                    window.Auth.plan = userPlan;
+                    window.Auth.name = userName;
+                    window.Auth.avatar = userAvatar;
+                    if (typeof window.Auth.updateUI === 'function') window.Auth.updateUI();
+                }
+            } catch (e) {
+                console.warn("SSO storage update warning:", e);
+            }
+
+            // Sincronizza UI header e nasconde eventuali blocchi
+            this.syncHeaderUI(userName, userRole, userAvatar);
+
+            if (this.isPlanAllowed(userPlan)) {
+                this.hideBlockOverlay();
+            }
+        },
+
+        syncHeaderUI: function (name, role, avatar) {
+            const update = () => {
+                const nameEl = document.getElementById('header-user-name');
+                const roleEl = document.getElementById('header-user-role');
+                const avatarImg = document.getElementById('header-user-avatar-img') || document.getElementById('header-user-avatar');
+                const dropdownTitle = document.getElementById('dropdown-user-title') || document.getElementById('dropdown-user-name');
+                const dropdownSub = document.getElementById('dropdown-user-subtitle') || document.getElementById('dropdown-user-role-sub');
+                const loginBtn = document.getElementById('btn-login-hub-dropdown');
+                const profileBtn = document.getElementById('btn-profile-dropdown');
+                const inviteBtn = document.getElementById('btn-invite-dropdown');
+                const bottomRow = document.getElementById('dropdown-bottom-row');
+
+                const roleLabel = (role === 'admin' ? 'AMMINISTRATORE' : (role === 'docente' ? 'DOCENTE' : (role === 'viandante' ? 'VIANDANTE' : role.toUpperCase())));
+
+                if (nameEl) nameEl.textContent = name.toUpperCase();
+                if (roleEl) roleEl.textContent = roleLabel;
+                if (avatarImg && avatar) avatarImg.src = avatar;
+                if (dropdownTitle) dropdownTitle.textContent = name.toUpperCase();
+                if (dropdownSub) dropdownSub.textContent = roleLabel;
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (profileBtn) profileBtn.style.display = 'flex';
+                if (inviteBtn) inviteBtn.style.display = 'flex';
+                if (bottomRow) bottomRow.style.display = 'flex';
+
+                // Se presente modale login (es. Palestra), nascondila
+                const loginOverlay = document.getElementById('login-overlay');
+                if (loginOverlay) loginOverlay.classList.add('hidden');
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', update);
+            } else {
+                update();
+            }
         }
     };
 

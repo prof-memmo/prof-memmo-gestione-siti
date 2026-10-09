@@ -596,26 +596,82 @@ const PortalApp = {
 
             this.profile = snap.data();
             
-            // Reindirizzamento SSO immediato
+            // Reindirizzamento SSO immediato & Ponte Sessione Ecosistema
             const urlParams = new URLSearchParams(window.location.search);
             const redirectTarget = urlParams.get('redirect');
             const isPreview = window.location.pathname.includes('/preview');
+            const isCustomDomain = window.location.hostname.endsWith('profmemmo.it');
+
+            // Genera payload sessione per l'intero ecosistema
+            const sessionPayload = {
+                uid: this.user.uid,
+                email: (this.user.email || '').toLowerCase(),
+                displayName: (this.profile && this.profile.anagrafica && this.profile.anagrafica.nome) || this.user.displayName || 'Prof. Memmo',
+                avatar: (this.profile && this.profile.avatar) || (this.profile && this.profile.anagrafica && this.profile.anagrafica.avatar) || this.user.photoURL || '',
+                role: (this.profile && this.profile.role) || (this.user.email && this.user.email.toLowerCase() === 'prof.memmo@gmail.com' ? 'admin' : 'docente'),
+                subscription: (this.profile && (this.profile.subscription || this.profile.abbonamento)) || (this.user.email && this.user.email.toLowerCase() === 'prof.memmo@gmail.com' ? 'docente_ecosistema' : 'base'),
+                ts: Date.now()
+            };
+
+            // Salva cookie di sessione per tutto il dominio principale (.profmemmo.it)
+            try {
+                const domainPart = isCustomDomain ? '; domain=.profmemmo.it' : '';
+                const encodedPayload = encodeURIComponent(JSON.stringify(sessionPayload));
+                document.cookie = `pm_sso_session=${encodedPayload}; path=/${domainPart}; max-age=2592000; SameSite=Lax; Secure`;
+            } catch (cookieErr) {
+                console.warn("Impossibile salvare cookie SSO:", cookieErr);
+            }
 
             if (redirectTarget) {
                 const gameMap = {
-                    'fantaletteratura': isPreview ? 'https://prof-memmo.github.io/fantaletteratura/preview/' : 'https://prof-memmo.github.io/fantaletteratura/',
-                    'palestra_riflessione': isPreview ? 'https://prof-memmo.github.io/palestra-di-riflessione/preview/' : 'https://prof-memmo.github.io/palestra-di-riflessione/',
-                    'rotta_degli_eroi': isPreview ? 'https://prof-memmo.github.io/la-rotta-degli-eroi/preview/' : 'https://prof-memmo.github.io/la-rotta-degli-eroi/',
-                    'corte_della_commedia': isPreview ? 'https://prof-memmo.github.io/la-corte-della-commedia/preview/' : 'https://prof-memmo.github.io/la-corte-della-commedia/',
-                    'ops_storia': isPreview ? 'https://prof-memmo.github.io/ops-storia/preview/' : 'https://prof-memmo.github.io/ops-storia/',
-                    'ops-storia': isPreview ? 'https://prof-memmo.github.io/ops-storia/preview/' : 'https://prof-memmo.github.io/ops-storia/',
-                    'l_oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
-                    'oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
-                    'prezzi': isPreview ? 'https://prof-memmo.github.io/games/preview/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html',
-                    'prezzi.html': isPreview ? 'https://prof-memmo.github.io/games/preview/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html'
+                    'fantaletteratura': isPreview 
+                        ? (isCustomDomain ? 'https://fantaletteratura.profmemmo.it/preview/' : 'https://prof-memmo.github.io/fantaletteratura/preview/')
+                        : (isCustomDomain ? 'https://fantaletteratura.profmemmo.it/' : 'https://prof-memmo.github.io/fantaletteratura/'),
+                    'palestra_riflessione': isPreview 
+                        ? (isCustomDomain ? 'https://palestradiriflessione.profmemmo.it/preview/' : 'https://prof-memmo.github.io/palestra-di-riflessione/preview/')
+                        : (isCustomDomain ? 'https://palestradiriflessione.profmemmo.it/' : 'https://prof-memmo.github.io/palestra-di-riflessione/'),
+                    'palestra-di-riflessione': isPreview 
+                        ? (isCustomDomain ? 'https://palestradiriflessione.profmemmo.it/preview/' : 'https://prof-memmo.github.io/palestra-di-riflessione/preview/')
+                        : (isCustomDomain ? 'https://palestradiriflessione.profmemmo.it/' : 'https://prof-memmo.github.io/palestra-di-riflessione/'),
+                    'rotta_degli_eroi': isPreview 
+                        ? (isCustomDomain ? 'https://larottadeglieroi.profmemmo.it/preview/' : 'https://prof-memmo.github.io/la-rotta-degli-eroi/preview/')
+                        : (isCustomDomain ? 'https://larottadeglieroi.profmemmo.it/' : 'https://prof-memmo.github.io/la-rotta-degli-eroi/'),
+                    'la-rotta-degli-eroi': isPreview 
+                        ? (isCustomDomain ? 'https://larottadeglieroi.profmemmo.it/preview/' : 'https://prof-memmo.github.io/la-rotta-degli-eroi/preview/')
+                        : (isCustomDomain ? 'https://larottadeglieroi.profmemmo.it/' : 'https://prof-memmo.github.io/la-rotta-degli-eroi/'),
+                    'corte_della_commedia': isPreview 
+                        ? (isCustomDomain ? 'https://lacortedellacommedia.profmemmo.it/preview/' : 'https://prof-memmo.github.io/la-corte-della-commedia/preview/')
+                        : (isCustomDomain ? 'https://lacortedellacommedia.profmemmo.it/' : 'https://prof-memmo.github.io/la-corte-della-commedia/'),
+                    'la-corte-della-commedia': isPreview 
+                        ? (isCustomDomain ? 'https://lacortedellacommedia.profmemmo.it/preview/' : 'https://prof-memmo.github.io/la-corte-della-commedia/preview/')
+                        : (isCustomDomain ? 'https://lacortedellacommedia.profmemmo.it/' : 'https://prof-memmo.github.io/la-corte-della-commedia/'),
+                    'ops_storia': isPreview 
+                        ? (isCustomDomain ? 'https://opsstoria.profmemmo.it/preview/' : 'https://prof-memmo.github.io/ops-storia/preview/')
+                        : (isCustomDomain ? 'https://opsstoria.profmemmo.it/' : 'https://prof-memmo.github.io/ops-storia/'),
+                    'ops-storia': isPreview 
+                        ? (isCustomDomain ? 'https://opsstoria.profmemmo.it/preview/' : 'https://prof-memmo.github.io/ops-storia/preview/')
+                        : (isCustomDomain ? 'https://opsstoria.profmemmo.it/' : 'https://prof-memmo.github.io/ops-storia/'),
+                    'l_oratore': isPreview 
+                        ? (isCustomDomain ? 'https://loratore.profmemmo.it/preview/' : 'https://prof-memmo.github.io/l-oratore/preview/')
+                        : (isCustomDomain ? 'https://loratore.profmemmo.it/' : 'https://prof-memmo.github.io/l-oratore/'),
+                    'oratore': isPreview 
+                        ? (isCustomDomain ? 'https://loratore.profmemmo.it/preview/' : 'https://prof-memmo.github.io/l-oratore/preview/')
+                        : (isCustomDomain ? 'https://loratore.profmemmo.it/' : 'https://prof-memmo.github.io/l-oratore/'),
+                    'l-oratore': isPreview 
+                        ? (isCustomDomain ? 'https://loratore.profmemmo.it/preview/' : 'https://prof-memmo.github.io/l-oratore/preview/')
+                        : (isCustomDomain ? 'https://loratore.profmemmo.it/' : 'https://prof-memmo.github.io/l-oratore/'),
+                    'prezzi': isPreview 
+                        ? (isCustomDomain ? 'https://games.profmemmo.it/preview/prezzi.html' : 'https://prof-memmo.github.io/games/preview/prezzi.html')
+                        : (isCustomDomain ? 'https://games.profmemmo.it/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html'),
+                    'prezzi.html': isPreview 
+                        ? (isCustomDomain ? 'https://games.profmemmo.it/preview/prezzi.html' : 'https://prof-memmo.github.io/games/preview/prezzi.html')
+                        : (isCustomDomain ? 'https://games.profmemmo.it/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html')
                 };
                 if (gameMap[redirectTarget]) {
-                    window.location.replace(gameMap[redirectTarget]);
+                    const targetBase = gameMap[redirectTarget];
+                    const separator = targetBase.includes('#') ? '&' : '#';
+                    const ssoParam = `pm_sso=${encodeURIComponent(JSON.stringify(sessionPayload))}`;
+                    window.location.replace(`${targetBase}${separator}${ssoParam}`);
                     return;
                 }
             }
@@ -629,9 +685,10 @@ const PortalApp = {
 
                 if (isMonetActive && userRole !== 'studente' && userSub === 'base' && !redirectTarget) {
                     const prezziUrl = isPreview 
-                        ? 'https://prof-memmo.github.io/games/preview/prezzi.html' 
-                        : 'https://prof-memmo.github.io/games/prezzi.html';
-                    window.location.replace(prezziUrl);
+                        ? (isCustomDomain ? 'https://games.profmemmo.it/preview/prezzi.html' : 'https://prof-memmo.github.io/games/preview/prezzi.html')
+                        : (isCustomDomain ? 'https://games.profmemmo.it/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html');
+                    const sep = prezziUrl.includes('#') ? '&' : '#';
+                    window.location.replace(`${prezziUrl}${sep}pm_sso=${encodeURIComponent(JSON.stringify(sessionPayload))}`);
                     return;
                 }
             } catch(ecoErr) {
@@ -640,9 +697,10 @@ const PortalApp = {
 
             // Altrimenti va SEMPRE all'Area Profilo ufficiale
             const profileUrl = isPreview 
-                ? 'https://prof-memmo.github.io/games/preview/profilo.html' 
-                : 'https://prof-memmo.github.io/games/profilo.html';
-            window.location.replace(profileUrl);
+                ? (isCustomDomain ? 'https://games.profmemmo.it/preview/profilo.html' : 'https://prof-memmo.github.io/games/preview/profilo.html')
+                : (isCustomDomain ? 'https://games.profmemmo.it/profilo.html' : 'https://prof-memmo.github.io/games/profilo.html');
+            const sepProfile = profileUrl.includes('#') ? '&' : '#';
+            window.location.replace(`${profileUrl}${sepProfile}pm_sso=${encodeURIComponent(JSON.stringify(sessionPayload))}`);
             return;
 
         } catch(e) {
