@@ -45,6 +45,7 @@ const UsersUI = {
         setHtml('counter-travel', stats.travel);
         setHtml('counter-quaderno', stats.quaderno);
         setHtml('counter-fuoriregistro', stats.fuoriregistro);
+        setHtml('counter-historygram', stats.historygram);
         setHtml('counter-studenti', stats.studenti);
         setHtml('counter-docenti', stats.docenti);
         setHtml('counter-viandanti', stats.viandanti);
@@ -1086,6 +1087,7 @@ const UsersUI = {
                 else if (fg.includes('travel')) matchesGioco = g.includes('travel');
                 else if (fg.includes('quaderno')) matchesGioco = g.includes('quaderno');
                 else if (fg.includes('fuori') || fg.includes('registro')) matchesGioco = g.includes('fuori') || g.includes('registro');
+                else if (fg.includes('history') || fg.includes('histori')) matchesGioco = g.includes('history') || g.includes('histori');
                 else matchesGioco = g.includes(fg);
             }
 
