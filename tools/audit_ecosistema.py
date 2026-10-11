@@ -94,15 +94,26 @@ def run_audit():
             checked_on_page.add(asset_url)
             total_assets_checked += 1
 
-            try:
-                areq = urllib.request.Request(asset_url, headers=HEADERS)
-                with urllib.request.urlopen(areq, timeout=8) as aresp:
-                    if aresp.status >= 400:
-                        page_failures.append((asset_url, aresp.status))
-            except urllib.error.HTTPError as he:
-                page_failures.append((asset_url, he.code))
-            except Exception as ex:
-                page_failures.append((asset_url, f"ERR: {ex}"))
+            success = False
+            for attempt in range(2):
+                try:
+                    areq = urllib.request.Request(asset_url, headers=HEADERS)
+                    with urllib.request.urlopen(areq, timeout=12) as aresp:
+                        if aresp.status < 400:
+                            success = True
+                            break
+                        else:
+                            page_failures.append((asset_url, aresp.status))
+                            break
+                except urllib.error.HTTPError as he:
+                    page_failures.append((asset_url, he.code))
+                    break
+                except Exception as ex:
+                    if attempt == 0:
+                        import time
+                        time.sleep(1)
+                        continue
+                    page_failures.append((asset_url, f"ERR: {ex}"))
 
         if page_failures:
             print(f"  ❌ {len(page_failures)} ASSET ROTTI:")
