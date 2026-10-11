@@ -17,19 +17,20 @@ from urllib.parse import urljoin, urlparse
 
 # Elenco Ufficiale Completo e Inderogabile dei Siti dell'Ecosistema (Art. 8)
 TARGET_PAGES = [
-    ("Hub Gestione & Admin", "https://profmemmo.it"),
-    ("Hub Portale Operativo", "https://profmemmo.it/portal.html"),
-    ("Sito Vetrina - Home", "https://games.profmemmo.it"),
-    ("Sito Vetrina - Giochi", "https://games.profmemmo.it/giochi.html"),
-    ("Sito Vetrina - Prezzi", "https://games.profmemmo.it/prezzi.html"),
-    ("Sito Vetrina - Profilo", "https://games.profmemmo.it/profilo.html"),
-    ("Sito Vetrina - Accedi", "https://games.profmemmo.it/accedi.html"),
-    ("FantaLetteratura", "https://fantaletteratura.profmemmo.it"),
-    ("Palestra di Riflessione", "https://palestradiriflessione.profmemmo.it"),
-    ("La Rotta degli Eroi", "https://larottadeglieroi.profmemmo.it"),
-    ("La Corte della Commedia", "https://lacortedellacommedia.profmemmo.it"),
-    ("L'Oratore", "https://loratore.profmemmo.it"),
-    ("Ops! Storia", "https://opsstoria.profmemmo.it"),
+    ("Hub Gestione & Admin", "https://prof-memmo.github.io/prof-memmo-gestione-siti/"),
+    ("Hub Portale Operativo", "https://prof-memmo.github.io/prof-memmo-gestione-siti/portal.html"),
+    ("Sito Vetrina - Home", "https://prof-memmo.github.io/games/"),
+    ("Sito Vetrina - Giochi", "https://prof-memmo.github.io/games/giochi.html"),
+    ("Sito Vetrina - Prezzi", "https://prof-memmo.github.io/games/prezzi.html"),
+    ("Sito Vetrina - Profilo", "https://prof-memmo.github.io/games/profilo.html"),
+    ("Sito Vetrina - Accedi", "https://prof-memmo.github.io/games/accedi.html"),
+    ("FantaLetteratura", "https://prof-memmo.github.io/fantaletteratura/"),
+    ("Palestra di Riflessione", "https://prof-memmo.github.io/palestra-di-riflessione/"),
+    ("La Rotta degli Eroi", "https://prof-memmo.github.io/la-rotta-degli-eroi/"),
+    ("La Corte della Commedia", "https://prof-memmo.github.io/la-corte-della-commedia/"),
+    ("L'Oratore", "https://prof-memmo.github.io/l-oratore/"),
+    ("Ops! Storia", "https://prof-memmo.github.io/ops-storia/"),
+    ("HistoryGram", "https://prof-memmo.github.io/historygram/"),
     ("Supplenze App", "https://prof-memmo.github.io/supplenze-app/")
 ]
 
