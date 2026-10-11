@@ -238,7 +238,7 @@ const CrossProjectsService = {
 
         let cDocenti = 0, cViandanti = 0;
         let cEroi = 0, cCommedia = 0, cFanta = 0, cPalestra = 0, cOps = 0, cOratore = 0;
-        let cRuota = 0, cTravel = 0, cQuaderno = 0, cFuoriRegistro = 0;
+        let cRuota = 0, cTravel = 0, cQuaderno = 0, cFuoriRegistro = 0, cHistorygram = 0;
 
         hubUsers.forEach(u => {
             if (u.ruolo === 'docente' || u.ruolo === 'admin') {
@@ -258,6 +258,7 @@ const CrossProjectsService = {
             if (gStr.includes('travel')) cTravel++;
             if (gStr.includes('quaderno')) cQuaderno++;
             if (gStr.includes('fuori') || gStr.includes('registro')) cFuoriRegistro++;
+            if (gStr.includes('history') || gStr.includes('histori')) cHistorygram++;
         });
 
         result.users = hubUsers;
@@ -272,6 +273,7 @@ const CrossProjectsService = {
             travel: cTravel,
             quaderno: cQuaderno,
             fuoriregistro: cFuoriRegistro,
+            historygram: cHistorygram,
             studenti: totalRosterStudents,
             docenti: cDocenti,
             viandanti: cViandanti,
