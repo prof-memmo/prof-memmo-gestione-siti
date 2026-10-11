@@ -602,20 +602,70 @@ const PortalApp = {
             const isPreview = window.location.pathname.includes('/preview');
             const isCustomDomain = window.location.hostname.endsWith('profmemmo.it');
 
-            // Genera payload sessione per l'intero ecosistema
-            const sessionPayload = {
+            const anagrafica = (this.profile && this.profile.anagrafica) || {};
+            const userSchool = (this.profile && (this.profile.scuola || this.profile.school)) || anagrafica.scuola || anagrafica.school || '';
+            const userCity = (this.profile && (this.profile.citta || this.profile.city)) || anagrafica.citta || anagrafica.city || '';
+            const userClass = (this.profile && (this.profile.classe || this.profile.classId)) || anagrafica.classe || anagrafica.classId || '';
+            const isSuperAdmin = (this.user.email && this.user.email.toLowerCase() === 'prof.memmo@gmail.com');
+            const userRole = (this.profile && (this.profile.role || this.profile.ruolo)) || (isSuperAdmin ? 'admin' : 'docente');
+            const userSub = (this.profile && (this.profile.subscription || this.profile.abbonamento)) || (isSuperAdmin ? 'docente_ecosistema' : 'base');
+            const userName = (this.profile && (this.profile.nome || this.profile.name)) || anagrafica.nome || this.user.displayName || (isSuperAdmin ? 'Prof. Memmo' : 'Docente');
+            const userAvatar = (this.profile && this.profile.avatar) || anagrafica.avatar || this.user.photoURL || 'https://profmemmo.it/shared/assets/avatars/6.png';
+
+            // Prefetch Classi da Firestore per Docente o SuperAdmin (solo mentre siamo sull'Hub con Auth attivo)
+            let userClasses = [];
+            if (isSuperAdmin || userRole === 'docente' || userRole === 'admin') {
+                try {
+                    let snapClasses = null;
+                    if (isSuperAdmin) {
+                        snapClasses = await window.fbDb.hub.collection('hub_classes').orderBy('createdAt', 'desc').get().catch(() => null);
+                        if (!snapClasses || snapClasses.empty) {
+                            snapClasses = await window.fbDb.hub.collection('hub_classes').get().catch(() => null);
+                        }
+                    } else {
+                        snapClasses = await window.fbDb.hub.collection('hub_classes').where('teacherId', '==', this.user.uid).get().catch(() => null);
+                    }
+                    if (snapClasses && !snapClasses.empty) {
+                        snapClasses.forEach(doc => {
+                            userClasses.push({ id: doc.id, ...doc.data() });
+                        });
+                    }
+                } catch (classesErr) {
+                    console.warn("PortalApp: prefetch classi non riuscito:", classesErr);
+                }
+            }
+
+            // Payload compatto per il Cookie di dominio .profmemmo.it (rispetta il limite RFC di 4KB)
+            const cookiePayload = {
                 uid: this.user.uid,
                 email: (this.user.email || '').toLowerCase(),
-                displayName: (this.profile && this.profile.anagrafica && this.profile.anagrafica.nome) || this.user.displayName || 'Prof. Memmo',
-                avatar: (this.profile && this.profile.avatar) || (this.profile && this.profile.anagrafica && this.profile.anagrafica.avatar) || this.user.photoURL || '',
-                role: (this.profile && this.profile.role) || (this.user.email && this.user.email.toLowerCase() === 'prof.memmo@gmail.com' ? 'admin' : 'docente'),
-                subscription: (this.profile && (this.profile.subscription || this.profile.abbonamento)) || (this.user.email && this.user.email.toLowerCase() === 'prof.memmo@gmail.com' ? 'docente_ecosistema' : 'base'),
+                displayName: userName,
+                avatar: userAvatar,
+                role: userRole,
+                subscription: userSub,
+                scuola: userSchool,
+                citta: userCity,
+                classe: userClass,
+                classCount: userClasses.length,
                 ts: Date.now()
+            };
+
+            // Payload completo per il passaggio sicuro via URL Hash (#pm_sso=...) a profilo.html
+            const sessionPayload = {
+                ...cookiePayload,
+                anagrafica: {
+                    nome: userName,
+                    scuola: userSchool,
+                    citta: userCity,
+                    classe: userClass,
+                    avatar: userAvatar
+                },
+                classes: userClasses
             };
 
             // Salva cookie di sessione per tutto il dominio principale (.profmemmo.it)
             try {
-                const encodedPayload = encodeURIComponent(JSON.stringify(sessionPayload));
+                const encodedPayload = encodeURIComponent(JSON.stringify(cookiePayload));
                 const cookieString = isCustomDomain
                     ? `pm_sso_session=${encodedPayload}; path=/; domain=.profmemmo.it; max-age=2592000; SameSite=Lax; Secure`
                     : `pm_sso_session=${encodedPayload}; path=/; max-age=2592000; SameSite=Lax`;
@@ -623,6 +673,11 @@ const PortalApp = {
             } catch (cookieErr) {
                 console.warn("Impossibile salvare cookie SSO:", cookieErr);
             }
+
+            // Sincronizza anche local storage locale dell'Hub
+            try {
+                localStorage.setItem('pm_sso_session', JSON.stringify(sessionPayload));
+            } catch(e) {}
 
             if (redirectTarget) {
                 const gameMap = {

@@ -416,6 +416,10 @@
             const userName = session.displayName || (isSuperAdmin ? 'Prof. Memmo' : 'Docente');
             const userAvatar = session.avatar || 'https://profmemmo.it/shared/assets/avatars/6.png';
 
+            const userSchool = session.scuola || (session.anagrafica && session.anagrafica.scuola) || '';
+            const userCity = session.citta || (session.anagrafica && session.anagrafica.citta) || '';
+            const userClass = session.classe || (session.anagrafica && session.anagrafica.classe) || '';
+
             try {
                 // Salva sessione unificata nello storage
                 localStorage.setItem('hub_user_session', JSON.stringify(session));
@@ -423,6 +427,9 @@
                 localStorage.setItem('hub_user_avatar', userAvatar);
                 localStorage.setItem('hub_user_role', userRole);
                 localStorage.setItem('hub_user_plan', userPlan);
+                if (userSchool) localStorage.setItem('hub_user_school', userSchool);
+                if (userCity) localStorage.setItem('hub_user_city', userCity);
+                if (userClass) localStorage.setItem('hub_user_class', userClass);
 
                 // Fantaletteratura
                 localStorage.setItem('fanta_user_name', userName);
@@ -436,6 +443,8 @@
                     avatar: userAvatar,
                     role: userRole,
                     piano: userPlan,
+                    scuola: userSchool,
+                    citta: userCity,
                     points: 0,
                     isGuest: false,
                     email: session.email,
@@ -456,6 +465,8 @@
                     plan: userPlan,
                     name: userName,
                     avatar: userAvatar,
+                    scuola: userSchool,
+                    citta: userCity,
                     xp: 150
                 };
                 localStorage.setItem('pm_oratore_user', JSON.stringify(oratoreUser));
@@ -476,7 +487,9 @@
                     email: session.email,
                     role: userRole,
                     plan: userPlan,
-                    avatar: userAvatar
+                    avatar: userAvatar,
+                    scuola: userSchool,
+                    citta: userCity
                 };
                 localStorage.setItem('eroi_user', JSON.stringify(eroiUser));
                 if (window.Auth) {
@@ -492,7 +505,9 @@
                     email: session.email,
                     role: userRole,
                     plan: userPlan,
-                    avatar: userAvatar
+                    avatar: userAvatar,
+                    scuola: userSchool,
+                    citta: userCity
                 };
                 localStorage.setItem('commedia_user', JSON.stringify(commediaUser));
                 localStorage.setItem('user', JSON.stringify(commediaUser));
