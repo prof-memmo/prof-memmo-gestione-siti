@@ -205,6 +205,47 @@ async def run_master_collaudo():
 
                 site_stats[name]["buttons_clicked"] = clicked_here
 
+                # 3. LIVELLO 4: CONFORMITÀ LEGALE, FOOTER E BADGE PATAMÙ (Art. 8 Contract Testing)
+                compliance_ok = True
+                if name not in ["Hub Admin - Home", "Hub Admin - Portale", "Supplenze App"]:
+                    compliance = await page.evaluate('''() => {
+                        const footer = document.querySelector('footer');
+                        const avatarInFooter = footer ? footer.querySelector('.footer-logo, .main-logo-img, img[src*="avatar"]') : null;
+                        const patamuImg = document.querySelector('img[src*="patamu"], img[alt*="Patamu"], img[alt*="patamu"], img[alt*="Patamù"]');
+                        const patamuLoaded = patamuImg ? (patamuImg.naturalWidth > 0 && !patamuImg.src.includes('gestionesiti.profmemmo.it')) : false;
+                        const privacyLink = Array.from(document.querySelectorAll('a, button')).find(el => el.innerText && el.innerText.toLowerCase().includes('privacy'));
+                        const termsLink = Array.from(document.querySelectorAll('a, button')).find(el => el.innerText && (el.innerText.toLowerCase().includes('termini') || el.innerText.toLowerCase().includes('condizioni')));
+                        
+                        return {
+                            hasFooter: !!footer,
+                            hasAvatarInFooter: !!avatarInFooter,
+                            hasPatamu: !!patamuImg,
+                            patamuLoaded: patamuLoaded,
+                            patamuSrc: patamuImg ? patamuImg.src : '',
+                            hasPrivacy: !!privacyLink,
+                            hasTerms: !!termsLink
+                        };
+                    }''')
+
+                    if not compliance["hasFooter"]:
+                        all_failures.append(f"[L4-COMPLIANCE-NO-FOOTER] {name}: Tag <footer> assente")
+                        compliance_ok = False
+                    if compliance["hasAvatarInFooter"]:
+                        all_failures.append(f"[L4-COMPLIANCE-AVATAR-FOOTER] {name}: Avatar del progetto presente nel footer (non consentito)")
+                        compliance_ok = False
+                    if not compliance["hasPatamu"]:
+                        all_failures.append(f"[L4-COMPLIANCE-NO-PATAMU] {name}: Badge Patamù assente")
+                        compliance_ok = False
+                    elif not compliance["patamuLoaded"]:
+                        all_failures.append(f"[L4-COMPLIANCE-PATAMU-BROKEN] {name}: Badge Patamù non caricato o rotto (naturalWidth==0 o vecchio dominio: {compliance['patamuSrc']})")
+                        compliance_ok = False
+                    if not compliance["hasPrivacy"]:
+                        all_failures.append(f"[L4-COMPLIANCE-NO-PRIVACY] {name}: Link a Privacy Policy assente")
+                        compliance_ok = False
+                    if not compliance["hasTerms"]:
+                        all_failures.append(f"[L4-COMPLIANCE-NO-TERMS] {name}: Link a Termini e Condizioni assente")
+                        compliance_ok = False
+
                 # Valuta errori catturati al clic
                 crit_alerts = [a for a in dialog_alerts if "errore" in a.lower() or "firebase" in a.lower() or "fail" in a.lower()]
                 if page_errors:
@@ -216,8 +257,9 @@ async def run_master_collaudo():
                         all_failures.append(f"[L3-ALERT-ERR] {name}: {ca}")
                     site_stats[name]["button_errors"] += len(crit_alerts)
 
-                status_label = "OK" if site_stats[name]["boot_ok"] and not page_errors and not crit_alerts else "FAIL"
-                print(f"  [{status_label}] {name:<26} | Boot OK | {clicked_here:>2} pulsanti cliccati | 0 crash")
+                status_label = "OK" if site_stats[name]["boot_ok"] and not page_errors and not crit_alerts and compliance_ok else "FAIL"
+                comp_status = "L4 Conforme" if compliance_ok else "L4 Non-Conforme"
+                print(f"  [{status_label}] {name:<26} | Boot OK | {clicked_here:>2} pulsanti | {comp_status}")
 
             except Exception as e:
                 all_failures.append(f"[L2-CRASH] {name}: Errore di caricamento Playwright -> {e}")
