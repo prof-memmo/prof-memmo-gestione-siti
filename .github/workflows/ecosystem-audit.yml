@@ -29,4 +29,8 @@ jobs:
 
       - name: Esecuzione Collaudo Totale Ecosistema (Art. 8)
         run: |
-          python3 tools/collaudo_totale.py
+          if [ "${{ github.ref_name }}" = "preview" ]; then
+            python3 tools/collaudo_totale.py --preview
+          else
+            python3 tools/collaudo_totale.py
+          fi
