@@ -46,6 +46,9 @@ def get_target_pages():
         return PAGES_TO_TEST
     res = []
     for name, url in PAGES_TO_TEST:
+        if "Supplenze App" in name:
+            res.append((name, url))
+            continue
         parsed = urlparse(url)
         path = parsed.path
         if path.endswith('/'):
@@ -196,37 +199,10 @@ async def run_master_collaudo():
                 else:
                     site_stats[name]["boot_ok"] = True
 
-                # 2. Clic test su tutti i pulsanti visibili
-                buttons = await page.query_selector_all("button, [role='button'], a.btn, .btn, input[type='button'], input[type='submit']")
-                clicked_here = 0
-
-                for idx, btn in enumerate(buttons):
-                    try:
-                        if not await btn.is_visible():
-                            continue
-
-                        btn_text = (await btn.inner_text()).strip().replace("\n", " ")
-                        btn_id = await btn.get_attribute("id") or ""
-                        label = btn_text or btn_id or f"Button #{idx+1}"
-
-                        # Salta pulsanti di uscita distruttivi
-                        if "esci" in label.lower() and "gioco" in label.lower():
-                            continue
-
-                        await btn.scroll_into_view_if_needed()
-                        await btn.click(timeout=2500)
-                        clicked_here += 1
-                        total_buttons_clicked += 1
-                        await page.wait_for_timeout(250)
-
-                    except Exception:
-                        pass
-
-                site_stats[name]["buttons_clicked"] = clicked_here
-
-                # 3. LIVELLO 4: CONFORMITÀ LEGALE, FOOTER E BADGE PATAMÙ (Art. 8 Contract Testing)
+                # 2. LIVELLO 4: CONFORMITÀ LEGALE, FOOTER E BADGE PATAMÙ (Art. 8 Contract Testing)
+                # Eseguito immediatamente al boot prima di eventuali interazioni che alterano lo stato della vista
                 compliance_ok = True
-                if name not in ["Hub Admin - Home", "Hub Admin - Portale", "Supplenze App"]:
+                if not any(k in name for k in ["Hub Admin", "Supplenze App"]):
                     compliance = await page.evaluate('''() => {
                         const footer = document.querySelector('footer');
                         const avatarInFooter = footer ? footer.querySelector('.footer-logo, .main-logo-img, img[src*="avatar"]') : null;
@@ -264,6 +240,34 @@ async def run_master_collaudo():
                     if not compliance["hasTerms"]:
                         all_failures.append(f"[L4-COMPLIANCE-NO-TERMS] {name}: Link a Termini e Condizioni assente")
                         compliance_ok = False
+
+                # 3. Clic test su tutti i pulsanti visibili
+                buttons = await page.query_selector_all("button, [role='button'], a.btn, .btn, input[type='button'], input[type='submit']")
+                clicked_here = 0
+
+                for idx, btn in enumerate(buttons):
+                    try:
+                        if not await btn.is_visible():
+                            continue
+
+                        btn_text = (await btn.inner_text()).strip().replace("\n", " ")
+                        btn_id = await btn.get_attribute("id") or ""
+                        label = btn_text or btn_id or f"Button #{idx+1}"
+
+                        # Salta pulsanti di uscita distruttivi
+                        if "esci" in label.lower() and "gioco" in label.lower():
+                            continue
+
+                        await btn.scroll_into_view_if_needed()
+                        await btn.click(timeout=2500)
+                        clicked_here += 1
+                        total_buttons_clicked += 1
+                        await page.wait_for_timeout(250)
+
+                    except Exception:
+                        pass
+
+                site_stats[name]["buttons_clicked"] = clicked_here
 
                 # Valuta errori catturati al clic
                 crit_alerts = [a for a in dialog_alerts if "errore" in a.lower() or "firebase" in a.lower() or "fail" in a.lower()]
