@@ -15,7 +15,7 @@
     'use strict';
 
     const SUPER_ADMIN_EMAIL = 'prof.memmo@gmail.com';
-    const HUB_PORTAL_URL = 'https://games.profmemmo.it/prezzi.html';
+    const HUB_PORTAL_URL = 'https://prof-memmo.github.io/games/prezzi.html';
 
     const HubSubscriptionGuard = {
         gameId: window.HUB_GAME_ID || 'fantaletteratura',
@@ -36,7 +36,6 @@
             this.injectStyles();
             this.injectOverlay();
             this.listenGameStatus();
-            this.checkSsoBridge();
         },
 
         normalizePlanKey: function (rawPlan) {
@@ -172,7 +171,7 @@
                         <a href="${HUB_PORTAL_URL}" class="pm-guard-btn-upgrade" id="pm-guard-cta-btn">
                             <i class="fa-solid fa-crown"></i> Scopri i Piani &amp; Abbonati
                         </a>
-                        <a href="https://games.profmemmo.it/giochi.html" class="pm-guard-btn-back">
+                        <a href="https://prof-memmo.github.io/games/giochi.html" class="pm-guard-btn-back">
                             Torna al Catalogo Giochi
                         </a>
                     </div>
@@ -364,202 +363,6 @@
                 overlay.classList.remove('pm-guard-active');
             }
             document.body.style.overflow = '';
-        },
-
-        checkSsoBridge: function () {
-            let session = null;
-
-            // 1. Controlla prima l'hash URL (#pm_sso=...)
-            if (window.location.hash && window.location.hash.includes('pm_sso=')) {
-                try {
-                    const rawHash = window.location.hash.substring(1);
-                    const params = new URLSearchParams(rawHash);
-                    const ssoRaw = params.get('pm_sso');
-                    if (ssoRaw) {
-                        session = JSON.parse(decodeURIComponent(ssoRaw));
-                        params.delete('pm_sso');
-                        const remaining = params.toString();
-                        const newUrl = window.location.pathname + window.location.search + (remaining ? '#' + remaining : '');
-                        window.history.replaceState(null, '', newUrl);
-                    }
-                } catch (e) {
-                    console.warn("SSO hash bridge error:", e);
-                }
-            }
-
-            // 2. Se non presente nell'hash, cerca nel cookie di dominio (.profmemmo.it)
-            if (!session) {
-                try {
-                    const cookies = document.cookie.split(';');
-                    for (let c of cookies) {
-                        const parts = c.trim().split('=');
-                        if (parts[0] === 'pm_sso_session' && parts[1]) {
-                            session = JSON.parse(decodeURIComponent(parts.slice(1).join('=')));
-                            break;
-                        }
-                    }
-                } catch (e) {
-                    console.warn("SSO cookie bridge error:", e);
-                }
-            }
-
-            // 3. Se trovata una sessione SSO valida, applicala
-            if (session && session.email) {
-                this.applySessionToGame(session);
-            }
-        },
-
-        applySessionToGame: function (session) {
-            const isSuperAdmin = (session.email.toLowerCase() === SUPER_ADMIN_EMAIL);
-            const userRole = isSuperAdmin ? 'admin' : (session.role || 'docente');
-            const userPlan = isSuperAdmin ? 'docente_ecosistema' : (session.subscription || 'base');
-            const userName = session.displayName || (isSuperAdmin ? 'Prof. Memmo' : 'Docente');
-            const userAvatar = session.avatar || 'https://profmemmo.it/shared/assets/avatars/6.png';
-
-            const userSchool = session.scuola || (session.anagrafica && session.anagrafica.scuola) || '';
-            const userCity = session.citta || (session.anagrafica && session.anagrafica.citta) || '';
-            const userClass = session.classe || (session.anagrafica && session.anagrafica.classe) || '';
-
-            try {
-                // Salva sessione unificata nello storage
-                localStorage.setItem('hub_user_session', JSON.stringify(session));
-                localStorage.setItem('hub_user_name', userName);
-                localStorage.setItem('hub_user_avatar', userAvatar);
-                localStorage.setItem('hub_user_role', userRole);
-                localStorage.setItem('hub_user_plan', userPlan);
-                if (userSchool) localStorage.setItem('hub_user_school', userSchool);
-                if (userCity) localStorage.setItem('hub_user_city', userCity);
-                if (userClass) localStorage.setItem('hub_user_class', userClass);
-
-                // Fantaletteratura
-                localStorage.setItem('fanta_user_name', userName);
-                localStorage.setItem('fanta_user_avatar', userAvatar);
-                localStorage.setItem('fanta_user_role', userRole);
-
-                // Palestra di Riflessione
-                const palestraUser = {
-                    uid: session.uid || 'sso_' + Math.random().toString(36).substr(2, 9),
-                    name: userName,
-                    avatar: userAvatar,
-                    role: userRole,
-                    piano: userPlan,
-                    scuola: userSchool,
-                    citta: userCity,
-                    points: 0,
-                    isGuest: false,
-                    email: session.email,
-                    setupComplete: true
-                };
-                localStorage.setItem('palestra_user', JSON.stringify(palestraUser));
-                localStorage.setItem('palestra_user_plan', userPlan);
-                if (window.Auth) {
-                    window.Auth._user = palestraUser;
-                    if (typeof window.hideLoginOverlay === 'function') {
-                        window.hideLoginOverlay();
-                    }
-                }
-
-                // L'Oratore
-                const oratoreUser = {
-                    role: userRole,
-                    plan: userPlan,
-                    name: userName,
-                    avatar: userAvatar,
-                    scuola: userSchool,
-                    citta: userCity,
-                    xp: 150
-                };
-                localStorage.setItem('pm_oratore_user', JSON.stringify(oratoreUser));
-                if (window.Auth && (!window.Auth.user || window.Auth.role === 'guest')) {
-                    window.Auth.user = oratoreUser;
-                    window.Auth.role = userRole;
-                    window.Auth.plan = userPlan;
-                    window.Auth.name = userName;
-                    window.Auth.avatar = userAvatar;
-                    if (typeof window.Auth.updateUI === 'function') window.Auth.updateUI();
-                }
-
-                // La Rotta degli Eroi
-                const eroiUser = {
-                    uid: session.uid || 'sso_' + Math.random().toString(36).substr(2, 9),
-                    name: userName,
-                    displayName: userName,
-                    email: session.email,
-                    role: userRole,
-                    plan: userPlan,
-                    avatar: userAvatar,
-                    scuola: userSchool,
-                    citta: userCity
-                };
-                localStorage.setItem('eroi_user', JSON.stringify(eroiUser));
-                if (window.Auth) {
-                    window.Auth._user = eroiUser;
-                    if (typeof window.Auth._resolveReady === 'function') window.Auth._resolveReady();
-                }
-
-                // La Corte della Commedia
-                const commediaUser = {
-                    uid: session.uid || 'sso_' + Math.random().toString(36).substr(2, 9),
-                    name: userName,
-                    displayName: userName,
-                    email: session.email,
-                    role: userRole,
-                    plan: userPlan,
-                    avatar: userAvatar,
-                    scuola: userSchool,
-                    citta: userCity
-                };
-                localStorage.setItem('commedia_user', JSON.stringify(commediaUser));
-                localStorage.setItem('user', JSON.stringify(commediaUser));
-
-                // Sessione unificata per il portale e il profilo
-                localStorage.setItem('pm_sso_session', JSON.stringify(session));
-            } catch (e) {
-                console.warn("SSO storage update warning:", e);
-            }
-
-            // Sincronizza UI header e nasconde eventuali blocchi
-            this.syncHeaderUI(userName, userRole, userAvatar);
-
-            if (isSuperAdmin || this.isPlanAllowed(userPlan)) {
-                this.hideBlockOverlay();
-            }
-        },
-
-        syncHeaderUI: function (name, role, avatar) {
-            const update = () => {
-                const nameEl = document.getElementById('header-user-name');
-                const roleEl = document.getElementById('header-user-role');
-                const avatarImg = document.getElementById('header-user-avatar-img') || document.getElementById('header-user-avatar');
-                const dropdownTitle = document.getElementById('dropdown-user-title') || document.getElementById('dropdown-user-name');
-                const dropdownSub = document.getElementById('dropdown-user-subtitle') || document.getElementById('dropdown-user-role-sub');
-                const loginBtn = document.getElementById('btn-login-hub-dropdown');
-                const profileBtn = document.getElementById('btn-profile-dropdown');
-                const inviteBtn = document.getElementById('btn-invite-dropdown');
-                const bottomRow = document.getElementById('dropdown-bottom-row');
-
-                const roleLabel = (role === 'admin' ? 'AMMINISTRATORE' : (role === 'docente' ? 'DOCENTE' : (role === 'viandante' ? 'VIANDANTE' : role.toUpperCase())));
-
-                if (nameEl) nameEl.textContent = name.toUpperCase();
-                if (roleEl) roleEl.textContent = roleLabel;
-                if (avatarImg && avatar) avatarImg.src = avatar;
-                if (dropdownTitle) dropdownTitle.textContent = name.toUpperCase();
-                if (dropdownSub) dropdownSub.textContent = roleLabel;
-                if (loginBtn) loginBtn.style.display = 'none';
-                if (profileBtn) profileBtn.style.display = 'flex';
-                if (inviteBtn) inviteBtn.style.display = 'flex';
-                if (bottomRow) bottomRow.style.display = 'flex';
-
-                // Se presente modale login (es. Palestra), nascondila
-                const loginOverlay = document.getElementById('login-overlay');
-                if (loginOverlay) loginOverlay.classList.add('hidden');
-            };
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', update);
-            } else {
-                update();
-            }
         }
     };
 
