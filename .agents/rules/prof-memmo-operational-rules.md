@@ -1,5 +1,5 @@
 # REGOLE OPERATIVE DI SICUREZZA PER L'ECOSISTEMA PROF. MEMMO
-# Versione 2.1 - Consolidata e Blindata con Audit E2E Multidominio (Ottobre 2026)
+# Versione 2.2 - Consolidata con Protocollo di Collaudo a 3 Livelli (Rete, Console JS & E2E) (Ottobre 2026)
 
 Tutti gli agenti AI e i programmatori che operano sui repository dell'Ecosistema Prof. Memmo DEVONO rispettare rigorosamente le seguenti regole inderogabili.
 
@@ -63,21 +63,21 @@ Prima di considerare conclusa qualsiasi modifica e prima di effettuare il push s
 
 ---
 
-### ART. 8 - AUDIT AUTOMATICO E2E HTTP DI TUTTI GLI ASSET E DOMINI (RETE & RUNTIME ZERO-404)
-Prima di considerare conclusa qualsiasi sessione di lavoro o rilascio, è fatto obbligo inderogabile di eseguire la scansione automatica di integrità di rete su TUTTI i siti e sottodomini dell'Ecosistema Prof. Memmo, senza alcuna esclusione:
-1. **Elenco Completo e Obbligatorio dei Siti dell'Ecosistema (Nessuna omissione ammessa)**:
-   - **Hub Centrale & Admin (Superadmin)**: `https://profmemmo.it` e `https://profmemmo.it/portal.html` (repo `prof-memmo-admin-gestione-generale`)
-   - **Sito Vetrina & Games&Co.**: `https://games.profmemmo.it`, `/giochi.html`, `/prezzi.html`, `/profilo.html`, `/accedi.html` (repo `prof-memmo-games`)
-   - **FantaLetteratura**: `https://fantaletteratura.profmemmo.it` (repo `fantaletteratura`)
-   - **Palestra di Riflessione**: `https://palestradiriflessione.profmemmo.it` (repo `palestra-di-riflessione`)
-   - **La Rotta degli Eroi**: `https://larottadeglieroi.profmemmo.it` (repo `la-rotta-degli-eroi`)
-   - **La Corte della Commedia**: `https://lacortedellacommedia.profmemmo.it` (repo `la-corte-della-commedia`)
-   - **L'Oratore**: `https://loratore.profmemmo.it` (repo `l-oratore`)
-   - **Ops! Storia**: `https://opsstoria.profmemmo.it` (repo `ops-storia`)
-   - **Supplenze App**: `https://prof-memmo.github.io/supplenze-app/` / `https://supplenze.profmemmo.it` (repo `supplenze-app`)
-   (e i relativi percorsi di collaudo `/preview/` prima del merge in produzione).
-2. **Criteri di Conformità di Rete (Tolleranza Zero)**:
+### ART. 8 - PROTOCOLLO DI COLLAUDO OBBLIGATORIO A 3 LIVELLI DELL'ECOSISTEMA (RETE, RUNTIME CONSOLE & FUNCTIONAL E2E)
+Prima di considerare conclusa qualsiasi sessione di lavoro o rilascio, è fatto obbligo inderogabile di eseguire la scansione automatica di integrità su TUTTI i siti e sottodomini dell'Ecosistema Prof. Memmo secondo il protocollo di collaudo a 3 livelli, senza richiedere collaudi manuali preliminari all'utente:
+
+1. **LIVELLO 1: AUDIT DI RETE & ASSET (ZERO-404 / 500)**:
    - **Zero 404 / 500 / 503**: Ogni singolo foglio di stile CSS, script JS, font web, immagine, logo, video e manifest collegato alle pagine deve rispondere con HTTP 200 OK.
    - **Coerenza di radice (No 404 da basePath)**: Divieto assoluto di prefissi di sottocartella su progetti ospitati su domini o sottodomini autonomi (es. Next.js `basePath: ''` per domini root).
    - **Encoding rigoroso degli URI**: Nessun percorso di immagine o video può contenere spazi grezzi o apici conflittuali negli attributi HTML (devono essere codificati con `%20` o normalizzati a livello di filesystem).
    - **Esecuzione Automatica Obbligatoria**: L'agente DEVE eseguire lo script `tools/audit_ecosistema.py` (o comando programmatico equivalente su tutti i 9 siti) e allegare l'esito 100% verde nel resoconto finale.
+
+2. **LIVELLO 2: AUDIT BROWSER REALE & RUNTIME CONSOLE (ZERO-ERRORI JS RUNTIME)**:
+   - **Rendering e Booting Completo**: Apertura automatizzata delle pagine tramite motore browser reale (Browser Subagent / Headless Browser).
+   - **Ispezione Console Obbligatoria**: Nessuna eccezione JavaScript non gestita ammessa in console (`console.error`, `Uncaught TypeError`, `app-compat/no-app`, ecc.).
+   - **Certificazione Firebase/Auth**: Monitoraggio del completamento del bootstrap dei servizi cloud (es. emissione evento `firebaseHubReady` o log di successo `🔥 Firebase Hub Centrale Unico inizializzato`).
+
+3. **LIVELLO 3: TEST FUNZIONALE E2E (SIMULAZIONE INTERAZIONI & CLIC UTENTE)**:
+   - **Simulazione Clic Reale**: Il browser automatizzato deve simulare i clic e le interazioni chiave dell'utente (es. pulsante `#btn-google-login`, navigazione tra sezioni, apertura modali).
+   - **Verifica Flusso Auth/OAuth**: Accertamento che il clic apra correttamente il popup o flusso di autenticazione e che il pulsante mostri transizioni di stato coerenti (es. spinner di caricamento e ripristino) senza lanciare alert o bloccare l'interfaccia.
+   - **Garanzia Zero-Test Manuali**: Nessuna modifica può essere dichiarata funzionante all'utente prima che i 3 livelli di collaudo automatico abbiano dato esito pienamente positivo.

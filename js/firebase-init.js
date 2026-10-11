@@ -11,6 +11,7 @@ const configHub = {
 };
 
 // Inizializzazione Firebase
+window.configHub = configHub;
 window.fbApps = {};
 window.fbDb = {};
 
@@ -30,6 +31,8 @@ try {
     window.fbAuth = appHub.auth();
     window.db = firestoreHub;
     window.auth = window.fbAuth;
+    window.firebaseHubReady = true;
+    window.dispatchEvent(new CustomEvent('firebaseHubReady', { detail: { app: appHub } }));
 
     console.log("🔥 Firebase Hub Centrale Unico inizializzato con successo su prof-memmo-hub.");
 } catch (e) {
