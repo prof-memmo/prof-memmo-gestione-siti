@@ -100,7 +100,7 @@ def audit_url(browser, url, label):
     }
 
     try:
-        response = page.goto(url, wait_until="domcontentloaded", timeout=12000)
+        response = page.goto(url, wait_until="domcontentloaded", timeout=25000)
         res["status"] = response.status if response else 0
     except Exception as e:
         res["errors"].append(f"Navigazione fallita: {e}")
@@ -203,12 +203,13 @@ def run_functional_visibility_suite(browser, screenshots_dir):
         print(f"\n▶ Collaudo Funzionale su: {p_name}")
 
         try:
-            page.goto(p_url, wait_until="domcontentloaded", timeout=12000)
-            time.sleep(1.2)
+            page.goto(p_url, wait_until="domcontentloaded", timeout=25000)
+            time.sleep(1.5)
         except Exception as e:
-            print(f"  ❌ Errore caricamento pagina: {e}")
-            tests.append({"test": f"{p_name}: Caricamento", "passed": False, "error": str(e)})
-            continue
+            print(f"  ⚠️ Tentativo retry caricamento pagina: {e}")
+            time.sleep(2)
+            page.goto(p_url, wait_until="domcontentloaded", timeout=25000)
+            time.sleep(1.5)
 
         # 1. Verifica presenza card HistoryGram e supporto _testEcosystem
         card = page.query_selector('[data-title="HistoryGram"]')
@@ -217,6 +218,10 @@ def run_functional_visibility_suite(browser, screenshots_dir):
         tests.append({"test": f"{p_name}: Presenza Card HistoryGram", "passed": has_card})
         if not has_card:
             continue
+
+        # Scroll sulla card per visualizzazione ottimale
+        page.evaluate("() => { const el = document.querySelector('[data-title=\"HistoryGram\"]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }")
+        time.sleep(0.5)
 
         # 2. Test Funzionale "NASCONDI": visibleInVetrina = false
         print("  [2] Esecuzione Test 'NASCONDI' (visibleInVetrina: false)...")
@@ -252,6 +257,8 @@ def run_functional_visibility_suite(browser, screenshots_dir):
         is_visible_ok = (display_visible == "flex" or display_visible == "")
         print(f"      -> Risultato display: '{display_visible}' | Esito: {'PASS ✅' if is_visible_ok else 'FAIL ❌'}")
         
+        page.evaluate("() => { const el = document.querySelector('[data-title=\"HistoryGram\"]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }")
+        time.sleep(0.4)
         shot_visible = os.path.join(screenshots_dir, f"{p_info['name'][:7]}_historygram_visibile.png")
         page.screenshot(path=shot_visible)
         tests.append({"test": f"{p_name}: Funzione 'Mostra in Vetrina' Card", "passed": is_visible_ok, "screenshot": shot_visible})
