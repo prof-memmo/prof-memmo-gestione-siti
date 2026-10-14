@@ -475,6 +475,54 @@
       if (!footers.length) return;
 
       footers.forEach(function(footer) {
+        // 1. Rimuovi qualsiasi avatar o logo del progetto rimasto nel footer
+        var avatarEl = footer.querySelector('.footer-logo, .main-logo-img, img[src*="avatar"]');
+        if (avatarEl) {
+          var container = avatarEl.closest('.footer-logo');
+          if (container) {
+            container.remove();
+          } else {
+            avatarEl.remove();
+          }
+        }
+
+        // 2. Normalizza immagine Badge Patamu con fallback locale
+        var patamuImg = footer.querySelector('img[src*="patamu"], img[alt*="Patamu"], img[alt*="patamu"], img[alt*="Patamù"]');
+        if (patamuImg) {
+          patamuImg.src = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/legal/patamu-badge.png';
+          patamuImg.alt = 'Patamu';
+          patamuImg.style.height = '48px';
+          patamuImg.style.objectFit = 'contain';
+          patamuImg.style.flexShrink = '0';
+          patamuImg.onerror = function() {
+            this.src = 'assets/patamu.png';
+          };
+        }
+
+        // 3. Assicura la presenza dei link Privacy Policy e Termini e Condizioni nel footer
+        var legalLinks = footer.querySelector('.footer-legal-links, [data-legal-container]');
+        if (!legalLinks) {
+          var hasPriv = Array.from(footer.querySelectorAll('a')).some(function(a) {
+            return a.textContent.toLowerCase().includes('privacy');
+          });
+          if (!hasPriv) {
+            legalLinks = document.createElement('div');
+            legalLinks.className = 'footer-legal-links';
+            legalLinks.style.display = 'flex';
+            legalLinks.style.justifyContent = 'center';
+            legalLinks.style.gap = '20px';
+            legalLinks.style.marginTop = '10px';
+            legalLinks.style.fontSize = '0.85rem';
+            footer.appendChild(legalLinks);
+          }
+        }
+        if (legalLinks) {
+          legalLinks.innerHTML =
+            '<a href="javascript:void(0)" onclick="openSharedModal(\'privacy\')" data-legal="privacy" style="color: inherit; text-decoration: underline; opacity: 0.85;">Privacy Policy</a>' +
+            '<a href="javascript:void(0)" onclick="openSharedModal(\'termini\')" data-legal="terms" style="color: inherit; text-decoration: underline; opacity: 0.85;">Termini e Condizioni</a>';
+        }
+
+        // 4. Testo di Copyright e Dati Fiscali
         var copyrightEl = footer.querySelector('.copyright, #copyright-text, p.copyright-text, [data-copyright]');
         var copyrightContent = data.copyrightText || "© 2026 Guglielmo Piersanti. Tutti i contenuti presenti su questo sito sono di proprietà dell'autore e sono protetti tramite deposito e marcatura temporale presso Patamu. I contenuti sono inoltre distribuiti con licenza Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0).";
 
@@ -490,16 +538,9 @@
         if (copyrightEl) {
           copyrightEl.innerHTML = copyrightContent + fiscalStr;
         } else {
-          // Se non trova una classe copyright specifica, cerca il primo paragrafo del footer o lo aggiunge
           var p = footer.querySelector('p');
           if (p) {
             p.innerHTML = copyrightContent + fiscalStr;
-          } else {
-            var newP = document.createElement('p');
-            newP.style.fontSize = '0.85rem';
-            newP.style.margin = '10px 0 0 0';
-            newP.innerHTML = copyrightContent + fiscalStr;
-            footer.appendChild(newP);
           }
         }
       });

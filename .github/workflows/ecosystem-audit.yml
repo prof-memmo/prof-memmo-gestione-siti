@@ -1,0 +1,36 @@
+name: Collaudo Ecosistema Prof. Memmo (Playwright E2E)
+
+on:
+  push:
+    branches:
+      - preview
+  workflow_dispatch:
+
+jobs:
+  audit-ecosystem:
+    name: Collaudo Totale Rete, Console e Pulsanti
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: preview
+
+      - name: Configurazione Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installazione Dipendenze e Playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          playwright install chromium --with-deps
+
+      - name: Esecuzione Collaudo Totale Ecosistema (Art. 8)
+        run: |
+          if [ "${{ github.ref_name }}" = "preview" ]; then
+            python3 tools/collaudo_totale.py --preview
+          else
+            python3 tools/collaudo_totale.py
+          fi

@@ -1,7 +1,7 @@
 // firebase-init.js
 // Configurazione Hub Centrale Unificato Prof. Memmo (Piattaforma Unica Firebase)
 
-const configHub = {
+window.configHub = window.configHub || {
   apiKey: "AIzaSyD-n2m-kYEuzGXPMKclZTggf4Y5Zm8_cdM",
   authDomain: "prof-memmo-hub.firebaseapp.com",
   projectId: "prof-memmo-hub",
@@ -9,8 +9,10 @@ const configHub = {
   messagingSenderId: "839149485689",
   appId: "1:839149485689:web:04ee4fa6237d94d0b71ea8"
 };
+var configHub = window.configHub;
 
 // Inizializzazione Firebase
+window.configHub = configHub;
 window.fbApps = {};
 window.fbDb = {};
 
@@ -30,6 +32,8 @@ try {
     window.fbAuth = appHub.auth();
     window.db = firestoreHub;
     window.auth = window.fbAuth;
+    window.firebaseHubReady = true;
+    window.dispatchEvent(new CustomEvent('firebaseHubReady', { detail: { app: appHub } }));
 
     console.log("🔥 Firebase Hub Centrale Unico inizializzato con successo su prof-memmo-hub.");
 } catch (e) {

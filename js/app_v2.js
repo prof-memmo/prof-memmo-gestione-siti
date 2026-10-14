@@ -209,9 +209,13 @@ const HubApp = {
             else if (gameName.includes('Travel')) targetId = 'game-filter-travel';
             else if (gameName.includes('Quaderno')) targetId = 'game-filter-quaderno';
             else if (gameName.includes('Fuori')) targetId = 'game-filter-fuori-registro';
+            else if (gameName.includes('History') || gameName.includes('history') || gameName.includes('histori')) targetId = 'game-filter-historygram';
         }
         const activeCard = document.getElementById(targetId);
-        if (activeCard) activeCard.classList.add('active');
+        if (activeCard) {
+            activeCard.classList.add('active');
+            activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
 
         if (window.UsersUI) window.UsersUI.filterIscritti();
         const table = document.getElementById('hub-iscritti-table');
@@ -344,18 +348,53 @@ window.preparaInvioGmail = function() { if(window.NewsletterUI) window.Newslette
 async function eseguiLoginGoogle() {
     console.log("Login Google avviato...");
     const btn = document.getElementById('btn-google-login');
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Accesso in corso...';
+    const oldHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Accesso in corso...';
+    }
 
     try {
+        // Guardia difensiva: attesa dell'inizializzazione Firebase se il clic avviene prima del completamento di firebase-init.js
+        let retries = 0;
+        while ((typeof firebase === 'undefined' || !firebase.apps || firebase.apps.length === 0 || !window.fbAuth) && retries < 25) {
+            console.warn("Firebase non ancora pronto, attesa completamento init... (" + (retries + 1) + ")");
+            await new Promise(r => setTimeout(r, 120));
+            retries++;
+        }
+
+        // Fallback di sicurezza: se dopo l'attesa firebase è caricato ma non ancora inizializzato
+        if (typeof firebase !== 'undefined' && (!firebase.apps || firebase.apps.length === 0)) {
+            const cfg = window.configHub || {
+                apiKey: "AIzaSyD-n2m-kYEuzGXPMKclZTggf4Y5Zm8_cdM",
+                authDomain: "prof-memmo-hub.firebaseapp.com",
+                projectId: "prof-memmo-hub",
+                storageBucket: "prof-memmo-hub.firebasestorage.app",
+                messagingSenderId: "839149485689",
+                appId: "1:839149485689:web:04ee4fa6237d94d0b71ea8"
+            };
+            firebase.initializeApp(cfg);
+            window.fbAuth = firebase.auth();
+        }
+
+        const authInstance = window.fbAuth || (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length ? firebase.auth() : null);
+        if (!authInstance) {
+            throw new Error("I servizi di autenticazione stanno completando il caricamento. Riprova tra qualche istante.");
+        }
+
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-        await firebase.auth().signInWithPopup(provider);
+        await authInstance.signInWithPopup(provider);
     } catch (e) {
         console.error("Errore login Google:", e);
         if (e.code !== 'auth/popup-closed-by-user') {
             alert("Si è verificato un errore durante l'accesso con Google: " + (e.message || e.code));
         }
-        if (btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = oldHtml || '<i class="fa-brands fa-google"></i> Accedi con Google';
+        }
     }
 }
 
