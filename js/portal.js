@@ -575,7 +575,8 @@ const PortalApp = {
                             rotta_degli_eroi: { enabled: true },
                             corte_della_commedia: { enabled: true },
                             ops_storia: { enabled: true },
-                            l_oratore: { enabled: true }
+                            l_oratore: { enabled: true },
+                            historygram: { enabled: true }
                         }
                     };
                     await window.fbDb.hub.collection("hub_users").doc(this.user.uid).set(adminProfile, {merge: true});

@@ -101,7 +101,7 @@ const CrossProjectsService = {
     fetchAllUsers: async function() {
         let result = {
             users: [],
-            stats: { eroi: 0, commedia: 0, fanta: 0, palestra: 0, ops: 0, oratore: 0, studenti: 0, docenti: 0, viandanti: 0, scuoleSetSize: 0, total: 0 }
+            stats: { eroi: 0, commedia: 0, fanta: 0, palestra: 0, ops: 0, oratore: 0, historygram: 0, studenti: 0, docenti: 0, viandanti: 0, scuoleSetSize: 0, total: 0 }
         };
 
         if (!window.fbDb || !window.fbDb.hub) {
@@ -171,6 +171,7 @@ const CrossProjectsService = {
                     if (data.platforms.palestra_users?.enabled || data.platforms.palestra_riflessione?.enabled) userGiochi.push('Palestra di Riflessione');
                     if (data.platforms.ops_users?.enabled || data.platforms.ops_storia?.enabled) userGiochi.push('Ops! Operazione Storia');
                     if (data.platforms.oratore_users?.enabled || data.platforms.l_oratore?.enabled || data.platforms.oratore?.enabled) userGiochi.push("L'Oratore");
+                    if (data.platforms.historygram_users?.enabled || data.platforms.historygram?.enabled) userGiochi.push('HistoryGram');
                 }
 
                 const userPlan = isMemmo ? 'docente_ecosistema' : (data.abbonamento || data.plan || data.subscription || 'base');
@@ -178,7 +179,7 @@ const CrossProjectsService = {
 
                 const planLower = String(userPlan).toLowerCase();
                 if (userRole === 'admin' || planLower === 'docente_ecosistema' || planLower.includes('ecosistema')) {
-                    userGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore"];
+                    userGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram'];
                 } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
                     userGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia'];
                 } else if (planLower === 'viandante') {
