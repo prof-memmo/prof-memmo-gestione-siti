@@ -471,6 +471,18 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Impostazioni HistoryGram (Regolamento e Config)
+    match /historygram_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Impostazioni L'Oratore (Regolamento e Config)
+    match /oratore_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // ==============================================================
     // REGISTRO PAGAMENTI E TRANSAZIONI STRIPE (Solo Super Admin)
     // ==============================================================
