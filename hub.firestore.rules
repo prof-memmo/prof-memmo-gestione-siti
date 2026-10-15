@@ -137,7 +137,7 @@ service cloud.firestore {
     }
     
     match /fanta_settings/{docId} {
-      allow read: if isAdmin() || isFantaAuthorized();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -284,7 +284,7 @@ service cloud.firestore {
     }
 
     match /eroi_settings/{docId} {
-      allow read: if isAdmin() || isEroiAuthorized();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -338,7 +338,7 @@ service cloud.firestore {
     }
 
     match /palestra_settings/{docId} {
-      allow read: if isAdmin() || isPalestraAuthorized();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -406,7 +406,7 @@ service cloud.firestore {
     match /corte_characters/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
     match /corte_cantos/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
     match /corte_missions/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
-    match /corte_settings/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_settings/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /corte_missions_completed/{docId} {
       allow read: if isAdmin() || isCorteAuthorized();
       allow create: if isCorteAuthorized() && request.resource.data.userId == request.auth.uid;
@@ -467,7 +467,7 @@ service cloud.firestore {
     }
 
     match /ops_settings/{docId} {
-      allow read: if isAdmin() || isOpsAuthorized();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
