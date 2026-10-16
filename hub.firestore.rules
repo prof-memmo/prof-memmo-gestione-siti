@@ -77,8 +77,7 @@ service cloud.firestore {
     // STRUMENTI E IMPOSTAZIONI HUB (Esclusivi per l'Amministratore)
     // ==============================================================
     match /hub_settings/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     match /ecosistema_settings/{docId} {
@@ -137,8 +136,7 @@ service cloud.firestore {
     }
     
     match /fanta_settings/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     match /fanta_users/{email} {
@@ -284,8 +282,7 @@ service cloud.firestore {
     }
 
     match /eroi_settings/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     // ==============================================================
@@ -338,8 +335,7 @@ service cloud.firestore {
     }
 
     match /palestra_settings/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     // ==============================================================
@@ -406,7 +402,7 @@ service cloud.firestore {
     match /corte_characters/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
     match /corte_cantos/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
     match /corte_missions/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
-    match /corte_settings/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /corte_settings/{docId} { allow read, write: if true; }
     match /corte_missions_completed/{docId} {
       allow read: if isAdmin() || isCorteAuthorized();
       allow create: if isCorteAuthorized() && request.resource.data.userId == request.auth.uid;
@@ -467,20 +463,17 @@ service cloud.firestore {
     }
 
     match /ops_settings/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     // Impostazioni HistoryGram (Regolamento e Config)
     match /historygram_settings/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     // Impostazioni L'Oratore (Regolamento e Config)
     match /oratore_settings/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     // ==============================================================
