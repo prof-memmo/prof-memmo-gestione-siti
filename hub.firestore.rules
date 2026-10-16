@@ -77,7 +77,18 @@ service cloud.firestore {
     // STRUMENTI E IMPOSTAZIONI HUB (Esclusivi per l'Amministratore)
     // ==============================================================
     match /hub_settings/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /hub_notifications/{docId} {
+      allow read, write: if isAdmin();
+    }
+    match /hub_archives/{docId} {
+      allow read, write: if isAdmin();
+    }
+    match /hub_ecosystem_stats/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /ecosistema_settings/{docId} {
@@ -136,7 +147,12 @@ service cloud.firestore {
     }
     
     match /fanta_settings/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /fanta_rules/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /fanta_users/{email} {
@@ -206,6 +222,14 @@ service cloud.firestore {
     }
     match /fanta_games_status/{docId} {
       allow read: if isAdmin() || isFantaAuthorized();
+      allow write: if isAdmin();
+    }
+    match /fanta_calendar/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /fanta_imprevisti/{docId} {
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -282,7 +306,12 @@ service cloud.firestore {
     }
 
     match /eroi_settings/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /eroi_rules/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // ==============================================================
@@ -335,7 +364,12 @@ service cloud.firestore {
     }
 
     match /palestra_settings/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /palestra_rules/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // ==============================================================
@@ -402,11 +436,29 @@ service cloud.firestore {
     match /corte_characters/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
     match /corte_cantos/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
     match /corte_missions/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
-    match /corte_settings/{docId} { allow read, write: if true; }
+    match /corte_settings/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /commedia_settings/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /corte_rules/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /corte_verdicts/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /corte_archives/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
     match /corte_missions_completed/{docId} {
       allow read: if isAdmin() || isCorteAuthorized();
       allow create: if isCorteAuthorized() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
+    }
+
+    // Alias storici La Corte della Commedia
+    match /campaigns/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /cases/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /sentences/{docId} { allow read: if isAdmin() || isCorteAuthorized(); allow write: if isAdmin(); }
+    match /missions_completed/{docId} {
+      allow read: if isAdmin() || isCorteAuthorized();
+      allow create: if isCorteAuthorized() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+    match /teams/{teamId} {
+      allow read: if request.auth != null || isAdmin();
+      allow write: if isAdmin();
     }
 
     // ==============================================================
@@ -463,17 +515,36 @@ service cloud.firestore {
     }
 
     match /ops_settings/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /ops_rules/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // Impostazioni HistoryGram (Regolamento e Config)
+    // Impostazioni e Regolamento HistoryGram
     match /historygram_settings/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /historygram_rules/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // Impostazioni L'Oratore (Regolamento e Config)
+    // Impostazioni e Regolamento L'Oratore
     match /oratore_settings/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /oratore_rules/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /oratore_saved_games/{saveId} {
+      allow read: if isAdmin() || (request.auth != null && (resource == null || resource.data.userId == request.auth.uid));
+      allow create, update, delete: if isAdmin() || (request.auth != null && (request.resource.data.userId == request.auth.uid || resource.data.userId == request.auth.uid));
     }
 
     // ==============================================================
