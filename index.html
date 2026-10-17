@@ -1512,6 +1512,9 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
       <div class="hub-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
         <h2><i class="fa-solid fa-rocket" style="color:#a855f7;"></i> Gestione Rilasci &amp; Anteprime</h2>
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <button id="btn-refresh-releases-status" class="btn btn-secondary" style="font-weight: 600; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px;" onclick="ReleasesUI.checkAllSiteStatuses()" title="Ricarica stato di tutti i siti da GitHub">
+            <i class="fa-solid fa-rotate"></i> Aggiorna Stato
+          </button>
           <button class="btn btn-secondary" style="font-weight: 600; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem;" onclick="ReleasesUI.configureGitHubToken()">
             <i class="fa-solid fa-key"></i> Token GitHub
           </button>
@@ -1527,7 +1530,7 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
           <div class="glass-panel" style="margin-bottom: 20px; padding: 18px;">
             <div style="font-weight: 700; font-size: 1rem; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
               <span><i class="fa-solid fa-layer-group" style="color: #6366f1;"></i> Siti Ecosistema</span>
-              <span style="font-size: 0.75rem; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 10px; font-weight: 600;">7 Siti</span>
+              <span id="release-sites-count" style="font-size: 0.75rem; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 10px; font-weight: 600;">9 Siti</span>
             </div>
             <div id="release-sites-grid" style="display: flex; flex-direction: column; gap: 10px;">
               <!-- Popolato dinamicamente da ReleasesUI -->

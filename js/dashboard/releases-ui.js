@@ -474,6 +474,15 @@ const ReleasesUI = {
     checkAllSiteStatuses: async function() {
         console.log("🔍 ReleasesUI: Verifica stato anteprime su GitHub...");
         this.isLoading = true;
+
+        const topBtn = document.getElementById('btn-refresh-releases-status');
+        if (topBtn) {
+            topBtn.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Controllo in corso...';
+            topBtn.disabled = true;
+            topBtn.style.opacity = '0.7';
+            topBtn.style.pointerEvents = 'none';
+        }
+
         this.renderSiteGrid();
         this.selectSite(this.selectedSiteId);
 
@@ -523,6 +532,13 @@ const ReleasesUI = {
         }));
 
         this.isLoading = false;
+
+        if (topBtn) {
+            topBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> Aggiorna Stato';
+            topBtn.disabled = false;
+            topBtn.style.opacity = '1';
+            topBtn.style.pointerEvents = 'auto';
+        }
 
         // Seleziona automaticamente il primo sito con aggiornamenti in sospeso
         const firstWithUpdates = this.PROJECTS.find(p => this.siteStatuses[p.id] && this.siteStatuses[p.id].aheadBy > 0);
@@ -675,9 +691,9 @@ const ReleasesUI = {
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <button class="btn outline" style="padding: 6px 12px; font-size: 0.8rem;" onclick="ReleasesUI.checkAllSiteStatuses()" title="Ricarica stato da GitHub">
-                        <i class="fa-solid fa-rotate"></i> Aggiorna Stato
-                    </button>
+                    <a href="https://github.com/prof-memmo/${project.repo}" target="_blank" rel="noopener noreferrer" class="btn outline" style="padding: 6px 12px; font-size: 0.8rem; text-decoration: none; color: var(--text-main); display: inline-flex; align-items: center; gap: 6px;" title="Apri repository GitHub">
+                        <i class="fa-brands fa-github"></i> Repository GitHub
+                    </a>
                 </div>
             </div>
 
