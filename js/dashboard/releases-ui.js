@@ -1282,7 +1282,7 @@ const ReleasesUI = {
                     const attrs = dm[1];
                     const hrefM = attrs.match(/href=["']([^"']*)["']/i);
                     const onclickM = attrs.match(/onclick=["']([^"']+)["']/i);
-                    const dataActionM = attrs.match(/data-(?:action|modal|target|view|tab)=["']([^"']+)["']/i);
+                    const dataActionM = attrs.match(/data-(?:action|modal|target|view|tab|legal)=["']([^"']+)["']/i);
 
                     if (hrefM) {
                         const hrefVal = hrefM[1].trim();
