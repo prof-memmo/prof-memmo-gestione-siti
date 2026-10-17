@@ -1042,6 +1042,12 @@ const ReleasesUI = {
                 const rawRes = await fetch(rawUrl);
                 if (rawRes.ok) {
                     previewHtml = await rawRes.text();
+                } else if (project.previewUrl) {
+                    // Fallback per repository compilati / Next.js (es. ops-storia)
+                    const prevRes = await fetch(project.previewUrl);
+                    if (prevRes.ok) {
+                        previewHtml = await prevRes.text();
+                    }
                 }
             } catch(e) {}
 
@@ -1060,7 +1066,7 @@ const ReleasesUI = {
                 }
 
                 // Estrae i fogli di stile esterni collegati (<link rel="stylesheet">)
-                const linkCssRegex = /<link[^>]+rel=["']stylesheet["'][^>]+href=["']([^"']+\.css)["']/gi;
+                const linkCssRegex = /<link[^>]+(?:rel=["']stylesheet["'][^>]+href=["']|href=["'])([^"']+\.css)["']/gi;
                 let lm;
                 const cssFiles = [];
                 while ((lm = linkCssRegex.exec(previewHtml)) !== null) {
@@ -1072,7 +1078,14 @@ const ReleasesUI = {
 
                 await Promise.all(cssFiles.slice(0, 5).map(async (cssPath) => {
                     try {
-                        const cssRes = await fetch(`https://raw.githubusercontent.com/prof-memmo/${project.repo}/preview/${cssPath}`);
+                        let cssUrl = cssPath.startsWith('/')
+                            ? `https://prof-memmo.github.io${cssPath}`
+                            : `https://raw.githubusercontent.com/prof-memmo/${project.repo}/preview/${cssPath}`;
+                        let cssRes = await fetch(cssUrl);
+                        if (!cssRes.ok && project.previewUrl) {
+                            const baseUrl = project.previewUrl.endsWith('/') ? project.previewUrl : project.previewUrl + '/';
+                            cssRes = await fetch(new URL(cssPath, baseUrl).href);
+                        }
                         if (cssRes.ok) {
                             const text = await cssRes.text();
                             styleContents.push({ source: cssPath, content: text });
