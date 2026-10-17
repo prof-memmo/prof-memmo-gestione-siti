@@ -22,6 +22,8 @@ const AnalyticsUI = {
         'La Corte della Commedia': { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', icon: 'fa-book-open' },
         'Ops! Operazione Storia': { color: '#eab308', bg: 'rgba(234, 179, 8, 0.15)', icon: 'fa-clock-rotate-left' },
         "L'Oratore": { color: '#d97706', bg: 'rgba(217, 119, 6, 0.15)', icon: 'fa-microphone-lines' },
+        'HistoryGram': { color: '#833ab4', bg: 'rgba(131, 58, 180, 0.15)', icon: 'fa-feather-pointed' },
+        'La Ruota Geografica': { color: '#0ea5e9', bg: 'rgba(14, 165, 233, 0.15)', icon: 'fa-earth-europe' },
         'Hub': { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.15)', icon: 'fa-globe' }
     },
 
@@ -181,6 +183,8 @@ const AnalyticsUI = {
                 'La Corte della Commedia': {},
                 'Ops! Operazione Storia': {},
                 "L'Oratore": {},
+                'HistoryGram': {},
+                'La Ruota Geografica': {},
                 'Hub': {}
             },
             timeline: {},
@@ -636,7 +640,7 @@ const AnalyticsUI = {
 
         // Vista multi-gioco con linee separate distinte (NON mescolate insieme)
         const datasets = [];
-        const knownGames = ['Fantaletteratura', 'La Rotta degli Eroi', 'Palestra di Riflessione', 'La Corte della Commedia', 'Ops! Operazione Storia', "L'Oratore", 'Hub'];
+        const knownGames = ['Fantaletteratura', 'La Rotta degli Eroi', 'Palestra di Riflessione', 'La Corte della Commedia', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica', 'Hub'];
 
         knownGames.forEach(gName => {
             const gTimeline = (timelineByGame && timelineByGame[gName]) || {};

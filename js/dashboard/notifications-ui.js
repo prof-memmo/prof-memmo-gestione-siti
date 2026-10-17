@@ -26,7 +26,9 @@ const NotificationsUI = {
                     { name: 'La Corte della Commedia' },
                     { name: 'Palestra di Riflessione' },
                     { name: 'Ops! Operazione Storia' },
-                    { name: "L'Oratore" }
+                    { name: "L'Oratore" },
+                    { name: "HistoryGram" },
+                    { name: "La Ruota Geografica" }
                 ];
             }
 

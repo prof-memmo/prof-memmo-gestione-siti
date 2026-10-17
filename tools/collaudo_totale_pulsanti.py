@@ -76,6 +76,12 @@ ECOSYSTEM = [
         "name": "HistoryGram Piattaforma",
         "live": "https://prof-memmo.github.io/historygram/",
         "preview": "https://prof-memmo.github.io/historygram/preview/"
+    },
+    {
+        "id": "la_ruota_geografica",
+        "name": "La Ruota Geografica",
+        "live": "https://prof-memmo.github.io/la-ruota-geografica/",
+        "preview": "https://prof-memmo.github.io/la-ruota-geografica/preview/"
     }
 ]
 

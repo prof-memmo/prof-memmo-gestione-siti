@@ -576,7 +576,8 @@ const PortalApp = {
                             corte_della_commedia: { enabled: true },
                             ops_storia: { enabled: true },
                             l_oratore: { enabled: true },
-                            historygram: { enabled: true }
+                            historygram: { enabled: true },
+                            la_ruota_geografica: { enabled: true }
                         }
                     };
                     await window.fbDb.hub.collection("hub_users").doc(this.user.uid).set(adminProfile, {merge: true});
@@ -613,6 +614,9 @@ const PortalApp = {
                     'l_oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
                     'oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
                     'historygram': isPreview ? 'https://prof-memmo.github.io/historygram/preview/' : 'https://prof-memmo.github.io/historygram/',
+                    'la_ruota_geografica': isPreview ? 'https://prof-memmo.github.io/la-ruota-geografica/preview/' : 'https://prof-memmo.github.io/la-ruota-geografica/',
+                    'la-ruota-geografica': isPreview ? 'https://prof-memmo.github.io/la-ruota-geografica/preview/' : 'https://prof-memmo.github.io/la-ruota-geografica/',
+                    'ruota_geografica': isPreview ? 'https://prof-memmo.github.io/la-ruota-geografica/preview/' : 'https://prof-memmo.github.io/la-ruota-geografica/',
                     'prezzi': isPreview ? 'https://prof-memmo.github.io/games/preview/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html',
                     'prezzi.html': isPreview ? 'https://prof-memmo.github.io/games/preview/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html'
                 };
@@ -914,7 +918,8 @@ const PortalApp = {
             { id: 'corte_della_commedia', title: 'Corte della Commedia', icon: 'fa-gavel', color: '#ef4444', desc: 'Processa i personaggi storici.' },
             { id: 'ops_storia', title: 'OPS Storia', icon: 'fa-hourglass', color: '#eab308', desc: 'Missioni storiche a tempo.' },
             { id: 'l_oratore', title: "L'Oratore", icon: 'fa-microphone-lines', color: '#d97706', desc: 'Sfide di retorica, oratoria e debate (QCER A1-C2).' },
-            { id: 'historygram', title: 'HistoryGram', icon: 'fa-feather-pointed', color: '#833ab4', desc: "Social network della storia: Revolution Influencer ('800) e Riforma vs Controriforma ('500)." }
+            { id: 'historygram', title: 'HistoryGram', icon: 'fa-feather-pointed', color: '#833ab4', desc: "Social network della storia: Revolution Influencer ('800) e Riforma vs Controriforma ('500)." },
+            { id: 'la_ruota_geografica', title: 'La Ruota Geografica', icon: 'fa-earth-europe', color: '#0ea5e9', desc: 'Sfida a squadre per esplorare la geografia generale in modo attivo e coinvolgente.' }
         ];
 
         allPlatforms.forEach(p => {
@@ -952,7 +957,9 @@ const PortalApp = {
             'corte_della_commedia': 'https://prof-memmo.github.io/la-corte-della-commedia/index.html',
             'ops_storia': 'https://prof-memmo.github.io/ops-storia/index.html',
             'l_oratore': 'https://prof-memmo.github.io/l-oratore/index.html',
-            'historygram': 'https://prof-memmo.github.io/historygram/index.html'
+            'historygram': 'https://prof-memmo.github.io/historygram/index.html',
+            'la_ruota_geografica': 'https://prof-memmo.github.io/la-ruota-geografica/index.html',
+            'la-ruota-geografica': 'https://prof-memmo.github.io/la-ruota-geografica/index.html'
         };
         if (urls[gameId]) {
             window.location.href = urls[gameId];

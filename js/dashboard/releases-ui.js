@@ -93,6 +93,16 @@ const ReleasesUI = {
             icon: 'fa-feather-pointed',
             color: '#833ab4',
             description: "Social network della storia: Revolution Influencer ('800) e Riforma vs Controriforma ('500)."
+        },
+        {
+            id: 'ruota_geografica',
+            name: 'La Ruota Geografica',
+            repo: 'la-ruota-geografica',
+            liveUrl: 'https://prof-memmo.github.io/la-ruota-geografica/',
+            previewUrl: 'https://prof-memmo.github.io/la-ruota-geografica/preview/',
+            icon: 'fa-earth-europe',
+            color: '#0ea5e9',
+            description: 'Sfida a squadre per esplorare e spiegare la geografia generale in modo attivo e coinvolgente.'
         }
     ],
 
@@ -949,7 +959,8 @@ const ReleasesUI = {
                     'palestra_riflessione': ['palestra_users', 'palestra_settings', 'hub_settings'],
                     'ops_storia': ['ops_users', 'ops_settings', 'hub_settings'],
                     'oratore': ['oratore_users', 'oratore_debates', 'hub_settings'],
-                    'historygram': ['historygram_users', 'historygram_posts', 'hub_settings']
+                    'historygram': ['historygram_users', 'historygram_posts', 'hub_settings'],
+                    'ruota_geografica': ['la-ruota-geografica_settings', 'hub_settings']
                 };
 
                 const targetCols = projectCollections[project.id] || ['hub_settings'];

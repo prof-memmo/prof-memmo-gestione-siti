@@ -1028,7 +1028,7 @@ exports.triggerReleaseAction = functions.runWith({
         }
 
         const targetRepos = (repo === "ALL" || repo === "all") 
-            ? ["prof-memmo-gestione-siti", "games", "fantaletteratura", "la-rotta-degli-eroi", "la-corte-della-commedia", "palestra-di-riflessione", "ops-storia", "l-oratore"]
+            ? ["prof-memmo-gestione-siti", "games", "fantaletteratura", "la-rotta-degli-eroi", "la-corte-della-commedia", "palestra-di-riflessione", "ops-storia", "l-oratore", "historygram", "la-ruota-geografica"]
             : [repo];
 
         const results = [];

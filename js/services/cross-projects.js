@@ -172,6 +172,7 @@ const CrossProjectsService = {
                     if (data.platforms.ops_users?.enabled || data.platforms.ops_storia?.enabled) userGiochi.push('Ops! Operazione Storia');
                     if (data.platforms.oratore_users?.enabled || data.platforms.l_oratore?.enabled || data.platforms.oratore?.enabled) userGiochi.push("L'Oratore");
                     if (data.platforms.historygram_users?.enabled || data.platforms.historygram?.enabled) userGiochi.push('HistoryGram');
+                    if (data.platforms.ruota_users?.enabled || data.platforms.la_ruota_geografica?.enabled || data.platforms['la-ruota-geografica']?.enabled) userGiochi.push('La Ruota Geografica');
                 }
 
                 const userPlan = isMemmo ? 'docente_ecosistema' : (data.abbonamento || data.plan || data.subscription || 'base');
@@ -179,7 +180,7 @@ const CrossProjectsService = {
 
                 const planLower = String(userPlan).toLowerCase();
                 if (userRole === 'admin' || planLower === 'docente_ecosistema' || planLower.includes('ecosistema')) {
-                    userGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram'];
+                    userGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica'];
                 } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
                     userGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia'];
                 } else if (planLower === 'viandante') {
