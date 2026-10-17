@@ -1512,6 +1512,9 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
       <div class="hub-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
         <h2><i class="fa-solid fa-rocket" style="color:#a855f7;"></i> Gestione Rilasci &amp; Anteprime</h2>
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <button id="btn-audit-ecosystem-all" class="btn btn-secondary" style="font-weight: 600; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; border-color: #10b981; color: #10b981;" onclick="ReleasesUI.runFullEcosystemAudit()" title="Esegue il collaudo di conformità operativa (Art. 4, 5, 8, 9, 10) su tutti i 9 siti">
+            <i class="fa-solid fa-clipboard-check" style="color: #10b981;"></i> Collaudo Ecosistema Globale
+          </button>
           <button id="btn-refresh-releases-status" class="btn btn-secondary" style="font-weight: 600; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px;" onclick="ReleasesUI.checkAllSiteStatuses()" title="Ricarica stato di tutti i siti da GitHub">
             <i class="fa-solid fa-rotate"></i> Aggiorna Stato
           </button>
@@ -3205,6 +3208,92 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
           <i class="fa-solid fa-rocket"></i> Conferma e Pubblica Live
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal Collaudo Globale Ecosistema (Art. 1, 4, 5, 8, 9, 10) -->
+  <div id="modal-ecosystem-audit" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); backdrop-filter: blur(6px); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;" onclick="if(event.target===this) ReleasesUI.closeEcosystemAuditModal()">
+    <div class="glass-panel" style="background: #ffffff; color: var(--text-main); width: 100%; max-width: 980px; max-height: 90vh; border-radius: 20px; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.5); border: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box;">
+      
+      <!-- Modal Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; border-bottom: 1px solid #e2e8f0; background: linear-gradient(to right, #f8fafc, #ffffff);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; border: 1px solid #a7f3d0;">
+            <i class="fa-solid fa-clipboard-check" style="color: #10b981; font-size: 1.4rem;"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.3rem; color: #1e1b4b; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+              Collaudo Globale Ecosistema Prof. Memmo
+            </h3>
+            <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #64748b;">
+              Verifica automatica di conformità operativa (Art. 4, 5, 8, 9, 10) su tutti i 9 siti
+            </p>
+          </div>
+        </div>
+        <button onclick="ReleasesUI.closeEcosystemAuditModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.6rem; cursor: pointer; padding: 4px 8px; border-radius: 8px; transition: color 0.2s;" title="Chiudi modale">&times;</button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div style="padding: 24px 28px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Live Progress Section -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div id="ecosystem-audit-progress-text" style="font-size: 0.9rem; font-weight: 700; color: #334155;">
+              In attesa di avvio collaudo...
+            </div>
+            <div id="ecosystem-audit-progress-percent" style="font-size: 0.9rem; font-weight: 800; color: #4338ca;">
+              0%
+            </div>
+          </div>
+          <div style="width: 100%; height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+            <div id="ecosystem-audit-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #10b981, #6366f1); border-radius: 999px; transition: width 0.35s ease;"></div>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards (Hidden initially, shown after/during audit) -->
+        <div id="ecosystem-audit-kpi-box" style="display: none; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+          <!-- Popolato dinamicamente da ReleasesUI -->
+        </div>
+
+        <!-- Sites Audit Table -->
+        <div style="border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; background: #ffffff;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+            <thead>
+              <tr style="background: #f1f5f9; border-bottom: 1px solid #e2e8f0; color: #475569; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                <th style="padding: 12px 14px;">Sito Ecosistema</th>
+                <th style="padding: 12px 14px;">Repository</th>
+                <th style="padding: 12px 14px; text-align: center;">Esito Globale</th>
+                <th style="padding: 12px 14px; text-align: center;">Sintassi CSS (Art. 5)</th>
+                <th style="padding: 12px 14px; text-align: center;">Dataset JSON (Art. 5/10)</th>
+                <th style="padding: 12px 14px; text-align: center;">Tutela Patamu 52px (Art. 4)</th>
+                <th style="padding: 12px 14px; text-align: center;">Cloud Firestore (Art. 10)</th>
+              </tr>
+            </thead>
+            <tbody id="ecosystem-audit-table-body">
+              <!-- Popolato dinamicamente da ReleasesUI -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 28px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
+        <div style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-shield-halved" style="color: #6366f1;"></i>
+          <span>Regole operative: <code>prof-memmo-operational-rules.md</code> (Art. 1, 4, 5, 8, 9, 10, 11)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button onclick="ReleasesUI.runFullEcosystemAudit()" class="btn btn-secondary" style="padding: 10px 18px; font-weight: 700; border-radius: 8px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; border-color: #10b981; color: #10b981;">
+            <i class="fa-solid fa-arrows-rotate"></i> Riesegui Collaudo
+          </button>
+          <button onclick="ReleasesUI.closeEcosystemAuditModal()" class="btn" style="background: #1e1b4b; color: white; font-weight: 700; padding: 10px 22px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">
+            Chiudi
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 </body>

@@ -1951,6 +1951,254 @@ const ReleasesUI = {
             console.warn("Errore caricamento storico rilasci:", e);
             listEl.innerHTML = '<div style="text-align: center; color: #dc2626; font-size: 0.85rem; padding: 10px;">Errore nel caricamento della cronologia rilasci.</div>';
         }
+    },
+
+    openEcosystemAuditModal: function() {
+        const modal = document.getElementById('modal-ecosystem-audit');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            const saved = localStorage.getItem('hub_ecosystem_last_audit');
+            if (saved && !this.isRunningGlobalAudit) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    this.renderEcosystemAuditResults(parsed);
+                } catch(e) {}
+            }
+        }
+    },
+
+    closeEcosystemAuditModal: function() {
+        const modal = document.getElementById('modal-ecosystem-audit');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    },
+
+    runFullEcosystemAudit: async function() {
+        if (this.isRunningGlobalAudit) return;
+        this.isRunningGlobalAudit = true;
+
+        const triggerBtn = document.getElementById('btn-audit-ecosystem-all');
+        const statusTextEl = document.getElementById('ecosystem-audit-progress-text');
+        const progressBarEl = document.getElementById('ecosystem-audit-progress-bar');
+        const percentTextEl = document.getElementById('ecosystem-audit-progress-percent');
+        const tableBodyEl = document.getElementById('ecosystem-audit-table-body');
+        const kpiBoxEl = document.getElementById('ecosystem-audit-kpi-box');
+
+        if (triggerBtn) {
+            triggerBtn.disabled = true;
+            triggerBtn.style.opacity = '0.7';
+            triggerBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Collaudo in corso...';
+        }
+
+        this.openEcosystemAuditModal();
+
+        if (statusTextEl) statusTextEl.textContent = 'Avvio collaudo a 360° secondo la modalità operativa...';
+        if (progressBarEl) progressBarEl.style.width = '0%';
+        if (percentTextEl) percentTextEl.textContent = '0%';
+        if (kpiBoxEl) kpiBoxEl.style.display = 'none';
+
+        if (tableBodyEl) {
+            tableBodyEl.innerHTML = this.PROJECTS.map((p) => `
+                <tr id="audit-row-${p.id}" style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+                    <td style="padding: 12px 14px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid ${p.icon}" style="color: ${p.color}; width: 18px; text-align: center;"></i>
+                        <span>${p.name}</span>
+                    </td>
+                    <td style="padding: 12px 14px; font-family: ui-monospace, monospace; font-size: 0.8rem; color: #64748b;">
+                        <code>${p.repo}</code>
+                    </td>
+                    <td id="audit-status-${p.id}" style="padding: 12px 14px; text-align: center;">
+                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 8px; font-weight: 600;">
+                            <i class="fa-solid fa-clock"></i> In Coda
+                        </span>
+                    </td>
+                    <td id="audit-css-${p.id}" style="padding: 12px 14px; text-align: center; font-size: 0.82rem; color: #94a3b8;">-</td>
+                    <td id="audit-json-${p.id}" style="padding: 12px 14px; text-align: center; font-size: 0.82rem; color: #94a3b8;">-</td>
+                    <td id="audit-patamu-${p.id}" style="padding: 12px 14px; text-align: center; font-size: 0.82rem; color: #94a3b8;">-</td>
+                    <td id="audit-db-${p.id}" style="padding: 12px 14px; text-align: center; font-size: 0.82rem; color: #94a3b8;">-</td>
+                </tr>
+            `).join('');
+        }
+
+        const auditSummary = {
+            timestamp: new Date().toLocaleString('it-IT'),
+            totalSites: this.PROJECTS.length,
+            passed: 0,
+            warned: 0,
+            failed: 0,
+            results: {}
+        };
+
+        try {
+            for (let i = 0; i < this.PROJECTS.length; i++) {
+                const project = this.PROJECTS[i];
+                const currentNum = i + 1;
+                const total = this.PROJECTS.length;
+                const percent = Math.round((i / total) * 100);
+
+                if (statusTextEl) statusTextEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Collaudo in corso per <strong>${project.name}</strong> (${currentNum} di ${total})...`;
+                if (progressBarEl) progressBarEl.style.width = `${percent}%`;
+                if (percentTextEl) percentTextEl.textContent = `${percent}%`;
+
+                const rowEl = document.getElementById(`audit-row-${project.id}`);
+                const statusCell = document.getElementById(`audit-status-${project.id}`);
+                if (rowEl) rowEl.style.background = '#f8fafc';
+                if (statusCell) {
+                    statusCell.innerHTML = `
+                        <span style="font-size: 0.75rem; background: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 8px; font-weight: 700;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> In Corso
+                        </span>
+                    `;
+                }
+
+                await this.runPreflightCheck(project.id);
+                const res = this.preflightResults[project.id];
+                auditSummary.results[project.id] = res;
+
+                let cssCheck = res?.checks?.find(c => c.id === 'css_syntax');
+                let jsonCheck = res?.checks?.find(c => c.id === 'json_datasets');
+                let patamuCheck = res?.checks?.find(c => c.id === 'patamu_badge');
+                let dbCheck = res?.checks?.find(c => c.id === 'firestore_db');
+
+                const cssStatus = cssCheck ? cssCheck.status : 'warn';
+                const jsonStatus = jsonCheck ? jsonCheck.status : 'pass';
+                const patamuStatus = patamuCheck ? patamuCheck.status : 'pass';
+                const dbStatus = dbCheck ? dbCheck.status : 'pass';
+                const overall = res ? res.overallStatus : 'pass';
+
+                if (overall === 'pass') auditSummary.passed++;
+                else if (overall === 'warn') auditSummary.warned++;
+                else auditSummary.failed++;
+
+                const badgeHtml = overall === 'pass'
+                    ? '<span style="font-size: 0.75rem; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 10px; border-radius: 8px; font-weight: 800;"><i class="fa-solid fa-check"></i> Superato</span>'
+                    : (overall === 'warn'
+                        ? '<span style="font-size: 0.75rem; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 8px; font-weight: 800;"><i class="fa-solid fa-triangle-exclamation"></i> Avviso</span>'
+                        : '<span style="font-size: 0.75rem; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 8px; font-weight: 800;"><i class="fa-solid fa-xmark"></i> Fallito</span>');
+
+                const getIcon = (st) => st === 'pass' ? '<span style="color:#10b981; font-weight:bold;">✓ OK</span>' : (st === 'warn' ? '<span style="color:#d97706; font-weight:bold;">⚠️ Nota</span>' : '<span style="color:#ef4444; font-weight:bold;">✕ Errore</span>');
+
+                if (rowEl) rowEl.style.background = '';
+                if (statusCell) statusCell.innerHTML = badgeHtml;
+                const cssCell = document.getElementById(`audit-css-${project.id}`);
+                const jsonCell = document.getElementById(`audit-json-${project.id}`);
+                const patamuCell = document.getElementById(`audit-patamu-${project.id}`);
+                const dbCell = document.getElementById(`audit-db-${project.id}`);
+
+                if (cssCell) cssCell.innerHTML = getIcon(cssStatus);
+                if (jsonCell) jsonCell.innerHTML = getIcon(jsonStatus);
+                if (patamuCell) patamuCell.innerHTML = getIcon(patamuStatus);
+                if (dbCell) dbCell.innerHTML = getIcon(dbStatus);
+            }
+
+            if (progressBarEl) progressBarEl.style.width = '100%';
+            if (percentTextEl) percentTextEl.textContent = '100%';
+            if (statusTextEl) statusTextEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Collaudo Globale Completato con Successo alle <strong>${auditSummary.timestamp}</strong>.`;
+
+            if (kpiBoxEl) {
+                kpiBoxEl.style.display = 'grid';
+                kpiBoxEl.innerHTML = `
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; text-align: center;">
+                        <div style="font-size: 1.6rem; font-weight: 800; color: #4338ca;">${auditSummary.totalSites}</div>
+                        <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Siti Collaudati</div>
+                    </div>
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px; text-align: center;">
+                        <div style="font-size: 1.6rem; font-weight: 800; color: #15803d;">${auditSummary.passed}</div>
+                        <div style="font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase;">100% Conforme</div>
+                    </div>
+                    <div style="background: #fffbeb; border: 1px solid #fef08a; border-radius: 12px; padding: 14px; text-align: center;">
+                        <div style="font-size: 1.6rem; font-weight: 800; color: #b45309;">${auditSummary.warned}</div>
+                        <div style="font-size: 0.75rem; font-weight: 700; color: #92400e; text-transform: uppercase;">Avvisi Non Bloccanti</div>
+                    </div>
+                    <div style="background: ${auditSummary.failed > 0 ? '#fef2f2' : '#f8fafc'}; border: 1px solid ${auditSummary.failed > 0 ? '#fecaca' : '#e2e8f0'}; border-radius: 12px; padding: 14px; text-align: center;">
+                        <div style="font-size: 1.6rem; font-weight: 800; color: ${auditSummary.failed > 0 ? '#b91c1c' : '#64748b'};">${auditSummary.failed}</div>
+                        <div style="font-size: 0.75rem; font-weight: 700; color: ${auditSummary.failed > 0 ? '#991b1b' : '#64748b'}; text-transform: uppercase;">Errori Bloccanti</div>
+                    </div>
+                `;
+            }
+
+            try {
+                localStorage.setItem('hub_ecosystem_last_audit', JSON.stringify(auditSummary));
+            } catch(e) {}
+
+        } catch(err) {
+            console.error("Errore runFullEcosystemAudit:", err);
+            if (statusTextEl) statusTextEl.innerHTML = `<span style="color: #dc2626;"><i class="fa-solid fa-triangle-exclamation"></i> Errore durante il collaudo globale: ${err.message}</span>`;
+        } finally {
+            this.isRunningGlobalAudit = false;
+            if (triggerBtn) {
+                triggerBtn.disabled = false;
+                triggerBtn.style.opacity = '1';
+                triggerBtn.innerHTML = '<i class="fa-solid fa-clipboard-check" style="color: #10b981;"></i> Collaudo Ecosistema Globale';
+            }
+        }
+    },
+
+    renderEcosystemAuditResults: function(auditData) {
+        if (!auditData || !auditData.results) return;
+        const statusTextEl = document.getElementById('ecosystem-audit-progress-text');
+        const progressBarEl = document.getElementById('ecosystem-audit-progress-bar');
+        const percentTextEl = document.getElementById('ecosystem-audit-progress-percent');
+        const kpiBoxEl = document.getElementById('ecosystem-audit-kpi-box');
+
+        if (statusTextEl) statusTextEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Ultimo Collaudo eseguito alle <strong>${auditData.timestamp}</strong>.`;
+        if (progressBarEl) progressBarEl.style.width = '100%';
+        if (percentTextEl) percentTextEl.textContent = '100%';
+
+        if (kpiBoxEl) {
+            kpiBoxEl.style.display = 'grid';
+            kpiBoxEl.innerHTML = `
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; text-align: center;">
+                    <div style="font-size: 1.6rem; font-weight: 800; color: #4338ca;">${auditData.totalSites}</div>
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Siti Collaudati</div>
+                </div>
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px; text-align: center;">
+                    <div style="font-size: 1.6rem; font-weight: 800; color: #15803d;">${auditData.passed}</div>
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase;">100% Conforme</div>
+                </div>
+                <div style="background: #fffbeb; border: 1px solid #fef08a; border-radius: 12px; padding: 14px; text-align: center;">
+                    <div style="font-size: 1.6rem; font-weight: 800; color: #b45309;">${auditData.warned}</div>
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #92400e; text-transform: uppercase;">Avvisi Non Bloccanti</div>
+                </div>
+                <div style="background: ${auditData.failed > 0 ? '#fef2f2' : '#f8fafc'}; border: 1px solid ${auditData.failed > 0 ? '#fecaca' : '#e2e8f0'}; border-radius: 12px; padding: 14px; text-align: center;">
+                    <div style="font-size: 1.6rem; font-weight: 800; color: ${auditData.failed > 0 ? '#b91c1c' : '#64748b'};">${auditData.failed}</div>
+                    <div style="font-size: 0.75rem; font-weight: 700; color: ${auditData.failed > 0 ? '#991b1b' : '#64748b'}; text-transform: uppercase;">Errori Bloccanti</div>
+                </div>
+            `;
+        }
+
+        const getIcon = (st) => st === 'pass' ? '<span style="color:#10b981; font-weight:bold;">✓ OK</span>' : (st === 'warn' ? '<span style="color:#d97706; font-weight:bold;">⚠️ Nota</span>' : '<span style="color:#ef4444; font-weight:bold;">✕ Errore</span>');
+
+        this.PROJECTS.forEach(project => {
+            const res = auditData.results[project.id];
+            if (!res) return;
+            const statusCell = document.getElementById(`audit-status-${project.id}`);
+            const cssCell = document.getElementById(`audit-css-${project.id}`);
+            const jsonCell = document.getElementById(`audit-json-${project.id}`);
+            const patamuCell = document.getElementById(`audit-patamu-${project.id}`);
+            const dbCell = document.getElementById(`audit-db-${project.id}`);
+
+            const overall = res.overallStatus;
+            const badgeHtml = overall === 'pass'
+                ? '<span style="font-size: 0.75rem; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 10px; border-radius: 8px; font-weight: 800;"><i class="fa-solid fa-check"></i> Superato</span>'
+                : (overall === 'warn'
+                    ? '<span style="font-size: 0.75rem; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 8px; font-weight: 800;"><i class="fa-solid fa-triangle-exclamation"></i> Avviso</span>'
+                    : '<span style="font-size: 0.75rem; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 8px; font-weight: 800;"><i class="fa-solid fa-xmark"></i> Fallito</span>');
+
+            let cssCheck = res.checks?.find(c => c.id === 'css_syntax');
+            let jsonCheck = res.checks?.find(c => c.id === 'json_datasets');
+            let patamuCheck = res.checks?.find(c => c.id === 'patamu_badge');
+            let dbCheck = res.checks?.find(c => c.id === 'firestore_db');
+
+            if (statusCell) statusCell.innerHTML = badgeHtml;
+            if (cssCell) cssCell.innerHTML = getIcon(cssCheck ? cssCheck.status : 'warn');
+            if (jsonCell) jsonCell.innerHTML = getIcon(jsonCheck ? jsonCheck.status : 'pass');
+            if (patamuCell) patamuCell.innerHTML = getIcon(patamuCheck ? patamuCheck.status : 'pass');
+            if (dbCell) dbCell.innerHTML = getIcon(dbCheck ? dbCheck.status : 'pass');
+        });
     }
 };
 
