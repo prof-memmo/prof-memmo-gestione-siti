@@ -93,6 +93,16 @@ const ReleasesUI = {
             icon: 'fa-feather-pointed',
             color: '#833ab4',
             description: "Social network della storia: Revolution Influencer ('800) e Riforma vs Controriforma ('500)."
+        },
+        {
+            id: 'ruota_geografica',
+            name: 'La Ruota Geografica',
+            repo: 'la-ruota-geografica',
+            liveUrl: 'https://prof-memmo.github.io/la-ruota-geografica/',
+            previewUrl: 'https://prof-memmo.github.io/la-ruota-geografica/preview/',
+            icon: 'fa-earth-europe',
+            color: '#0ea5e9',
+            description: 'Sfida a squadre per esplorare e spiegare la geografia generale in modo attivo e coinvolgente.'
         }
     ],
 
@@ -949,7 +959,8 @@ const ReleasesUI = {
                     'palestra_riflessione': ['palestra_users', 'palestra_settings', 'hub_settings'],
                     'ops_storia': ['ops_users', 'ops_settings', 'hub_settings'],
                     'oratore': ['oratore_users', 'oratore_debates', 'hub_settings'],
-                    'historygram': ['historygram_users', 'historygram_posts', 'hub_settings']
+                    'historygram': ['historygram_users', 'historygram_posts', 'hub_settings'],
+                    'ruota_geografica': ['la-ruota-geografica_settings', 'hub_settings']
                 };
 
                 const targetCols = projectCollections[project.id] || ['hub_settings'];
@@ -1031,6 +1042,12 @@ const ReleasesUI = {
                 const rawRes = await fetch(rawUrl);
                 if (rawRes.ok) {
                     previewHtml = await rawRes.text();
+                } else if (project.previewUrl) {
+                    // Fallback per repository compilati / Next.js (es. ops-storia)
+                    const prevRes = await fetch(project.previewUrl);
+                    if (prevRes.ok) {
+                        previewHtml = await prevRes.text();
+                    }
                 }
             } catch(e) {}
 
@@ -1049,7 +1066,7 @@ const ReleasesUI = {
                 }
 
                 // Estrae i fogli di stile esterni collegati (<link rel="stylesheet">)
-                const linkCssRegex = /<link[^>]+rel=["']stylesheet["'][^>]+href=["']([^"']+\.css)["']/gi;
+                const linkCssRegex = /<link[^>]+(?:rel=["']stylesheet["'][^>]+href=["']|href=["'])([^"']+\.css)["']/gi;
                 let lm;
                 const cssFiles = [];
                 while ((lm = linkCssRegex.exec(previewHtml)) !== null) {
@@ -1061,7 +1078,14 @@ const ReleasesUI = {
 
                 await Promise.all(cssFiles.slice(0, 5).map(async (cssPath) => {
                     try {
-                        const cssRes = await fetch(`https://raw.githubusercontent.com/prof-memmo/${project.repo}/preview/${cssPath}`);
+                        let cssUrl = cssPath.startsWith('/')
+                            ? `https://prof-memmo.github.io${cssPath}`
+                            : `https://raw.githubusercontent.com/prof-memmo/${project.repo}/preview/${cssPath}`;
+                        let cssRes = await fetch(cssUrl);
+                        if (!cssRes.ok && project.previewUrl) {
+                            const baseUrl = project.previewUrl.endsWith('/') ? project.previewUrl : project.previewUrl + '/';
+                            cssRes = await fetch(new URL(cssPath, baseUrl).href);
+                        }
                         if (cssRes.ok) {
                             const text = await cssRes.text();
                             styleContents.push({ source: cssPath, content: text });

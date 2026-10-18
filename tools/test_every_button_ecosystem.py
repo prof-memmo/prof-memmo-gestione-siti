@@ -27,6 +27,7 @@ SITES_TO_TEST = [
     ("L'Oratore", "https://prof-memmo.github.io/l-oratore/"),
     ("Ops! Storia", "https://prof-memmo.github.io/ops-storia/"),
     ("HistoryGram", "https://prof-memmo.github.io/historygram/"),
+    ("La Ruota Geografica", "https://prof-memmo.github.io/la-ruota-geografica/"),
     ("Supplenze App", "https://prof-memmo.github.io/supplenze-app/")
 ]
 

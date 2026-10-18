@@ -547,6 +547,25 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin() || (request.auth != null && (request.resource.data.userId == request.auth.uid || resource.data.userId == request.auth.uid));
     }
 
+    // Impostazioni e Regolamento La Ruota Geografica
+    match /la-ruota-geografica_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /la-ruota-geografica_rules/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /la_ruota_geografica_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /la_ruota_geografica_rules/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+
     // ==============================================================
     // REGISTRO PAGAMENTI E TRANSAZIONI STRIPE (Solo Super Admin)
     // ==============================================================

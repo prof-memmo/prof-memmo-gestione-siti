@@ -122,6 +122,19 @@ const DiagnosticsService = {
             db_collections: ['historygram_sessions'],
             icon: 'fa-feather-pointed',
             description: "Social network storico didattico: Revolution Influencer ('800) e Riforma vs Controriforma ('500)."
+        },
+        {
+            id: 'la-ruota-geografica',
+            name: 'La Ruota Geografica',
+            repo: 'la-ruota-geografica',
+            url: 'https://prof-memmo.github.io/la-ruota-geografica/',
+            type: 'gioco',
+            active: true,
+            diagnostics_active: true,
+            db_collection: 'la-ruota-geografica_settings',
+            db_collections: ['la-ruota-geografica_settings'],
+            icon: 'fa-earth-europe',
+            description: 'Sfida a squadre per esplorare la geografia generale in modo interattivo e coinvolgente.'
         }
     ],
 

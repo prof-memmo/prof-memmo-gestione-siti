@@ -573,7 +573,7 @@ const UsersUI = {
                         const planLower = String(newPlan).toLowerCase();
                         let updatedGiochi = [];
                         if (planLower === 'docente_ecosistema' || planLower.includes('ecosistema')) {
-                            updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore"];
+                            updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica'];
                         } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
                             updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia'];
                         } else if (planLower === 'viandante') {
