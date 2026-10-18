@@ -170,6 +170,9 @@ const HubApp = {
             // Passa i dati al modulo Dashboard Utenti (UI)
             if (window.UsersUI) {
                 window.UsersUI.updateCounters(data.stats);
+                if (data.classes && window.UsersUI.setClasses) {
+                    window.UsersUI.setClasses(data.classes);
+                }
                 window.UsersUI.setUsers(data.users);
             }
 

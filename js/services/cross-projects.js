@@ -110,6 +110,7 @@ const CrossProjectsService = {
         }
 
         let hubUsers = [];
+        let hubClasses = [];
         const scuoleSet = new Set();
         let totalRosterStudents = 0;
 
@@ -118,6 +119,7 @@ const CrossProjectsService = {
             const snapClasses = await window.fbDb.hub.collection("hub_classes").get();
             snapClasses.forEach(doc => {
                 const cData = doc.data() || {};
+                hubClasses.push({ id: doc.id, ...cData });
                 if (cData.school && cData.school.trim() && cData.school.toUpperCase() !== 'N/A') {
                     scuoleSet.add(cData.school.trim().toLowerCase());
                 }
@@ -282,6 +284,7 @@ const CrossProjectsService = {
             scuoleSetSize: scuoleSet.size,
             total: hubUsers.length
         };
+        result.classes = hubClasses;
 
         return result;
     },
