@@ -37,8 +37,7 @@ PAGES_TO_TEST = [
     ("L'Oratore", "https://prof-memmo.github.io/l-oratore/"),
     ("Ops! Storia", "https://prof-memmo.github.io/ops-storia/"),
     ("HistoryGram", "https://prof-memmo.github.io/historygram/"),
-    ("La Ruota Geografica", "https://prof-memmo.github.io/la-ruota-geografica/"),
-    ("Supplenze App", "https://prof-memmo.github.io/supplenze-app/")
+    ("La Ruota Geografica", "https://prof-memmo.github.io/la-ruota-geografica/")
 ]
 
 def get_target_pages():
@@ -47,9 +46,6 @@ def get_target_pages():
         return PAGES_TO_TEST
     res = []
     for name, url in PAGES_TO_TEST:
-        if "Supplenze App" in name:
-            res.append((name, url))
-            continue
         parsed = urlparse(url)
         path = parsed.path
         if path.endswith('/'):
