@@ -538,11 +538,14 @@
           legalLinks.style.justifyContent = 'center';
           legalLinks.style.alignItems = 'center';
           legalLinks.style.gap = '12px 20px';
-          legalLinks.innerHTML =
-            '<a href="javascript:void(0)" onclick="openSharedModal(\'privacy\')" data-legal="privacy" style="color: inherit; text-decoration: underline; opacity: 0.85;">Privacy Policy</a>' +
-            '<a href="javascript:void(0)" onclick="openSharedModal(\'termini\')" data-legal="terms" style="color: inherit; text-decoration: underline; opacity: 0.85;">Termini e Condizioni</a>' +
-            '<a href="javascript:void(0)" onclick="openSharedModal(\'contatti\')" data-legal="contatti" style="color: inherit; text-decoration: underline; opacity: 0.85;">Contatti</a>' +
-            '<a href="https://prof-memmo.github.io/games/condividi-esperienza.html" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; opacity: 0.85;">Condividi Esperienza</a>';
+          var alreadyHasModernLinks = legalLinks.querySelector('[data-legal="contatti"]') || legalLinks.querySelector('a[href*="condividi-esperienza"]');
+          if (!alreadyHasModernLinks) {
+            legalLinks.innerHTML =
+              '<a href="javascript:void(0)" onclick="openSharedModal(\'privacy\')" data-legal="privacy" style="color: inherit; text-decoration: underline; opacity: 0.85;">Privacy Policy</a>' +
+              '<a href="javascript:void(0)" onclick="openSharedModal(\'termini\')" data-legal="terms" style="color: inherit; text-decoration: underline; opacity: 0.85;">Termini e Condizioni</a>' +
+              '<a href="javascript:void(0)" onclick="openSharedModal(\'contatti\')" data-legal="contatti" style="color: inherit; text-decoration: underline; opacity: 0.85;">Contatti</a>' +
+              '<a href="https://prof-memmo.github.io/games/condividi-esperienza.html" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; opacity: 0.85;">Condividi Esperienza</a>';
+          }
         }
 
         // 4. Testo di Copyright e Dati Fiscali
