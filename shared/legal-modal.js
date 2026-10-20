@@ -346,6 +346,19 @@
     } else if (type === 'termini') {
       title.textContent = 'Termini e Condizioni';
       body.innerHTML = formatPlainTextToHTML(dynamicTerms);
+    } else if (type === 'notifiche') {
+      title.textContent = 'Centro Notifiche Ecosistema';
+      body.innerHTML = 
+        '<div style="text-align:center; padding: 25px 15px;">' +
+          '<div style="font-size: 2.5rem; margin-bottom: 12px;">🔔</div>' +
+          '<h3 style="margin: 0 0 10px 0; font-size: 1.15rem; color: #0f172a; font-family: inherit;">Notifiche & Comunicazioni Didattiche</h3>' +
+          '<p style="font-size: 0.9rem; color: #64748b; line-height: 1.5; max-width: 440px; margin: 0 auto 20px auto;">' +
+            'Gli aggiornamenti sulle classi, le comunicazioni di sistema e lo stato del tuo account sono sincronizzati con la tua Area Personale nell\'Hub.' +
+          '</p>' +
+          '<a href="https://prof-memmo.github.io/games/profilo.html" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: #ffffff; padding: 10px 22px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">' +
+            'Gestisci Notifiche nell\'Hub ↗' +
+          '</a>' +
+        '</div>';
     }
 
     overlay.classList.add('pm-open');
@@ -486,12 +499,12 @@
           }
         }
 
-        // 2. Normalizza immagine Badge Patamu con fallback locale
+        // 2. Normalizza immagine Badge Patamu con fallback locale (Blindato a 52px - Art. 4)
         var patamuImg = footer.querySelector('img[src*="patamu"], img[alt*="Patamu"], img[alt*="patamu"], img[alt*="Patamù"]');
         if (patamuImg) {
           patamuImg.src = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/legal/patamu-badge.png';
           patamuImg.alt = 'Patamu';
-          patamuImg.style.height = '48px';
+          patamuImg.style.height = '52px';
           patamuImg.style.objectFit = 'contain';
           patamuImg.style.flexShrink = '0';
           patamuImg.onerror = function() {
@@ -499,7 +512,7 @@
           };
         }
 
-        // 3. Assicura la presenza dei link Privacy Policy e Termini e Condizioni nel footer
+        // 3. Assicura la presenza dei link Privacy Policy, Termini e Condizioni, Contatti e Condividi Esperienza nel footer
         var legalLinks = footer.querySelector('.footer-legal-links, [data-legal-container]');
         if (!legalLinks) {
           var hasPriv = Array.from(footer.querySelectorAll('a')).some(function(a) {
@@ -509,17 +522,27 @@
             legalLinks = document.createElement('div');
             legalLinks.className = 'footer-legal-links';
             legalLinks.style.display = 'flex';
+            legalLinks.style.flexWrap = 'wrap';
             legalLinks.style.justifyContent = 'center';
-            legalLinks.style.gap = '20px';
+            legalLinks.style.alignItems = 'center';
+            legalLinks.style.gap = '12px 20px';
             legalLinks.style.marginTop = '10px';
+            legalLinks.style.marginBottom = '12px';
             legalLinks.style.fontSize = '0.85rem';
             footer.appendChild(legalLinks);
           }
         }
         if (legalLinks) {
+          legalLinks.style.display = 'flex';
+          legalLinks.style.flexWrap = 'wrap';
+          legalLinks.style.justifyContent = 'center';
+          legalLinks.style.alignItems = 'center';
+          legalLinks.style.gap = '12px 20px';
           legalLinks.innerHTML =
             '<a href="javascript:void(0)" onclick="openSharedModal(\'privacy\')" data-legal="privacy" style="color: inherit; text-decoration: underline; opacity: 0.85;">Privacy Policy</a>' +
-            '<a href="javascript:void(0)" onclick="openSharedModal(\'termini\')" data-legal="terms" style="color: inherit; text-decoration: underline; opacity: 0.85;">Termini e Condizioni</a>';
+            '<a href="javascript:void(0)" onclick="openSharedModal(\'termini\')" data-legal="terms" style="color: inherit; text-decoration: underline; opacity: 0.85;">Termini e Condizioni</a>' +
+            '<a href="javascript:void(0)" onclick="openSharedModal(\'contatti\')" data-legal="contatti" style="color: inherit; text-decoration: underline; opacity: 0.85;">Contatti</a>' +
+            '<a href="https://prof-memmo.github.io/games/condividi-esperienza.html" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; opacity: 0.85;">Condividi Esperienza</a>';
         }
 
         // 4. Testo di Copyright e Dati Fiscali
@@ -528,7 +551,7 @@
 
         var fiscalStr = '';
         if (data.showFiscalInFooter) {
-          fiscalStr = '<div class="pm-fiscal-info-footer" style="margin-top: 6px; font-size: 0.85rem; color: rgba(255,255,255,0.7);">' +
+          fiscalStr = '<div class="pm-fiscal-info-footer" style="margin-top: 6px; font-size: 0.85rem; color: inherit; opacity: 0.75;">' +
             '<span>' + (data.fiscalName || 'Guglielmo Piersanti') + '</span>' +
             (data.fiscalCode ? ' | C.F./P.IVA: ' + data.fiscalCode : '') +
             ' | Email: <a href="mailto:' + (data.fiscalEmail || 'prof.memmo@gmail.com') + '" style="color: inherit; text-decoration: underline;">' + (data.fiscalEmail || 'prof.memmo@gmail.com') + '</a>' +
