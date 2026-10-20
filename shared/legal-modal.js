@@ -805,11 +805,67 @@
     } catch(e) {}
   }
 
+  // Resolver centralizzato dell'avatar per tutto l'ecosistema
+  window.resolveEcosystemAvatar = function(raw, isSuperAdmin, name) {
+    var isMemmo = isSuperAdmin || (name && name.toUpperCase().indexOf('MEMMO') !== -1);
+    if (isMemmo) {
+      return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/branding/prof-memmo/prof-memmo-avatar.png';
+    }
+    if (!raw) {
+      return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/branding/prof-memmo/prof-memmo-avatar.png';
+    }
+    if (raw.indexOf('http://') === 0 || raw.indexOf('https://') === 0) {
+      return raw;
+    }
+    var clean = raw.replace(/^(\/?assets\/avatars\/|\/?shared\/assets\/avatars\/)/, '');
+    if (clean.indexOf('.png') === -1) clean += '.png';
+    return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/' + clean;
+  };
+
+  function syncEcosystemUserHeader() {
+    try {
+      var candidateKeys = ['corte_user', 'hub_user', 'currentUser', 'user', 'teacherUser', 'eroi_user_profile', 'fanta_user'];
+      var cached = null;
+      for (var i = 0; i < candidateKeys.length; i++) {
+        var raw = localStorage.getItem(candidateKeys[i]);
+        if (raw) {
+          try {
+            var parsed = JSON.parse(raw);
+            if (parsed && (parsed.name || parsed.displayName || parsed.email)) { cached = parsed; break; }
+          } catch(e) {}
+        }
+      }
+      var ssoName = cached ? (cached.name || cached.displayName || (cached.anagrafica && cached.anagrafica.nome) || (cached.email && cached.email.split('@')[0])) : (localStorage.getItem('hub_user_name') || localStorage.getItem('fanta_user_name') || localStorage.getItem('ruota_user_name'));
+      var rawAvatar = (cached && cached.avatar) || localStorage.getItem('hub_user_avatar') || localStorage.getItem('fanta_user_avatar');
+      var ssoRole = (cached && (cached.role || cached.ruolo)) || localStorage.getItem('hub_user_role') || 'docente';
+      var isSuperAdmin = (cached && cached.email && cached.email.toLowerCase() === 'prof.memmo@gmail.com') || ssoRole === 'admin' || (ssoName && ssoName.toUpperCase().indexOf('MEMMO') !== -1);
+      
+      var avatarUrl = window.resolveEcosystemAvatar(rawAvatar, isSuperAdmin, ssoName);
+      
+      var avatarEls = document.querySelectorAll('#header-user-avatar, #header-user-avatar-img');
+      avatarEls.forEach(function(img) {
+        if (img && avatarUrl && (!img.src || img.src.indexOf('avatars/6.png') !== -1 || isSuperAdmin)) {
+          img.src = avatarUrl;
+        }
+      });
+
+      if (ssoName) {
+        var nameEls = document.querySelectorAll('#header-user-name, #dropdown-user-name');
+        nameEls.forEach(function(el) {
+          if (el && (!el.textContent || el.textContent === 'ACCEDI' || el.textContent === 'Giudice')) {
+            el.textContent = isSuperAdmin ? 'PROF. MEMMO' : ssoName;
+          }
+        });
+      }
+    } catch(err) {}
+  }
+
   // Auto-intercept data-legal attributes, avvia controlli al login e sincronizza il footer
   document.addEventListener('DOMContentLoaded', function () {
     syncEcosystemFooterLegalData();
     checkEcosystemMaintenanceMode();
     syncEcosystemMenuLinks();
+    syncEcosystemUserHeader();
 
     try {
       if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length && typeof firebase.auth === 'function') {
@@ -817,6 +873,7 @@
           checkEcosystemMaintenanceMode();
           syncEcosystemMenuLinks();
           syncAuthProfileLink(user);
+          syncEcosystemUserHeader();
           if (user) {
             checkEcosystemNotificationsAndExpiration();
           }
