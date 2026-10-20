@@ -807,19 +807,22 @@
 
   // Resolver centralizzato dell'avatar per tutto l'ecosistema
   window.resolveEcosystemAvatar = function(raw, isSuperAdmin, name) {
+    if (raw && typeof raw === 'string' && raw.trim() !== '') {
+      if (raw.indexOf('http://') === 0 || raw.indexOf('https://') === 0) {
+        return raw;
+      }
+      var clean = raw.replace(/^(\/?assets\/avatars\/|\/?shared\/assets\/avatars\/)/, '');
+      if (clean.indexOf('/') === -1) {
+        if (clean.indexOf('.png') === -1) clean += '.png';
+        return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/' + clean;
+      }
+      return raw;
+    }
     var isMemmo = isSuperAdmin || (name && name.toUpperCase().indexOf('MEMMO') !== -1);
     if (isMemmo) {
       return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/branding/prof-memmo/prof-memmo-avatar.png';
     }
-    if (!raw) {
-      return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/branding/prof-memmo/prof-memmo-avatar.png';
-    }
-    if (raw.indexOf('http://') === 0 || raw.indexOf('https://') === 0) {
-      return raw;
-    }
-    var clean = raw.replace(/^(\/?assets\/avatars\/|\/?shared\/assets\/avatars\/)/, '');
-    if (clean.indexOf('.png') === -1) clean += '.png';
-    return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/' + clean;
+    return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
   };
 
   function syncEcosystemUserHeader() {
@@ -844,7 +847,7 @@
       
       var avatarEls = document.querySelectorAll('#header-user-avatar, #header-user-avatar-img');
       avatarEls.forEach(function(img) {
-        if (img && avatarUrl && (!img.src || img.src.indexOf('avatars/6.png') !== -1 || isSuperAdmin)) {
+        if (img && avatarUrl) {
           img.src = avatarUrl;
         }
       });
