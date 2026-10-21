@@ -724,16 +724,21 @@
 
   function syncAuthProfileLink(user) {
     var links = document.querySelectorAll('a[href="accedi.html"], a[href="profilo.html"], #nav-accedi-link');
+    var isGamesRepo = window.location.pathname.includes('/games');
+    var isPreview = window.location.pathname.includes('/preview');
+    var targetAccedi = isGamesRepo ? 'accedi.html' : (isPreview ? 'https://prof-memmo.github.io/games/preview/accedi.html' : 'https://prof-memmo.github.io/games/accedi.html');
+    var targetProfilo = isGamesRepo ? 'profilo.html' : (isPreview ? 'https://prof-memmo.github.io/games/preview/profilo.html' : 'https://prof-memmo.github.io/games/profilo.html');
+
     links.forEach(function(a) {
       if (user) {
         a.id = 'nav-accedi-link';
-        a.href = 'profilo.html';
+        a.href = targetProfilo;
         a.innerHTML = '<i class="ph ph-user-circle"></i> Il mio Profilo';
         a.style.color = '';
         a.style.fontWeight = '';
       } else {
         a.id = 'nav-accedi-link';
-        a.href = 'accedi.html';
+        a.href = targetAccedi;
         a.innerHTML = 'Accedi';
         a.style.color = '';
         a.style.fontWeight = '';

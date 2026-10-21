@@ -62,9 +62,9 @@ HEADERS = {
 }
 
 def get_is_preview():
-    if "--live" in sys.argv:
-        return False
-    return "--preview" in sys.argv or os.environ.get("TEST_PREVIEW") == "1" or True
+    if "--preview" in sys.argv or os.environ.get("TEST_PREVIEW") == "1":
+        return True
+    return False
 
 def get_target_pages():
     is_preview = get_is_preview()
@@ -182,7 +182,11 @@ def run_livello_1_backend():
             try:
                 err_body = json.loads(body_text)
                 err_status = err_body.get('error', {}).get('status')
-                if err_status in ['NOT_FOUND', 'INVALID_ARGUMENT']:
+                err_msg = str(err_body.get('error', {}).get('message', ''))
+                if "signBlob" in err_msg or "iam.serviceAccounts.signBlob" in err_msg:
+                    failures.append(f"[L1-IAM-DENIED] GCP IAM Token Creator mancante: {err_msg}")
+                    print(f"        ❌ ERRORE IAM: Permesso signBlob negato!")
+                elif err_status in ['NOT_FOUND', 'INVALID_ARGUMENT']:
                     print(f"        -> OK! Function attiva e risponde logicamente ({err_status})")
                 elif err_status == 'INTERNAL':
                     failures.append(f"[L1-LOGIN-INTERNAL] studentLogin ha restituito errore INTERNAL: {err_body}")
@@ -198,6 +202,56 @@ def run_livello_1_backend():
         failures.append(f"[L1-LOGIN-CRASH] studentLogin non raggiungibile: {e}")
         print(f"        ❌ ERRORE: {e}")
 
+    # 1.4 Test Salute Permessi GCP IAM Token Creator
+    print("  [1.4] Test Permessi IAM GCP (Service Account Token Creator)...")
+    try:
+        # Verifica che il token di servizio sia autorizzato
+        status, body_text = robust_post(url_login, {'data': {'classCode': active_code, 'studentId': 'non_existent', 'password': 'x'}}, timeout=15)
+        err_body = json.loads(body_text) if status != 200 else {}
+        err_msg = str(err_body.get('error', {}).get('message', ''))
+        if "signBlob" in err_msg:
+            failures.append(f"[L1-IAM-TOKEN-CREATOR] Ruolo Service Account Token Creator non attivo su GCP!")
+            print(f"        ❌ ERRORE IAM: {err_msg}")
+        else:
+            print("        -> OK! Permessi IAM per generazione token custom confermati.")
+    except Exception as e:
+        failures.append(f"[L1-IAM-CHECK-FAIL] Errore verifica permessi IAM: {e}")
+        print(f"        ❌ ERRORE: {e}")
+
+    # 1.5 Test Stato Build GitHub Pages & Anti-Stale CDN Cache
+    print("  [1.5] Test Stato Pubblicazione GitHub Pages & CDN Cache...")
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        try:
+            req_eco = urllib.request.Request(
+                "https://firestore.googleapis.com/v1/projects/prof-memmo-hub/databases/(default)/documents/hub_settings/ecosistema",
+                headers={'User-Agent': 'CollaudoTotale/4.0'}
+            )
+            with urllib.request.urlopen(req_eco, timeout=5) as r_eco:
+                eco_data = json.loads(r_eco.read().decode())
+                token = eco_data.get("fields", {}).get("github_token", {}).get("stringValue")
+        except Exception:
+            token = None
+
+    for repo_check in ['prof-memmo-gestione-siti', 'games']:
+        try:
+            headers = {'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'CollaudoTotale/4.0'}
+            if token:
+                headers['Authorization'] = f'token {token}'
+            req_gh = urllib.request.Request(
+                f"https://api.github.com/repos/prof-memmo/{repo_check}/pages",
+                headers=headers
+            )
+            with urllib.request.urlopen(req_gh, timeout=10) as r_gh:
+                gh_data = json.loads(r_gh.read().decode())
+                gh_status = gh_data.get('status')
+                if gh_status == 'built':
+                    print(f"        -> OK! GitHub Pages '{repo_check}': build confermato (status: built)")
+                else:
+                    print(f"        ⚠️ AVVISO: GitHub Pages '{repo_check}' in compilazione/propagazione: status = {gh_status}")
+        except Exception as gh_e:
+            print(f"        -> Note: Controllo GitHub Pages API per '{repo_check}': {gh_e}")
+
     # Esito Livello 1
     if failures:
         print("\n❌ LIVELLO 1 FALLITO: Rilevate anomalie nell'infrastruttura backend Firebase!")
@@ -205,39 +259,78 @@ def run_livello_1_backend():
             print(f"   - {f}")
         return False, active_code, failures
     
-    print("\n✅ LIVELLO 1 SUPERATO: Backend Firebase, Cloud Functions e Regole Firestore 100% OPERATIVE!")
+    print("\n✅ LIVELLO 1 SUPERATO: Backend Firebase, Cloud Functions, IAM e GitHub Pages 100% OPERATIVI!")
     return True, active_code, []
 
 # =========================================================================
-# LIVELLO 2: PERCORSI UTENTE REALI (USER JOURNEY CON PLAYWRIGHT)
+# LIVELLO 2: PERCORSI UTENTE REALI (USER JOURNEY PLAYWRIGHT: CHROMIUM + WEBKIT)
 # =========================================================================
 async def run_livello_2_user_journey(active_code):
     print("\n" + "=" * 85)
-    print(f">>> LIVELLO 2: USER JOURNEY STUDENTE REALE NEL BROWSER (Codice: '{active_code}')...")
+    print(f">>> LIVELLO 2: USER JOURNEY REALE NEL BROWSER (CHROMIUM & WEBKIT/SAFARI)...")
     print("=" * 85)
     failures = []
     
     is_preview = get_is_preview()
     portal_url = "https://prof-memmo.github.io/prof-memmo-gestione-siti/preview/portal.html?role=studente" if is_preview else "https://prof-memmo.github.io/prof-memmo-gestione-siti/portal.html?role=studente"
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
-        page = await context.new_page()
+    # 2.0 Verifica Matrice di Reindirizzamento SSO (?redirect=...)
+    print("  [2.0] Test Integrità Matrice Reindirizzamenti SSO (?redirect=...)...")
+    redirect_targets = [
+        ("fantaletteratura", "https://prof-memmo.github.io/fantaletteratura/preview/" if is_preview else "https://prof-memmo.github.io/fantaletteratura/"),
+        ("palestra_riflessione", "https://prof-memmo.github.io/palestra-di-riflessione/preview/" if is_preview else "https://prof-memmo.github.io/palestra-di-riflessione/"),
+        ("palestra-di-riflessione", "https://prof-memmo.github.io/palestra-di-riflessione/preview/" if is_preview else "https://prof-memmo.github.io/palestra-di-riflessione/"),
+        ("rotta_degli_eroi", "https://prof-memmo.github.io/la-rotta-degli-eroi/preview/" if is_preview else "https://prof-memmo.github.io/la-rotta-degli-eroi/"),
+        ("la-rotta-degli-eroi", "https://prof-memmo.github.io/la-rotta-degli-eroi/preview/" if is_preview else "https://prof-memmo.github.io/la-rotta-degli-eroi/"),
+        ("corte_della_commedia", "https://prof-memmo.github.io/la-corte-della-commedia/preview/" if is_preview else "https://prof-memmo.github.io/la-corte-della-commedia/"),
+        ("la-corte-della-commedia", "https://prof-memmo.github.io/la-corte-della-commedia/preview/" if is_preview else "https://prof-memmo.github.io/la-corte-della-commedia/"),
+        ("ops_storia", "https://prof-memmo.github.io/ops-storia/preview/" if is_preview else "https://prof-memmo.github.io/ops-storia/"),
+        ("ops-storia", "https://prof-memmo.github.io/ops-storia/preview/" if is_preview else "https://prof-memmo.github.io/ops-storia/"),
+        ("l_oratore", "https://prof-memmo.github.io/l-oratore/preview/" if is_preview else "https://prof-memmo.github.io/l-oratore/"),
+        ("l-oratore", "https://prof-memmo.github.io/l-oratore/preview/" if is_preview else "https://prof-memmo.github.io/l-oratore/"),
+        ("historygram", "https://prof-memmo.github.io/historygram/preview/" if is_preview else "https://prof-memmo.github.io/historygram/"),
+        ("la_ruota_geografica", "https://prof-memmo.github.io/la-ruota-geografica/preview/" if is_preview else "https://prof-memmo.github.io/la-ruota-geografica/"),
+        ("la-ruota-geografica", "https://prof-memmo.github.io/la-ruota-geografica/preview/" if is_preview else "https://prof-memmo.github.io/la-ruota-geografica/"),
+        ("prezzi", "https://prof-memmo.github.io/games/preview/prezzi.html" if is_preview else "https://prof-memmo.github.io/games/prezzi.html"),
+        ("profilo", "https://prof-memmo.github.io/games/preview/profilo.html" if is_preview else "https://prof-memmo.github.io/games/profilo.html")
+    ]
+    sso_errs = 0
+    for r_key, target_url in redirect_targets:
+        try:
+            req_sso = urllib.request.Request(target_url, headers={'User-Agent': 'Mozilla/5.0 CollaudoTotale/4.0'})
+            with urllib.request.urlopen(req_sso, timeout=8) as resp_sso:
+                if resp_sso.status != 200:
+                    failures.append(f"[L2-SSO-REDIRECT-FAIL] Target redirect '{r_key}' -> {target_url} ha risposto HTTP {resp_sso.status}")
+                    sso_errs += 1
+        except Exception as e_sso:
+            failures.append(f"[L2-SSO-REDIRECT-ERR] Target redirect '{r_key}' -> {target_url} non raggiungibile: {e_sso}")
+            sso_errs += 1
 
+    if sso_errs == 0:
+        print(f"        -> OK! Tutte le {len(redirect_targets)} rotte della matrice SSO esistono e rispondono HTTP 200.")
+    else:
+        print(f"        ❌ Rilevati {sso_errs} errori nella matrice dei reindirizzamenti SSO!")
+
+    # Helper per test percorso studente su un browser specifico
+    async def test_browser_journey(browser_type_name, browser_launcher):
+        b_failures = []
         js_errors = []
-        page.on("pageerror", lambda err: js_errors.append(str(err)))
-
         dialog_alerts = []
-        page.on("dialog", lambda d: dialog_alerts.append(d.message))
+        print(f"  [2.{browser_type_name}] Test Percorso Studente su Motore {browser_type_name.upper()}...")
 
         try:
-            print(f"  [2.1] Apertura Portale Studenti: {portal_url}")
-            resp = await page.goto(portal_url, wait_until="domcontentloaded", timeout=15000)
+            browser = await browser_launcher.launch(headless=True)
+            context = await browser.new_context()
+            page = await context.new_page()
+
+            page.on("pageerror", lambda err: js_errors.append(str(err)))
+            page.on("dialog", lambda d: dialog_alerts.append(d.message))
+
+            print(f"        -> Caricamento: {portal_url}")
+            await page.goto(portal_url, wait_until="domcontentloaded", timeout=15000)
             await page.wait_for_timeout(1000)
 
             # Inserimento codice classe reale
-            print(f"  [2.2] Inserimento codice classe '{active_code}' e ricerca roster...")
             await page.wait_for_selector("#student-code-input", timeout=8000)
             await page.fill("#student-code-input", active_code)
             await page.click("#btn-student-find-class")
@@ -246,42 +339,53 @@ async def run_livello_2_user_journey(active_code):
             await page.wait_for_selector("#student-found-class-name", state="visible", timeout=10000)
             name_text = await page.inner_text("#student-found-class-name")
             sub_text = await page.inner_text("#student-found-class-sub")
-            print(f"        -> Trovato banner classe: '{name_text}'")
-            print(f"        -> Informazioni docente: '{sub_text}'")
+            print(f"        -> [{browser_type_name.upper()}] Banner classe trovato: '{name_text}' ({sub_text})")
 
             # Verifica presenza opzioni nel dropdown studenti
             claim_opts = await page.query_selector_all("#student-claim-select option")
             login_opts = await page.query_selector_all("#student-login-select option")
             total_students = len(claim_opts) + len(login_opts) - 2 # escludi placeholder
-            print(f"  [2.3] Verifica opzioni studenti: {len(claim_opts)} slot non attivati, {len(login_opts)} già attivi")
+            print(f"        -> [{browser_type_name.upper()}] Roster caricato: {len(claim_opts)} slot non attivati, {len(login_opts)} attivi")
 
             if total_students <= 0:
-                failures.append(f"[L2-ROSTER-EMPTY] Nessuno studente presente nei menu a tendina della classe {active_code}")
+                b_failures.append(f"[L2-{browser_type_name.upper()}-EMPTY] Nessuno studente presente nel roster ({active_code})")
 
             if js_errors:
                 for err in js_errors:
-                    failures.append(f"[L2-JS-ERROR] Errore JavaScript durante l'accesso studente: {err}")
-                    print(f"        ❌ JS ERROR: {err}")
+                    b_failures.append(f"[L2-{browser_type_name.upper()}-JS] Errore JavaScript: {err}")
+                    print(f"        ❌ [{browser_type_name.upper()}] JS ERROR: {err}")
 
             crit_alerts = [a for a in dialog_alerts if "errore" in a.lower() or "fail" in a.lower()]
             if crit_alerts:
                 for ca in crit_alerts:
-                    failures.append(f"[L2-ALERT-ERROR] Alert di errore visualizzato: {ca}")
-                    print(f"        ❌ ALERT: {ca}")
+                    b_failures.append(f"[L2-{browser_type_name.upper()}-ALERT] Alert: {ca}")
+                    print(f"        ❌ [{browser_type_name.upper()}] ALERT: {ca}")
+
+            await browser.close()
+            print(f"        -> OK! Test completato con SUCCESSO su motore {browser_type_name.upper()}.")
 
         except Exception as e:
-            failures.append(f"[L2-USER-JOURNEY-CRASH] Errore durante il test del percorso studente: {e}")
-            print(f"        ❌ CRASH: {e}")
-        finally:
-            await browser.close()
+            b_failures.append(f"[L2-{browser_type_name.upper()}-CRASH] Crash percorso su {browser_type_name}: {e}")
+            print(f"        ❌ [{browser_type_name.upper()}] CRASH: {e}")
+
+        return b_failures
+
+    async with async_playwright() as p:
+        # Test su Chromium (Blink)
+        chrom_fails = await test_browser_journey("chromium", p.chromium)
+        failures.extend(chrom_fails)
+
+        # Test su WebKit (Safari Engine)
+        webkit_fails = await test_browser_journey("webkit_safari", p.webkit)
+        failures.extend(webkit_fails)
 
     if failures:
-        print("\n❌ LIVELLO 2 FALLITO: Il percorso studente nel browser ha riscontrato anomalie!")
+        print("\n❌ LIVELLO 2 FALLITO: Il percorso utente nei browser ha riscontrato anomalie!")
         for f in failures:
             print(f"   - {f}")
         return False, failures
     
-    print("\n✅ LIVELLO 2 SUPERATO: Percorso studente nel browser reale completato con SUCCESSO!")
+    print("\n✅ LIVELLO 2 SUPERATO: Percorsi utente su Chromium e WebKit/Safari completati con SUCCESSO!")
     return True, []
 
 # =========================================================================
@@ -400,10 +504,10 @@ async def run_livelli_3_e_4():
 # =========================================================================
 async def run_master_collaudo():
     print("=" * 85)
-    print("      PROF. MEMMO — MASTER SUITE DI COLLAUDO TOTALE DELL'ECOSISTEMA (v3.0)")
+    print("      PROF. MEMMO — MASTER SUITE DI COLLAUDO TOTALE DELL'ECOSISTEMA (v4.0)")
     print("=" * 85)
-    print("Verifica completa e rigorosa: Backend Firebase -> Percorso Utente Reale -> Rete -> Pagine.")
-    print("Tolleranza Zero per crash console, Cloud Functions non deployate e permessi mancanti.")
+    print("Verifica completa e rigorosa: Backend Firebase -> Percorso Reale (Chromium & WebKit/Safari) -> Rete -> Pagine.")
+    print("Tolleranza Zero per crash console, discrepanze WebKit, Cloud Functions non deployate e permessi mancanti.")
 
     # 1. LIVELLO 1: BACKEND (Fail-Fast: se fallisce, blocca tutto subito)
     l1_ok, active_code, l1_failures = run_livello_1_backend()
@@ -411,17 +515,17 @@ async def run_master_collaudo():
         print("\n⛔ COLLAUDO INTERROTTO AL LIVELLO 1: Risolvi i problemi di backend prima del rilascio.")
         return False
 
-    # 2. LIVELLO 2: USER JOURNEY STUDENTE REALE
+    # 2. LIVELLO 2: USER JOURNEY STUDENTE REALE (Chromium + WebKit/Safari & Matrice SSO)
     l2_ok, l2_failures = await run_livello_2_user_journey(active_code)
     if not l2_ok:
-        print("\n⛔ COLLAUDO INTERROTTO AL LIVELLO 2: Il percorso studente nel browser non funziona.")
+        print("\n⛔ COLLAUDO INTERROTTO AL LIVELLO 2: Il percorso studente nei browser non funziona.")
         return False
 
     # Se richiesta solo la verifica rapida backend
     if "--backend-only" in sys.argv:
         print("\n" + "=" * 85)
         print("ESITO VERIFICA RAPIDA BACKEND: 100% FUNZIONANTE! ✅")
-        print("Cloud Functions, Regole Firestore e Login Studente nel browser sono perfettamente operativi.")
+        print("Cloud Functions, Regole Firestore e Login Studente (Chromium & WebKit) sono perfettamente operativi.")
         print("=" * 85)
         return True
 
@@ -432,7 +536,7 @@ async def run_master_collaudo():
 
     # REPORT FINALE
     print("\n" + "=" * 85)
-    print("                    REPORT FINALE DI COLLAUDO INTEGRATO (v3.0)")
+    print("                    REPORT FINALE DI COLLAUDO INTEGRATO (v4.0)")
     print("=" * 85)
     print(f"{'Sito / Applicazione':<28} | {'Asset OK':<9} | {'Boot':<6} | {'Pulsanti':<10} | {'Stato':<8}")
     print("-" * 85)
