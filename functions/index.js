@@ -1145,11 +1145,15 @@ exports.getRosterForClaiming = functions.runWith({
             }));
 
         return {
+            success: true,
             classId: classDoc.id,
             className: classData.name || "",
             school: classData.school || "",
             city: classData.city || "",
             teacherId: classData.teacherId || (classData.teacherIds ? classData.teacherIds[0] : ""),
+            teacherName: classData.teacherName || "Docente",
+            unclaimed: unclaimed.map(s => ({ id: s.studentId, studentId: s.studentId, name: s.name })),
+            claimed: claimed.map(s => ({ id: s.studentId, studentId: s.studentId, name: s.name, nickname: s.nickname, avatar: s.avatar })),
             unclaimedStudents: unclaimed,
             claimedStudents: claimed
         };

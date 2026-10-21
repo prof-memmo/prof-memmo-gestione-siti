@@ -235,14 +235,60 @@ const PortalApp = {
                     ]
                 };
             } else {
-                const functions = firebase.functions ? firebase.functions() : firebase.app().functions();
-                const getRoster = functions.httpsCallable('getRosterForClaiming');
-                const res = await getRoster({ classCode: code });
-                data = res.data;
+                try {
+                    const functions = firebase.functions ? firebase.functions() : firebase.app().functions();
+                    const getRoster = functions.httpsCallable('getRosterForClaiming');
+                    const res = await getRoster({ classCode: code });
+                    data = res.data;
+                } catch (fnErr) {
+                    console.warn("Chiamata getRosterForClaiming non riuscita, fallback diretto Firestore:", fnErr);
+                    const dbInstance = window.db || (firebase.firestore ? firebase.firestore() : null);
+                    if (dbInstance) {
+                        const snap = await dbInstance.collection("hub_classes").where("code", "==", code).limit(1).get().catch(() => ({ empty: true }));
+                        if (snap && !snap.empty) {
+                            const cDoc = snap.docs[0];
+                            const cData = cDoc.data() || {};
+                            const stList = Array.isArray(cData.students) ? cData.students : [];
+                            data = {
+                                success: true,
+                                classId: cDoc.id,
+                                className: cData.name || "",
+                                school: cData.school || "",
+                                city: cData.city || "",
+                                teacherId: cData.teacherId || "",
+                                teacherName: cData.teacherName || "Docente",
+                                unclaimed: stList.filter(s => s && s.claimed !== true).map(s => ({ id: s.studentId, studentId: s.studentId, name: s.name })),
+                                claimed: stList.filter(s => s && s.claimed === true).map(s => ({ id: s.studentId, studentId: s.studentId, name: s.name, nickname: s.nickname || s.name, avatar: s.avatar || 'assets/avatars/6.png' }))
+                            };
+                        } else {
+                            throw new Error("Nessuna classe trovata con il codice specificato.");
+                        }
+                    } else {
+                        throw fnErr;
+                    }
+                }
             }
 
-            if (!data || !data.success) {
-                throw new Error((data && data.message) || "Impossibile recuperare i dati della classe.");
+            if (!data) {
+                throw new Error("Impossibile recuperare i dati della classe.");
+            }
+
+            // Normalizzazione robusta dati
+            if (data.success === undefined && (data.classId || data.className)) {
+                data.success = true;
+            }
+            if (!data.teacherName) {
+                data.teacherName = data.teacher || 'Docente';
+            }
+            if (!data.unclaimed && data.unclaimedStudents) {
+                data.unclaimed = data.unclaimedStudents.map(s => ({ id: s.studentId || s.id, ...s }));
+            }
+            if (!data.claimed && data.claimedStudents) {
+                data.claimed = data.claimedStudents.map(s => ({ id: s.studentId || s.id, ...s }));
+            }
+
+            if (!data.success) {
+                throw new Error(data.message || "Impossibile recuperare i dati della classe.");
             }
 
             this.currentStudentClassCode = code;
@@ -264,7 +310,7 @@ const PortalApp = {
                 } else {
                     unclaimedList.forEach(s => {
                         const opt = document.createElement('option');
-                        opt.value = s.id;
+                        opt.value = s.id || s.studentId;
                         opt.textContent = s.name;
                         claimSelect.appendChild(opt);
                     });
@@ -281,7 +327,7 @@ const PortalApp = {
                 } else {
                     claimedList.forEach(s => {
                         const opt = document.createElement('option');
-                        opt.value = s.id;
+                        opt.value = s.id || s.studentId;
                         opt.textContent = `${s.name} (${s.nickname || 'Senza Nickname'})`;
                         loginSelect.appendChild(opt);
                     });
