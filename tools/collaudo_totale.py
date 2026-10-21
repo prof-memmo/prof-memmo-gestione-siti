@@ -93,6 +93,61 @@ def clean_asset_url(raw_url, base_url):
     return urljoin(base_url, raw_url)
 
 # =========================================================================
+# LIVELLO 0: VALIDAZIONE STATICA DELLA SINTASSI JAVASCRIPT (ZERO SYNTAX ERRORS)
+# =========================================================================
+async def run_livello_0_js_syntax():
+    print("\n" + "=" * 85)
+    print(">>> LIVELLO 0: VALIDAZIONE STATICA DELLA SINTASSI JAVASCRIPT...")
+    print("=" * 85)
+    failures = []
+    js_files = []
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    for root, dirs, files in os.walk(base_dir):
+        dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '_archivio_migrazione']]
+        for f in files:
+            if f.endswith('.js') and not f.endswith('.min.js'):
+                js_files.append(os.path.join(root, f))
+
+    print(f"  [0.1] Scansione sintattica su {len(js_files)} file JavaScript dell'ecosistema...")
+    
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        for js_path in js_files:
+            rel_path = os.path.relpath(js_path, base_dir)
+            try:
+                with open(js_path, "r", encoding="utf-8") as f:
+                    code = f.read()
+
+                test_page = await browser.new_page()
+                file_errors = []
+                test_page.on("pageerror", lambda err: file_errors.append(str(err)))
+                
+                try:
+                    await test_page.add_script_tag(content=code, type="module")
+                    await test_page.wait_for_timeout(30)
+                except Exception as e_add:
+                    file_errors.append(str(e_add))
+                finally:
+                    await test_page.close()
+
+                syntax_errs = [e for e in file_errors if any(k in e for k in ["SyntaxError", "Unexpected", "Missing", "Invalid", "Token"])]
+                if syntax_errs:
+                    failures.append(f"[L0-SYNTAX-ERR] {rel_path}: {syntax_errs[0]}")
+                    print(f"        ❌ {rel_path} -> {syntax_errs[0]}")
+            except Exception as e:
+                failures.append(f"[L0-READ-ERR] {rel_path}: {e}")
+                print(f"        ❌ {rel_path} -> Errore lettura: {e}")
+
+        await browser.close()
+
+    if not failures:
+        print(f"        -> OK! Tutti i {len(js_files)} file JS analizzati sono sintatticamente validi al 100%.")
+        return True, failures
+    else:
+        print(f"        ❌ Rilevati {len(failures)} errori di sintassi nei file JavaScript!")
+        return False, failures
+
+# =========================================================================
 # LIVELLO 1: VERIFICA BACKEND, CLOUD FUNCTIONS & REGOLE FIRESTORE
 # =========================================================================
 def run_livello_1_backend():
@@ -324,18 +379,25 @@ async def run_livello_2_user_journey(active_code):
             page = await context.new_page()
 
             page.on("pageerror", lambda err: js_errors.append(str(err)))
+            page.on("console", lambda msg: js_errors.append(f"Console error: {msg.text}") if msg.type == "error" else None)
             page.on("dialog", lambda d: dialog_alerts.append(d.message))
 
-            print(f"        -> Caricamento: {portal_url}")
-            await page.goto(portal_url, wait_until="domcontentloaded", timeout=15000)
-            await page.wait_for_timeout(1000)
+            clean_portal_url = portal_url.split("?")[0]
+            print(f"        -> Caricamento: {clean_portal_url}")
+            await page.goto(clean_portal_url, wait_until="domcontentloaded", timeout=15000)
+            await page.wait_for_timeout(800)
 
-            # Inserimento codice classe reale
-            await page.wait_for_selector("#student-code-input", timeout=8000)
+            # 1. Schermata Selezione Ruolo / Porte d'Accesso (Clic Studente)
+            await page.wait_for_selector(".platform-card", state="visible", timeout=8000)
+            await page.click(".platform-card[onclick*='studente']")
+            await page.wait_for_timeout(600)
+
+            # 2. Inserimento codice classe reale
+            await page.wait_for_selector("#student-code-input", state="visible", timeout=8000)
             await page.fill("#student-code-input", active_code)
             await page.click("#btn-student-find-class")
 
-            # Attendi rendering banner classe
+            # 3. Attendi rendering banner classe
             await page.wait_for_selector("#student-found-class-name", state="visible", timeout=10000)
             name_text = await page.inner_text("#student-found-class-name")
             sub_text = await page.inner_text("#student-found-class-sub")
@@ -445,7 +507,20 @@ async def run_livelli_3_e_4():
         for name, page_url in target_pages:
             page = await context.new_page()
             page_errors = []
-            page.on("pageerror", lambda err: page_errors.append(str(err)))
+            page.on("pageerror", lambda err: page_errors.append(f"PageError: {err}"))
+            page.on("console", lambda msg: page_errors.append(f"Console error: {msg.text}") if msg.type == "error" else None)
+            
+            def handle_req_failed(req):
+                u = req.url
+                f = str(req.failure or "")
+                # Ignora solo la chiusura fisiologica dello stream realtime di Firestore dovuta allo scaricamento della pagina
+                if "firestore.googleapis.com" in u and "Listen/channel" in u and "ERR_ABORTED" in f:
+                    return
+                if any(ext in u for ext in [".js", ".css", "firestore", "cloudfunctions"]):
+                    page_errors.append(f"Request failed: {u} ({f})")
+
+            page.on("requestfailed", handle_req_failed)
+
             try:
                 resp = None
                 last_nav_err = None
@@ -479,17 +554,36 @@ async def run_livelli_3_e_4():
                     if not has_footer:
                         all_failures.append(f"[L4-NO-FOOTER] {name}: Tag <footer> assente")
 
-                # Clic pulsanti visibili
-                buttons = await page.query_selector_all("button, [role='button'], a.btn, .btn")
+                # Se è presente un banner legale o cookie modale aperto, accettalo prima di testare i pulsanti interni
+                try:
+                    modal_close_btn = await page.query_selector("#pmSharedAccept, .btn-accept, #accept-terms, .modal-close, button:has-text('Accetta'), button:has-text('Chiudi')")
+                    if modal_close_btn and await modal_close_btn.is_visible():
+                        await modal_close_btn.click(timeout=1000)
+                        await page.wait_for_timeout(300)
+                except Exception:
+                    pass
+
+                # Clic elementi interattivi visibili (pulsanti, card ruoli, bottoni d'azione)
+                interactive_els = await page.query_selector_all("button, [role='button'], a.btn, .btn, .platform-card, [onclick]")
                 clicked_here = 0
-                for btn in buttons[:15]: # campionatura sui primi 15 pulsanti per velocità
+                for el in interactive_els[:15]:
                     try:
-                        if await btn.is_visible():
-                            await btn.click(timeout=1000)
+                        if await el.is_visible():
+                            tag_name = await page.evaluate("e => e.tagName.toLowerCase()", el)
+                            href = await el.get_attribute("href") if tag_name == "a" else None
+                            if href and (href.startswith("http") or href.startswith("mailto:") or href.startswith("tel:")):
+                                continue
+                            # Se l'elemento è coperto o disabilitato, ignora
+                            await el.click(timeout=1200, no_wait_after=True)
                             clicked_here += 1
                             total_buttons_clicked += 1
-                    except Exception:
-                        pass
+                            await page.wait_for_timeout(100)
+                    except Exception as e_click:
+                        # Se il click fallisce per errore reale di esecuzione
+                        err_str = str(e_click)
+                        if "intercepts pointer events" not in err_str:
+                            all_failures.append(f"[L4-CLICK-ERR] {name}: fallito click su elemento interattivo -> {err_str}")
+                            site_stats[name]["button_errors"] += 1
                 site_stats[name]["buttons_clicked"] = clicked_here
 
                 if page_errors:
@@ -519,6 +613,12 @@ async def run_master_collaudo():
     print("=" * 85)
     print("Verifica completa e rigorosa: Backend Firebase -> Percorso Reale (Chromium & WebKit/Safari) -> Rete -> Pagine.")
     print("Tolleranza Zero per crash console, discrepanze WebKit, Cloud Functions non deployate e permessi mancanti.")
+
+    # 0. LIVELLO 0: SINTASSI JAVASCRIPT STATICA (Fail-Fast immediato)
+    l0_ok, l0_failures = await run_livello_0_js_syntax()
+    if not l0_ok:
+        print("\n⛔ COLLAUDO INTERROTTO AL LIVELLO 0: Risolvi gli errori di sintassi JavaScript prima di procedere.")
+        return False
 
     # 1. LIVELLO 1: BACKEND (Fail-Fast: se fallisce, blocca tutto subito)
     l1_ok, active_code, l1_failures = run_livello_1_backend()
