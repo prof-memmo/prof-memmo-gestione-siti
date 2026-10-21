@@ -221,31 +221,30 @@ const PortalApp = {
                 const res = await getRoster({ classCode: code });
                 data = res.data;
             } catch (fnErr) {
-                    console.warn("Chiamata getRosterForClaiming non riuscita, fallback diretto Firestore:", fnErr);
-                    const dbInstance = window.db || (firebase.firestore ? firebase.firestore() : null);
-                    if (dbInstance) {
-                        const snap = await dbInstance.collection("hub_classes").where("code", "==", code).limit(1).get().catch(() => ({ empty: true }));
-                        if (snap && !snap.empty) {
-                            const cDoc = snap.docs[0];
-                            const cData = cDoc.data() || {};
-                            const stList = Array.isArray(cData.students) ? cData.students : [];
-                            data = {
-                                success: true,
-                                classId: cDoc.id,
-                                className: cData.name || "",
-                                school: cData.school || "",
-                                city: cData.city || "",
-                                teacherId: cData.teacherId || "",
-                                teacherName: cData.teacherName || "Docente",
-                                unclaimed: stList.filter(s => s && s.claimed !== true).map(s => ({ id: s.studentId, studentId: s.studentId, name: s.name })),
-                                claimed: stList.filter(s => s && s.claimed === true).map(s => ({ id: s.studentId, studentId: s.studentId, name: s.name, nickname: s.nickname || s.name, avatar: s.avatar || 'assets/avatars/6.png' }))
-                            };
-                        } else {
-                            throw new Error("Nessuna classe trovata con il codice specificato.");
-                        }
+                console.warn("Chiamata getRosterForClaiming non riuscita, fallback diretto Firestore:", fnErr);
+                const dbInstance = window.db || (firebase.firestore ? firebase.firestore() : null);
+                if (dbInstance) {
+                    const snap = await dbInstance.collection("hub_classes").where("code", "==", code).limit(1).get().catch(() => ({ empty: true }));
+                    if (snap && !snap.empty) {
+                        const cDoc = snap.docs[0];
+                        const cData = cDoc.data() || {};
+                        const stList = Array.isArray(cData.students) ? cData.students : [];
+                        data = {
+                            success: true,
+                            classId: cDoc.id,
+                            className: cData.name || "",
+                            school: cData.school || "",
+                            city: cData.city || "",
+                            teacherId: cData.teacherId || "",
+                            teacherName: cData.teacherName || "Docente",
+                            unclaimed: stList.filter(s => s && s.claimed !== true).map(s => ({ id: s.studentId, studentId: s.studentId, name: s.name })),
+                            claimed: stList.filter(s => s && s.claimed === true).map(s => ({ id: s.studentId, studentId: s.studentId, name: s.name, nickname: s.nickname || s.name, avatar: s.avatar || 'assets/avatars/6.png' }))
+                        };
                     } else {
-                        throw fnErr;
+                        throw new Error("Nessuna classe trovata con il codice specificato.");
                     }
+                } else {
+                    throw fnErr;
                 }
             }
 
@@ -627,18 +626,24 @@ const PortalApp = {
                 const gameMap = {
                     'fantaletteratura': isPreview ? 'https://prof-memmo.github.io/fantaletteratura/preview/' : 'https://prof-memmo.github.io/fantaletteratura/',
                     'palestra_riflessione': isPreview ? 'https://prof-memmo.github.io/palestra-di-riflessione/preview/' : 'https://prof-memmo.github.io/palestra-di-riflessione/',
+                    'palestra-di-riflessione': isPreview ? 'https://prof-memmo.github.io/palestra-di-riflessione/preview/' : 'https://prof-memmo.github.io/palestra-di-riflessione/',
                     'rotta_degli_eroi': isPreview ? 'https://prof-memmo.github.io/la-rotta-degli-eroi/preview/' : 'https://prof-memmo.github.io/la-rotta-degli-eroi/',
+                    'la-rotta-degli-eroi': isPreview ? 'https://prof-memmo.github.io/la-rotta-degli-eroi/preview/' : 'https://prof-memmo.github.io/la-rotta-degli-eroi/',
                     'corte_della_commedia': isPreview ? 'https://prof-memmo.github.io/la-corte-della-commedia/preview/' : 'https://prof-memmo.github.io/la-corte-della-commedia/',
+                    'la-corte-della-commedia': isPreview ? 'https://prof-memmo.github.io/la-corte-della-commedia/preview/' : 'https://prof-memmo.github.io/la-corte-della-commedia/',
                     'ops_storia': isPreview ? 'https://prof-memmo.github.io/ops-storia/preview/' : 'https://prof-memmo.github.io/ops-storia/',
                     'ops-storia': isPreview ? 'https://prof-memmo.github.io/ops-storia/preview/' : 'https://prof-memmo.github.io/ops-storia/',
                     'l_oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
+                    'l-oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
                     'oratore': isPreview ? 'https://prof-memmo.github.io/l-oratore/preview/' : 'https://prof-memmo.github.io/l-oratore/',
                     'historygram': isPreview ? 'https://prof-memmo.github.io/historygram/preview/' : 'https://prof-memmo.github.io/historygram/',
                     'la_ruota_geografica': isPreview ? 'https://prof-memmo.github.io/la-ruota-geografica/preview/' : 'https://prof-memmo.github.io/la-ruota-geografica/',
                     'la-ruota-geografica': isPreview ? 'https://prof-memmo.github.io/la-ruota-geografica/preview/' : 'https://prof-memmo.github.io/la-ruota-geografica/',
                     'ruota_geografica': isPreview ? 'https://prof-memmo.github.io/la-ruota-geografica/preview/' : 'https://prof-memmo.github.io/la-ruota-geografica/',
                     'prezzi': isPreview ? 'https://prof-memmo.github.io/games/preview/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html',
-                    'prezzi.html': isPreview ? 'https://prof-memmo.github.io/games/preview/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html'
+                    'prezzi.html': isPreview ? 'https://prof-memmo.github.io/games/preview/prezzi.html' : 'https://prof-memmo.github.io/games/prezzi.html',
+                    'profilo': isPreview ? 'https://prof-memmo.github.io/games/preview/profilo.html' : 'https://prof-memmo.github.io/games/profilo.html',
+                    'profilo.html': isPreview ? 'https://prof-memmo.github.io/games/preview/profilo.html' : 'https://prof-memmo.github.io/games/profilo.html'
                 };
                 if (gameMap[redirectTarget]) {
                     window.location.replace(gameMap[redirectTarget]);
