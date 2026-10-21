@@ -73,8 +73,10 @@ const PortalApp = {
                     if (surveyEl) surveyEl.style.display = 'none';
                     
                     if (!roleParam && !codeParam) {
-                        if (loginOverlay) loginOverlay.style.display = 'none';
-                        if (doorSelection) doorSelection.style.display = 'flex';
+                        if (!this.pendingRole) {
+                            if (loginOverlay) loginOverlay.style.display = 'none';
+                            if (doorSelection) doorSelection.style.display = 'flex';
+                        }
                     }
                 }
             }
