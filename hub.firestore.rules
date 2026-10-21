@@ -110,7 +110,8 @@ service cloud.firestore {
     }
     
     match /hub_esperienze/{docId} {
-      allow read, write: if isAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Impostazioni Globali Ecosistema e Stato Giochi Hub

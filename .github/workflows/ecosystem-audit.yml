@@ -25,7 +25,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install playwright
-          playwright install chromium --with-deps
+          playwright install chromium webkit --with-deps
 
       - name: Esecuzione Collaudo Totale Ecosistema (Art. 8)
         run: |
