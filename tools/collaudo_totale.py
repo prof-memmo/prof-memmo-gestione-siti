@@ -446,9 +446,20 @@ async def run_livelli_3_e_4():
             page = await context.new_page()
             page_errors = []
             page.on("pageerror", lambda err: page_errors.append(str(err)))
-
             try:
-                resp = await page.goto(page_url, wait_until="domcontentloaded", timeout=15000)
+                resp = None
+                last_nav_err = None
+                for attempt in range(2):
+                    try:
+                        resp = await page.goto(page_url, wait_until="domcontentloaded", timeout=25000)
+                        last_nav_err = None
+                        break
+                    except Exception as e_nav:
+                        last_nav_err = e_nav
+                        await asyncio.sleep(1)
+
+                if last_nav_err:
+                    raise last_nav_err
                 await page.wait_for_timeout(800)
 
                 final_url = page.url
