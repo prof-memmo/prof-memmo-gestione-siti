@@ -215,32 +215,12 @@ const PortalApp = {
 
         try {
             let data = null;
-            if (code.startsWith('TEST') || code === 'MEMMO-3B' || code === 'DEMO-3B' || code === 'MEMMO-7K9P') {
-                data = {
-                    success: true,
-                    className: 'Classe 3ª B',
-                    teacherName: 'Prof. Guglielmo Memmo',
-                    school: 'I.C. Dante Alighieri',
-                    city: 'Firenze',
-                    unclaimed: [
-                        { id: 's1', name: 'Alessandro Manzoni' },
-                        { id: 's2', name: 'Beatrice Portinari' },
-                        { id: 's3', name: 'Giacomo Leopardi' },
-                        { id: 's4', name: 'Giovanni Boccaccio' },
-                        { id: 's5', name: 'Laura De Noves' }
-                    ],
-                    claimed: [
-                        { id: 's6', name: 'Francesco Petrarca', nickname: 'CanzoniereKing' },
-                        { id: 's7', name: 'Ludovico Ariosto', nickname: 'OrlandoFurioso' }
-                    ]
-                };
-            } else {
-                try {
-                    const functions = firebase.functions ? firebase.functions() : firebase.app().functions();
-                    const getRoster = functions.httpsCallable('getRosterForClaiming');
-                    const res = await getRoster({ classCode: code });
-                    data = res.data;
-                } catch (fnErr) {
+            try {
+                const functions = firebase.functions ? firebase.functions() : firebase.app().functions();
+                const getRoster = functions.httpsCallable('getRosterForClaiming');
+                const res = await getRoster({ classCode: code });
+                data = res.data;
+            } catch (fnErr) {
                     console.warn("Chiamata getRosterForClaiming non riuscita, fallback diretto Firestore:", fnErr);
                     const dbInstance = window.db || (firebase.firestore ? firebase.firestore() : null);
                     if (dbInstance) {
@@ -387,15 +367,9 @@ const PortalApp = {
 
         const btn = document.getElementById('btn-student-submit-claim');
         const origText = btn ? btn.innerHTML : '';
-        if (this.currentStudentClassCode && (this.currentStudentClassCode.startsWith('TEST') || this.currentStudentClassCode === 'MEMMO-3B' || this.currentStudentClassCode === 'DEMO-3B' || this.currentStudentClassCode === 'MEMMO-7K9P')) {
-            setTimeout(() => {
-                alert(`🎉 Profilo Studente attivato con successo!\n\nBentornato, ${nickname}!\nAvatar e Password impostati. Verrai reindirizzato al gioco.`);
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = origText;
-                }
-            }, 600);
-            return;
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Attivazione in corso...';
         }
 
         try {
