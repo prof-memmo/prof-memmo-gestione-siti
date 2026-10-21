@@ -5,6 +5,7 @@
 
 const UsersUI = {
     allUsers: [],
+    allClasses: [],
     currentSortCol: 'nome',
     currentSortAsc: true,
     activeRoleFilter: 'tutti',
@@ -13,6 +14,10 @@ const UsersUI = {
     init: function() {
         console.log("UsersUI inizializzato.");
         // Predisposto per l'aggancio di modali futuri (es. approvazione docenti, cambio piano)
+    },
+
+    setClasses: function(classesArray) {
+        this.allClasses = classesArray || [];
     },
 
     /**
@@ -896,9 +901,40 @@ const UsersUI = {
 
         const searchInput = document.getElementById('search-iscritti') ? document.getElementById('search-iscritti').value.toLowerCase() : '';
 
-        // Estrai e raggruppa le scuole da tutti gli utenti registrati
+        // Estrai e raggruppa le scuole da classi e utenti registrati
         const schoolsMap = new Map();
 
+        // 1. Dalle classi create dai docenti (fonte diretta delle scuole di ciascuna classe)
+        (this.allClasses || []).forEach(cls => {
+            const schoolName = (cls.school || '').trim();
+            if (!schoolName || schoolName.toUpperCase() === 'N/A' || schoolName.toUpperCase() === 'N/D') return;
+
+            const key = schoolName.toLowerCase();
+            if (!schoolsMap.has(key)) {
+                schoolsMap.set(key, {
+                    name: schoolName,
+                    city: (cls.city || 'Sede Principale').trim(),
+                    teachers: new Map(),
+                    classes: new Set(),
+                    studentCount: 0,
+                    games: new Set()
+                });
+            }
+
+            const item = schoolsMap.get(key);
+            if (cls.city) item.city = cls.city.trim();
+            if (cls.name) item.classes.add(cls.name);
+            if (cls.teacherEmail || cls.teacherId) {
+                const docEmail = cls.teacherEmail || cls.teacherId;
+                const docName = cls.teacherName || 'Docente Referente';
+                item.teachers.set(docEmail, docName);
+            }
+            if (Array.isArray(cls.students)) {
+                item.studentCount += cls.students.length;
+            }
+        });
+
+        // 2. Dagli utenti registrati (per integrare eventuali dati anagrafici)
         (this.allUsers || []).forEach(u => {
             let schoolName = (u.scuola || u.school || (u.anagrafica && u.anagrafica.scuola) || '').trim();
             let className = (u.classe || u.className || '').trim();

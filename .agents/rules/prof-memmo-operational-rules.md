@@ -1,7 +1,25 @@
 # REGOLE OPERATIVE DI SICUREZZA PER L'ECOSISTEMA PROF. MEMMO
-# Versione 2.2 - Consolidata con Protocollo di Collaudo a 3 Livelli (Rete, Console JS & E2E) (Ottobre 2026)
+# Versione 2.3 - Consolidata e Blindata (19 Ottobre 2026)
 
 Tutti gli agenti AI e i programmatori che operano sui repository dell'Ecosistema Prof. Memmo DEVONO rispettare rigorosamente le seguenti regole inderogabili.
+
+---
+
+### AMBITO E PERIMETRO UFFICIALE DELL'ECOSISTEMA (I 10 REPOSITORY CANONICI)
+L'Ecosistema didattico e gestionale di Prof. Memmo è costituito esclusivamente dai seguenti 10 progetti ufficiali:
+1. **prof-memmo-gestione-siti** (Hub Admin di Gestione e Portale Operativo)
+2. **games** (Portale Vetrina, Catalogo Giochi e Accesso Unificato)
+3. **fantaletteratura** (FantaLetteratura)
+4. **la-rotta-degli-eroi** (La Rotta degli Eroi)
+5. **la-corte-della-commedia** (La Corte della Commedia)
+6. **palestra-di-riflessione** (La Palestra di Riflessione)
+7. **ops-storia** [ops-web] (Ops! Operazione Storia)
+8. **l-oratore** (L'Oratore)
+9. **historygram** (HistoryGram)
+10. **la-ruota-geografica** (La Ruota Geografica)
+
+> [!IMPORTANT]
+> Applicazioni organizzative separate (es. **Supplenze App**) sono strumenti autonomi a destinazione d'uso differente, non fanno parte dell'ecosistema giochi e materiali didattici e sono tassativamente escluse dagli audit globali, dalle metriche didattiche e dalle pipeline di rilascio dell'ecosistema.
 
 ---
 
@@ -57,27 +75,83 @@ Prima di considerare conclusa qualsiasi modifica e prima di effettuare il push s
 
 ---
 
-### ART. 7 - GESTIONE BRANCH E PUSH GIT
-- Tutti i test, le verifiche e le nuove implementazioni DEVONO essere committati e spinti esclusivamente sul branch **preview** (git push origin preview).
-- E' fatto divieto assoluto di eseguire il push diretto sul branch main a meno di esplicito comando di rilascio in produzione da parte dell'utente.
+### ART. 7 - GESTIONE BRANCH, WORKFLOW DI RILASCIO E PREVIEW COME 'RELEASE CANDIDATE'
+1. **Branch Preview come Release Candidate Ufficiale**:
+   - Tutti i test, le verifiche e le implementazioni dell'assistente DEVONO essere committati e spinti **esclusivamente sul branch `preview`** (`git push origin preview`).
+   - La versione su `preview` NON è una bozza transitoria, ma la **Release Candidate definitiva e pronta per la produzione**: al termine di ogni blocco, `preview` deve essere funzionante al 100% per permettere all'utente di rilasciarla immediatamente su `main` tramite l'Hub Admin.
+   - E' fatto divieto assoluto di eseguire il push diretto sul branch `main` dall'assistente: la promozione di `preview` a `main` è riservata unicamente all'azione dell'utente tramite il pulsante "Pubblica su Live (main)" nell'Hub Admin.
+2. **Pre-Flight Check e Sincronizzazione da `origin/main`**:
+   - Prima di iniziare a lavorare su `preview` per qualsiasi progetto, l'agente DEVE eseguire un controllo preventivo di `origin/main`. Se l'utente ha effettuato rilasci automatici da Hub Admin su `main`, l'agente deve eseguire `git fetch` e `git merge origin/main` in `preview` per garantire l'assoluta continuità della cronologia Git.
 
 ---
 
-### ART. 8 - PROTOCOLLO DI COLLAUDO OBBLIGATORIO A 3 LIVELLI DELL'ECOSISTEMA (RETE, RUNTIME CONSOLE & FUNCTIONAL E2E)
-Prima di considerare conclusa qualsiasi sessione di lavoro o rilascio, è fatto obbligo inderogabile di eseguire la scansione automatica di integrità su TUTTI i siti e sottodomini dell'Ecosistema Prof. Memmo secondo il protocollo di collaudo a 3 livelli, senza richiedere collaudi manuali preliminari all'utente:
+### ART. 8 - PROTOCOLLO DI COLLAUDO OBBLIGATORIO A 3 LIVELLI DELL'ECOSISTEMA (TARGET CANALE PREVIEW)
+Prima di considerare conclusa qualsiasi sessione di lavoro o rilascio, è fatto obbligo inderogabile di eseguire la scansione automatica di integrità sui **10 ambienti `/preview/` dell'Ecosistema Prof. Memmo** secondo il protocollo a 3 livelli:
 
-1. **LIVELLO 1: AUDIT DI RETE & ASSET (ZERO-404 / 500)**:
+1. **LIVELLO 1: AUDIT DI RETE & ASSET SUL CANALE PREVIEW (ZERO-404 / 500)**:
+   - **Target Obbligatorio Preview**: La scansione di rete automatica (`tools/audit_ecosistema.py`) deve validare primariamente gli ambienti `https://prof-memmo.github.io/<progetto>/preview/` dei 10 siti dell'ecosistema (con opzione `--live` per verifiche post-rilascio).
    - **Zero 404 / 500 / 503**: Ogni singolo foglio di stile CSS, script JS, font web, immagine, logo, video e manifest collegato alle pagine deve rispondere con HTTP 200 OK.
-   - **Coerenza di radice (No 404 da basePath)**: Divieto assoluto di prefissi di sottocartella su progetti ospitati su domini o sottodomini autonomi (es. Next.js `basePath: ''` per domini root).
-   - **Encoding rigoroso degli URI**: Nessun percorso di immagine o video può contenere spazi grezzi o apici conflittuali negli attributi HTML (devono essere codificati con `%20` o normalizzati a livello di filesystem).
-   - **Esecuzione Automatica Obbligatoria**: L'agente DEVE eseguire lo script `tools/audit_ecosistema.py` (o comando programmatico equivalente su tutti i 9 siti) e allegare l'esito 100% verde nel resoconto finale.
+   - **Coerenza di radice e URL Encoding**: Nessun percorso di immagine o video può contenere spazi grezzi o apici conflittuali negli attributi HTML (devono essere codificati con `%20` o normalizzati a livello di filesystem).
 
 2. **LIVELLO 2: AUDIT BROWSER REALE & RUNTIME CONSOLE (ZERO-ERRORI JS RUNTIME)**:
-   - **Rendering e Booting Completo**: Apertura automatizzata delle pagine tramite motore browser reale (Browser Subagent / Headless Browser).
-   - **Ispezione Console Obbligatoria**: Nessuna eccezione JavaScript non gestita ammessa in console (`console.error`, `Uncaught TypeError`, `app-compat/no-app`, ecc.).
+   - **Rendering e Booting Completo**: Apertura automatizzata delle pagine preview tramite motore browser reale (Playwright / Headless Browser).
+   - **Ispezione Console Obbligatoria**: Nessuna eccezione JavaScript non gestita ammessa in console (`console.error`, `Uncaught TypeError`, ecc.).
    - **Certificazione Firebase/Auth**: Monitoraggio del completamento del bootstrap dei servizi cloud (es. emissione evento `firebaseHubReady` o log di successo `🔥 Firebase Hub Centrale Unico inizializzato`).
 
-3. **LIVELLO 3: TEST FUNZIONALE E2E (SIMULAZIONE INTERAZIONI & CLIC UTENTE)**:
-   - **Simulazione Clic Reale**: Il browser automatizzato deve simulare i clic e le interazioni chiave dell'utente (es. pulsante `#btn-google-login`, navigazione tra sezioni, apertura modali).
-   - **Verifica Flusso Auth/OAuth**: Accertamento che il clic apra correttamente il popup o flusso di autenticazione e che il pulsante mostri transizioni di stato coerenti (es. spinner di caricamento e ripristino) senza lanciare alert o bloccare l'interfaccia.
-   - **Garanzia Zero-Test Manuali**: Nessuna modifica può essere dichiarata funzionante all'utente prima che i 3 livelli di collaudo automatico abbiano dato esito pienamente positivo.
+3. **LIVELLO 3: TEST FUNZIONALE E2E E ZERO DEAD-CLICKS (INTERACTION & BUTTON LIFECYCLE GUARD)**:
+   - **Zero Elementi Interattivi 'Morti'**: Divieto assoluto di tag `<a>` o `<button>` con `href="#"`, `href="javascript:void(0)"` o listener privi di handler attivo.
+   - **Simulazione Clic Reale**: Il browser automatizzato deve simulare i clic e le interazioni chiave dell'utente (apertura modali legali Patamu, navigazione tra sezioni, drawer).
+   - **Stati Visivi Obbligatori**: Ogni pulsante deve implementare feedback visivo per `:hover`, `:active`, `:focus-visible` e `disabled` (con disabilitazione immediata anti-doppio submit sui form).
+   - **Modali e Overlay**: Blocco dello scroll del body (`overflow: hidden`), chiusura esplicita ("X"), click su backdrop e tasto `Escape`.
+   - **Footer Condiviso**: Verifica che Privacy Policy e Termini aprano correttamente `#pmSharedOverlay` tramite `https://gestionesiti.profmemmo.it/shared/legal-modal.js`.
+
+---
+
+### ART. 9 - PROTOCOLLO DI COLLAUDO CROMATICO E ACCESSIBILITÀ VISIVA (WCAG CONTRAST GUARD)
+Prima di considerare conclusa qualsiasi modifica stilistica o di layout, l'agente DEVE eseguire un audit cromatico sul browser:
+1. **Soglie Minime di Contrasto (WCAG 2.1 Livello AA)**:
+   - **Testo Standard (< 18pt o < 14pt bold)**: rapporto di contrasto testo/sfondo calcolato >= 4.5:1.
+   - **Testo Grande o Titoli (>= 18pt o >= 14pt bold)**: rapporto di contrasto >= 3.0:1.
+   - **Contorno e Forma dei Componenti Interattivi**: i bordi/sfondi dei pulsanti e campi input devono avere contrasto >= 3.0:1 rispetto allo sfondo della pagina.
+   - **Testo all'interno dei Pulsanti**: il testo interno a un pulsante deve garantire contrasto >= 4.5:1 sia nello stato di riposo che nello stato `:hover`.
+2. **Risoluzione di Trasparenze, Gradienti e Glassmorphism**:
+   - In presenza di sfondi sfumati (`linear-gradient`) o pannelli trasparenti (`backdrop-filter: blur`, `rgba(...)`), il contrasto deve essere calcolato rispetto al colore effettivo di rendering sottostante. Nessun testo deve risultare affogato o scarsamente leggibile.
+3. **Verifica Responsive e Touch Targets (Mobile Guard)**:
+   - Verifica alle risoluzioni mobile (375px e 390px) e tablet (768px):
+     - Assoluta assenza di scroll orizzontale non intenzionale (`overflow-x` parassita).
+     - Area cliccabile minima per pulsanti e icone di tocco pari ad almeno 44x44px (o 48x48px).
+4. **Certificazione Cromatico-Visiva**:
+   - L'agente deve confermare nel messaggio di consegna il superamento dell'audit cromatico e l'assenza di violazioni di contrasto sui componenti modificati.
+
+---
+
+### ART. 10 - PROTOCOLLO DI COLLAUDO FIREBASE, CLOUD FIRESTORE E INTEGRITÀ BACKEND
+Nelle applicazioni che integrano Firebase e Firestore, prima del rilascio su `preview` l'agente deve certificare l'integrità dei flussi dati:
+1. **Zero Errori di Permessi Firestore (Security Rules Guard)**:
+   - Tutte le operazioni di lettura, scrittura, aggiornamento e cancellazione devono essere testate senza produrre eccezioni `FirebaseError: Missing or insufficient permissions`.
+2. **Protezione dello Stato di Autenticazione (Zero-Flicker Guard)**:
+   - L'inizializzazione del listener `onAuthStateChanged` deve gestire correttamente lo stato intermedio di caricamento (skeleton o spinner), senza mai mostrare transitoriamente il form di login a un utente che possiede una sessione valida.
+3. **Validazione Domini Autorizzati (Authorized Domains)**:
+   - Per i test e i flussi di autenticazione negli ambienti `/preview/`, verificare che il dominio di staging sia censito negli Authorized Domains di Firebase Auth per evitare blocchi nei redirect Google/Email Sign-In.
+4. **Integrità Strutturale dei Dati (Schema Preservation)**:
+   - Nessuna scrittura su Firestore può sovrascrivere o azzerare proprietà preesistenti con `undefined`. Ogni mutazione deve preservare i campi standard di audit (`updatedAt`, `uid`, tenant/scuola).
+5. **Integrità Asset di Rete e Policy Audio**:
+   - Verifica di zero errori `404 Not Found` nel tab Network per risorse JSON didattiche, avatar, icone o suoni.
+   - Nelle app dotate di `AudioEngine`, verificare che nessun audio venga avviato prima del primo gesto/click dell'utente, prevenendo eccezioni non gestite `NotAllowedError: play() failed`.
+
+---
+
+### ART. 11 - WORKFLOW SEQUENZIALE A BLOCCHI E APPROVAZIONE ESPLICITA (STEP-BY-STEP CHECKPOINT GUARD)
+Per garantire il pieno controllo su ogni modifica ed evitare derive o regressioni a catena, ogni operazione di sviluppo deve seguire rigorosamente un flusso sequenziale frammentato:
+1. **Scomposizione Obbligatoria in Blocchi Atomici (Atomic Milestones)**:
+   - Qualsiasi task, implementazione o sessione di refactoring DEVE essere preventivamente suddivisa in **blocchi di lavoro singoli, isolati e sequenziali**.
+   - E' fatto divieto assoluto di eseguire modifiche cumulative o di lavorare su più componenti/obiettivi contemporaneamente nello stesso step.
+2. **Report di Collaudo e Anti-Regressione al Termine di Ogni Blocco**:
+   - Al completamento di ciascun blocco, l'agente DEVE arrestare l'esecuzione e presentare all'utente un riepilogo formale contenente:
+     - *Perimetro del blocco*: file toccati ed esatta modifica apportata.
+     - *Esito Audit Tecnico*: bilanciamento CSS (`{}` a saldo zero), validazione JSON, 0 errori in console.
+     - *Verifica Regressioni*: conferma che i blocchi precedenti, i componenti protetti e le viste non modificate siano rimasti intatti e funzionanti.
+     - *Esito Collaudo Visivo / Subagent*: eventuale screenshot e conferma del corretto rendering.
+3. **Punto di Arresto e Attesa dell'OK Esplicito (Checkpoint Stop)**:
+   - Dopo aver emesso il report del blocco, l'agente ha il **DIVIETO ASSOLUTO di procedere al blocco successivo** in autonomia.
+   - L'agente deve terminare il proprio turno e rimanere in attesa dell'esplicito messaggio di convalida dell'utente ("ok", "procedi", "avanti"). Nessuna riga di codice del blocco successivo può essere scritta prima di tale conferma.

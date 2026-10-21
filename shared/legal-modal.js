@@ -346,6 +346,19 @@
     } else if (type === 'termini') {
       title.textContent = 'Termini e Condizioni';
       body.innerHTML = formatPlainTextToHTML(dynamicTerms);
+    } else if (type === 'notifiche') {
+      title.textContent = 'Centro Notifiche Ecosistema';
+      body.innerHTML = 
+        '<div style="text-align:center; padding: 25px 15px;">' +
+          '<div style="font-size: 2.5rem; margin-bottom: 12px;">🔔</div>' +
+          '<h3 style="margin: 0 0 10px 0; font-size: 1.15rem; color: #0f172a; font-family: inherit;">Notifiche & Comunicazioni Didattiche</h3>' +
+          '<p style="font-size: 0.9rem; color: #64748b; line-height: 1.5; max-width: 440px; margin: 0 auto 20px auto;">' +
+            'Gli aggiornamenti sulle classi, le comunicazioni di sistema e lo stato del tuo account sono sincronizzati con la tua Area Personale nell\'Hub.' +
+          '</p>' +
+          '<a href="https://prof-memmo.github.io/games/profilo.html" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: #ffffff; padding: 10px 22px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">' +
+            'Gestisci Notifiche nell\'Hub ↗' +
+          '</a>' +
+        '</div>';
     }
 
     overlay.classList.add('pm-open');
@@ -486,12 +499,12 @@
           }
         }
 
-        // 2. Normalizza immagine Badge Patamu con fallback locale
+        // 2. Normalizza immagine Badge Patamu con fallback locale (Blindato a 52px - Art. 4)
         var patamuImg = footer.querySelector('img[src*="patamu"], img[alt*="Patamu"], img[alt*="patamu"], img[alt*="Patamù"]');
         if (patamuImg) {
           patamuImg.src = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/legal/patamu-badge.png';
           patamuImg.alt = 'Patamu';
-          patamuImg.style.height = '48px';
+          patamuImg.style.height = '52px';
           patamuImg.style.objectFit = 'contain';
           patamuImg.style.flexShrink = '0';
           patamuImg.onerror = function() {
@@ -499,7 +512,7 @@
           };
         }
 
-        // 3. Assicura la presenza dei link Privacy Policy e Termini e Condizioni nel footer
+        // 3. Assicura la presenza dei link Privacy Policy, Termini e Condizioni, Contatti e Condividi Esperienza nel footer
         var legalLinks = footer.querySelector('.footer-legal-links, [data-legal-container]');
         if (!legalLinks) {
           var hasPriv = Array.from(footer.querySelectorAll('a')).some(function(a) {
@@ -509,17 +522,30 @@
             legalLinks = document.createElement('div');
             legalLinks.className = 'footer-legal-links';
             legalLinks.style.display = 'flex';
+            legalLinks.style.flexWrap = 'wrap';
             legalLinks.style.justifyContent = 'center';
-            legalLinks.style.gap = '20px';
+            legalLinks.style.alignItems = 'center';
+            legalLinks.style.gap = '12px 20px';
             legalLinks.style.marginTop = '10px';
+            legalLinks.style.marginBottom = '12px';
             legalLinks.style.fontSize = '0.85rem';
             footer.appendChild(legalLinks);
           }
         }
         if (legalLinks) {
-          legalLinks.innerHTML =
-            '<a href="javascript:void(0)" onclick="openSharedModal(\'privacy\')" data-legal="privacy" style="color: inherit; text-decoration: underline; opacity: 0.85;">Privacy Policy</a>' +
-            '<a href="javascript:void(0)" onclick="openSharedModal(\'termini\')" data-legal="terms" style="color: inherit; text-decoration: underline; opacity: 0.85;">Termini e Condizioni</a>';
+          legalLinks.style.display = 'flex';
+          legalLinks.style.flexWrap = 'wrap';
+          legalLinks.style.justifyContent = 'center';
+          legalLinks.style.alignItems = 'center';
+          legalLinks.style.gap = '12px 20px';
+          var alreadyHasModernLinks = legalLinks.querySelector('[data-legal="contatti"]') || legalLinks.querySelector('a[href*="condividi-esperienza"]');
+          if (!alreadyHasModernLinks) {
+            legalLinks.innerHTML =
+              '<a href="javascript:void(0)" onclick="openSharedModal(\'privacy\')" data-legal="privacy" style="color: inherit; text-decoration: underline; opacity: 0.85;">Privacy Policy</a>' +
+              '<a href="javascript:void(0)" onclick="openSharedModal(\'termini\')" data-legal="terms" style="color: inherit; text-decoration: underline; opacity: 0.85;">Termini e Condizioni</a>' +
+              '<a href="javascript:void(0)" onclick="openSharedModal(\'contatti\')" data-legal="contatti" style="color: inherit; text-decoration: underline; opacity: 0.85;">Contatti</a>' +
+              '<a href="https://prof-memmo.github.io/games/condividi-esperienza.html" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; opacity: 0.85;">Condividi Esperienza</a>';
+          }
         }
 
         // 4. Testo di Copyright e Dati Fiscali
@@ -528,7 +554,7 @@
 
         var fiscalStr = '';
         if (data.showFiscalInFooter) {
-          fiscalStr = '<div class="pm-fiscal-info-footer" style="margin-top: 6px; font-size: 0.85rem; color: rgba(255,255,255,0.7);">' +
+          fiscalStr = '<div class="pm-fiscal-info-footer" style="margin-top: 6px; font-size: 0.85rem; color: inherit; opacity: 0.75;">' +
             '<span>' + (data.fiscalName || 'Guglielmo Piersanti') + '</span>' +
             (data.fiscalCode ? ' | C.F./P.IVA: ' + data.fiscalCode : '') +
             ' | Email: <a href="mailto:' + (data.fiscalEmail || 'prof.memmo@gmail.com') + '" style="color: inherit; text-decoration: underline;">' + (data.fiscalEmail || 'prof.memmo@gmail.com') + '</a>' +
@@ -779,11 +805,70 @@
     } catch(e) {}
   }
 
+  // Resolver centralizzato dell'avatar per tutto l'ecosistema
+  window.resolveEcosystemAvatar = function(raw, isSuperAdmin, name) {
+    if (raw && typeof raw === 'string' && raw.trim() !== '') {
+      if (raw.indexOf('http://') === 0 || raw.indexOf('https://') === 0) {
+        return raw;
+      }
+      var clean = raw.replace(/^(\/?assets\/avatars\/|\/?shared\/assets\/avatars\/)/, '');
+      if (clean.indexOf('/') === -1) {
+        if (clean.indexOf('.png') === -1) clean += '.png';
+        return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/' + clean;
+      }
+      return raw;
+    }
+    var isMemmo = isSuperAdmin || (name && name.toUpperCase().indexOf('MEMMO') !== -1);
+    if (isMemmo) {
+      return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/branding/prof-memmo/prof-memmo-avatar.png';
+    }
+    return 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/6.png';
+  };
+
+  function syncEcosystemUserHeader() {
+    try {
+      var candidateKeys = ['corte_user', 'hub_user', 'currentUser', 'user', 'teacherUser', 'eroi_user_profile', 'fanta_user'];
+      var cached = null;
+      for (var i = 0; i < candidateKeys.length; i++) {
+        var raw = localStorage.getItem(candidateKeys[i]);
+        if (raw) {
+          try {
+            var parsed = JSON.parse(raw);
+            if (parsed && (parsed.name || parsed.displayName || parsed.email)) { cached = parsed; break; }
+          } catch(e) {}
+        }
+      }
+      var ssoName = cached ? (cached.name || cached.displayName || (cached.anagrafica && cached.anagrafica.nome) || (cached.email && cached.email.split('@')[0])) : (localStorage.getItem('hub_user_name') || localStorage.getItem('fanta_user_name') || localStorage.getItem('ruota_user_name'));
+      var rawAvatar = (cached && cached.avatar) || localStorage.getItem('hub_user_avatar') || localStorage.getItem('fanta_user_avatar');
+      var ssoRole = (cached && (cached.role || cached.ruolo)) || localStorage.getItem('hub_user_role') || 'docente';
+      var isSuperAdmin = (cached && cached.email && cached.email.toLowerCase() === 'prof.memmo@gmail.com') || ssoRole === 'admin' || (ssoName && ssoName.toUpperCase().indexOf('MEMMO') !== -1);
+      
+      var avatarUrl = window.resolveEcosystemAvatar(rawAvatar, isSuperAdmin, ssoName);
+      
+      var avatarEls = document.querySelectorAll('#header-user-avatar, #header-user-avatar-img');
+      avatarEls.forEach(function(img) {
+        if (img && avatarUrl) {
+          img.src = avatarUrl;
+        }
+      });
+
+      if (ssoName) {
+        var nameEls = document.querySelectorAll('#header-user-name, #dropdown-user-name');
+        nameEls.forEach(function(el) {
+          if (el && (!el.textContent || el.textContent === 'ACCEDI' || el.textContent === 'Giudice')) {
+            el.textContent = isSuperAdmin ? 'PROF. MEMMO' : ssoName;
+          }
+        });
+      }
+    } catch(err) {}
+  }
+
   // Auto-intercept data-legal attributes, avvia controlli al login e sincronizza il footer
   document.addEventListener('DOMContentLoaded', function () {
     syncEcosystemFooterLegalData();
     checkEcosystemMaintenanceMode();
     syncEcosystemMenuLinks();
+    syncEcosystemUserHeader();
 
     try {
       if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length && typeof firebase.auth === 'function') {
@@ -791,6 +876,7 @@
           checkEcosystemMaintenanceMode();
           syncEcosystemMenuLinks();
           syncAuthProfileLink(user);
+          syncEcosystemUserHeader();
           if (user) {
             checkEcosystemNotificationsAndExpiration();
           }

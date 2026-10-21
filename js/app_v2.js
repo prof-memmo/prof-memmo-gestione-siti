@@ -20,6 +20,7 @@ const HubApp = {
                 this.user = user;
                 // Controlla se l'utente è l'admin (Prof Memmo)
                 if (user.email && user.email.toLowerCase() === 'prof.memmo@gmail.com') {
+                    try { localStorage.setItem('hub_admin_logged', 'true'); } catch(e) {}
                     const overlay = document.getElementById('login-overlay');
                     if (overlay) overlay.style.display = 'none';
                     try {
@@ -28,6 +29,7 @@ const HubApp = {
                         console.error("Errore durante loadData:", err);
                     }
                 } else {
+                    try { localStorage.removeItem('hub_admin_logged'); } catch(e) {}
                     alert("Accesso negato. L'email riconosciuta è: " + (user.email || 'Nessuna email') + ". Solo l'amministratore prof.memmo@gmail.com può accedere.");
                     firebase.auth().signOut().then(() => {
                         window.location.reload();
@@ -35,15 +37,24 @@ const HubApp = {
                 }
             } else {
                 this.user = null;
+                try { localStorage.removeItem('hub_admin_logged'); } catch(e) {}
                 const overlay = document.getElementById('login-overlay');
                 if (overlay) overlay.style.display = 'flex';
+                const loadingBox = document.getElementById('login-overlay-loading');
+                const formBox = document.getElementById('login-overlay-form');
+                if (loadingBox) loadingBox.style.display = 'none';
+                if (formBox) formBox.style.display = 'flex';
                 const btn = document.getElementById('btn-google-login');
-                if (btn) btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-brands fa-google"></i> Accedi con Google';
+                }
             }
         });
     },
 
     logout: function() {
+        try { localStorage.removeItem('hub_admin_logged'); } catch(e) {}
         firebase.auth().signOut().then(() => {
             window.location.reload();
         });
@@ -170,6 +181,9 @@ const HubApp = {
             // Passa i dati al modulo Dashboard Utenti (UI)
             if (window.UsersUI) {
                 window.UsersUI.updateCounters(data.stats);
+                if (data.classes && window.UsersUI.setClasses) {
+                    window.UsersUI.setClasses(data.classes);
+                }
                 window.UsersUI.setUsers(data.users);
             }
 

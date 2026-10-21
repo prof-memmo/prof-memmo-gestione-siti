@@ -85,17 +85,17 @@
                     from { transform: scale(0.92); opacity: 0; }
                     to { transform: scale(1); opacity: 1; }
                 }
-                .pm-guard-icon {
-                    width: 72px;
-                    height: 72px;
-                    border-radius: 50%;
-                    background: #fee2e2;
-                    color: #ef4444;
-                    display: inline-flex;
+                .pm-guard-icon-wrap {
+                    display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 2.2rem;
-                    margin-bottom: 1.2rem;
+                    margin-bottom: 1rem;
+                }
+                .pm-guard-avatar {
+                    width: 150px;
+                    height: 115px;
+                    object-fit: contain;
+                    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.12));
                 }
                 .pm-guard-title {
                     font-size: 1.5rem;
@@ -159,7 +159,9 @@
             overlay.id = 'pm-subscription-overlay';
             overlay.innerHTML = `
                 <div class="pm-guard-card">
-                    <div class="pm-guard-icon">🔒</div>
+                    <div class="pm-guard-icon-wrap">
+                        <img class="pm-guard-avatar" id="pm-guard-avatar" src="https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/capibara-lock.png" onerror="this.onerror=null;this.src='https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/16.png';" alt="Accesso Riservato">
+                    </div>
                     <h2 class="pm-guard-title" id="pm-guard-title">Accesso Riservato</h2>
                     <p class="pm-guard-text" id="pm-guard-text">
                         Questo gioco fa parte dell'Ecosistema Prof. Memmo ed è riservato agli utenti abbonati.
