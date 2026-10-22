@@ -492,6 +492,14 @@ const PortalApp = {
 
     loginGoogle: async function() {
         this.hideError();
+        const newsEl = document.getElementById('reg-newsletter');
+        if (newsEl && newsEl.checked) {
+            this.pendingNewsletterConsent = true;
+            sessionStorage.setItem('pm_entry_newsletter', '1');
+        } else {
+            this.pendingNewsletterConsent = false;
+            sessionStorage.removeItem('pm_entry_newsletter');
+        }
         try {
             await window.AuthService.login();
         } catch(e) {
@@ -501,6 +509,14 @@ const PortalApp = {
 
     submitAuth: async function() {
         this.hideError();
+        const newsEl = document.getElementById('reg-newsletter');
+        if (newsEl && newsEl.checked) {
+            this.pendingNewsletterConsent = true;
+            sessionStorage.setItem('pm_entry_newsletter', '1');
+        } else {
+            this.pendingNewsletterConsent = false;
+            sessionStorage.removeItem('pm_entry_newsletter');
+        }
         const btn = document.getElementById('btn-reg-email');
         const email = document.getElementById('reg-email').value;
         const pwd = document.getElementById('reg-password').value;
@@ -618,6 +634,35 @@ const PortalApp = {
             }
 
             this.profile = snap.data();
+            
+            // Aggiornamento additivo consenso Newsletter (Opt-In) se selezionato al login
+            const newsCheckbox = document.getElementById('reg-newsletter');
+            const wantsNewsletter = (newsCheckbox && newsCheckbox.checked) || this.pendingNewsletterConsent === true || sessionStorage.getItem('pm_entry_newsletter') === '1';
+            if (wantsNewsletter) {
+                const alreadySubscribed = this.profile.newsletter === true || (this.profile.consents && this.profile.consents.newsletter === true);
+                if (!alreadySubscribed && window.fbDb && window.fbDb.hub) {
+                    try {
+                        const nowIso = new Date().toISOString();
+                        await window.fbDb.hub.collection("hub_users").doc(this.user.uid).set({
+                            newsletter: true,
+                            consents: {
+                                ...(this.profile.consents || {}),
+                                newsletter: true,
+                                newsletterTimestamp: nowIso,
+                                source: 'portal_login'
+                            },
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+                        this.profile.newsletter = true;
+                        if (!this.profile.consents) this.profile.consents = {};
+                        this.profile.consents.newsletter = true;
+                        this.profile.consents.newsletterTimestamp = nowIso;
+                        sessionStorage.removeItem('pm_entry_newsletter');
+                    } catch(newsErr) {
+                        console.warn("Aggiornamento consenso newsletter al login non riuscito:", newsErr);
+                    }
+                }
+            }
             
             // Reindirizzamento SSO immediato
             const urlParams = new URLSearchParams(window.location.search);
@@ -906,14 +951,17 @@ const PortalApp = {
             if (surveyEl) surveyEl.style.display = 'none';
 
             if (this.user && this.user.uid && window.UserService) {
+                const hasNewsConsent = this.pendingNewsletterConsent === true || sessionStorage.getItem('pm_entry_newsletter') === '1';
                 await window.UserService.createUserProfile(
                     this.user.uid, 
                     nome, 
                     email, 
                     this.pendingRole || 'docente', 
                     this.pendingIdentity, 
-                    surveyData
+                    surveyData,
+                    hasNewsConsent
                 );
+                sessionStorage.removeItem('pm_entry_newsletter');
                 
                 // Ricarica il profilo adesso che esiste
                 await this.loadUserProfile();

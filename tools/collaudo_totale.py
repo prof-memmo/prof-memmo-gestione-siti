@@ -20,6 +20,7 @@ Uso:
 import sys
 import os
 import json
+import time
 import asyncio
 import urllib.request
 import urllib.error
