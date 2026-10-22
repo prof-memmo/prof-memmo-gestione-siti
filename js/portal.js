@@ -664,6 +664,24 @@ const PortalApp = {
                 }
             }
             
+            // Sincronizzazione immediata sessione in localStorage per evitare flicker nei giochi (Safari ITP)
+            try {
+                const ssoName = (this.profile && this.profile.anagrafica && this.profile.anagrafica.nome) || (this.profile && this.profile.nome) || (this.user && this.user.displayName) || 'Docente';
+                const ssoRole = (this.profile && (this.profile.role || this.profile.ruolo)) || 'docente';
+                const ssoAvatar = (this.profile && (this.profile.avatar || (this.profile.anagrafica && this.profile.anagrafica.avatar))) || (this.user && this.user.photoURL) || '';
+                const ssoPlan = (this.profile && (this.profile.subscription || this.profile.abbonamento)) || 'base';
+
+                localStorage.setItem('hub_user_name', ssoName);
+                localStorage.setItem('hub_user_role', ssoRole);
+                localStorage.setItem('hub_user_avatar', ssoAvatar);
+                localStorage.setItem('hub_user_plan', ssoPlan);
+                localStorage.setItem('fanta_user_name', ssoName);
+                localStorage.setItem('fanta_user_role', ssoRole);
+                localStorage.setItem('fanta_user_avatar', ssoAvatar);
+            } catch (syncErr) {
+                console.warn("Sincronizzazione localStorage al redirect non riuscita:", syncErr);
+            }
+
             // Reindirizzamento SSO immediato
             const urlParams = new URLSearchParams(window.location.search);
             const redirectTarget = urlParams.get('redirect');
