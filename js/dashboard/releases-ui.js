@@ -1080,8 +1080,8 @@ const ReleasesUI = {
                     styleContents.push({ source: 'inline', content: sm[1] });
                 }
 
-                // Estrae i fogli di stile esterni collegati (<link rel="stylesheet">)
-                const linkCssRegex = /<link[^>]+(?:rel=["']stylesheet["'][^>]+href=["']|href=["'])([^"']+\.css)["']/gi;
+                // Estrae i fogli di stile esterni collegati (<link rel="stylesheet"> o con parametri ?v=...)
+                const linkCssRegex = /<link[^>]+href=["']([^"'\s?]+\.css)(?:\?[^"'\s]*)?["']/gi;
                 let lm;
                 const cssFiles = [];
                 while ((lm = linkCssRegex.exec(previewHtml)) !== null) {
@@ -1177,7 +1177,7 @@ const ReleasesUI = {
             let semanticWarnings = [];
 
             if (previewHtml) {
-                const jsonRegex = /(?:fetch|src=["']|href=["'])\s*(?:[('"]\s*)([^"')\s]+\.json)/gi;
+                const jsonRegex = /(?:fetch|src=["']|href=["'])\s*(?:[('"]\s*)([^"')\s?]+\.json)(?:\?[^"')\s]*)?/gi;
                 let jm;
                 const jsonFiles = [];
                 while ((jm = jsonRegex.exec(previewHtml)) !== null) {
