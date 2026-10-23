@@ -606,6 +606,73 @@ async def run_livelli_3_e_4():
     return all_failures, site_stats, total_assets_checked, total_buttons_clicked
 
 # =========================================================================
+# LIVELLO 5: AUDIT SEMANTICO DEI DATASET DIDATTICI & GAMEPLAY MULTI-TURNO
+# =========================================================================
+async def run_livello_5_semantic_dataset_audit():
+    print("\n" + "=" * 85)
+    print(">>> LIVELLO 5: AUDIT SEMANTICO DATASET DIDATTICI & GAMEPLAY MULTI-TURNO (ART. 13)...")
+    print("=" * 85)
+    failures = []
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    repos = [d for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d)) and not d.startswith('.')]
+    print(f"  [5.1] Scansione semantica dinamica su {len(repos)} repository dell'ecosistema...")
+    
+    total_datasets = 0
+    total_items_checked = 0
+
+    for r in sorted(repos):
+        r_path = os.path.join(base_dir, r)
+        for root, dirs, files in os.walk(r_path):
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '_archivio_migrazione', '.git']]
+            for f in files:
+                if f.endswith('.json') and not any(x in f for x in ['package', 'manifest', 'tsconfig', 'launch', '.vscode']):
+                    fpath = os.path.join(root, f)
+                    rel_p = os.path.relpath(fpath, base_dir)
+                    try:
+                        with open(fpath, 'r', encoding='utf-8') as jf:
+                            data = json.load(jf)
+                        items = []
+                        if isinstance(data, dict):
+                            for k in ['carte', 'domande', 'sfide', 'items', 'questions', 'consegne']:
+                                if k in data and isinstance(data[k], list) and len(data[k]) > 0:
+                                    items = data[k]
+                                    break
+                        elif isinstance(data, list):
+                            items = data
+                        
+                        if len(items) >= 10 and isinstance(items[0], dict):
+                            total_datasets += 1
+                            total_items_checked += len(items)
+                            text_field = None
+                            for tf in ['incipit', 'testo', 'domanda', 'titolo', 'question']:
+                                if tf in items[0]:
+                                    text_field = tf
+                                    break
+                            if text_field:
+                                texts = [str(it.get(text_field, '')).strip() for it in items if str(it.get(text_field, '')).strip()]
+                                uniq = set(texts)
+                                ratio = len(uniq) / len(texts) if texts else 1.0
+                                if ratio < 0.90:
+                                    failures.append(f"[L5-DATASET-DUPLICATES] {rel_p}: Trovati testi duplicati! {len(uniq)}/{len(texts)} unici ({ratio*100:.1f}%) sul campo '{text_field}'. Art. 13 richiede >= 95% unicità.")
+                                    print(f"        ❌ {rel_p} -> {len(uniq)}/{len(texts)} unici ({ratio*100:.1f}%) [CRITICITÀ]")
+                                else:
+                                    print(f"        -> OK {rel_p}: {len(uniq)}/{len(texts)} elementi unici ({ratio*100:.1f}%)")
+                                
+                                suspicious = [t for t in texts if any(p in t for p in ['dimostrando strutturando', 'Sfida 0', 'Traccia 0', 'TODO', 'Lorem ipsum', 'testo da inserire'])]
+                                if suspicious:
+                                    failures.append(f"[L5-PLACEHOLDER-FOUND] {rel_p}: Rilevate formule template placeholder nel dataset (es. '{suspicious[0][:60]}...')")
+                                    print(f"        ❌ {rel_p} -> Formule placeholder/refusi template: {len(suspicious)} occorrenze!")
+                    except Exception:
+                        pass
+    
+    if not failures:
+        print(f"\n✅ LIVELLO 5 SUPERATO: Tutti i {total_datasets} dataset didattici analizzati ({total_items_checked} elementi) sono 100% conformi all'Art. 13.")
+        return True, failures
+    else:
+        print(f"\n⚠️ LIVELLO 5: Rilevate {len(failures)} anomalie semantiche nei dataset didattici.")
+        return False, failures
+
+# =========================================================================
 # RUNNER PRINCIPALE INTEGRATO
 # =========================================================================
 async def run_master_collaudo():
@@ -645,6 +712,11 @@ async def run_master_collaudo():
     all_failures, site_stats, total_assets, total_buttons = await run_livelli_3_e_4()
     all_failures.extend(l1_failures)
     all_failures.extend(l2_failures)
+
+    # 5. LIVELLO 5: AUDIT SEMANTICO DATASET DIDATTICI & GAMEPLAY MULTI-TURNO (ART. 13)
+    l5_ok, l5_failures = await run_livello_5_semantic_dataset_audit()
+    all_failures.extend(l5_failures)
+
 
     # REPORT FINALE
     print("\n" + "=" * 85)

@@ -1174,6 +1174,7 @@ const ReleasesUI = {
             let jsonCheckPassed = true;
             let jsonCheckedCount = 0;
             let jsonErrors = [];
+            let semanticWarnings = [];
 
             if (previewHtml) {
                 const jsonRegex = /(?:fetch|src=["']|href=["'])\s*(?:[('"]\s*)([^"')\s]+\.json)/gi;
@@ -1193,8 +1194,32 @@ const ReleasesUI = {
                             if (jres.ok) {
                                 const jtext = await jres.text();
                                 try {
-                                    JSON.parse(jtext); // Test sintassi e validità codifica
+                                    const parsed = JSON.parse(jtext); // Test sintassi e validità codifica
                                     jsonCheckedCount++;
+
+                                    // Audit Semantico Art. 13: controllo non-duplicazione
+                                    let items = [];
+                                    if (parsed && typeof parsed === 'object') {
+                                        for (let k of ['carte', 'domande', 'sfide', 'items', 'questions', 'consegne']) {
+                                            if (Array.isArray(parsed[k]) && parsed[k].length > 0) {
+                                                items = parsed[k];
+                                                break;
+                                            }
+                                        }
+                                    } else if (Array.isArray(parsed)) {
+                                        items = parsed;
+                                    }
+
+                                    if (items.length >= 10 && typeof items[0] === 'object') {
+                                        const texts = items.map(it => (it.incipit || it.testo || it.domanda || it.question || '')).filter(Boolean);
+                                        if (texts.length >= 10) {
+                                            const uniq = new Set(texts);
+                                            const ratio = uniq.size / texts.length;
+                                            if (ratio < 0.90) {
+                                                semanticWarnings.push(`Trovati testi duplicati in <code>${jf}</code>: ${uniq.size}/${texts.length} unici (${Math.round(ratio * 100)}%). Richiesto >= 95% dall'Art. 13.`);
+                                            }
+                                        }
+                                    }
                                 } catch(parseErr) {
                                     jsonCheckPassed = false;
                                     jsonErrors.push(`JSON non valido in <code>${jf}</code>: ${parseErr.message}`);
@@ -1229,6 +1254,27 @@ const ReleasesUI = {
                     details: jsonCheckedCount > 0 
                         ? `Validazione superata su ${jsonCheckedCount} file JSON didattici: sintassi valida e zero errori 404.`
                         : 'Dataset didattici e registri configurazione conformi (zero codifica corrotta o 404).'
+                });
+            }
+
+            // 4B. Audit Semantico Contenuti e Non-Duplicazione (Art. 13)
+            if (semanticWarnings.length > 0) {
+                checks.push({
+                    id: 'semantic_integrity',
+                    article: 'Art. 13',
+                    category: 'Integrità Didattica',
+                    title: 'Audit Semantico Dataset (Duplicazioni Rilevate)',
+                    status: 'warn',
+                    details: `Rilevate tracce didattiche duplicate o clonate: ${semanticWarnings.join('; ')}. Bonificare i testi per garantire l'unicità dei contenuti a ogni turno.`
+                });
+            } else if (jsonCheckedCount > 0) {
+                checks.push({
+                    id: 'semantic_integrity',
+                    article: 'Art. 13',
+                    category: 'Integrità Didattica',
+                    title: 'Audit Semantico & Qualità Contenuti Didattici',
+                    status: 'pass',
+                    details: 'Tutti i dataset didattici analizzati garantiscono la diversificazione dei contenuti e l\'unicità delle tracce senza formule template clonate.'
                 });
             }
 

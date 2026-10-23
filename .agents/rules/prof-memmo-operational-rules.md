@@ -178,3 +178,22 @@ Ogni volta che l'utente formula domande aperte di verifica come:
 3. **Ispezione Visiva Reale Tramite Browser Subagent**:
    - L'agente DEVE eseguire una scansione reale con il browser subagent catturando le viste chiave (Welcome, Scelta Argomento/Lobby, Tavolo di Gioco) ed emettere un report puntuale con checkbox `[X]` / `[ ]` per ciascuno dei 4 pilastri.
 
+---
+
+### ART. 13 - PROTOCOLLO DI INTEGRITÀ SEMANTICA DEI CONTENUTI, REGOLE DI PUNTEGGIO E CICLO DI TURNO (SEMANTIC & MULTI-TURN GAMEPLAY INTEGRITY GUARD)
+Valido tassativamente per tutte le applicazioni e siti presenti e futuri dell'Ecosistema Prof. Memmo:
+1. **Zero-Template e Zero-Duplicati nei Dataset Didattici (Content Uniqueness Guard)**:
+   - E' fatto divieto assoluto di rilasciare o mantenere dataset JSON/JS con testi template clonati, generici o procedurati con copia-incolla (es. formule burocratiche ripetute, refusi di sintassi, tracce identiche su più slot).
+   - Ogni mazzo, livello didattico o categoria deve possedere contenuti unici, autentici, narrativi e tarati pedagogicamente sul target scolastico reale (A1-A2 Scuola Primaria, B1 Scuola Media, B2-C2 Superiori).
+   - L'indice di unicità semantica dei testi didattici all'interno di ogni file/dataset deve essere >= 95%.
+2. **Coerenza Effetto-Punteggio (Scoring Business Logic Guard)**:
+   - Qualsiasi elemento interattivo a schermo (buzzer penalità, bonus tempo, moltiplicatori di passi, conteggio vocaboli) DEVE produrre un impatto matematico reale, verificabile ed esplicitamente visualizzato nel riepilogo a video. E' severamente vietato avere pulsanti dotati di feedback sonoro/visivo privi di impatto effettivo sulle regole di gioco o sul punteggio.
+3. **Rotazione E2E dei Contenuti nei Turni (Multi-Turn Progression Guard)**:
+   - Nei giochi a squadre o a turni, ogni transizione di turno deve garantire l'estrazione e il rendering visivo di contenuti differenti: due squadre consecutive nello stesso round o in turni contigui non possono mai visualizzare la medesima traccia identica.
+4. **Contratto Universale di Persistenza e Ripresa Sessione (Save & Resume Contract)**:
+   - Tutte le applicazioni a sessione devono salvare lo stato automaticamente a ogni turno (`autoSave`) e devono esporre:
+     1. Un banner o pulsante evidente nella schermata principale per riprendere la sessione interrotta.
+     2. Un'opzione di uscita ordinata *"Salva ed Esci"* accessibile in qualsiasi momento durante la partita.
+5. **Estensione Obbligatoria del Collaudo Automatico (Universal Test Suite Integration)**:
+   - I collaudi automatici dell'ecosistema (Master Suite `collaudo_totale.py` e Preflight Hub `releases-ui.js`) devono obbligatoriamente includere l'Audit Semantico dei dataset e la simulazione multi-turno Playwright per validare il flusso reale su tutti i siti presenti e futuri.
+
