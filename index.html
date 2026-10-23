@@ -3225,11 +3225,11 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   </div>
 
   <!-- Modal Collaudo Globale Ecosistema (Art. 1, 4, 5, 8, 9, 10) -->
-  <div id="modal-ecosystem-audit" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); backdrop-filter: blur(6px); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;" onclick="if(event.target===this) ReleasesUI.closeEcosystemAuditModal()">
-    <div class="glass-panel" style="background: #ffffff; color: var(--text-main); width: 100%; max-width: 980px; max-height: 90vh; border-radius: 20px; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.5); border: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box;">
+  <div id="modal-ecosystem-audit" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); backdrop-filter: blur(6px); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; overflow-y: auto;" onclick="if(event.target===this) ReleasesUI.closeEcosystemAuditModal()">
+    <div style="background: #ffffff; color: var(--text-main); width: 100%; max-width: 980px; height: 90vh; max-height: 90vh; border-radius: 20px; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.5); border: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; margin: auto;">
       
       <!-- Modal Header -->
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; border-bottom: 1px solid #e2e8f0; background: linear-gradient(to right, #f8fafc, #ffffff);">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; border-bottom: 1px solid #e2e8f0; background: linear-gradient(to right, #f8fafc, #ffffff); flex-shrink: 0;">
         <div style="display: flex; align-items: center; gap: 12px;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; border: 1px solid #a7f3d0;">
             <i class="fa-solid fa-clipboard-check" style="color: #10b981; font-size: 1.4rem;"></i>
@@ -3246,11 +3246,11 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
         <button onclick="ReleasesUI.closeEcosystemAuditModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.6rem; cursor: pointer; padding: 4px 8px; border-radius: 8px; transition: color 0.2s;" title="Chiudi modale">&times;</button>
       </div>
 
-      <!-- Modal Body (Scrollable) -->
-      <div style="padding: 24px 28px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 20px;">
+      <!-- Modal Body (Scrollable with min-height 0 for flex compliance) -->
+      <div style="padding: 24px 28px; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 20px;">
         
         <!-- Live Progress Section -->
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; flex-shrink: 0;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div id="ecosystem-audit-progress-text" style="font-size: 0.9rem; font-weight: 700; color: #334155;">
               In attesa di avvio collaudo...
@@ -3265,13 +3265,13 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
         </div>
 
         <!-- KPI Summary Cards (Hidden initially, shown after/during audit) -->
-        <div id="ecosystem-audit-kpi-box" style="display: none; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+        <div id="ecosystem-audit-kpi-box" style="display: none; grid-template-columns: repeat(4, 1fr); gap: 14px; flex-shrink: 0;">
           <!-- Popolato dinamicamente da ReleasesUI -->
         </div>
 
-        <!-- Sites Audit Table -->
-        <div style="border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; background: #ffffff;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+        <!-- Sites Audit Table (Responsive container with overflow-x) -->
+        <div style="border: 1px solid #e2e8f0; border-radius: 14px; overflow-x: auto; background: #ffffff; flex-shrink: 0;">
+          <table style="width: 100%; min-width: 780px; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
             <thead>
               <tr style="background: #f1f5f9; border-bottom: 1px solid #e2e8f0; color: #475569; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px;">
                 <th style="padding: 12px 14px;">Sito Ecosistema</th>
@@ -3292,7 +3292,7 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
       </div>
 
       <!-- Modal Footer -->
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 28px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 28px; border-top: 1px solid #e2e8f0; background: #f8fafc; flex-shrink: 0;">
         <div style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-shield-halved" style="color: #6366f1;"></i>
           <span>Regole operative: <code>prof-memmo-operational-rules.md</code> (Art. 1, 4, 5, 8, 9, 10, 11)</span>

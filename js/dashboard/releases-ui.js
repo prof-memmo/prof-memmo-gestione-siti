@@ -1982,6 +1982,16 @@ const ReleasesUI = {
         if (modal) {
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+
+            if (!this._auditEscapeHandler) {
+                this._auditEscapeHandler = (evt) => {
+                    if (evt.key === 'Escape') {
+                        ReleasesUI.closeEcosystemAuditModal();
+                    }
+                };
+                window.addEventListener('keydown', this._auditEscapeHandler);
+            }
+
             const saved = localStorage.getItem('hub_ecosystem_last_audit');
             if (saved && !this.isRunningGlobalAudit) {
                 try {
@@ -1996,7 +2006,11 @@ const ReleasesUI = {
         const modal = document.getElementById('modal-ecosystem-audit');
         if (modal) {
             modal.style.display = 'none';
-            document.body.style.overflow = '';
+        }
+        document.body.style.overflow = '';
+        if (this._auditEscapeHandler) {
+            window.removeEventListener('keydown', this._auditEscapeHandler);
+            this._auditEscapeHandler = null;
         }
     },
 
