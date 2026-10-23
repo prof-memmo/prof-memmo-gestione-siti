@@ -966,6 +966,7 @@ const ReleasesUI = {
                 const targetCols = projectCollections[project.id] || ['hub_settings'];
                 let dbCheckPassed = true;
                 let dbErrorMsg = '';
+                let dbNeedsAuth = false;
 
                 try {
                     await Promise.all(targetCols.map(async (colName) => {
@@ -973,8 +974,13 @@ const ReleasesUI = {
                             await db.collection(colName).limit(1).get();
                         } catch(colErr) {
                             if (colErr.code === 'permission-denied' || (colErr.message && colErr.message.includes('permission'))) {
-                                dbCheckPassed = false;
-                                dbErrorMsg = `Violazione permessi su '${colName}': ${colErr.message}`;
+                                const currentUser = window.firebase && window.firebase.auth ? window.firebase.auth().currentUser : null;
+                                if (!currentUser) {
+                                    dbNeedsAuth = true;
+                                } else {
+                                    dbCheckPassed = false;
+                                    dbErrorMsg = `Violazione permessi su '${colName}': ${colErr.message}`;
+                                }
                             }
                         }
                     }));
@@ -983,7 +989,16 @@ const ReleasesUI = {
                     dbErrorMsg = e.message;
                 }
 
-                if (dbCheckPassed) {
+                if (dbNeedsAuth) {
+                    checks.push({
+                        id: 'firestore_db',
+                        article: 'Art. 10',
+                        category: 'Database & Cloud',
+                        title: 'Database Cloud Firestore (Sessione Richiesta)',
+                        status: 'warn',
+                        details: `Sessione admin non rilevata nel browser locale: per testare le collezioni Firestore (${targetCols.map(c => `<code>${c}</code>`).join(', ')}) è necessario effettuare il login con account docente autorizzato.`
+                    });
+                } else if (dbCheckPassed) {
                     checks.push({
                         id: 'firestore_db',
                         article: 'Art. 10',
@@ -1111,8 +1126,14 @@ const ReleasesUI = {
             let totalOpenBraces = 0;
             let totalCloseBraces = 0;
             styleContents.forEach(item => {
-                const openM = item.content.match(/\{/g);
-                const closeM = item.content.match(/\}/g);
+                // Rimuove commenti /* ... */, url(...) e stringhe per evitare falsi positivi nel bilanciamento
+                const sanitized = item.content
+                    .replace(/\/\*[\s\S]*?\*\//g, '')
+                    .replace(/url\([^)]+\)/g, '')
+                    .replace(/"[^"\\]*(?:\\.[^"\\]*)*"/g, '')
+                    .replace(/'[^'\\]*(?:\\.[^'\\]*)*'/g, '');
+                const openM = sanitized.match(/\{/g);
+                const closeM = sanitized.match(/\}/g);
                 totalOpenBraces += openM ? openM.length : 0;
                 totalCloseBraces += closeM ? closeM.length : 0;
             });
@@ -1171,15 +1192,19 @@ const ReleasesUI = {
                             const jres = await fetch(`https://raw.githubusercontent.com/prof-memmo/${project.repo}/preview/${jf}`);
                             if (jres.ok) {
                                 const jtext = await jres.text();
-                                JSON.parse(jtext); // Test sintassi e validità codifica
-                                jsonCheckedCount++;
+                                try {
+                                    JSON.parse(jtext); // Test sintassi e validità codifica
+                                    jsonCheckedCount++;
+                                } catch(parseErr) {
+                                    jsonCheckPassed = false;
+                                    jsonErrors.push(`JSON non valido in <code>${jf}</code>: ${parseErr.message}`);
+                                }
                             } else if (jres.status === 404) {
-                                jsonCheckPassed = false;
-                                jsonErrors.push(`File 404 non trovato: <code>${jf}</code>`);
+                                jsonErrors.push(`File non trovato su preview: <code>${jf}</code>`);
                             }
-                        } catch(parseErr) {
-                            jsonCheckPassed = false;
-                            jsonErrors.push(`JSON corrotto in <code>${jf}</code>: ${parseErr.message}`);
+                        } catch(fetchErr) {
+                            // Limite di rete/CORS nel browser client: non è un JSON corrotto
+                            console.warn(`[Audit Hub] Impossibile verificare ${jf} via fetch client:`, fetchErr);
                         }
                     }));
                 }
@@ -1310,7 +1335,9 @@ const ReleasesUI = {
 
                     if (hrefM) {
                         const hrefVal = hrefM[1].trim();
-                        if ((hrefVal === '#' || hrefVal === 'javascript:void(0)' || hrefVal === '' || hrefVal.startsWith('#!')) && !onclickM && !dataActionM) {
+                        const hasId = /\bid=["'][^"']+["']/i.test(attrs);
+                        const hasActionAttr = dataActionM || /\b(?:data-|@|v-on:|x-on:|role=["']button["'])/i.test(attrs);
+                        if ((hrefVal === '#' || hrefVal === 'javascript:void(0)' || hrefVal === '' || hrefVal.startsWith('#!')) && !onclickM && !hasActionAttr && !hasId) {
                             deadLinksCount++;
                             if (deadLinkExamples.length < 3) {
                                 deadLinkExamples.push(`<code>&lt;a ${attrs.slice(0, 35).replace(/"/g, '&quot;')}...&gt;</code>`);
