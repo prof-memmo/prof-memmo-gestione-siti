@@ -173,7 +173,7 @@
                         <a href="${HUB_PORTAL_URL}" class="pm-guard-btn-upgrade" id="pm-guard-cta-btn">
                             <i class="fa-solid fa-crown"></i> Scopri i Piani &amp; Abbonati
                         </a>
-                        <a href="https://prof-memmo.github.io/games/giochi.html" class="pm-guard-btn-back">
+                        <a href="https://prof-memmo.github.io/games/giochi.html" class="pm-guard-btn-back" id="pm-guard-btn-back">
                             Torna al Catalogo Giochi
                         </a>
                     </div>
@@ -336,6 +336,25 @@
                 }
             }
 
+            // Utente non autenticato e nessun codice squadra su vista protetta
+            const isPrev = window.location.pathname.indexOf('/preview') !== -1;
+            const portalUrl = isPrev 
+                ? `https://prof-memmo.github.io/prof-memmo-gestione-siti/preview/portal.html?redirect=${this.gameId}`
+                : `https://prof-memmo.github.io/prof-memmo-gestione-siti/portal.html?redirect=${this.gameId}`;
+
+            this.showBlockOverlay({
+                title: "Accesso Riservato",
+                text: "Questo gioco fa parte dell'Ecosistema Didattico Prof. Memmo ed è riservato agli utenti registrati o agli studenti delle classi attive.",
+                planLabel: "Ospite (Non autenticato)",
+                ctaText: "Accedi tramite Hub",
+                ctaIcon: "fa-right-to-bracket",
+                ctaUrl: portalUrl,
+                backText: "Torna Indietro",
+                onBack: () => {
+                    this.hideBlockOverlay();
+                }
+            });
+
             return false;
         },
 
@@ -350,8 +369,24 @@
             
             const ctaBtn = document.getElementById('pm-guard-cta-btn');
             if (ctaBtn) {
-                if (details.ctaText) ctaBtn.innerHTML = `<i class="fa-solid fa-crown"></i> ${details.ctaText}`;
+                const iconClass = details.ctaIcon || 'fa-crown';
+                if (details.ctaText) ctaBtn.innerHTML = `<i class="fa-solid ${iconClass}"></i> ${details.ctaText}`;
                 if (details.ctaUrl) ctaBtn.href = details.ctaUrl;
+            }
+
+            const backBtn = document.getElementById('pm-guard-btn-back');
+            if (backBtn) {
+                if (details.backText) backBtn.textContent = details.backText;
+                if (details.onBack) {
+                    backBtn.onclick = (e) => {
+                        e.preventDefault();
+                        this.hideBlockOverlay();
+                        details.onBack();
+                    };
+                } else if (details.backUrl) {
+                    backBtn.href = details.backUrl;
+                    backBtn.onclick = null;
+                }
             }
 
             overlay.classList.add('pm-guard-active');
