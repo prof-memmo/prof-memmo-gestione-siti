@@ -197,3 +197,23 @@ Valido tassativamente per tutte le applicazioni e siti presenti e futuri dell'Ec
 5. **Estensione Obbligatoria del Collaudo Automatico (Universal Test Suite Integration)**:
    - I collaudi automatici dell'ecosistema (Master Suite `collaudo_totale.py` e Preflight Hub `releases-ui.js`) devono obbligatoriamente includere l'Audit Semantico dei dataset e la simulazione multi-turno Playwright per validare il flusso reale su tutti i siti presenti e futuri.
 
+---
+
+### ART. 14 - PROTOCOLLO DI CONGELAMENTO COMPONENTI STABILIZZATI E DIVIETO DI MODIFICA (FROZEN COMPONENTS GUARD)
+1. **Definizione di Componente Congelato / Stabilizzato**:
+   - Sono dichiarati formalmente **CONGELATI E STABILIZZATI** tutti i componenti trasversali che hanno raggiunto la conformità di ecosistema:
+     1. **Header Globale e Navigazione Superiore** (Branding, loghi, proporzioni, allineamenti, layout responsive).
+     2. **Menù a Tendina Profilo (User Dropdown)**: logica di autenticazione Firebase, SSO, lettura avatar e switch di ruolo.
+     3. **Footer Istituzionale di Copyright Patamu**: altezza fissa esatta a 52px, modali legali condivise.
+     4. **Meccaniche di Gioco Collaudate** e schermate di partita a turni validate.
+2. **Divieto Assoluto di Modifica Diretta (Freeze Lock)**:
+   - È fatto divieto assoluto all'agente di modificare, rifattorizzare, applicare pezze o alterare il codice di un componente congelato, anche in presenza di segnalazioni di anomalie o dubbi dell'utente.
+3. **Obbligo di Arresto in Read-Only e Notifica Preventiva di Congelamento**:
+   - Se l'utente o il contesto portano l'attenzione su un componente o un comportamento appartenente a un blocco congelato, l'agente DEVE:
+     1. Arrestare immediatamente l'esecuzione in modalità rigorosamente **READ-ONLY**.
+     2. Notificare esplicitamente all'utente: *"Attenzione: la parte indicata fa parte del blocco CONGELATO e STABILIZZATO dell'Ecosistema. Per preservare l'integrità ed evitare regressioni a catena, non effettuerò alcuna modifica senza la tua esplicita autorizzazione."*
+     3. Fornire una diagnosi obiettiva e attendere l'ordine scritto esplicito dell'utente prima di toccare qualsiasi file.
+4. **Bando ai Falsi Positivi di Compilazione**:
+   - È fatto divieto assoluto di considerare risolto un problema o conforme un componente basandosi esclusivamente sull'esito positivo del compilatore (`npm run build`, assenza di errori di sintassi o linter). L'unico criterio di conformità valido è il comportamento a runtime nel browser reale su tutte le piattaforme supportate.
+
+
