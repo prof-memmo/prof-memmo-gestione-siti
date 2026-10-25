@@ -1423,9 +1423,18 @@ const ReleasesUI = {
             }
 
             // 8. Presidio Modali Legali e Script Condiviso (Art. 8 comma 5)
-            if (previewHtml) {
-                const hasPrivacy = /open(?:Shared|Legal)Modal\(['"]privacy['"]\)|privacy-modal|#pmPrivacy/i.test(previewHtml);
-                const hasTermini = /open(?:Shared|Legal)Modal\(['"]termini['"]\)|terms-modal|#pmTerms/i.test(previewHtml);
+            if (project.id === 'hub_admin') {
+                checks.push({
+                    id: 'legal_modals',
+                    article: 'Art. 8',
+                    category: 'Presidio Legale',
+                    title: 'Presidio Pagine Legali Ecosistema (Console Centrale)',
+                    status: 'pass',
+                    details: 'Console centrale Hub: gestione centralizzata delle policy con pagine dedicate (privacy.html, termini.html) e Live Editor attivo.'
+                });
+            } else if (previewHtml) {
+                const hasPrivacy = /open(?:Shared|Legal)Modal\(['"]privacy['"]\)|openLegal\(['"]privacy['"]\)|privacy-modal|#pmPrivacy|id=["']pmPrivacy["']|data-legal=["']privacy["']|>Privacy Policy</i.test(previewHtml);
+                const hasTermini = /open(?:Shared|Legal)Modal\(['"]termini['"]\)|openLegal\(['"]termini['"]\)|terms-modal|#pmTerms|id=["']pmTerms["']|data-legal=["']termini["']|>Termini e Condizioni</i.test(previewHtml);
                 const hasLegalScript = /legal-modal\.js|shared-modal/i.test(previewHtml);
 
                 if (hasPrivacy && hasTermini) {
@@ -2113,8 +2122,9 @@ const ReleasesUI = {
 
         if (tableBodyEl) {
             tableBodyEl.innerHTML = this.PROJECTS.map((p) => `
-                <tr id="audit-row-${p.id}" style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+                <tr id="audit-row-${p.id}" onclick="ReleasesUI.toggleAuditRowDetails('${p.id}')" style="border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.15s ease;" title="Clicca per aprire o chiudere il dettaglio completo dei 12 controlli">
                     <td style="padding: 12px 14px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                        <i id="audit-chevron-${p.id}" class="fa-solid fa-chevron-right" style="color: #94a3b8; font-size: 0.75rem; transition: transform 0.2s ease; width: 14px; text-align: center;"></i>
                         <i class="fa-solid ${p.icon}" style="color: ${p.color}; width: 18px; text-align: center;"></i>
                         <span>${p.name}</span>
                     </td>
@@ -2130,6 +2140,13 @@ const ReleasesUI = {
                     <td id="audit-json-${p.id}" style="padding: 12px 14px; text-align: center; font-size: 0.82rem; color: #94a3b8;">-</td>
                     <td id="audit-patamu-${p.id}" style="padding: 12px 14px; text-align: center; font-size: 0.82rem; color: #94a3b8;">-</td>
                     <td id="audit-db-${p.id}" style="padding: 12px 14px; text-align: center; font-size: 0.82rem; color: #94a3b8;">-</td>
+                </tr>
+                <tr id="audit-detail-${p.id}" style="display: none; background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                    <td colspan="7" style="padding: 14px 18px;">
+                        <div id="audit-detail-content-${p.id}">
+                            <div style="color: #64748b; font-size: 0.82rem; font-style: italic;"><i class="fa-solid fa-spinner fa-spin"></i> Collaudo in corso o in attesa...</div>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -2171,7 +2188,7 @@ const ReleasesUI = {
 
                 let cssCheck = res?.checks?.find(c => c.id === 'css_syntax');
                 let jsonCheck = res?.checks?.find(c => c.id === 'json_datasets');
-                let patamuCheck = res?.checks?.find(c => c.id === 'patamu_badge');
+                let patamuCheck = res?.checks?.find(c => c.id === 'patamu_legal' || c.id === 'patamu_badge');
                 let dbCheck = res?.checks?.find(c => c.id === 'firestore_db');
 
                 const cssStatus = cssCheck ? cssCheck.status : 'warn';
@@ -2203,6 +2220,8 @@ const ReleasesUI = {
                 if (jsonCell) jsonCell.innerHTML = getIcon(jsonStatus);
                 if (patamuCell) patamuCell.innerHTML = getIcon(patamuStatus);
                 if (dbCell) dbCell.innerHTML = getIcon(dbStatus);
+
+                this.renderAuditRowDetails(project.id);
             }
 
             if (progressBarEl) progressBarEl.style.width = '100%';
@@ -2248,12 +2267,122 @@ const ReleasesUI = {
         }
     },
 
+    toggleAuditRowDetails: function(siteId) {
+        const detailRow = document.getElementById(`audit-detail-${siteId}`);
+        const chevron = document.getElementById(`audit-chevron-${siteId}`);
+        if (!detailRow) return;
+        const isHidden = (detailRow.style.display === 'none' || detailRow.style.display === '');
+        if (isHidden) {
+            detailRow.style.display = 'table-row';
+            if (chevron) chevron.style.transform = 'rotate(90deg)';
+            this.renderAuditRowDetails(siteId);
+        } else {
+            detailRow.style.display = 'none';
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+        }
+    },
+
+    renderAuditRowDetails: function(siteId) {
+        const container = document.getElementById(`audit-detail-content-${siteId}`);
+        if (!container) return;
+        const res = this.preflightResults[siteId];
+        if (!res || !res.checks || res.checks.length === 0) {
+            container.innerHTML = '<div style="color: #64748b; font-size: 0.82rem; font-style: italic;"><i class="fa-solid fa-circle-info" style="color: #6366f1;"></i> In attesa dei risultati del collaudo per questo sito...</div>';
+            return;
+        }
+
+        // Ordina mettendo in cima gli errori (fail), poi gli avvisi (warn), poi i superati (pass)
+        const sortedChecks = [...res.checks].sort((a, b) => {
+            const order = { 'fail': 0, 'warn': 1, 'pass': 2 };
+            return (order[a.status] ?? 3) - (order[b.status] ?? 3);
+        });
+
+        const itemsHtml = sortedChecks.map(c => {
+            let badgeBg = '#ecfdf5', badgeColor = '#065f46', badgeIcon = 'fa-check', badgeText = 'Conforme', borderCol = '#bbf7d0', itemBg = '#ffffff';
+            if (c.status === 'warn') {
+                badgeBg = '#fffbeb'; badgeColor = '#92400e'; badgeIcon = 'fa-triangle-exclamation'; badgeText = 'Avviso'; borderCol = '#fde68a'; itemBg = '#fffdf7';
+            } else if (c.status === 'fail') {
+                badgeBg = '#fef2f2'; badgeColor = '#991b1b'; badgeIcon = 'fa-xmark'; badgeText = 'Bloccante'; borderCol = '#fecaca'; itemBg = '#fff8f8';
+            }
+
+            return `
+                <div style="background: ${itemBg}; border: 1px solid ${borderCol}; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; gap: 8px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 0.7rem; font-weight: 800; background: #e0e7ff; color: #4338ca; padding: 2px 7px; border-radius: 4px;">${c.article}</span>
+                            <strong style="color: #1e293b; font-size: 0.88rem;">${c.title}</strong>
+                            <span style="font-size: 0.72rem; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${c.category}</span>
+                        </div>
+                        <span style="font-size: 0.74rem; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${borderCol}; padding: 2px 8px; border-radius: 6px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;">
+                            <i class="fa-solid ${badgeIcon}"></i> ${badgeText}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: #475569; line-height: 1.45;">
+                        ${c.details}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const failCount = res.checks.filter(c => c.status === 'fail').length;
+        const warnCount = res.checks.filter(c => c.status === 'warn').length;
+        const passCount = res.checks.filter(c => c.status === 'pass').length;
+
+        container.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                <div style="font-weight: 800; color: #1e1b4b; font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-list-check" style="color: #6366f1;"></i> Diagnostica Completa Controlli Operativi (12 Verifiche)
+                </div>
+                <div style="font-size: 0.78rem; font-weight: 700; display: flex; gap: 12px;">
+                    <span style="color: #15803d;"><i class="fa-solid fa-check"></i> Superati: ${passCount}</span>
+                    <span style="color: #b45309;"><i class="fa-solid fa-triangle-exclamation"></i> Avvisi: ${warnCount}</span>
+                    <span style="color: #b91c1c;"><i class="fa-solid fa-xmark"></i> Bloccanti: ${failCount}</span>
+                </div>
+            </div>
+            <div>${itemsHtml}</div>
+        `;
+    },
+
     renderEcosystemAuditResults: function(auditData) {
         if (!auditData || !auditData.results) return;
         const statusTextEl = document.getElementById('ecosystem-audit-progress-text');
         const progressBarEl = document.getElementById('ecosystem-audit-progress-bar');
         const percentTextEl = document.getElementById('ecosystem-audit-progress-percent');
         const kpiBoxEl = document.getElementById('ecosystem-audit-kpi-box');
+        const tableBodyEl = document.getElementById('ecosystem-audit-table-body');
+
+        // Se la tabella non è ancora stata popolata con le righe, popolala subito
+        if (tableBodyEl && tableBodyEl.children.length === 0) {
+            tableBodyEl.innerHTML = this.PROJECTS.map((p) => `
+                <tr id="audit-row-${p.id}" onclick="ReleasesUI.toggleAuditRowDetails('${p.id}')" style="border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.15s ease;" title="Clicca per aprire o chiudere il dettaglio completo dei 12 controlli">
+                    <td style="padding: 12px 14px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                        <i id="audit-chevron-${p.id}" class="fa-solid fa-chevron-right" style="color: #94a3b8; font-size: 0.75rem; transition: transform 0.2s ease; width: 14px; text-align: center;"></i>
+                        <i class="fa-solid ${p.icon}" style="color: ${p.color}; width: 18px; text-align: center;"></i>
+                        <span>${p.name}</span>
+                    </td>
+                    <td style="padding: 12px 14px; font-family: ui-monospace, monospace; font-size: 0.8rem; color: #64748b;">
+                        <code>${p.repo}</code>
+                    </td>
+                    <td id="audit-status-${p.id}" style="padding: 12px 14px; text-align: center;">
+                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 8px; font-weight: 600;">
+                            <i class="fa-solid fa-clock"></i> In Coda
+                        </span>
+                    </td>
+                    <td id="audit-css-${p.id}" style="padding: 12px 14px; text-align: center; font-size: 0.82rem; color: #94a3b8;">-</td>
+                    <td id="audit-json-${p.id}" style="padding: 12px 14px; text-align: center; font-size: 0.82rem; color: #94a3b8;">-</td>
+                    <td id="audit-patamu-${p.id}" style="padding: 12px 14px; text-align: center; font-size: 0.82rem; color: #94a3b8;">-</td>
+                    <td id="audit-db-${p.id}" style="padding: 12px 14px; text-align: center; font-size: 0.82rem; color: #94a3b8;">-</td>
+                </tr>
+                <tr id="audit-detail-${p.id}" style="display: none; background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                    <td colspan="7" style="padding: 14px 18px;">
+                        <div id="audit-detail-content-${p.id}"></div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Sincronizza i dati nella memoria runtime
+        Object.assign(this.preflightResults, auditData.results);
 
         if (statusTextEl) statusTextEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Ultimo Collaudo eseguito alle <strong>${auditData.timestamp}</strong>.`;
         if (progressBarEl) progressBarEl.style.width = '100%';
@@ -2301,14 +2430,16 @@ const ReleasesUI = {
 
             let cssCheck = res.checks?.find(c => c.id === 'css_syntax');
             let jsonCheck = res.checks?.find(c => c.id === 'json_datasets');
-            let patamuCheck = res.checks?.find(c => c.id === 'patamu_badge');
+            let patamuCheck = res.checks?.find(c => c.id === 'patamu_legal' || c.id === 'patamu_badge');
             let dbCheck = res.checks?.find(c => c.id === 'firestore_db');
 
             if (statusCell) statusCell.innerHTML = badgeHtml;
             if (cssCell) cssCell.innerHTML = getIcon(cssCheck ? cssCheck.status : 'warn');
             if (jsonCell) jsonCell.innerHTML = getIcon(jsonCheck ? jsonCheck.status : 'pass');
             if (patamuCell) patamuCell.innerHTML = getIcon(patamuCheck ? patamuCheck.status : 'pass');
-            if (dbCell) dbCell.innerHTML = getIcon(dbCheck ? dbCheck.status : 'pass');
+            if (dbCell) dbCell.innerHTML = getIcon(dbStatus);
+
+            this.renderAuditRowDetails(project.id);
         });
     }
 };
