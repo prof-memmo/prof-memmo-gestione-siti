@@ -194,19 +194,20 @@
 
                 try {
                     this.statusListenerUnsubscribe = db.collection('games_status').doc(this.gameId).onSnapshot(doc => {
+                        const isInternalGame = ['fantaletteratura', 'palestra-di-riflessione', 'fuori-registro'].includes(this.gameId);
                         if (doc.exists) {
                             const data = doc.data();
                             this.currentAllowedPlans = data.allowedPlans || {
-                                base: false,
+                                base: isInternalGame,
                                 viandante: true,
-                                docente_didattico: false,
+                                docente_didattico: isInternalGame,
                                 docente_ecosistema: true
                             };
                         } else {
                             this.currentAllowedPlans = {
-                                base: false,
+                                base: isInternalGame,
                                 viandante: true,
-                                docente_didattico: false,
+                                docente_didattico: isInternalGame,
                                 docente_ecosistema: true
                             };
                         }
@@ -275,11 +276,34 @@
         },
 
         verifyAccess: async function (options = {}) {
-            const { user, role, teamCode, isPublicView } = options;
+            let { user, role, teamCode, isPublicView } = options;
 
             if (isPublicView) {
                 this.hideBlockOverlay();
                 return true;
+            }
+
+            // Protezione Anti-Flicker: attende brevemente l'inizializzazione di Firebase Auth se non ancora presente
+            if (!user && !teamCode && typeof firebase !== 'undefined' && firebase.auth) {
+                user = firebase.auth().currentUser;
+                if (!user) {
+                    await new Promise(resolve => {
+                        let unsub = null;
+                        let timer = null;
+                        const done = (u) => {
+                            if (timer) clearTimeout(timer);
+                            if (unsub) unsub();
+                            if (u) user = u;
+                            resolve();
+                        };
+                        try {
+                            unsub = firebase.auth().onAuthStateChanged(u => done(u));
+                            timer = setTimeout(() => done(null), 1200);
+                        } catch (e) {
+                            resolve();
+                        }
+                    });
+                }
             }
 
             if (user && user.email && user.email.toLowerCase() === SUPER_ADMIN_EMAIL) {
@@ -294,11 +318,14 @@
                     return true;
                 } else {
                     this.showBlockOverlay({
-                        title: "Accesso Classe Non Disponibile",
-                        text: studentCheck.reason || "La tua classe non ha accesso a questo gioco.",
-                        planLabel: `Docente (${this.PLAN_LABELS[studentCheck.teacherPlan] || studentCheck.teacherPlan || 'Base'})`,
-                        ctaText: "Contatta il Docente",
-                        ctaUrl: "mailto:prof.memmo@gmail.com?subject=Richiesta%20Info%20Piano"
+                        title: "Attività non inclusa nel piano della classe",
+                        text: studentCheck.reason || "La classe appartiene a un docente il cui piano attuale (Base Gratuito) non include questo gioco. Esplora i giochi disponibili per la tua classe come FantaLetteratura e Palestra di Riflessione!",
+                        planLabel: "Classe su Piano Base Gratuito",
+                        ctaText: "Catalogo Giochi Base",
+                        ctaIcon: "fa-compass",
+                        ctaUrl: "https://prof-memmo.github.io/games/giochi.html",
+                        backText: "Torna al Catalogo",
+                        backUrl: "https://prof-memmo.github.io/games/giochi.html"
                     });
                     return false;
                 }
