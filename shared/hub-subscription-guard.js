@@ -182,6 +182,50 @@
             document.body.appendChild(overlay);
         },
 
+        currentStatusData: null,
+        isMaintenanceBlocked: false,
+
+        showMaintenanceOverlay: function () {
+            const isPrev = window.location.pathname.indexOf('/preview') !== -1;
+            const cdnBase = isPrev ? 'https://prof-memmo.github.io/prof-memmo-gestione-siti/preview/shared/' : 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/';
+            this.showBlockOverlay({
+                title: "Lavori in corso",
+                text: "Questo gioco è temporaneamente in fase di manutenzione o aggiornamento. Riprova più tardi!",
+                planLabel: "Manutenzione Straordinaria",
+                avatarSrc: cdnBase + "assets/avatars/16.png",
+                ctaText: "Torna alla Vetrina Giochi",
+                ctaIcon: "fa-person-digging",
+                ctaUrl: "https://prof-memmo.github.io/games/giochi.html",
+                backText: "Hub Centrale",
+                backUrl: "https://prof-memmo.github.io/prof-memmo-gestione-siti/portal.html"
+            });
+        },
+
+        checkMaintenanceStatus: function () {
+            if (!this.currentStatusData || this.currentStatusData.isActive !== false) {
+                if (this.isMaintenanceBlocked) {
+                    this.isMaintenanceBlocked = false;
+                    this.hideBlockOverlay();
+                }
+                return false;
+            }
+
+            const currentUser = (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
+            const isSuperAdmin = currentUser && currentUser.email && currentUser.email.toLowerCase() === SUPER_ADMIN_EMAIL;
+
+            if (isSuperAdmin) {
+                if (this.isMaintenanceBlocked) {
+                    this.isMaintenanceBlocked = false;
+                    this.hideBlockOverlay();
+                }
+                return false;
+            }
+
+            this.isMaintenanceBlocked = true;
+            this.showMaintenanceOverlay();
+            return true;
+        },
+
         listenGameStatus: function () {
             const getDb = () => window.db || (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore());
             
@@ -192,24 +236,39 @@
                     return;
                 }
 
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    try {
+                        firebase.auth().onAuthStateChanged(() => {
+                            this.checkMaintenanceStatus();
+                        });
+                    } catch (e) {}
+                }
+
                 try {
                     this.statusListenerUnsubscribe = db.collection('games_status').doc(this.gameId).onSnapshot(doc => {
                         const isInternalGame = ['fantaletteratura', 'palestra-di-riflessione', 'fuori-registro'].includes(this.gameId);
                         if (doc.exists) {
                             const data = doc.data();
+                            this.currentStatusData = data;
                             this.currentAllowedPlans = data.allowedPlans || {
                                 base: isInternalGame,
                                 viandante: true,
                                 docente_didattico: isInternalGame,
                                 docente_ecosistema: true
                             };
+                            this.checkMaintenanceStatus();
                         } else {
+                            this.currentStatusData = null;
                             this.currentAllowedPlans = {
                                 base: isInternalGame,
                                 viandante: true,
                                 docente_didattico: isInternalGame,
                                 docente_ecosistema: true
                             };
+                            if (this.isMaintenanceBlocked) {
+                                this.isMaintenanceBlocked = false;
+                                this.hideBlockOverlay();
+                            }
                         }
                     }, err => {
                         console.warn("HubSubscriptionGuard: Impossibile sincronizzare games_status:", err);
@@ -277,6 +336,10 @@
 
         verifyAccess: async function (options = {}) {
             let { user, role, teamCode, isPublicView } = options;
+
+            if (this.checkMaintenanceStatus()) {
+                return false;
+            }
 
             if (isPublicView) {
                 this.hideBlockOverlay();
@@ -393,6 +456,15 @@
             if (details.title) document.getElementById('pm-guard-title').textContent = details.title;
             if (details.text) document.getElementById('pm-guard-text').textContent = details.text;
             if (details.planLabel) document.getElementById('pm-guard-user-plan').textContent = details.planLabel;
+            
+            const avatarImg = document.getElementById('pm-guard-avatar');
+            if (avatarImg) {
+                if (details.avatarSrc) {
+                    avatarImg.src = details.avatarSrc;
+                } else {
+                    avatarImg.src = 'https://prof-memmo.github.io/prof-memmo-gestione-siti/shared/assets/avatars/capibara-lock.png';
+                }
+            }
             
             const ctaBtn = document.getElementById('pm-guard-cta-btn');
             if (ctaBtn) {
