@@ -316,58 +316,109 @@ def run_game_guard_suite(browser, screenshots_dir):
     """
     Verifica che il Guardiano Centralizzato (Hub Subscription Guard)
     blocchi l'accesso con l'avatar corretto (Capibara al PC '16.png') quando isActive = false
-    e permetta l'accesso quando isActive = true.
+    e permetta l'accesso quando isActive = true, su tutti i giochi dell'Ecosistema.
     """
     print("\n" + "="*80)
     print("FASE 3: TEST FUNZIONALE GUARDIANO MANUTENZIONE GIOCHI (HUB SUBSCRIPTION GUARD)")
-    print("Verifica avatar Capibara PC (16.png) e blocco d'accesso su 'La Rotta degli Eroi'")
+    print("Scansione di tutti gli 8 giochi dell'Ecosistema con verifica avatar Capibara PC (16.png)")
     print("="*80)
+
+    GAMES_TO_TEST = [
+        {"name": "La Rotta degli Eroi", "url": "https://prof-memmo.github.io/la-rotta-degli-eroi/preview/", "slug": "rotta"},
+        {"name": "FantaLetteratura", "url": "https://prof-memmo.github.io/fantaletteratura/preview/", "slug": "fanta"},
+        {"name": "La Corte della Commedia", "url": "https://prof-memmo.github.io/la-corte-della-commedia/preview/", "slug": "corte"},
+        {"name": "La Palestra di Riflessione", "url": "https://prof-memmo.github.io/palestra-di-riflessione/preview/", "slug": "palestra"},
+        {"name": "L'Oratore", "url": "https://prof-memmo.github.io/l-oratore/preview/", "slug": "oratore"},
+        {"name": "Ops! Storia", "url": "https://prof-memmo.github.io/ops-storia/preview/", "slug": "ops"},
+        {"name": "HistoryGram", "url": "https://prof-memmo.github.io/historygram/preview/", "slug": "historygram"},
+        {"name": "La Ruota Geografica", "url": "https://prof-memmo.github.io/la-ruota-geografica/preview/", "slug": "ruota"}
+    ]
+
+    tests = []
+    os.makedirs(screenshots_dir, exist_ok=True)
 
     context = browser.new_context(
         viewport={"width": 1280, "height": 800},
         user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36"
     )
-    page = context.new_page()
-    tests = []
 
-    url = "https://prof-memmo.github.io/la-rotta-degli-eroi/preview/"
-    print(f"\n▶ Test Guardiano su: {url}")
-    try:
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        time.sleep(2.0)
-    except Exception as e:
-        print(f"  ⚠️ Errore caricamento pilota: {e}")
+    for idx, g in enumerate(GAMES_TO_TEST, 1):
+        page = context.new_page()
+        g_name = g["name"]
+        g_url = g["url"]
+        g_slug = g["slug"]
+        print(f"\n▶ [{idx}/{len(GAMES_TO_TEST)}] Test Guardiano su: {g_name} ({g_url})")
 
-    # Verifica stato overlay di manutenzione
-    overlay_data = page.evaluate("""() => {
-        const overlay = document.getElementById('pm-subscription-overlay');
-        const img = overlay ? (overlay.querySelector('#pm-guard-avatar') || overlay.querySelector('img')) : null;
-        const title = overlay ? overlay.querySelector('#pm-guard-title, .pm-guard-title') : null;
-        return {
-            exists: !!overlay,
-            visible: overlay ? (window.getComputedStyle(overlay).display !== 'none') : false,
-            imgSrc: img ? img.src : null,
-            titleText: title ? title.innerText.trim() : null
-        };
-    }""")
-    print(f"  Dati Guardiano Rilevati: {overlay_data}")
+        try:
+            page.goto(g_url, wait_until="domcontentloaded", timeout=20000)
+            time.sleep(1.5)
+        except Exception as e:
+            print(f"  ⚠️ Errore caricamento {g_name}: {e}")
+            tests.append({"test": f"{g_name}: Caricamento Pagina Preview", "passed": False})
+            page.close()
+            continue
 
-    # Se il gioco è attualmente in manutenzione su Firestore (isActive: false)
-    if overlay_data["exists"] and overlay_data["visible"]:
+        # Verifica presenza e inizializzazione di window.HubSubscriptionGuard
+        guard_loaded = page.evaluate("() => typeof window.HubSubscriptionGuard !== 'undefined'")
+        if not guard_loaded:
+            # Attendi fino a 3 secondi aggiuntivi per caricamento script asincrono
+            for _ in range(6):
+                time.sleep(0.5)
+                guard_loaded = page.evaluate("() => typeof window.HubSubscriptionGuard !== 'undefined'")
+                if guard_loaded:
+                    break
+
+        print(f"      -> Inizializzazione Guardiano (HubSubscriptionGuard): {'PASS ✅' if guard_loaded else 'FAIL ❌'}")
+        tests.append({"test": f"{g_name}: Inizializzazione HubSubscriptionGuard", "passed": guard_loaded})
+
+        if not guard_loaded:
+            page.close()
+            continue
+
+        # Simulazione attivazione overlay Manutenzione Straordinaria (Capibara PC 16.png)
+        page.evaluate("() => { if (window.HubSubscriptionGuard.showMaintenanceOverlay) window.HubSubscriptionGuard.showMaintenanceOverlay(); }")
+        time.sleep(0.4)
+
+        overlay_data = page.evaluate("""() => {
+            const overlay = document.getElementById('pm-subscription-overlay');
+            const img = overlay ? (overlay.querySelector('#pm-guard-avatar') || overlay.querySelector('img')) : null;
+            const title = overlay ? overlay.querySelector('#pm-guard-title, .pm-guard-title') : null;
+            return {
+                exists: !!overlay,
+                visible: overlay ? (overlay.classList.contains('pm-guard-active') || window.getComputedStyle(overlay).display !== 'none') : false,
+                imgSrc: img ? img.src : null,
+                titleText: title ? title.innerText.trim() : null
+            };
+        }""")
+
+        is_overlay_active = overlay_data["exists"] and overlay_data["visible"]
         is_capibara_pc = ("16.png" in (overlay_data["imgSrc"] or ""))
-        print(f"  [1] Avatar Capibara al PC (16.png): {'PASS ✅' if is_capibara_pc else 'FAIL ❌'}")
-        tests.append({"test": "Guardiano: Avatar Capibara al PC (16.png)", "passed": is_capibara_pc})
-
         is_wip_title = ("LAVORI IN CORSO" in (overlay_data["titleText"] or "").upper())
-        print(f"  [2] Titolo 'Lavori in Corso': {'PASS ✅' if is_wip_title else 'FAIL ❌'}")
-        tests.append({"test": "Guardiano: Titolo 'Lavori in Corso'", "passed": is_wip_title})
 
-        shot_guard = os.path.join(screenshots_dir, "guardiano_capibara_pc_preview.png")
-        page.screenshot(path=shot_guard)
-        tests.append({"test": "Guardiano: Screenshot Overlay Manutenzione", "passed": True, "screenshot": shot_guard})
-    else:
-        print("  ℹ️ Gioco attualmente in stato attivo (isActive: true) o non bloccato.")
-        tests.append({"test": "Guardiano: Controllo Esecuzione", "passed": True})
+        print(f"      -> Overlay Manutenzione Visibile: {'PASS ✅' if is_overlay_active else 'FAIL ❌'}")
+        print(f"      -> Avatar Capibara PC (16.png): {'PASS ✅' if is_capibara_pc else 'FAIL ❌'} ({overlay_data['imgSrc']})")
+        print(f"      -> Titolo 'Lavori in Corso': {'PASS ✅' if is_wip_title else 'FAIL ❌'} ('{overlay_data['titleText']}')")
+
+        guard_pass = is_overlay_active and is_capibara_pc and is_wip_title
+        shot_path = os.path.join(screenshots_dir, f"guardiano_capibara_{g_slug}.png")
+        page.screenshot(path=shot_path)
+        tests.append({
+            "test": f"{g_name}: Overlay Manutenzione Capibara PC (16.png)",
+            "passed": guard_pass,
+            "screenshot": shot_path
+        })
+
+        # Test Ripristino Gioco Attivo (Hide Overlay)
+        page.evaluate("() => { if (window.HubSubscriptionGuard.hideBlockOverlay) window.HubSubscriptionGuard.hideBlockOverlay(); }")
+        time.sleep(0.3)
+        overlay_hidden = page.evaluate("""() => {
+            const overlay = document.getElementById('pm-subscription-overlay');
+            return overlay ? (!overlay.classList.contains('pm-guard-active') && window.getComputedStyle(overlay).display === 'none') : true;
+        }""")
+        print(f"      -> Ripristino Stato Normale: {'PASS ✅' if overlay_hidden else 'FAIL ❌'}")
+        tests.append({"test": f"{g_name}: Ripristino Gioco Attivo", "passed": overlay_hidden})
+
+        page.close()
 
     context.close()
     return tests
@@ -385,38 +436,47 @@ def main():
     total_passed = 0
     total_failed = 0
 
-    screenshots_dir = "/Users/guglielmopiersanti/.gemini/antigravity-ide/brain/5f527698-047a-4966-90dc-95b66482f0c2/collaudo_audit"
+    screenshots_dir = os.environ.get("COLLAUDO_SCREENSHOTS_DIR") or "/Users/guglielmopiersanti/.gemini/antigravity/brain/fb39101c-97c5-48f5-bfbe-f2005d8bad4a/collaudo_audit"
+    os.makedirs(screenshots_dir, exist_ok=True)
+
+    guard_only = "--guard-only" in sys.argv
+    skip_fase1 = "--skip-fase1" in sys.argv or guard_only
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
 
-        print("\n--- FASE 1: AUDIT E2E ELEMENTI INTERATTIVI ECOSYSTEM ---")
-        for site in ECOSYSTEM:
-            print(f"\n--- Scansione Piattaforma: {site['name']} ---")
-            
-            # Audit LIVE
-            res_live = audit_url(browser, site["live"], f"{site['name']} [LIVE]")
-            print(f"  [LIVE]    Status: {res_live['status']} | Elementi: {res_live['buttons_tested']} testati ({res_live['buttons_passed']} passati, {res_live['buttons_failed']} falliti)")
-            total_tested += res_live["buttons_tested"]
-            total_passed += res_live["buttons_passed"]
-            total_failed += res_live["buttons_failed"]
+        functional_results = []
+        guard_results = []
 
-            # Audit PREVIEW
-            res_prev = audit_url(browser, site["preview"], f"{site['name']} [PREVIEW]")
-            print(f"  [PREVIEW] Status: {res_prev['status']} | Elementi: {res_prev['buttons_tested']} testati ({res_prev['buttons_passed']} passati, {res_prev['buttons_failed']} falliti)")
-            total_tested += res_prev["buttons_tested"]
-            total_passed += res_prev["buttons_passed"]
-            total_failed += res_prev["buttons_failed"]
+        if not skip_fase1:
+            print("\n--- FASE 1: AUDIT E2E ELEMENTI INTERATTIVI ECOSYSTEM ---")
+            for site in ECOSYSTEM:
+                print(f"\n--- Scansione Piattaforma: {site['name']} ---")
+                
+                # Audit LIVE
+                res_live = audit_url(browser, site["live"], f"{site['name']} [LIVE]")
+                print(f"  [LIVE]    Status: {res_live['status']} | Elementi: {res_live['buttons_tested']} testati ({res_live['buttons_passed']} passati, {res_live['buttons_failed']} falliti)")
+                total_tested += res_live["buttons_tested"]
+                total_passed += res_live["buttons_passed"]
+                total_failed += res_live["buttons_failed"]
 
-            all_errs = res_live["errors"] + res_prev["errors"]
-            if all_errs:
-                for err in all_errs[:2]:
-                    print(f"    ⚠️ Errore runtime rilevato: {err}")
+                # Audit PREVIEW
+                res_prev = audit_url(browser, site["preview"], f"{site['name']} [PREVIEW]")
+                print(f"  [PREVIEW] Status: {res_prev['status']} | Elementi: {res_prev['buttons_tested']} testati ({res_prev['buttons_passed']} passati, {res_prev['buttons_failed']} falliti)")
+                total_tested += res_prev["buttons_tested"]
+                total_passed += res_prev["buttons_passed"]
+                total_failed += res_prev["buttons_failed"]
+
+                all_errs = res_live["errors"] + res_prev["errors"]
+                if all_errs:
+                    for err in all_errs[:2]:
+                        print(f"    ⚠️ Errore runtime rilevato: {err}")
 
         # FASE 2: Test Funzionale Dinamico
-        functional_results = run_functional_visibility_suite(browser, screenshots_dir)
+        if not guard_only:
+            functional_results = run_functional_visibility_suite(browser, screenshots_dir)
 
-        # FASE 3: Test Guardiano Manutenzione
+        # FASE 3: Test Guardiano Manutenzione (Tutti gli 8 Giochi)
         guard_results = run_game_guard_suite(browser, screenshots_dir)
 
         browser.close()
