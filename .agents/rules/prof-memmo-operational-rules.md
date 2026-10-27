@@ -1,5 +1,5 @@
 # REGOLE OPERATIVE DI SICUREZZA PER L'ECOSISTEMA PROF. MEMMO
-# Versione 2.3 - Consolidata e Blindata (19 Ottobre 2026)
+# Versione 2.4 - Consolidata, Blindata e Armonizzata (27 Ottobre 2026)
 
 Tutti gli agenti AI e i programmatori che operano sui repository dell'Ecosistema Prof. Memmo DEVONO rispettare rigorosamente le seguenti regole inderogabili.
 
@@ -93,9 +93,10 @@ Prima di considerare conclusa qualsiasi sessione di lavoro o rilascio, è fatto 
    - **Zero 404 / 500 / 503**: Ogni singolo foglio di stile CSS, script JS, font web, immagine, logo, video e manifest collegato alle pagine deve rispondere con HTTP 200 OK.
    - **Coerenza di radice e URL Encoding**: Nessun percorso di immagine o video può contenere spazi grezzi o apici conflittuali negli attributi HTML (devono essere codificati con `%20` o normalizzati a livello di filesystem).
 
-2. **LIVELLO 2: AUDIT BROWSER REALE & RUNTIME CONSOLE (ZERO-ERRORI JS RUNTIME)**:
+2. **LIVELLO 2: AUDIT BROWSER REALE, CONSOLE & CROSS-BROWSER SCOLASTICO (CHROMIUM + WEBKIT/SAFARI)**:
    - **Rendering e Booting Completo**: Apertura automatizzata delle pagine preview tramite motore browser reale (Playwright / Headless Browser).
    - **Ispezione Console Obbligatoria**: Nessuna eccezione JavaScript non gestita ammessa in console (`console.error`, `Uncaught TypeError`, ecc.).
+   - **Verifica Cross-Browser Scolastica**: Il percorso critico di autenticazione e accesso studente (portale, inserimento codice classe, selezione roster e token) deve essere validato obbligatoriamente sia su motore Chromium sia su motore WebKit (Safari), assicurando piena compatibilità con tablet e iPad utilizzati nelle scuole.
    - **Certificazione Firebase/Auth**: Monitoraggio del completamento del bootstrap dei servizi cloud (es. emissione evento `firebaseHubReady` o log di successo `🔥 Firebase Hub Centrale Unico inizializzato`).
 
 3. **LIVELLO 3: TEST FUNZIONALE E2E E ZERO DEAD-CLICKS (INTERACTION & BUTTON LIFECYCLE GUARD)**:
@@ -138,6 +139,10 @@ Nelle applicazioni che integrano Firebase e Firestore, prima del rilascio su `pr
 5. **Integrità Asset di Rete e Policy Audio**:
    - Verifica di zero errori `404 Not Found` nel tab Network per risorse JSON didattiche, avatar, icone o suoni.
    - Nelle app dotate di `AudioEngine`, verificare che nessun audio venga avviato prima del primo gesto/click dell'utente, prevenendo eccezioni non gestite `NotAllowedError: play() failed`.
+6. **Standard Manutenzione Straordinaria & Guardiano Centralizzato (WIP Guard)**:
+   - Ogni gioco dell'Ecosistema deve integrare il Guardiano Centralizzato (`shared/hub-subscription-guard.js`). Quando un gioco è disattivato su Firestore (`isActive: false`):
+     - Nel portale Vetrina e nell'Archivio: il pulsante deve assumere la classe `.wip-link` con etichetta *"Lavori in corso"* e aprire la modale informativa dedicata.
+     - Nel gioco diretto: l'overlay deve mostrare obbligatoriamente l'avatar ufficiale del **Capibara al PC con caffè (`16.png`)**, il titolo *"Lavori in corso"* / *"Manutenzione Straordinaria"* e i pulsanti di rientro al portale.
 
 ---
 
@@ -164,7 +169,7 @@ Ogni volta che l'utente formula domande aperte di verifica come:
 
 1. **Divieto di Fermarsi al Solo Collaudo Tecnico (Anti-False-Positive Guard)**:
    - L'agente NON DEVE limitarsi a verificare se il codice compila, se i test di rete danno HTTP 200 o se il git working tree è pulito. Per un linter o test di rete, un pulsante orfano o un testo grafico illeggibile risultano "100% OK", ma violano gli standard didattici dell'Ecosistema.
-2. **Audit Obbligatorio sui 4 Pilastri di Conformità UX & LIM**:
+2. **Audit Obbligatorio sui 5 Pilastri di Conformità UX & LIM**:
    - **Pilastro 1: Zero-Scroll Viewport**: La vista operativa del gioco deve essere rigorosamente contenuta al 100% all'interno del viewport (desktop/LIM), senza barre di scorrimento verticali parassite.
    - **Pilastro 2: Eliminazione Ridondanze UI (Zero-Redundancy Guard)**: Nessun pulsante a centro schermo deve duplicare azioni già presenti negli elementi primari di gioco (es. ruote, tabelloni, carte) o nella dock bar inferiore (es. pulsante "Regolamento" duplicato nella welcome o pulsanti "Reset/Free" ridondanti sotto elementi interattivi).
    - **Pilastro 3: Leggibilità Grafica e Canvas a Distanza LIM (3 Metri)**:
@@ -175,8 +180,11 @@ Ogni volta che l'utente formula domande aperte di verifica come:
      - Presenza obbligatoria della modale "Riprendi Partita" e gestione salvataggi in LocalStorage.
      - Visualizzazione delle prove/sfide estratte tramite modale pop-up centrale ad alto contrasto con timer dedicato (non testo inline statico sotto gli elementi).
      - Proporzioni armoniose dei pulsanti primari (mai bottoni sovradimensionati che rompono la gerarchia visiva).
+   - **Pilastro 5: Sovranità dell'Hub Admin e Divieto Assoluto di Hardcoding**:
+     - Qualsiasi impostazione, descrizione delle card, elenco punti, prezzo, sconto promozionale, stato di attivazione di un gioco (`games_status`) o configurazione didattica che possa essere modificata dall'utente tramite il pannello di controllo dell'Hub centrale (`prof-memmo-gestione-siti`), **NON DEVE MAI essere modificata o forzata nel codice sorgente statico dall'agente**.
+     - L'agente ha il dovere di indicare all'utente la sezione precisa dell'Hub in cui intervenire in autonomia e limitarsi nel codice a garantire la corretta sincronizzazione dinamica con Firestore.
 3. **Ispezione Visiva Reale Tramite Browser Subagent**:
-   - L'agente DEVE eseguire una scansione reale con il browser subagent catturando le viste chiave (Welcome, Scelta Argomento/Lobby, Tavolo di Gioco) ed emettere un report puntuale con checkbox `[X]` / `[ ]` per ciascuno dei 4 pilastri.
+   - L'agente DEVE eseguire una scansione reale con il browser subagent catturando le viste chiave (Welcome, Scelta Argomento/Lobby, Tavolo di Gioco) ed emettere un report puntuale con checkbox `[X]` / `[ ]` per ciascuno dei 5 pilastri.
 
 ---
 
@@ -215,5 +223,3 @@ Valido tassativamente per tutte le applicazioni e siti presenti e futuri dell'Ec
      3. Fornire una diagnosi obiettiva e attendere l'ordine scritto esplicito dell'utente prima di toccare qualsiasi file.
 4. **Bando ai Falsi Positivi di Compilazione**:
    - È fatto divieto assoluto di considerare risolto un problema o conforme un componente basandosi esclusivamente sull'esito positivo del compilatore (`npm run build`, assenza di errori di sintassi o linter). L'unico criterio di conformità valido è il comportamento a runtime nel browser reale su tutte le piattaforme supportate.
-
-

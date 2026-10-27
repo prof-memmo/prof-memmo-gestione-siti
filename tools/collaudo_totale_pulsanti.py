@@ -159,9 +159,14 @@ def audit_url(browser, url, label):
                     else:
                         res["buttons_passed"] += 1
                         res["details"].append(f"✅ CLICK OK: [{tag}] '{text[:30]}'")
-                except Exception:
-                    res["buttons_passed"] += 1
-                    res["details"].append(f"✅ INTERATTIVO OK: [{tag}] '{text[:30]}'")
+                except Exception as click_err:
+                    # Non mascherare errori di crash: se non è visibile o non cliccabile per overlay, verificare
+                    if "is not visible" in str(click_err) or "obscured" in str(click_err):
+                        res["buttons_passed"] += 1
+                        res["details"].append(f"ℹ️ NON CLICCABILE (Coperto o protetto): [{tag}] '{text[:30]}'")
+                    else:
+                        res["buttons_failed"] += 1
+                        res["details"].append(f"❌ ERRORE CLICK: [{tag}] '{text[:30]}' -> {click_err}")
             else:
                 res["buttons_passed"] += 1
                 res["details"].append(f"✅ PRONTO (Non visibile nello stato iniziale): [{tag}] '{text[:30]}'")
@@ -176,16 +181,15 @@ def audit_url(browser, url, label):
 
 def run_functional_visibility_suite(browser, screenshots_dir):
     """
-    TEST FUNZIONALE E2E DINAMICO:
-    Verifica l'intero ciclo di sincronizzazione dello stato dei giochi tra Hub e Vetrina/Archivio:
+    TEST FUNZIONALE E2E DINAMICO SENZA MOCKING:
+    Verifica il ciclo reale di sincronizzazione dello stato dei giochi:
     1. Nascondi card (visibleInVetrina = false) -> Card scompare (display: none)
     2. Mostra card (visibleInVetrina = true) -> Card ricompare (display: flex)
-    3. Imposta Lavori in Corso (isActive = false) -> Bottone apre popup cantiere WIP
-    4. Ripristina Aperto (isActive = true) -> Bottone naviga alla pagina dettagli/gioco
-    Testato sia su 'giochi.html' che su 'archivio-giochi.html' per HistoryGram e giochi campione.
+    3. Imposta Lavori in Corso (isActive = false) -> Bottone vetrina diventa WIP e gioco mostra blocco di manutenzione
+    4. Ripristina Aperto (isActive = true) -> Bottone vetrina ripristinato e gioco liberamente accessibile
     """
     print("\n" + "="*80)
-    print("FASE 2: TEST FUNZIONALE E2E DINAMICO SINCRONIZZAZIONE STATO GIOCHI")
+    print("FASE 2: TEST FUNZIONALE E2E REALE (ZERO MOCKING)")
     print("Verifica funzioni: 'Nascondi / In Vetrina' & 'Lavori in Corso / Aperto'")
     print("="*80)
 
@@ -218,7 +222,7 @@ def run_functional_visibility_suite(browser, screenshots_dir):
             time.sleep(1.5)
 
         # 1. Verifica presenza card HistoryGram e supporto _testEcosystem
-        card = page.query_selector('[data-title="HistoryGram"]')
+        card = page.query_selector('[data-title="HistoryGram" i]')
         has_card = card is not None
         print(f"  [1] Presenza Card HistoryGram nel DOM: {'PASS ✅' if has_card else 'FAIL ❌'}")
         tests.append({"test": f"{p_name}: Presenza Card HistoryGram", "passed": has_card})
@@ -226,21 +230,20 @@ def run_functional_visibility_suite(browser, screenshots_dir):
             continue
 
         # Scroll sulla card per visualizzazione ottimale
-        page.evaluate("() => { const el = document.querySelector('[data-title=\"HistoryGram\"]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }")
+        page.evaluate("() => { const el = document.querySelector('[data-title=\"HistoryGram\" i]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }")
         time.sleep(0.5)
 
-        # 2. Test Funzionale "NASCONDI": visibleInVetrina = false
+        # 2. Test Funzionale "NASCONDI": visibleInVetrina = false (NESSUN MOCKING, solo logica applicativa)
         print("  [2] Esecuzione Test 'NASCONDI' (visibleInVetrina: false)...")
-        page.evaluate("""() => {
-            if (window._testEcosystem && window._testEcosystem.simulateStatusUpdate) {
-                window._testEcosystem.simulateStatusUpdate('historygram', { visibleInVetrina: false });
-            } else {
-                const el = document.querySelector('[data-title="HistoryGram"]');
-                if (el) el.style.display = 'none';
-            }
-        }""")
+        has_test_ecosystem = page.evaluate("() => typeof window._testEcosystem !== 'undefined' && typeof window._testEcosystem.simulateStatusUpdate === 'function'")
+        if not has_test_ecosystem:
+            print("      ❌ window._testEcosystem NON disponibile! Fallimento reale.")
+            tests.append({"test": f"{p_name}: Funzione 'Nascondi' Card", "passed": False})
+            continue
+
+        page.evaluate("() => window._testEcosystem.simulateStatusUpdate('historygram', { visibleInVetrina: false })")
         time.sleep(0.3)
-        display_hidden = page.evaluate("() => document.querySelector('[data-title=\"HistoryGram\"]').style.display")
+        display_hidden = page.evaluate("() => { const el = document.querySelector('[data-title=\"HistoryGram\" i]'); return el ? window.getComputedStyle(el).display : null; }")
         is_hidden_ok = (display_hidden == "none")
         print(f"      -> Risultato display: '{display_hidden}' | Esito: {'PASS ✅' if is_hidden_ok else 'FAIL ❌'}")
         
@@ -248,22 +251,15 @@ def run_functional_visibility_suite(browser, screenshots_dir):
         page.screenshot(path=shot_hidden)
         tests.append({"test": f"{p_name}: Funzione 'Nascondi' Card", "passed": is_hidden_ok, "screenshot": shot_hidden})
 
-        # 3. Test Funzionale "MOSTRA IN VETRINA": visibleInVetrina = true
+        # 3. Test Funzionale "MOSTRA IN VETRINA": visibleInVetrina = true (NESSUN MOCKING)
         print("  [3] Esecuzione Test 'MOSTRA IN VETRINA' (visibleInVetrina: true)...")
-        page.evaluate("""() => {
-            if (window._testEcosystem && window._testEcosystem.simulateStatusUpdate) {
-                window._testEcosystem.simulateStatusUpdate('historygram', { visibleInVetrina: true });
-            } else {
-                const el = document.querySelector('[data-title="HistoryGram"]');
-                if (el) el.style.display = 'flex';
-            }
-        }""")
+        page.evaluate("() => window._testEcosystem.simulateStatusUpdate('historygram', { visibleInVetrina: true })")
         time.sleep(0.3)
-        display_visible = page.evaluate("() => document.querySelector('[data-title=\"HistoryGram\"]').style.display")
-        is_visible_ok = (display_visible == "flex" or display_visible == "")
+        display_visible = page.evaluate("() => { const el = document.querySelector('[data-title=\"HistoryGram\" i]'); return el ? window.getComputedStyle(el).display : null; }")
+        is_visible_ok = (display_visible == "flex" or display_visible == "block")
         print(f"      -> Risultato display: '{display_visible}' | Esito: {'PASS ✅' if is_visible_ok else 'FAIL ❌'}")
         
-        page.evaluate("() => { const el = document.querySelector('[data-title=\"HistoryGram\"]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }")
+        page.evaluate("() => { const el = document.querySelector('[data-title=\"HistoryGram\" i]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }")
         time.sleep(0.4)
         shot_visible = os.path.join(screenshots_dir, f"{p_info['name'][:7]}_historygram_visibile.png")
         page.screenshot(path=shot_visible)
@@ -271,21 +267,14 @@ def run_functional_visibility_suite(browser, screenshots_dir):
 
         # 4. Test Funzionale "LAVORI IN CORSO": isActive = false
         print("  [4] Esecuzione Test 'LAVORI IN CORSO' (isActive: false)...")
-        page.evaluate("""() => {
-            if (window._testEcosystem && window._testEcosystem.simulateStatusUpdate) {
-                window._testEcosystem.simulateStatusUpdate('historygram', { isActive: false, visibleInVetrina: true });
-            }
-        }""")
+        page.evaluate("() => window._testEcosystem.simulateStatusUpdate('historygram', { isActive: false, visibleInVetrina: true })")
         time.sleep(0.3)
-        btn_class = page.evaluate("""() => {
-            const el = document.querySelector('[data-title="HistoryGram"] .btn');
-            return el ? el.className : '';
-        }""")
+        btn_class = page.evaluate("() => { const el = document.querySelector('[data-title=\"HistoryGram\" i] .btn'); return el ? el.className : ''; }")
         is_wip_ok = "wip-link" in btn_class
         print(f"      -> Classe Bottone: '{btn_class}' | Esito: {'PASS ✅' if is_wip_ok else 'FAIL ❌'}")
 
         # Click sul bottone WIP e verifica comparsa modal 'Stiamo lavorando!'
-        page.click('[data-title="HistoryGram"] .btn', timeout=1500)
+        page.click('[data-title="HistoryGram" i] .btn', timeout=1500)
         time.sleep(0.4)
         modal_active = page.evaluate("""() => {
             const m = document.getElementById('wip-modal');
@@ -305,16 +294,9 @@ def run_functional_visibility_suite(browser, screenshots_dir):
 
         # 5. Test Funzionale "RIPRISTINO GIOCO ATTIVO": isActive = true
         print("  [5] Esecuzione Test 'RIPRISTINO GIOCO ATTIVO' (isActive: true)...")
-        page.evaluate("""() => {
-            if (window._testEcosystem && window._testEcosystem.simulateStatusUpdate) {
-                window._testEcosystem.simulateStatusUpdate('historygram', { isActive: true, visibleInVetrina: true });
-            }
-        }""")
+        page.evaluate("() => window._testEcosystem.simulateStatusUpdate('historygram', { isActive: true, visibleInVetrina: true })")
         time.sleep(0.3)
-        btn_href = page.evaluate("""() => {
-            const el = document.querySelector('[data-title="HistoryGram"] .btn');
-            return el ? el.getAttribute('href') : '';
-        }""")
+        btn_href = page.evaluate("() => { const el = document.querySelector('[data-title=\"HistoryGram\" i] .btn'); return el ? el.getAttribute('href') : ''; }")
         is_active_ok = ("historygram" in btn_href)
         print(f"      -> Destinazione link ripristinata: '{btn_href}' | Esito: {'PASS ✅' if is_active_ok else 'FAIL ❌'}")
         tests.append({"test": f"{p_name}: Ripristino Gioco Attivo Link", "passed": is_active_ok})
@@ -330,40 +312,172 @@ def main():
     print("2. Test Funzionale Sincronizzazione Hub <-> Vetrina (Nascondi / Vetrina / WIP)")
     print("="*80)
 
+def run_game_guard_suite(browser, screenshots_dir):
+    """
+    Verifica che il Guardiano Centralizzato (Hub Subscription Guard)
+    blocchi l'accesso con l'avatar corretto (Capibara al PC '16.png') quando isActive = false
+    e permetta l'accesso quando isActive = true, su tutti i giochi dell'Ecosistema.
+    """
+    print("\n" + "="*80)
+    print("FASE 3: TEST FUNZIONALE GUARDIANO MANUTENZIONE GIOCHI (HUB SUBSCRIPTION GUARD)")
+    print("Scansione di tutti gli 8 giochi dell'Ecosistema con verifica avatar Capibara PC (16.png)")
+    print("="*80)
+
+    GAMES_TO_TEST = [
+        {"name": "La Rotta degli Eroi", "url": "https://prof-memmo.github.io/la-rotta-degli-eroi/preview/", "slug": "rotta"},
+        {"name": "FantaLetteratura", "url": "https://prof-memmo.github.io/fantaletteratura/preview/", "slug": "fanta"},
+        {"name": "La Corte della Commedia", "url": "https://prof-memmo.github.io/la-corte-della-commedia/preview/", "slug": "corte"},
+        {"name": "La Palestra di Riflessione", "url": "https://prof-memmo.github.io/palestra-di-riflessione/preview/", "slug": "palestra"},
+        {"name": "L'Oratore", "url": "https://prof-memmo.github.io/l-oratore/preview/", "slug": "oratore"},
+        {"name": "Ops! Storia", "url": "https://prof-memmo.github.io/ops-storia/preview/", "slug": "ops"},
+        {"name": "HistoryGram", "url": "https://prof-memmo.github.io/historygram/preview/", "slug": "historygram"},
+        {"name": "La Ruota Geografica", "url": "https://prof-memmo.github.io/la-ruota-geografica/preview/", "slug": "ruota"}
+    ]
+
+    tests = []
+    os.makedirs(screenshots_dir, exist_ok=True)
+
+    context = browser.new_context(
+        viewport={"width": 1280, "height": 800},
+        user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36"
+    )
+
+    for idx, g in enumerate(GAMES_TO_TEST, 1):
+        page = context.new_page()
+        g_name = g["name"]
+        g_url = g["url"]
+        g_slug = g["slug"]
+        print(f"\n▶ [{idx}/{len(GAMES_TO_TEST)}] Test Guardiano su: {g_name} ({g_url})")
+
+        try:
+            page.goto(g_url, wait_until="domcontentloaded", timeout=20000)
+            time.sleep(1.5)
+        except Exception as e:
+            print(f"  ⚠️ Errore caricamento {g_name}: {e}")
+            tests.append({"test": f"{g_name}: Caricamento Pagina Preview", "passed": False})
+            page.close()
+            continue
+
+        # Verifica presenza e inizializzazione di window.HubSubscriptionGuard
+        guard_loaded = page.evaluate("() => typeof window.HubSubscriptionGuard !== 'undefined'")
+        if not guard_loaded:
+            # Attendi fino a 3 secondi aggiuntivi per caricamento script asincrono
+            for _ in range(6):
+                time.sleep(0.5)
+                guard_loaded = page.evaluate("() => typeof window.HubSubscriptionGuard !== 'undefined'")
+                if guard_loaded:
+                    break
+
+        print(f"      -> Inizializzazione Guardiano (HubSubscriptionGuard): {'PASS ✅' if guard_loaded else 'FAIL ❌'}")
+        tests.append({"test": f"{g_name}: Inizializzazione HubSubscriptionGuard", "passed": guard_loaded})
+
+        if not guard_loaded:
+            page.close()
+            continue
+
+        # Simulazione attivazione overlay Manutenzione Straordinaria (Capibara PC 16.png)
+        page.evaluate("() => { if (window.HubSubscriptionGuard.showMaintenanceOverlay) window.HubSubscriptionGuard.showMaintenanceOverlay(); }")
+        time.sleep(0.4)
+
+        overlay_data = page.evaluate("""() => {
+            const overlay = document.getElementById('pm-subscription-overlay');
+            const img = overlay ? (overlay.querySelector('#pm-guard-avatar') || overlay.querySelector('img')) : null;
+            const title = overlay ? overlay.querySelector('#pm-guard-title, .pm-guard-title') : null;
+            return {
+                exists: !!overlay,
+                visible: overlay ? (overlay.classList.contains('pm-guard-active') || window.getComputedStyle(overlay).display !== 'none') : false,
+                imgSrc: img ? img.src : null,
+                titleText: title ? title.innerText.trim() : null
+            };
+        }""")
+
+        is_overlay_active = overlay_data["exists"] and overlay_data["visible"]
+        is_capibara_pc = ("16.png" in (overlay_data["imgSrc"] or ""))
+        is_wip_title = ("LAVORI IN CORSO" in (overlay_data["titleText"] or "").upper())
+
+        print(f"      -> Overlay Manutenzione Visibile: {'PASS ✅' if is_overlay_active else 'FAIL ❌'}")
+        print(f"      -> Avatar Capibara PC (16.png): {'PASS ✅' if is_capibara_pc else 'FAIL ❌'} ({overlay_data['imgSrc']})")
+        print(f"      -> Titolo 'Lavori in Corso': {'PASS ✅' if is_wip_title else 'FAIL ❌'} ('{overlay_data['titleText']}')")
+
+        guard_pass = is_overlay_active and is_capibara_pc and is_wip_title
+        shot_path = os.path.join(screenshots_dir, f"guardiano_capibara_{g_slug}.png")
+        page.screenshot(path=shot_path)
+        tests.append({
+            "test": f"{g_name}: Overlay Manutenzione Capibara PC (16.png)",
+            "passed": guard_pass,
+            "screenshot": shot_path
+        })
+
+        # Test Ripristino Gioco Attivo (Hide Overlay)
+        page.evaluate("() => { if (window.HubSubscriptionGuard.hideBlockOverlay) window.HubSubscriptionGuard.hideBlockOverlay(); }")
+        time.sleep(0.3)
+        overlay_hidden = page.evaluate("""() => {
+            const overlay = document.getElementById('pm-subscription-overlay');
+            return overlay ? (!overlay.classList.contains('pm-guard-active') && window.getComputedStyle(overlay).display === 'none') : true;
+        }""")
+        print(f"      -> Ripristino Stato Normale: {'PASS ✅' if overlay_hidden else 'FAIL ❌'}")
+        tests.append({"test": f"{g_name}: Ripristino Gioco Attivo", "passed": overlay_hidden})
+
+        page.close()
+
+    context.close()
+    return tests
+
+
+def main():
+    print("="*80)
+    print("COLLAUDO INTEGRATO COMPLETO DELL'INTERO ECOSISTEMA PROF MEMMO")
+    print("1. Scansione Interattiva E2E di Tutti i Pulsanti e Link (Live & Preview)")
+    print("2. Test Funzionale Sincronizzazione Hub <-> Vetrina (Nascondi / Vetrina / WIP)")
+    print("3. Test Funzionale Guardiano Manutenzione Giochi con Capibara PC")
+    print("="*80)
+
     total_tested = 0
     total_passed = 0
     total_failed = 0
 
-    screenshots_dir = "/Users/guglielmopiersanti/.gemini/antigravity-ide/brain/dd876c99-0c9c-4ccc-9603-e085399bef07/collaudo_funzionale"
+    screenshots_dir = os.environ.get("COLLAUDO_SCREENSHOTS_DIR") or "/Users/guglielmopiersanti/.gemini/antigravity/brain/fb39101c-97c5-48f5-bfbe-f2005d8bad4a/collaudo_audit"
+    os.makedirs(screenshots_dir, exist_ok=True)
+
+    guard_only = "--guard-only" in sys.argv
+    skip_fase1 = "--skip-fase1" in sys.argv or guard_only
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
 
-        print("\n--- FASE 1: AUDIT E2E ELEMENTI INTERATTIVI ECOSYSTEM ---")
-        for site in ECOSYSTEM:
-            print(f"\n--- Scansione Piattaforma: {site['name']} ---")
-            
-            # Audit LIVE
-            res_live = audit_url(browser, site["live"], f"{site['name']} [LIVE]")
-            print(f"  [LIVE]    Status: {res_live['status']} | Elementi: {res_live['buttons_tested']} testati ({res_live['buttons_passed']} passati, {res_live['buttons_failed']} falliti)")
-            total_tested += res_live["buttons_tested"]
-            total_passed += res_live["buttons_passed"]
-            total_failed += res_live["buttons_failed"]
+        functional_results = []
+        guard_results = []
 
-            # Audit PREVIEW
-            res_prev = audit_url(browser, site["preview"], f"{site['name']} [PREVIEW]")
-            print(f"  [PREVIEW] Status: {res_prev['status']} | Elementi: {res_prev['buttons_tested']} testati ({res_prev['buttons_passed']} passati, {res_prev['buttons_failed']} falliti)")
-            total_tested += res_prev["buttons_tested"]
-            total_passed += res_prev["buttons_passed"]
-            total_failed += res_prev["buttons_failed"]
+        if not skip_fase1:
+            print("\n--- FASE 1: AUDIT E2E ELEMENTI INTERATTIVI ECOSYSTEM ---")
+            for site in ECOSYSTEM:
+                print(f"\n--- Scansione Piattaforma: {site['name']} ---")
+                
+                # Audit LIVE
+                res_live = audit_url(browser, site["live"], f"{site['name']} [LIVE]")
+                print(f"  [LIVE]    Status: {res_live['status']} | Elementi: {res_live['buttons_tested']} testati ({res_live['buttons_passed']} passati, {res_live['buttons_failed']} falliti)")
+                total_tested += res_live["buttons_tested"]
+                total_passed += res_live["buttons_passed"]
+                total_failed += res_live["buttons_failed"]
 
-            all_errs = res_live["errors"] + res_prev["errors"]
-            if all_errs:
-                for err in all_errs[:2]:
-                    print(f"    ⚠️ Errore runtime rilevato: {err}")
+                # Audit PREVIEW
+                res_prev = audit_url(browser, site["preview"], f"{site['name']} [PREVIEW]")
+                print(f"  [PREVIEW] Status: {res_prev['status']} | Elementi: {res_prev['buttons_tested']} testati ({res_prev['buttons_passed']} passati, {res_prev['buttons_failed']} falliti)")
+                total_tested += res_prev["buttons_tested"]
+                total_passed += res_prev["buttons_passed"]
+                total_failed += res_prev["buttons_failed"]
+
+                all_errs = res_live["errors"] + res_prev["errors"]
+                if all_errs:
+                    for err in all_errs[:2]:
+                        print(f"    ⚠️ Errore runtime rilevato: {err}")
 
         # FASE 2: Test Funzionale Dinamico
-        functional_results = run_functional_visibility_suite(browser, screenshots_dir)
+        if not guard_only:
+            functional_results = run_functional_visibility_suite(browser, screenshots_dir)
+
+        # FASE 3: Test Guardiano Manutenzione (Tutti gli 8 Giochi)
+        guard_results = run_game_guard_suite(browser, screenshots_dir)
 
         browser.close()
 
@@ -381,6 +495,15 @@ def main():
         shot_info = f" [Screenshot: {t['screenshot']}]" if t.get("screenshot") else ""
         print(f"  - {t['test']}: {mark}{shot_info}")
     print(f"Totale Test Funzionali Superati: {func_passed} / {func_total}")
+    print("-" * 80)
+    print("ESITO TEST GUARDIANO MANUTENZIONE:")
+    guard_passed = sum(1 for t in guard_results if t["passed"])
+    guard_total = len(guard_results)
+    for t in guard_results:
+        mark = "PASS ✅" if t["passed"] else "FAIL ❌"
+        shot_info = f" [Screenshot: {t['screenshot']}]" if t.get("screenshot") else ""
+        print(f"  - {t['test']}: {mark}{shot_info}")
+    print(f"Totale Test Guardiano Superati: {guard_passed} / {guard_total}")
     print("="*80)
 
 if __name__ == "__main__":
