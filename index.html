@@ -866,7 +866,7 @@
             <div class="materia-label">Tutti</div>
             <div class="materia-value" id="counter-tutti">--</div>
         </div>
-        <div class="hub-card" id="card-stats-studenti" onclick="HubApp.filterIscrittiByCard('studenti')">
+        <div class="hub-card hub-card-static" id="card-stats-studenti" style="cursor: default;" title="Totale studenti partecipanti alle classi didattiche (Dato aggregato e anonimizzato nel rispetto della privacy dei minori)">
             <i class="fa-solid fa-user-graduate materia-icon" style="color: #6366f1;"></i>
             <div class="materia-label">Studenti</div>
             <div class="materia-value" id="counter-studenti">--</div>
@@ -1243,9 +1243,8 @@
               <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main);">1. Destinatari (Ruolo o Piano Utente)</label>
               <select id="notif-target-group" class="input-form" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);" onchange="document.getElementById('notif-email-single-container').style.display = this.value === 'single' ? 'block' : 'none';">
                 <optgroup label="Per Ruolo">
-                  <option value="all">Tutti gli utenti (Docenti, Studenti, Viandanti)</option>
+                  <option value="all">Tutti gli account (Docenti e Viandanti)</option>
                   <option value="docenti">Solo Docenti</option>
-                  <option value="studenti">Solo Studenti</option>
                   <option value="viandanti">Solo Viandanti</option>
                 </optgroup>
                 <optgroup label="Per Piano / Abbonamento">

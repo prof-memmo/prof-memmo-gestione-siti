@@ -114,17 +114,42 @@ const CrossProjectsService = {
         const scuoleSet = new Set();
         let totalRosterStudents = 0;
 
-        // 1. Fetch Classi Centrali per calcolo scuole e studenti roster
+        // Lista email di test e collaudo da escludere dai conteggi e utenti reali
+        const TEST_EMAILS = [
+            'testhero12345@gmail.com',
+            'test@example.com',
+            'docente.aurora@gmail.com',
+            'achille.studente@gmail.com',
+            'ulisse.studente@gmail.com',
+            'artu.studente@gmail.com',
+            'probe_id@studenti.prof-memmo.local'
+        ];
+
+        // 1. Fetch Classi Centrali per calcolo scuole e studenti roster reali
         try {
             const snapClasses = await window.fbDb.hub.collection("hub_classes").get();
             snapClasses.forEach(doc => {
                 const cData = doc.data() || {};
                 hubClasses.push({ id: doc.id, ...cData });
-                if (cData.school && cData.school.trim() && cData.school.toUpperCase() !== 'N/A') {
-                    scuoleSet.add(cData.school.trim().toLowerCase());
-                }
-                if (Array.isArray(cData.students)) {
-                    totalRosterStudents += cData.students.length;
+
+                // Filtra classi di test/collaudo per conteggiare unicamente studenti reali
+                const cCode = String(cData.code || '').toUpperCase().trim();
+                const cName = String(cData.name || cData.nome || cData.className || '').toLowerCase().trim();
+                const tEmail = String(cData.teacherEmail || cData.docenteEmail || '').toLowerCase().trim();
+                const isTestClass = cData.isTest === true || 
+                                    cCode.startsWith('TEST') || 
+                                    cName.startsWith('test ') || 
+                                    cName === 'test' ||
+                                    cName.includes('collaudo') ||
+                                    TEST_EMAILS.includes(tEmail);
+
+                if (!isTestClass) {
+                    if (cData.school && cData.school.trim() && cData.school.toUpperCase() !== 'N/A') {
+                        scuoleSet.add(cData.school.trim().toLowerCase());
+                    }
+                    if (Array.isArray(cData.students)) {
+                        totalRosterStudents += cData.students.length;
+                    }
                 }
             });
         } catch(e) {
@@ -150,14 +175,6 @@ const CrossProjectsService = {
                 const nomeStr = data.anagrafica ? ((data.anagrafica.nome || '') + " " + (data.anagrafica.cognome || '')) : (data.nome || data.name || data.displayName || 'Utente');
                 
                 // ESCLUDI E PURGA account fittizi di test
-                const TEST_EMAILS = [
-                    'testhero12345@gmail.com',
-                    'test@example.com',
-                    'docente.aurora@gmail.com',
-                    'achille.studente@gmail.com',
-                    'ulisse.studente@gmail.com',
-                    'artu.studente@gmail.com'
-                ];
                 if (TEST_EMAILS.includes(emailKey)) {
                     if (window.fbDb && window.fbDb.hub && doc.id) {
                         window.fbDb.hub.collection("hub_users").doc(doc.id).delete().catch(() => {});
