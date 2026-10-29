@@ -457,7 +457,13 @@
 
             // Percorso Studente: sia con codice esplicito, sia per ruolo studente autenticato/SSO
             const isStudentRole = role === 'studente' || (user && user.email && user.email.includes('@studente.profmemmo.it'));
-            const effectiveCode = teamCode || (typeof localStorage !== 'undefined' && (localStorage.getItem('hub_user_class') || localStorage.getItem('pm_student_class') || localStorage.getItem('fanta_active_team_code'))) || '';
+            let storedCode = '';
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    storedCode = localStorage.getItem('hub_user_class') || localStorage.getItem('pm_student_class') || localStorage.getItem('fanta_active_team_code') || '';
+                }
+            } catch (e) {}
+            const effectiveCode = teamCode || storedCode || '';
 
             if (isStudentRole || (effectiveCode && !user)) {
                 const studentCheck = await this.validateStudentAccess(effectiveCode, user);
