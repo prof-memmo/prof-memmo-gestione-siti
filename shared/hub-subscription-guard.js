@@ -288,48 +288,129 @@
             return this.currentAllowedPlans[normalized] === true;
         },
 
-        validateStudentAccess: async function (teamCode) {
-            if (!teamCode) {
-                return { allowed: false, reason: "Nessun codice squadra fornito." };
+        validateStudentAccess: async function (teamCode, studentUser = null) {
+            if (!teamCode && !studentUser) {
+                return { allowed: false, reason: "Nessun codice squadra o classe fornito." };
             }
 
-            const db = window.db || (typeof firebase !== 'undefined' && firebase.firestore());
+            const db = window.db || (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore());
             if (!db) {
                 return { allowed: true };
             }
 
             try {
-                const snapTeam = await db.collection('teams').where("joinCode", "==", teamCode.toUpperCase()).limit(1).get();
-                if (snapTeam.empty) {
-                    return { allowed: false, reason: "Codice squadra non valido o non trovato." };
+                const cleanCode = String(teamCode || '').trim();
+                const upperCode = cleanCode.toUpperCase();
+                const lowerCode = cleanCode.toLowerCase();
+
+                let teacherEmail = '';
+                let teacherId = '';
+
+                // 1. Prova ricerca in 'teams' (Squadre FantaLetteratura / Tornei)
+                if (upperCode) {
+                    try {
+                        const snapTeam = await db.collection('teams').where("joinCode", "==", upperCode).limit(1).get();
+                        if (!snapTeam.empty) {
+                            const teamData = snapTeam.docs[0].data() || {};
+                            teacherEmail = (teamData.ownerEmail || '').toLowerCase();
+                            teacherId = teamData.teacherId || teamData.ownerId || '';
+                        }
+                    } catch (e) {}
                 }
 
-                const teamData = snapTeam.docs[0].data();
-                const ownerEmail = (teamData.ownerEmail || '').toLowerCase();
+                // 2. Se non trovato in 'teams', cerca nelle classi dell'Ecosistema ('hub_classes' e fallback 'classes')
+                if (!teacherEmail && !teacherId && upperCode) {
+                    const classCollections = ['hub_classes', 'classes'];
+                    for (const colName of classCollections) {
+                        try {
+                            // Cerca per codice classe esatto (es. "3B")
+                            let snapClass = await db.collection(colName).where("code", "==", upperCode).limit(1).get();
+                            if (snapClass.empty && upperCode !== cleanCode) {
+                                snapClass = await db.collection(colName).where("code", "==", cleanCode).limit(1).get();
+                            }
+                            // Cerca per ID documento diretto (es. "classe_3b" o "3b")
+                            if (snapClass.empty && lowerCode) {
+                                const directDoc = await db.collection(colName).doc(lowerCode).get();
+                                if (directDoc.exists) {
+                                    snapClass = { empty: false, docs: [directDoc] };
+                                }
+                            }
+                            if (snapClass.empty && lowerCode && !lowerCode.startsWith('classe_')) {
+                                const directDoc = await db.collection(colName).doc('classe_' + lowerCode).get();
+                                if (directDoc.exists) {
+                                    snapClass = { empty: false, docs: [directDoc] };
+                                }
+                            }
 
-                if (ownerEmail === SUPER_ADMIN_EMAIL) {
-                    return { allowed: true };
+                            if (!snapClass.empty) {
+                                const classData = snapClass.docs[0].data() || {};
+                                teacherEmail = (classData.teacherEmail || '').toLowerCase();
+                                teacherId = classData.teacherId || (Array.isArray(classData.teacherIds) ? classData.teacherIds[0] : '') || '';
+                                break;
+                            }
+                        } catch (e) {}
+                    }
                 }
 
-                if (!ownerEmail) {
-                    return { allowed: false, reason: "Squadra non associata a un docente valido." };
+                // 3. Se abbiamo uno studente autenticato con teacherId nei claims o nel profilo
+                if (!teacherEmail && !teacherId && studentUser) {
+                    if (studentUser.teacherId) {
+                        teacherId = studentUser.teacherId;
+                    } else if (typeof studentUser.getIdTokenResult === 'function') {
+                        try {
+                            const tok = await studentUser.getIdTokenResult();
+                            if (tok && tok.claims && tok.claims.teacherId) {
+                                teacherId = tok.claims.teacherId;
+                            }
+                        } catch (e) {}
+                    }
                 }
 
+                // 4. Se la squadra o classe appartiene al Super-Admin
+                if (teacherEmail === SUPER_ADMIN_EMAIL) {
+                    return { allowed: true, teacherPlan: 'docente_ecosistema' };
+                }
+
+                // Se non è stato trovato alcun riferimento al docente
+                if (!teacherEmail && !teacherId) {
+                    // Sessioni libere o dimostrative
+                    if (upperCode === 'DEMO' || upperCode === 'LIBERA' || upperCode === 'TEST') {
+                        return { allowed: true, teacherPlan: 'demo' };
+                    }
+                    return { allowed: false, reason: "Classe o squadra non trovata nel sistema. Verifica il codice con il tuo docente." };
+                }
+
+                // 5. Risolvi il piano del docente in 'hub_users'
                 let teacherSub = 'base';
-                const snapUsers = await db.collection('hub_users').where("email", "==", ownerEmail).limit(1).get();
-                if (!snapUsers.empty) {
-                    const uData = snapUsers.docs[0].data();
-                    teacherSub = uData.subscription || uData.abbonamento || 'base';
+                if (teacherId) {
+                    try {
+                        const snapT = await db.collection('hub_users').doc(teacherId).get();
+                        if (snapT.exists) {
+                            const uData = snapT.data() || {};
+                            teacherSub = uData.subscription || uData.abbonamento || 'base';
+                        }
+                    } catch (e) {}
+                }
+
+                if (teacherSub === 'base' && teacherEmail) {
+                    try {
+                        const snapTEmail = await db.collection('hub_users').where("email", "==", teacherEmail).limit(1).get();
+                        if (!snapTEmail.empty) {
+                            const uData = snapTEmail.docs[0].data() || {};
+                            teacherSub = uData.subscription || uData.abbonamento || 'base';
+                        }
+                    } catch (e) {}
                 }
 
                 const isAllowed = this.isPlanAllowed(teacherSub);
                 return {
                     allowed: isAllowed,
                     teacherPlan: teacherSub,
-                    reason: isAllowed ? null : "La classe appartiene a un docente il cui piano attuale non include questo gioco."
+                    reason: isAllowed ? null : `La classe appartiene a un docente il cui piano attuale (${this.PLAN_LABELS[teacherSub] || teacherSub}) non include questo gioco.`
                 };
             } catch (e) {
                 console.error("HubSubscriptionGuard validateStudentAccess error:", e);
+                // Fallback amichevole per non bloccare le sessioni di classe in corso in caso di timeout di rete
                 return { allowed: true };
             }
         },
@@ -374,16 +455,20 @@
                 return true;
             }
 
-            if (teamCode && (role === 'studente' || !user)) {
-                const studentCheck = await this.validateStudentAccess(teamCode);
+            // Percorso Studente: sia con codice esplicito, sia per ruolo studente autenticato/SSO
+            const isStudentRole = role === 'studente' || (user && user.email && user.email.includes('@studente.profmemmo.it'));
+            const effectiveCode = teamCode || (typeof localStorage !== 'undefined' && (localStorage.getItem('hub_user_class') || localStorage.getItem('pm_student_class') || localStorage.getItem('fanta_active_team_code'))) || '';
+
+            if (isStudentRole || (effectiveCode && !user)) {
+                const studentCheck = await this.validateStudentAccess(effectiveCode, user);
                 if (studentCheck.allowed) {
                     this.hideBlockOverlay();
                     return true;
                 } else {
                     this.showBlockOverlay({
                         title: "Attività non inclusa nel piano della classe",
-                        text: studentCheck.reason || "La classe appartiene a un docente il cui piano attuale (Base Gratuito) non include questo gioco. Esplora i giochi disponibili per la tua classe come FantaLetteratura e Palestra di Riflessione!",
-                        planLabel: "Classe su Piano Base Gratuito",
+                        text: studentCheck.reason || "La classe appartiene a un docente il cui piano attuale non include questo gioco. Esplora i giochi disponibili per la tua classe come FantaLetteratura e Palestra di Riflessione!",
+                        planLabel: `Classe (${this.PLAN_LABELS[studentCheck.teacherPlan] || studentCheck.teacherPlan || 'Base'})`,
                         ctaText: "Catalogo Giochi Base",
                         ctaIcon: "fa-compass",
                         ctaUrl: "https://prof-memmo.github.io/games/giochi.html",
@@ -395,7 +480,7 @@
             }
 
             if (user) {
-                const db = window.db || (typeof firebase !== 'undefined' && firebase.firestore());
+                const db = window.db || (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore());
                 let userSub = 'base';
 
                 if (db) {
