@@ -206,6 +206,98 @@ const GamesUI = {
                 document.getElementById('edit-game-plan-docente').checked = allowed.docente_didattico === true;
                 document.getElementById('edit-game-plan-ecosistema').checked = allowed.docente_ecosistema === true;
             }
+
+            // Gestione Sotto-Edizioni / Volumi (ESCLUSIVO per Il mio quaderno alternativo e Travel Agency)
+            const elEditionsContainer = document.getElementById('edit-game-editions-container');
+            const elEditionsList = document.getElementById('edit-game-editions-list');
+
+            if (gameId === 'il-mio-quaderno-alternativo' || gameId === 'travel-agency') {
+                if (elEditionsContainer) elEditionsContainer.style.display = 'block';
+                const editionsData = data.editions || {};
+
+                if (gameId === 'il-mio-quaderno-alternativo') {
+                    const c1Active = editionsData['classe-1'] ? editionsData['classe-1'].isActive !== false : true;
+                    const c2Active = editionsData['classe-2'] ? editionsData['classe-2'].isActive === true : false;
+                    const c3Active = editionsData['classe-3'] ? editionsData['classe-3'].isActive === true : false;
+
+                    if (elEditionsList) {
+                        elEditionsList.innerHTML = `
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 8px; background: white; border: 1px solid #bfdbfe; cursor: pointer;">
+                                <div>
+                                    <strong style="color: #7c3aed; font-size: 0.9rem;">Classe Prima</strong>
+                                    <div style="font-size: 0.78rem; color: #64748b;">Percorso introduttivo identità e valori</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span id="label-edition-quaderno-1" style="font-size: 0.8rem; font-weight: 600; color: ${c1Active ? '#16a34a' : '#ea580c'};">${c1Active ? 'Disponibile' : 'In lavorazione'}</span>
+                                    <input type="checkbox" id="edit-edition-quaderno-1" ${c1Active ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;" onchange="document.getElementById('label-edition-quaderno-1').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-edition-quaderno-1').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 8px; background: white; border: 1px solid #bfdbfe; cursor: pointer;">
+                                <div>
+                                    <strong style="color: #0891b2; font-size: 0.9rem;">Classe Seconda</strong>
+                                    <div style="font-size: 0.78rem; color: #64748b;">Etica delle relazioni e cittadinanza</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span id="label-edition-quaderno-2" style="font-size: 0.8rem; font-weight: 600; color: ${c2Active ? '#16a34a' : '#ea580c'};">${c2Active ? 'Disponibile' : 'In lavorazione'}</span>
+                                    <input type="checkbox" id="edit-edition-quaderno-2" ${c2Active ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;" onchange="document.getElementById('label-edition-quaderno-2').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-edition-quaderno-2').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 8px; background: white; border: 1px solid #bfdbfe; cursor: pointer;">
+                                <div>
+                                    <strong style="color: #b45309; font-size: 0.9rem;">Classe Terza</strong>
+                                    <div style="font-size: 0.78rem; color: #64748b;">Libertà, giustizia, ambiente e futuro</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span id="label-edition-quaderno-3" style="font-size: 0.8rem; font-weight: 600; color: ${c3Active ? '#16a34a' : '#ea580c'};">${c3Active ? 'Disponibile' : 'In lavorazione'}</span>
+                                    <input type="checkbox" id="edit-edition-quaderno-3" ${c3Active ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;" onchange="document.getElementById('label-edition-quaderno-3').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-edition-quaderno-3').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                                </div>
+                            </label>
+                        `;
+                    }
+                } else if (gameId === 'travel-agency') {
+                    const eurActive = editionsData['europe'] ? editionsData['europe'].isActive !== false : true;
+                    const wrlActive = editionsData['world'] ? editionsData['world'].isActive !== false : true;
+                    const frnActive = editionsData['friends'] ? editionsData['friends'].isActive !== false : true;
+
+                    if (elEditionsList) {
+                        elEditionsList.innerHTML = `
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 8px; background: white; border: 1px solid #bfdbfe; cursor: pointer;">
+                                <div>
+                                    <strong style="color: #3b82f6; font-size: 0.9rem;">🇪🇺 Explore Europe</strong>
+                                    <div style="font-size: 0.78rem; color: #64748b;">Seconda di Primo Grado</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span id="label-edition-travel-eur" style="font-size: 0.8rem; font-weight: 600; color: ${eurActive ? '#16a34a' : '#ea580c'};">${eurActive ? 'Disponibile' : 'In lavorazione'}</span>
+                                    <input type="checkbox" id="edit-edition-travel-europe" ${eurActive ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;" onchange="document.getElementById('label-edition-travel-eur').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-edition-travel-eur').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 8px; background: white; border: 1px solid #bfdbfe; cursor: pointer;">
+                                <div>
+                                    <strong style="color: #0284c7; font-size: 0.9rem;">🌍 Around the World</strong>
+                                    <div style="font-size: 0.78rem; color: #64748b;">Terza di Primo Grado</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span id="label-edition-travel-wrl" style="font-size: 0.8rem; font-weight: 600; color: ${wrlActive ? '#16a34a' : '#ea580c'};">${wrlActive ? 'Disponibile' : 'In lavorazione'}</span>
+                                    <input type="checkbox" id="edit-edition-travel-world" ${wrlActive ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;" onchange="document.getElementById('label-edition-travel-wrl').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-edition-travel-wrl').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 8px; background: white; border: 1px solid #bfdbfe; cursor: pointer;">
+                                <div>
+                                    <strong style="color: #f59e0b; font-size: 0.9rem;">💼 For Friends</strong>
+                                    <div style="font-size: 0.78rem; color: #64748b;">Adulti e Party</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span id="label-edition-travel-frn" style="font-size: 0.8rem; font-weight: 600; color: ${frnActive ? '#16a34a' : '#ea580c'};">${frnActive ? 'Disponibile' : 'In lavorazione'}</span>
+                                    <input type="checkbox" id="edit-edition-travel-friends" ${frnActive ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;" onchange="document.getElementById('label-edition-travel-frn').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-edition-travel-frn').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                                </div>
+                            </label>
+                        `;
+                    }
+                }
+            } else {
+                if (elEditionsContainer) elEditionsContainer.style.display = 'none';
+                if (elEditionsList) elEditionsList.innerHTML = '';
+            }
             
             document.getElementById('modal-edit-game').style.display = 'flex';
         }).catch(err => {
@@ -249,6 +341,27 @@ const GamesUI = {
             uso: document.getElementById('edit-game-uso').value,
             allowedPlans: allowedPlansToSave
         };
+
+        // Salvataggio Edizioni / Volumi (ESCLUSIVO per Il mio quaderno alternativo e Travel Agency)
+        if (gameId === 'il-mio-quaderno-alternativo') {
+            const chk1 = document.getElementById('edit-edition-quaderno-1');
+            const chk2 = document.getElementById('edit-edition-quaderno-2');
+            const chk3 = document.getElementById('edit-edition-quaderno-3');
+            dataToSave.editions = {
+                'classe-1': { isActive: chk1 ? chk1.checked : true, label: 'Classe Prima' },
+                'classe-2': { isActive: chk2 ? chk2.checked : false, label: 'Classe Seconda' },
+                'classe-3': { isActive: chk3 ? chk3.checked : false, label: 'Classe Terza' }
+            };
+        } else if (gameId === 'travel-agency') {
+            const chkEur = document.getElementById('edit-edition-travel-europe');
+            const chkWrl = document.getElementById('edit-edition-travel-world');
+            const chkFrn = document.getElementById('edit-edition-travel-friends');
+            dataToSave.editions = {
+                'europe': { isActive: chkEur ? chkEur.checked : true, label: 'Explore Europe' },
+                'world': { isActive: chkWrl ? chkWrl.checked : true, label: 'Around the World' },
+                'friends': { isActive: chkFrn ? chkFrn.checked : true, label: 'For Friends' }
+            };
+        }
         
         window.GamesService.saveGameDetails(gameId, dataToSave).then(() => {
             document.getElementById('modal-edit-game').style.display = 'none';
