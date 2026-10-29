@@ -59,7 +59,14 @@ const GamesUI = {
                             ${isAccessOpen ? '<i class="fa-solid fa-circle-check"></i> Aperto' : '<i class="fa-solid fa-person-digging"></i> Lavori in corso'}
                         </button>
                     </td>
-                    <td style="padding:15px 10px; text-align: right;">
+                    <td style="padding:15px 10px; text-align: right; white-space: nowrap;">
+                        ${(game.id === 'il-mio-quaderno-alternativo' || game.id === 'travel-agency') ? `
+                            <button class="btn btn-sm" onclick="window.GamesUI.openEditionsModal('${game.id}', '${game.name}')" 
+                                title="Gestisci lo stato delle singole classi ed edizioni"
+                                style="background:${game.id === 'il-mio-quaderno-alternativo' ? '#7c3aed' : '#0284c7'}; color:white; padding:6px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size: 0.82rem; margin-right: 8px; transition: transform 0.15s; display: inline-flex; align-items: center; gap: 6px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <i class="fa-solid fa-layer-group"></i> Edizioni
+                            </button>
+                        ` : ''}
                         <button class="btn btn-sm" onclick="HubApp.editGame('${game.id}', '${game.name}')" 
                             style="background:#4f46e5; color:white; padding:6px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size: 0.82rem; transition: transform 0.15s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-pen-to-square"></i> Modifica Card
@@ -369,6 +376,133 @@ const GamesUI = {
         }).catch(err => {
             console.error("Firebase write error:", err);
             alert("Errore di salvataggio. Controlla le regole Firebase. Dettagli: " + err.message);
+        });
+    },
+
+    openEditionsModal: function(gameId, gameName) {
+        if (!window.GamesService) return;
+        document.getElementById('editions-modal-game-name').innerText = gameName;
+        document.getElementById('editions-modal-game-id').value = gameId;
+        const elList = document.getElementById('editions-modal-list');
+        if (!elList) return;
+
+        window.GamesService.getGameDetails(gameId).then(data => {
+            const editionsData = data.editions || {};
+
+            if (gameId === 'il-mio-quaderno-alternativo') {
+                const c1Active = editionsData['classe-1'] ? editionsData['classe-1'].isActive !== false : true;
+                const c2Active = editionsData['classe-2'] ? editionsData['classe-2'].isActive === true : false;
+                const c3Active = editionsData['classe-3'] ? editionsData['classe-3'].isActive === true : false;
+
+                elList.innerHTML = `
+                    <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <div>
+                            <strong style="color: #7c3aed; font-size: 0.95rem;">Classe Prima</strong>
+                            <div style="font-size: 0.78rem; color: #64748b;">Percorso identità, valori e convivenza</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="label-pop-quad-1" style="font-size: 0.82rem; font-weight: 700; color: ${c1Active ? '#16a34a' : '#ea580c'};">${c1Active ? 'Disponibile' : 'In lavorazione'}</span>
+                            <input type="checkbox" id="pop-edition-quad-1" ${c1Active ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer;" onchange="document.getElementById('label-pop-quad-1').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-pop-quad-1').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <div>
+                            <strong style="color: #0891b2; font-size: 0.95rem;">Classe Seconda</strong>
+                            <div style="font-size: 0.78rem; color: #64748b;">Etica delle relazioni e dialogo interculturale</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="label-pop-quad-2" style="font-size: 0.82rem; font-weight: 700; color: ${c2Active ? '#16a34a' : '#ea580c'};">${c2Active ? 'Disponibile' : 'In lavorazione'}</span>
+                            <input type="checkbox" id="pop-edition-quad-2" ${c2Active ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer;" onchange="document.getElementById('label-pop-quad-2').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-pop-quad-2').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <div>
+                            <strong style="color: #b45309; font-size: 0.95rem;">Classe Terza</strong>
+                            <div style="font-size: 0.78rem; color: #64748b;">Libertà, giustizia, ambiente e futuro</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="label-pop-quad-3" style="font-size: 0.82rem; font-weight: 700; color: ${c3Active ? '#16a34a' : '#ea580c'};">${c3Active ? 'Disponibile' : 'In lavorazione'}</span>
+                            <input type="checkbox" id="pop-edition-quad-3" ${c3Active ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer;" onchange="document.getElementById('label-pop-quad-3').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-pop-quad-3').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                        </div>
+                    </label>
+                `;
+            } else if (gameId === 'travel-agency') {
+                const eurActive = editionsData['europe'] ? editionsData['europe'].isActive !== false : true;
+                const wrlActive = editionsData['world'] ? editionsData['world'].isActive !== false : true;
+                const frnActive = editionsData['friends'] ? editionsData['friends'].isActive !== false : true;
+
+                elList.innerHTML = `
+                    <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <div>
+                            <strong style="color: #3b82f6; font-size: 0.95rem;">🇪🇺 Explore Europe</strong>
+                            <div style="font-size: 0.78rem; color: #64748b;">Seconda di Primo Grado</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="label-pop-trv-eur" style="font-size: 0.82rem; font-weight: 700; color: ${eurActive ? '#16a34a' : '#ea580c'};">${eurActive ? 'Disponibile' : 'In lavorazione'}</span>
+                            <input type="checkbox" id="pop-edition-trv-eur" ${eurActive ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer;" onchange="document.getElementById('label-pop-trv-eur').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-pop-trv-eur').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <div>
+                            <strong style="color: #0284c7; font-size: 0.95rem;">🌍 Around the World</strong>
+                            <div style="font-size: 0.78rem; color: #64748b;">Terza di Primo Grado</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="label-pop-trv-wrl" style="font-size: 0.82rem; font-weight: 700; color: ${wrlActive ? '#16a34a' : '#ea580c'};">${wrlActive ? 'Disponibile' : 'In lavorazione'}</span>
+                            <input type="checkbox" id="pop-edition-trv-wrl" ${wrlActive ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer;" onchange="document.getElementById('label-pop-trv-wrl').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-pop-trv-wrl').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <div>
+                            <strong style="color: #f59e0b; font-size: 0.95rem;">💼 For Friends</strong>
+                            <div style="font-size: 0.78rem; color: #64748b;">Adulti e Party Game</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="label-pop-trv-frn" style="font-size: 0.82rem; font-weight: 700; color: ${frnActive ? '#16a34a' : '#ea580c'};">${frnActive ? 'Disponibile' : 'In lavorazione'}</span>
+                            <input type="checkbox" id="pop-edition-trv-frn" ${frnActive ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer;" onchange="document.getElementById('label-pop-trv-frn').innerText = this.checked ? 'Disponibile' : 'In lavorazione'; document.getElementById('label-pop-trv-frn').style.color = this.checked ? '#16a34a' : '#ea580c';">
+                        </div>
+                    </label>
+                `;
+            }
+
+            document.getElementById('modal-edit-editions').style.display = 'flex';
+        }).catch(err => {
+            console.error("Error fetching game editions details", err);
+            alert("Errore nel recupero delle edizioni: " + err.message);
+        });
+    },
+
+    saveEditionsOnly: function() {
+        if (!window.GamesService) return;
+        const gameId = document.getElementById('editions-modal-game-id').value;
+        let editionsToSave = {};
+
+        if (gameId === 'il-mio-quaderno-alternativo') {
+            const chk1 = document.getElementById('pop-edition-quad-1');
+            const chk2 = document.getElementById('pop-edition-quad-2');
+            const chk3 = document.getElementById('pop-edition-quad-3');
+            editionsToSave = {
+                'classe-1': { isActive: chk1 ? chk1.checked : true, label: 'Classe Prima' },
+                'classe-2': { isActive: chk2 ? chk2.checked : false, label: 'Classe Seconda' },
+                'classe-3': { isActive: chk3 ? chk3.checked : false, label: 'Classe Terza' }
+            };
+        } else if (gameId === 'travel-agency') {
+            const chkEur = document.getElementById('pop-edition-trv-eur');
+            const chkWrl = document.getElementById('pop-edition-trv-wrl');
+            const chkFrn = document.getElementById('pop-edition-trv-frn');
+            editionsToSave = {
+                'europe': { isActive: chkEur ? chkEur.checked : true, label: 'Explore Europe' },
+                'world': { isActive: chkWrl ? chkWrl.checked : true, label: 'Around the World' },
+                'friends': { isActive: chkFrn ? chkFrn.checked : true, label: 'For Friends' }
+            };
+        }
+
+        window.GamesService.saveGameDetails(gameId, { editions: editionsToSave }).then(() => {
+            document.getElementById('modal-edit-editions').style.display = 'none';
+            alert("Stato edizioni aggiornato con successo!");
+        }).catch(err => {
+            console.error("Firebase write error:", err);
+            alert("Errore di salvataggio: " + err.message);
         });
     }
 };

@@ -639,6 +639,30 @@
     </div>
   </div>
 
+  <!-- Modal Rapido Gestione Edizioni (Solo Il mio quaderno alternativo e Travel Agency) -->
+  <div id="modal-edit-editions" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
+    <div class="glass-panel" style="background: white; width: 100%; max-width: 500px; padding: 25px; border-radius: 12px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+        <h3 style="margin: 0; color: #1e40af; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-layer-group" style="color: #3b82f6;"></i>
+          <span>Gestione Edizioni: <span id="editions-modal-game-name" style="color: var(--text-main);"></span></span>
+        </h3>
+        <button type="button" onclick="document.getElementById('modal-edit-editions').style.display='none'" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b;">&times;</button>
+      </div>
+      <p style="margin: 0 0 16px 0; font-size: 0.85rem; color: #64748b; line-height: 1.45;">
+        Attiva o metti in lavorazione le singole edizioni di questo materiale. Le modifiche saranno visibili immediatamente:
+      </p>
+      <input type="hidden" id="editions-modal-game-id">
+      <div id="editions-modal-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px;">
+        <!-- Popolato dinamicamente da GamesUI.openEditionsModal -->
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn outline" onclick="document.getElementById('modal-edit-editions').style.display='none'">Annulla</button>
+        <button type="button" class="btn" onclick="window.GamesUI.saveEditionsOnly()" style="background: #3b82f6; color: white; font-weight: 600;">Salva Stato Edizioni</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Main Content -->
   <main class="hub-main">
     
