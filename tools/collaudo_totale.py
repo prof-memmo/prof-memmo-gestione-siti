@@ -413,6 +413,40 @@ async def run_livello_2_user_journey(active_code):
             if total_students <= 0:
                 b_failures.append(f"[L2-{browser_type_name.upper()}-EMPTY] Nessuno studente presente nel roster ({active_code})")
 
+            # 4. Collaudo E2E Accesso Gioco Studente su HistoryGram (Zero-Capibara Guard)
+            hg_url = f"{'https://prof-memmo.github.io/historygram/preview/' if is_preview else 'https://prof-memmo.github.io/historygram/'}?class={active_code}&role=studente"
+            print(f"        -> [{browser_type_name.upper()}] Collaudo E2E Studente su HistoryGram: {hg_url}")
+            await page.goto(hg_url, wait_until="domcontentloaded", timeout=15000)
+            await page.wait_for_timeout(1000)
+
+            # Inietta mock/profilo studente per sessione attiva
+            await page.evaluate(f"""() => {{
+                localStorage.setItem('hub_user_name', 'STUDENTE COLLAUDO');
+                localStorage.setItem('hub_user_role', 'studente');
+                localStorage.setItem('hub_user_class', '{active_code}');
+                localStorage.setItem('pm_student_class', '{active_code}');
+            }}""")
+
+            # Tenta accesso alla vista di gioco / Muro protetto
+            await page.evaluate("""async () => {
+                if (window.HistoryGramApp && typeof window.HistoryGramApp.showView === 'function') {
+                    await window.HistoryGramApp.showView('view-game');
+                }
+            }""")
+            await page.wait_for_timeout(1200)
+
+            # Assert: verifica assenza tassativa dell'overlay Capibara
+            is_capibara_active = await page.evaluate("""() => {
+                const overlay = document.getElementById('pm-subscription-overlay');
+                return overlay ? overlay.classList.contains('pm-guard-active') : false;
+            }""")
+
+            if is_capibara_active:
+                b_failures.append(f"[L2-{browser_type_name.upper()}-CAPIBARA] Regressione bloccante: Capibara apparso allo studente ({active_code}) entrando nel Muro di HistoryGram!")
+                print(f"        ❌ [{browser_type_name.upper()}] REGRESSIONE: Capibara bloccante apparso allo studente!")
+            else:
+                print(f"        -> [{browser_type_name.upper()}] OK! Zero Capibara su vista Muro per lo studente della classe {active_code}.")
+
             if js_errors:
                 for err in js_errors:
                     b_failures.append(f"[L2-{browser_type_name.upper()}-JS] Errore JavaScript: {err}")
