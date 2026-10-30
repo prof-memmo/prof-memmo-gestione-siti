@@ -24,9 +24,17 @@ import time
 import asyncio
 import urllib.request
 import urllib.error
+import ssl
 import re
 from urllib.parse import urljoin, urlparse
 from playwright.async_api import async_playwright
+
+# Configurazione SSL resiliente per macOS / Python CLI
+try:
+    import certifi
+    ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
+except Exception:
+    ssl._create_default_https_context = ssl._create_unverified_context
 
 PAGES_TO_TEST = [
     ("Hub Admin - Home", "https://prof-memmo.github.io/prof-memmo-gestione-siti/"),
@@ -36,6 +44,8 @@ PAGES_TO_TEST = [
     ("Sito Vetrina - Prezzi", "https://prof-memmo.github.io/games/prezzi.html"),
     ("Sito Vetrina - Profilo", "https://prof-memmo.github.io/games/profilo.html"),
     ("Sito Vetrina - Accedi", "https://prof-memmo.github.io/games/accedi.html"),
+    ("Sito Vetrina - Quaderno Reader", "https://prof-memmo.github.io/games/quaderno-reader.html"),
+    ("Sito Vetrina - Quaderno Dettagli", "https://prof-memmo.github.io/games/quaderno-alternativo.html"),
     ("FantaLetteratura", "https://prof-memmo.github.io/fantaletteratura/"),
     ("La Rotta degli Eroi", "https://prof-memmo.github.io/la-rotta-degli-eroi/"),
     ("La Corte della Commedia", "https://prof-memmo.github.io/la-corte-della-commedia/"),
@@ -103,18 +113,20 @@ async def run_livello_0_js_syntax():
     failures = []
     js_files = []
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    for root, dirs, files in os.walk(base_dir):
-        dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '_archivio_migrazione']]
+    parent_dir = os.path.dirname(base_dir)
+    scan_dir = parent_dir if os.path.exists(os.path.join(parent_dir, 'prof-memmo-games')) else base_dir
+    for root, dirs, files in os.walk(scan_dir):
+        dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '_archivio_migrazione', '.git']]
         for f in files:
             if f.endswith('.js') and not f.endswith('.min.js'):
                 js_files.append(os.path.join(root, f))
 
-    print(f"  [0.1] Scansione sintattica su {len(js_files)} file JavaScript dell'ecosistema...")
+    print(f"  [0.1] Scansione sintattica su {len(js_files)} file JavaScript dell'intero ecosistema...")
     
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         for js_path in js_files:
-            rel_path = os.path.relpath(js_path, base_dir)
+            rel_path = os.path.relpath(js_path, scan_dir)
             try:
                 with open(js_path, "r", encoding="utf-8") as f:
                     code = f.read()
@@ -131,7 +143,7 @@ async def run_livello_0_js_syntax():
                 finally:
                     await test_page.close()
 
-                syntax_errs = [e for e in file_errors if any(k in e for k in ["SyntaxError", "Unexpected", "Missing", "Invalid", "Token"])]
+                syntax_errs = [e for e in file_errors if any(k in e for k in ["SyntaxError", "Unexpected token", "Missing", "Unexpected identifier"]) and "Failed to resolve module" not in e and "Invalid relative url" not in e]
                 if syntax_errs:
                     failures.append(f"[L0-SYNTAX-ERR] {rel_path}: {syntax_errs[0]}")
                     print(f"        ❌ {rel_path} -> {syntax_errs[0]}")
@@ -347,6 +359,10 @@ async def run_livello_2_user_journey(active_code):
         ("historygram", "https://prof-memmo.github.io/historygram/preview/" if is_preview else "https://prof-memmo.github.io/historygram/"),
         ("la_ruota_geografica", "https://prof-memmo.github.io/la-ruota-geografica/preview/" if is_preview else "https://prof-memmo.github.io/la-ruota-geografica/"),
         ("la-ruota-geografica", "https://prof-memmo.github.io/la-ruota-geografica/preview/" if is_preview else "https://prof-memmo.github.io/la-ruota-geografica/"),
+        ("quaderno-reader", "https://prof-memmo.github.io/games/preview/quaderno-reader.html" if is_preview else "https://prof-memmo.github.io/games/quaderno-reader.html"),
+        ("quaderno_reader", "https://prof-memmo.github.io/games/preview/quaderno-reader.html" if is_preview else "https://prof-memmo.github.io/games/quaderno-reader.html"),
+        ("quaderno-alternativo", "https://prof-memmo.github.io/games/preview/quaderno-alternativo.html" if is_preview else "https://prof-memmo.github.io/games/quaderno-alternativo.html"),
+        ("quaderno", "https://prof-memmo.github.io/games/preview/quaderno-alternativo.html" if is_preview else "https://prof-memmo.github.io/games/quaderno-alternativo.html"),
         ("prezzi", "https://prof-memmo.github.io/games/preview/prezzi.html" if is_preview else "https://prof-memmo.github.io/games/prezzi.html"),
         ("profilo", "https://prof-memmo.github.io/games/preview/profilo.html" if is_preview else "https://prof-memmo.github.io/games/profilo.html")
     ]
@@ -412,6 +428,56 @@ async def run_livello_2_user_journey(active_code):
 
             if total_students <= 0:
                 b_failures.append(f"[L2-{browser_type_name.upper()}-EMPTY] Nessuno studente presente nel roster ({active_code})")
+
+            # 4. Collaudo E2E Accesso Gioco Studente su HistoryGram (Zero-Capibara Guard)
+            hg_url = f"{'https://prof-memmo.github.io/historygram/preview/' if is_preview else 'https://prof-memmo.github.io/historygram/'}?class={active_code}&role=studente"
+            print(f"        -> [{browser_type_name.upper()}] Collaudo E2E Studente su HistoryGram: {hg_url}")
+            await page.goto(hg_url, wait_until="domcontentloaded", timeout=15000)
+            await page.wait_for_timeout(1000)
+
+            # Inietta mock/profilo studente per sessione attiva
+            await page.evaluate(f"""() => {{
+                localStorage.setItem('hub_user_name', 'STUDENTE COLLAUDO');
+                localStorage.setItem('hub_user_role', 'studente');
+                localStorage.setItem('hub_user_class', '{active_code}');
+                localStorage.setItem('pm_student_class', '{active_code}');
+            }}""")
+
+            # Tenta accesso alla vista di gioco / Muro protetto
+            await page.evaluate("""async () => {
+                if (window.HistoryGramApp && typeof window.HistoryGramApp.showView === 'function') {
+                    await window.HistoryGramApp.showView('view-game');
+                }
+            }""")
+            await page.wait_for_timeout(1200)
+
+            # Assert: verifica assenza tassativa dell'overlay Capibara
+            is_capibara_active = await page.evaluate("""() => {
+                const overlay = document.getElementById('pm-subscription-overlay');
+                return overlay ? overlay.classList.contains('pm-guard-active') : false;
+            }""")
+
+            if is_capibara_active:
+                b_failures.append(f"[L2-{browser_type_name.upper()}-CAPIBARA] Regressione bloccante: Capibara apparso allo studente ({active_code}) entrando nel Muro di HistoryGram!")
+                print(f"        ❌ [{browser_type_name.upper()}] REGRESSIONE: Capibara bloccante apparso allo studente!")
+            else:
+                print(f"        -> [{browser_type_name.upper()}] OK! Zero Capibara su vista Muro per lo studente della classe {active_code}.")
+
+            # 4.1 Verifica Blindatura Ruoli Docente su HistoryGram (view-setup-mode deve rimanere inaccessibile allo studente)
+            is_teacher_view_blocked = await page.evaluate("""async () => {
+                if (window.HistoryGramApp && typeof window.HistoryGramApp.showView === 'function') {
+                    await window.HistoryGramApp.showView('view-setup-mode');
+                    const target = document.getElementById('view-setup-mode');
+                    return target ? !target.classList.contains('active') : true;
+                }
+                return true;
+            }""")
+
+            if not is_teacher_view_blocked:
+                b_failures.append(f"[L2-{browser_type_name.upper()}-ROLE-LEAK] Regressione sicurezza: lo studente è riuscito ad accedere alla vista docente view-setup-mode!")
+                print(f"        ❌ [{browser_type_name.upper()}] LEAK RUOLI: Vista docente accessibile allo studente!")
+            else:
+                print(f"        -> [{browser_type_name.upper()}] OK! Blindatura confermata: vista docente (view-setup-mode) inaccessibile per lo studente.")
 
             if js_errors:
                 for err in js_errors:

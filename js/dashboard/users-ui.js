@@ -863,6 +863,11 @@ const UsersUI = {
      * Filtro rapido tramite le "card" superiori (Studenti, Docenti, Scuole, ecc.)
      */
     filterIscrittiByCard: function(roleType) {
+        if (roleType === 'studenti') {
+            // Reindirizza alla vista Scuole & Istituti dove è visibile la ripartizione degli studenti per classe
+            this.filterIscrittiByCard('scuole');
+            return;
+        }
         this.activeRoleFilter = roleType;
         
         // Update UI Cards

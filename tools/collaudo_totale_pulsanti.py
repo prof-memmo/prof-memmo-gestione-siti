@@ -36,6 +36,18 @@ ECOSYSTEM = [
         "preview": "https://prof-memmo.github.io/games/preview/historygram-dettagli.html"
     },
     {
+        "id": "quaderno_reader",
+        "name": "Quaderno Alternativo - Reader Sfogliabile",
+        "live": "https://prof-memmo.github.io/games/quaderno-reader.html",
+        "preview": "https://prof-memmo.github.io/games/preview/quaderno-reader.html"
+    },
+    {
+        "id": "quaderno_alternativo",
+        "name": "Scheda Dettagli Quaderno Alternativo",
+        "live": "https://prof-memmo.github.io/games/quaderno-alternativo.html",
+        "preview": "https://prof-memmo.github.io/games/preview/quaderno-alternativo.html"
+    },
+    {
         "id": "corte",
         "name": "La Corte della Commedia",
         "live": "https://prof-memmo.github.io/la-corte-della-commedia/",
