@@ -635,7 +635,7 @@ async def run_livelli_3_e_4():
                 clicked_here = 0
                 for el in interactive_els[:15]:
                     try:
-                        if await el.is_visible():
+                        if await el.is_visible() and await el.is_enabled():
                             tag_name = await page.evaluate("e => e.tagName.toLowerCase()", el)
                             href = await el.get_attribute("href") if tag_name == "a" else None
                             if href and (href.startswith("http") or href.startswith("mailto:") or href.startswith("tel:")):
@@ -648,7 +648,7 @@ async def run_livelli_3_e_4():
                     except Exception as e_click:
                         # Se il click fallisce per errore reale di esecuzione
                         err_str = str(e_click)
-                        if "intercepts pointer events" not in err_str:
+                        if "intercepts pointer events" not in err_str and "element is not enabled" not in err_str:
                             all_failures.append(f"[L4-CLICK-ERR] {name}: fallito click su elemento interattivo -> {err_str}")
                             site_stats[name]["button_errors"] += 1
                 site_stats[name]["buttons_clicked"] = clicked_here
