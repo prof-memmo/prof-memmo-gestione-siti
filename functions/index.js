@@ -699,7 +699,16 @@ async function upsertBrevoContact(userData, listIds) {
         updateEnabled: true
     };
 
-    return await callBrevoApi("/contacts", "POST", payload);
+    const res = await callBrevoApi("/contacts", "POST", payload);
+
+    // Se il contatto esiste già nell'anagrafica Brevo, forziamo l'aggiunta esplicita alle liste richieste
+    for (const lid of ids) {
+        try {
+            await callBrevoApi(`/contacts/lists/${lid}/contacts/add`, "POST", { emails: [email] });
+        } catch (_) {}
+    }
+
+    return res;
 }
 
 /**
