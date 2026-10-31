@@ -183,7 +183,43 @@ const NewsletterService = {
             }
         }
 
-        // 3. Rimozione contatti non iscritti dalla lista Newsletter (Lista 3)
+        // 3. Forzatura aggiunta esplicita alle liste (necessaria per contatti già presenti nell'anagrafica Brevo)
+        const allTransacEmails = [...usersWithConsent, ...usersTransacOnly].map(u => (u.email || "").toLowerCase().trim()).filter(e => e && e.includes("@"));
+        const consentedEmails = usersWithConsent.map(u => (u.email || "").toLowerCase().trim()).filter(e => e && e.includes("@"));
+
+        if (allTransacEmails.length > 0) {
+            try {
+                await fetch(`https://api.brevo.com/v3/contacts/lists/${transacListId}/contacts/add`, {
+                    method: "POST",
+                    headers: {
+                        "api-key": apiKey,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({ emails: allTransacEmails })
+                });
+            } catch (addErr) {
+                console.warn("Avviso aggiunta forzata a Lista Transazionale:", addErr);
+            }
+        }
+
+        if (consentedEmails.length > 0) {
+            try {
+                await fetch(`https://api.brevo.com/v3/contacts/lists/${newsletterListId}/contacts/add`, {
+                    method: "POST",
+                    headers: {
+                        "api-key": apiKey,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({ emails: consentedEmails })
+                });
+            } catch (addNewsErr) {
+                console.warn("Avviso aggiunta forzata a Lista Newsletter:", addNewsErr);
+            }
+        }
+
+        // 4. Rimozione contatti non iscritti dalla lista Newsletter (Lista 3)
         if (emailsWithoutConsent.length > 0) {
             try {
                 await fetch(`https://api.brevo.com/v3/contacts/lists/${newsletterListId}/contacts/remove`, {
@@ -199,7 +235,7 @@ const NewsletterService = {
             } catch (_) {}
         }
 
-        // 4. Salva timestamp su Firestore
+        // 5. Salva timestamp su Firestore
         const syncMeta = {
             lastSyncAt: firebase.firestore.FieldValue.serverTimestamp(),
             newsletterListId: newsletterListId,
