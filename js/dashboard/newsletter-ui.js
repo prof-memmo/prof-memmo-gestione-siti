@@ -39,8 +39,9 @@ const NewsletterUI = {
                 dateStr = new Date(statusData.lastSyncAt).toLocaleString('it-IT');
             }
 
-            const count = statusData.consentedSynced !== undefined ? statusData.consentedSynced : (statusData.totalEvaluated || 0);
-            el.innerHTML = `Ultimo allineamento: <strong>${dateStr}</strong> &bull; <strong>${count}</strong> iscritti attivi su Brevo`;
+            const countTransac = statusData.transacSynced !== undefined ? statusData.transacSynced : (statusData.totalEvaluated || 0);
+            const countNews = statusData.consentedSynced !== undefined ? statusData.consentedSynced : 0;
+            el.innerHTML = `Ultimo allineamento: <strong>${dateStr}</strong> &bull; Lista 6 (Benvenuto): <strong>${countTransac}</strong> &bull; Lista 3 (Newsletter): <strong>${countNews}</strong>`;
         });
     },
 
