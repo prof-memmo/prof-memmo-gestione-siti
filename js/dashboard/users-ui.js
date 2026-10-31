@@ -125,7 +125,7 @@ const UsersUI = {
 
             if (user.abbonamento_scadenza) {
                 finalScadenza = user.abbonamento_scadenza.replace(/-/g, '/').split('/').reverse().join('/');
-                if (new Date(user.abbonamento_scadenza) < new Date()) isExpired = true;
+                isExpired = (new Date(user.abbonamento_scadenza) < new Date());
             }
 
             // Scadenza Cell: Super Admin ha "Mai", tutti gli altri utenti mostrano sempre la data reale

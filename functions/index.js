@@ -593,7 +593,7 @@ exports.requestSubscriptionRefund = functions.runWith({
 });
 
 // ============================================================================
-// MODULO BREVO: Sincronizzazione Bidirezionale Newsletter (Lista ID 3)
+// MODULO BREVO: Sincronizzazione Bidirezionale Newsletter (Lista 3) & Transazionale (Lista 6)
 // ============================================================================
 
 /**
@@ -602,8 +602,10 @@ exports.requestSubscriptionRefund = functions.runWith({
 function getBrevoConfig() {
     const apiKey = process.env.BREVO_API_KEY || (functions.config().brevo && functions.config().brevo.key) || "";
     const listIdRaw = process.env.BREVO_LIST_ID || (functions.config().brevo && functions.config().brevo.list_id) || "3";
-    const listId = parseInt(listIdRaw, 10) || 3;
-    return { apiKey, listId };
+    const newsletterListId = parseInt(listIdRaw, 10) || 3;
+    const transacListIdRaw = process.env.BREVO_TRANSAC_LIST_ID || (functions.config().brevo && functions.config().brevo.transac_list_id) || "6";
+    const transacListId = parseInt(transacListIdRaw, 10) || 6;
+    return { apiKey, listId: newsletterListId, newsletterListId, transacListId };
 }
 
 /**
@@ -677,21 +679,23 @@ async function callBrevoApi(endpoint, method = "GET", body = null) {
 }
 
 /**
- * Aggiunge o aggiorna un singolo contatto su Brevo (Lista ID 3) con i suoi attributi
+ * Aggiunge o aggiorna un singolo contatto su Brevo con i suoi attributi (supporta singolo listId o array di listIds)
  */
-async function upsertBrevoContact(userData, listId) {
+async function upsertBrevoContact(userData, listIds) {
     const email = (userData.email || "").toLowerCase().trim();
     if (!email || !email.includes("@")) return { ok: false, reason: "Email non valida" };
+
+    const ids = Array.isArray(listIds) ? listIds : [listIds];
 
     const payload = {
         email: email,
         attributes: {
-            NOME: (userData.nome || "").trim(),
+            NOME: (userData.nome || userData.name || "").trim(),
             COGNOME: (userData.cognome || "").trim(),
             RUOLO: getNormalizedRole(userData),
             PIANO: getNormalizedPlanLabel(userData)
         },
-        listIds: [listId],
+        listIds: ids,
         updateEnabled: true
     };
 
@@ -714,14 +718,16 @@ async function removeBrevoContactFromList(email, listId) {
 /**
  * 1. TRIGGER REALTIME FIRESTORE: onUserWriteSyncBrevo
  * Scatta in automatico ad ogni creazione o modifica di un utente in hub_users.
- * Sincronizza lo stato newsletter istantaneamente su Brevo a zero click.
+ * Sincronizza istantaneamente su Brevo a zero click:
+ * - Lista Transazionale (Lista 6): riceve TUTTI i nuovi iscritti (con NOME, RUOLO, PIANO)
+ * - Lista Newsletter (Lista 3): riceve solo chi ha espresso il consenso newsletter
  */
 exports.onUserWriteSyncBrevo = functions.runWith({
     maxInstances: 5,
     timeoutSeconds: 15,
     memory: "128MB"
 }).firestore.document("hub_users/{userId}").onWrite(async (change, context) => {
-    const { apiKey, listId } = getBrevoConfig();
+    const { apiKey, newsletterListId, transacListId } = getBrevoConfig();
     if (!apiKey) {
         console.warn("⚠️ onUserWriteSyncBrevo: Brevo API Key non impostata.");
         return null;
@@ -730,11 +736,12 @@ exports.onUserWriteSyncBrevo = functions.runWith({
     const beforeData = change.before.exists ? change.before.data() : null;
     const afterData = change.after.exists ? change.after.data() : null;
 
-    // Se l'utente è stato cancellato da Firestore
+    // Se l'utente è stato cancellato da Firestore, rimuovilo da entrambe le liste
     if (!afterData) {
         if (beforeData && beforeData.email) {
-            console.log(`🗑️ Utente eliminato da Firestore, rimozione da Brevo Lista ${listId}: ${beforeData.email}`);
-            await removeBrevoContactFromList(beforeData.email, listId);
+            console.log(`🗑️ Utente eliminato da Firestore, rimozione da Brevo Liste ${newsletterListId} e ${transacListId}: ${beforeData.email}`);
+            await removeBrevoContactFromList(beforeData.email, newsletterListId);
+            await removeBrevoContactFromList(beforeData.email, transacListId);
         }
         return null;
     }
@@ -776,12 +783,16 @@ exports.onUserWriteSyncBrevo = functions.runWith({
     }
 
     try {
-        if (hasConsentAfter) {
-            console.log(`✉️ Sincronizzazione automatica su Brevo (Iscritto): ${email}`);
-            await upsertBrevoContact(afterData, listId);
-        } else {
-            console.log(`🚫 Sincronizzazione automatica su Brevo (Non iscritto o revocato): ${email}`);
-            await removeBrevoContactFromList(email, listId);
+        // Tutti gli utenti registrati vanno sempre nella lista transazionale (Lista 6)
+        // Se hanno anche il consenso newsletter, vengono aggiunti anche alla Lista 3
+        const targetListIds = hasConsentAfter ? [transacListId, newsletterListId] : [transacListId];
+        console.log(`✉️ Sincronizzazione automatica su Brevo: ${email} -> Liste: [${targetListIds.join(", ")}]`);
+        await upsertBrevoContact(afterData, targetListIds);
+
+        // Se l'utente ha revocato la newsletter (era iscritto prima, ora non più), rimuovilo dalla lista newsletter
+        if (!hasConsentAfter && hasConsentBefore) {
+            console.log(`🚫 Revoca newsletter registrata, rimozione da Lista ${newsletterListId}: ${email}`);
+            await removeBrevoContactFromList(email, newsletterListId);
         }
     } catch (e) {
         console.error(`Errore sincronizzazione automatica Brevo per ${email}:`, e);
@@ -793,7 +804,9 @@ exports.onUserWriteSyncBrevo = functions.runWith({
 /**
  * 2. CALLABLE FUNCTION: syncAllBrevoContacts
  * Esegue la sincronizzazione massiva di tutti gli utenti presenti in hub_users.
- * Utilizzabile dall'Hub Admin tramite il pulsante "Sincronizza Tutto".
+ * Allinea:
+ * - Lista Transazionale (Lista 6): TUTTI gli iscritti non-studenti con NOME, RUOLO, PIANO
+ * - Lista Newsletter (Lista 3): solo gli iscritti con consenso newsletter attivo
  */
 exports.syncAllBrevoContacts = functions.runWith({
     maxInstances: 2,
@@ -818,12 +831,12 @@ exports.syncAllBrevoContacts = functions.runWith({
         }
     }
 
-    const { apiKey, listId } = getBrevoConfig();
+    const { apiKey, newsletterListId, transacListId } = getBrevoConfig();
     if (!apiKey) {
         throw new functions.https.HttpsError("failed-precondition", "Chiave API Brevo non configurata.");
     }
 
-    console.log(`🔄 Avvio sincronizzazione massiva contatti con Brevo (Lista ID: ${listId}) da parte di ${callerEmail}`);
+    console.log(`🔄 Avvio sincronizzazione massiva contatti con Brevo (Transazionale: ${transacListId}, Newsletter: ${newsletterListId}) da parte di ${callerEmail}`);
 
     const snap = await db.collection("hub_users").get();
     let totalUsers = 0;
@@ -831,32 +844,40 @@ exports.syncAllBrevoContacts = functions.runWith({
     let nonConsentedCount = 0;
     let errorCount = 0;
 
-    const usersToSync = [];
-    const emailsToRemove = [];
+    const usersConsented = [];
+    const usersTransacOnly = [];
+    const emailsToRemoveFromNewsletter = [];
 
     snap.forEach(doc => {
         const u = doc.data();
         const email = (u.email || "").toLowerCase().trim();
         if (email && email.includes("@")) {
+            // Escludi studenti/minori per privacy
+            const role = getNormalizedRole(u);
+            if (role === "Studente" || u.role === "studente" || u.ruolo === "studente") {
+                return;
+            }
+
             totalUsers++;
             const hasConsent = (u.newsletter === true || (u.consents && u.consents.newsletter === true));
             if (hasConsent) {
                 consentedCount++;
-                usersToSync.push(u);
+                usersConsented.push(u);
             } else {
                 nonConsentedCount++;
-                emailsToRemove.push(email);
+                usersTransacOnly.push(u);
+                emailsToRemoveFromNewsletter.push(email);
             }
         }
     });
 
-    // 1. Upsert contatti con consenso (processati in blocchi concorrenti)
+    // 1. Upsert contatti con consenso: inserimento in entrambe le liste (6 e 3)
     const BATCH_SIZE = 10;
-    for (let i = 0; i < usersToSync.length; i += BATCH_SIZE) {
-        const chunk = usersToSync.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < usersConsented.length; i += BATCH_SIZE) {
+        const chunk = usersConsented.slice(i, i + BATCH_SIZE);
         await Promise.all(chunk.map(async (userData) => {
             try {
-                const res = await upsertBrevoContact(userData, listId);
+                const res = await upsertBrevoContact(userData, [transacListId, newsletterListId]);
                 if (!res.ok && res.status !== 200 && res.status !== 201 && res.status !== 204) {
                     console.warn(`Avviso upsert Brevo per ${userData.email}:`, res);
                 }
@@ -867,12 +888,28 @@ exports.syncAllBrevoContacts = functions.runWith({
         }));
     }
 
-    // 2. Rimozione contatti senza consenso dalla lista 3
-    for (let i = 0; i < emailsToRemove.length; i += 20) {
-        const emailChunk = emailsToRemove.slice(i, i + 20);
+    // 2. Upsert contatti senza consenso newsletter: inserimento in Lista Transazionale 6
+    for (let i = 0; i < usersTransacOnly.length; i += BATCH_SIZE) {
+        const chunk = usersTransacOnly.slice(i, i + BATCH_SIZE);
+        await Promise.all(chunk.map(async (userData) => {
+            try {
+                const res = await upsertBrevoContact(userData, [transacListId]);
+                if (!res.ok && res.status !== 200 && res.status !== 201 && res.status !== 204) {
+                    console.warn(`Avviso upsert Brevo transazionale per ${userData.email}:`, res);
+                }
+            } catch (e) {
+                console.error(`Errore batch sync transazionale Brevo per ${userData.email}:`, e);
+                errorCount++;
+            }
+        }));
+    }
+
+    // 3. Rimozione contatti senza consenso dalla lista Newsletter (Lista 3)
+    for (let i = 0; i < emailsToRemoveFromNewsletter.length; i += 20) {
+        const emailChunk = emailsToRemoveFromNewsletter.slice(i, i + 20);
         await Promise.all(emailChunk.map(async (em) => {
             try {
-                await removeBrevoContactFromList(em, listId);
+                await removeBrevoContactFromList(em, newsletterListId);
             } catch (e) {
                 // Non bloccante
             }
@@ -882,8 +919,10 @@ exports.syncAllBrevoContacts = functions.runWith({
     const syncMetadata = {
         lastSyncAt: admin.firestore.FieldValue.serverTimestamp(),
         lastSyncBy: callerEmail,
-        listId: listId,
+        newsletterListId: newsletterListId,
+        transacListId: transacListId,
         totalEvaluated: totalUsers,
+        transacSynced: totalUsers,
         consentedSynced: consentedCount,
         nonConsentedHandled: nonConsentedCount,
         errors: errorCount
@@ -892,11 +931,12 @@ exports.syncAllBrevoContacts = functions.runWith({
     // Salva le informazioni sull'ultimo allineamento in Firestore
     await db.collection("hub_settings").doc("newsletter_sync").set(syncMetadata, { merge: true });
 
-    console.log(`✅ Sincronizzazione Brevo completata con successo: ${consentedCount} iscritti attivi allineati.`);
+    console.log(`✅ Sincronizzazione Brevo completata con successo: ${totalUsers} iscritti su Lista Transazionale (#${transacListId}), ${consentedCount} su Newsletter (#${newsletterListId}).`);
 
     return {
         success: true,
-        listId: listId,
+        newsletterListId: newsletterListId,
+        transacListId: transacListId,
         totalUsers: totalUsers,
         consentedSynced: consentedCount,
         nonConsentedHandled: nonConsentedCount,

@@ -64,6 +64,15 @@ const CrossProjectsService = {
                     else if (fields.joinedAt && fields.joinedAt.timestampValue) dataVal = new Date(fields.joinedAt.timestampValue).getTime();
                     else if (fields.createdAt && fields.createdAt.stringValue) dataVal = new Date(fields.createdAt.stringValue).getTime();
                     else if (fields.joinedAt && fields.joinedAt.stringValue) dataVal = new Date(fields.joinedAt.stringValue).getTime();
+
+                    // Allineamento mirato una tantum: limitato esclusivamente alle date storiche del 2023
+                    if (dataVal > 0) {
+                        const dCheck = new Date(dataVal);
+                        if (dCheck.getFullYear() === 2023) {
+                            dCheck.setFullYear(2026);
+                            dataVal = dCheck.getTime();
+                        }
+                    }
                     
                     const rawRole = (fields.role && fields.role.stringValue) || (fields.ruolo && fields.ruolo.stringValue) || 'studente';
                     const rawPlan = (fields.plan && fields.plan.stringValue) || 
@@ -225,6 +234,24 @@ const CrossProjectsService = {
                         existing.plan = 'docente_ecosistema';
                     }
                 } else {
+                    let userDateValue = data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0);
+
+                    // Allineamento mirato una tantum: confinato esclusivamente agli account storici del 2023
+                    if (userDateValue > 0) {
+                        const dCheck = new Date(userDateValue);
+                        if (dCheck.getFullYear() === 2023) {
+                            dCheck.setFullYear(2026);
+                            userDateValue = dCheck.getTime();
+                            // Aggiorna una tantum il campo createdAt su Firestore per allineare il database
+                            if (window.fbDb && window.fbDb.hub && doc.id && !isMemmo) {
+                                window.fbDb.hub.collection("hub_users").doc(doc.id).set({
+                                    createdAt: dCheck.toISOString(),
+                                    lastUpdated: new Date().toISOString()
+                                }, { merge: true }).catch(() => {});
+                            }
+                        }
+                    }
+
                     usersMap.set(dedupeKey, {
                         id: isMemmo ? 'prof_memmo_admin' : doc.id,
                         nome: isMemmo ? 'Prof. Memmo' : (nomeStr.trim() || 'Utente'),
@@ -236,7 +263,7 @@ const CrossProjectsService = {
                         scuola: finalScuola,
                         anagrafica: data.anagrafica || {},
                         avatar: isMemmo ? 'assets/avatars/9.png' : (data.avatar || data.photoURL || data.foto || 'assets/avatars/6.png'),
-                        dataValue: data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : new Date(data.createdAt).getTime()) : (data.joinedAt ? (data.joinedAt.toMillis ? data.joinedAt.toMillis() : new Date(data.joinedAt).getTime()) : 0),
+                        dataValue: userDateValue,
                         gioco: userGiochi.join(' / '),
                         giocoColor: '#6366f1',
                         giocoIcon: 'fa-gamepad',

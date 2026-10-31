@@ -39,8 +39,9 @@ const NewsletterUI = {
                 dateStr = new Date(statusData.lastSyncAt).toLocaleString('it-IT');
             }
 
-            const count = statusData.consentedSynced !== undefined ? statusData.consentedSynced : (statusData.totalEvaluated || 0);
-            el.innerHTML = `Ultimo allineamento: <strong>${dateStr}</strong> &bull; <strong>${count}</strong> iscritti attivi su Brevo`;
+            const countTransac = statusData.transacSynced !== undefined ? statusData.transacSynced : (statusData.totalEvaluated || 0);
+            const countNews = statusData.consentedSynced !== undefined ? statusData.consentedSynced : 0;
+            el.innerHTML = `Ultimo allineamento: <strong>${dateStr}</strong> &bull; Lista 6 (Benvenuto): <strong>${countTransac}</strong> &bull; Lista 3 (Newsletter): <strong>${countNews}</strong>`;
         });
     },
 
@@ -67,10 +68,11 @@ const NewsletterUI = {
 
             const result = await window.NewsletterService.syncAllWithBrevo();
             
+            const countTransac = result.transacSynced !== undefined ? result.transacSynced : (result.totalUsers || 0);
             const countConsented = result.consentedSynced !== undefined ? result.consentedSynced : 0;
             const total = result.totalUsers !== undefined ? result.totalUsers : 0;
             
-            alert(`✅ Sincronizzazione con Brevo completata con successo!\n\n• Iscritti allineati nella Lista 3: ${countConsented}\n• Utenti totali verificati: ${total}\n\nOra puoi aprire Brevo e inviare o programmare la tua newsletter.`);
+            alert(`✅ Sincronizzazione con Brevo completata!\n\n• Iscritti allineati nella Lista 6 (Benvenuto/Transazionali): ${countTransac}\n• Iscritti con consenso nella Lista 3 (Newsletter): ${countConsented}\n• Utenti totali verificati: ${total}\n\nI tuoi contatti sono ora aggiornati su Brevo.`);
         } catch (err) {
             console.error("Errore durante la sincronizzazione con Brevo:", err);
             alert("❌ Errore durante la sincronizzazione con Brevo:\n" + (err.message || err));
