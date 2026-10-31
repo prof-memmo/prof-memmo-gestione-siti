@@ -315,6 +315,24 @@
         cursor: pointer;
         user-select: none;
         flex-shrink: 0;
+        overflow: hidden !important;
+    }
+    .hub-card.hub-game-filter .game-filter-icon-wrap {
+        height: 52px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 5px;
+    }
+    .hub-card.hub-game-filter img {
+        max-width: 78px !important;
+        max-height: 50px !important;
+        width: auto !important;
+        height: auto !important;
+        object-fit: contain !important;
+        display: block !important;
+        margin: 0 auto !important;
     }
     .game-scroll-btn {
         position: absolute;
@@ -790,64 +808,86 @@
             </button>
             <div id="hub-game-filter-track" class="game-filter-scroll-track">
               <div class="hub-card hub-game-filter active" id="game-filter-all" onclick="HubApp.filterByGameCard('all')" title="Mostra tutti i giochi">
-                  <div style="height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
-                      <i class="fa-solid fa-layer-group" style="font-size: 2.2rem; color: #6366f1;"></i>
+                  <div class="game-filter-icon-wrap">
+                      <i class="fa-solid fa-layer-group" style="font-size: 2rem; color: #6366f1;"></i>
                   </div>
                   <div class="materia-label" style="font-size: 0.75rem;">Tutti i Giochi</div>
                   <div class="materia-value" id="counter-total-games" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
               <div class="hub-card hub-game-filter" id="game-filter-eroi" onclick="HubApp.filterByGameCard('La Rotta degli Eroi')" title="Filtra La Rotta degli Eroi">
-                  <img src="assets/LOGO%20%27La%20rotta%20degli%20eroi%20scritta%20nera%27.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                  <div class="game-filter-icon-wrap">
+                      <img src="assets/LOGO%20%27La%20rotta%20degli%20eroi%20scritta%20nera%27.png" alt="La Rotta degli Eroi">
+                  </div>
                   <div class="materia-label" style="font-size: 0.75rem;">Eroi</div>
                   <div class="materia-value" id="counter-eroi" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
               <div class="hub-card hub-game-filter" id="game-filter-commedia" onclick="HubApp.filterByGameCard('La Corte della Commedia')" title="Filtra La Corte della Commedia">
-                  <img src="assets/commedia_logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                  <div class="game-filter-icon-wrap">
+                      <img src="assets/commedia_logo.png" alt="La Corte della Commedia">
+                  </div>
                   <div class="materia-label" style="font-size: 0.75rem;">Commedia</div>
                   <div class="materia-value" id="counter-commedia" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
               <div class="hub-card hub-game-filter" id="game-filter-fanta" onclick="HubApp.filterByGameCard('Fantaletteratura')" title="Filtra Fantaletteratura">
-                  <img src="assets/fanta_logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                  <div class="game-filter-icon-wrap">
+                      <img src="assets/fanta_logo.png?v=2" alt="Fantaletteratura">
+                  </div>
                   <div class="materia-label" style="font-size: 0.75rem;">Fanta</div>
                   <div class="materia-value" id="counter-fanta" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
               <div class="hub-card hub-game-filter" id="game-filter-palestra" onclick="HubApp.filterByGameCard('Palestra di Riflessione')" title="Filtra Palestra di Riflessione">
-                  <img src="assets/palestra-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                  <div class="game-filter-icon-wrap">
+                      <img src="assets/palestra-logo.png?v=2" alt="Palestra di Riflessione">
+                  </div>
                   <div class="materia-label" style="font-size: 0.75rem;">Palestra</div>
                   <div class="materia-value" id="counter-palestra" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
               <div class="hub-card hub-game-filter" id="game-filter-ops" onclick="HubApp.filterByGameCard('Ops! Operazione Storia')" title="Filtra Ops! Operazione Storia">
-                  <img src="assets/Logo%20ops%20sfondo%20trasparente%20con%20scritte.png?v=15" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                  <div class="game-filter-icon-wrap">
+                      <img src="assets/Logo%20ops%20sfondo%20trasparente%20con%20scritte.png?v=15" alt="Ops! Operazione Storia">
+                  </div>
                   <div class="materia-label" style="font-size: 0.75rem;">Ops!</div>
                   <div class="materia-value" id="counter-ops" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
               <div class="hub-card hub-game-filter" id="game-filter-oratore" onclick="HubApp.filterByGameCard('L\'Oratore')" title="Filtra L'Oratore">
-                  <img src="assets/L%27ogo%20L%27oratore%20-%20base%20bianca.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                  <div class="game-filter-icon-wrap">
+                      <img src="assets/oratore-logo.png?v=2" alt="L'Oratore">
+                  </div>
                   <div class="materia-label" style="font-size: 0.75rem;">Oratore</div>
                   <div class="materia-value" id="counter-oratore" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
               <div class="hub-card hub-game-filter" id="game-filter-ruota" onclick="HubApp.filterByGameCard('La Ruota Geografica')" title="Filtra La Ruota Geografica">
-                  <img src="assets/ruota-geografica-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                  <div class="game-filter-icon-wrap">
+                      <img src="assets/ruota-geografica-logo.png?v=2" alt="La Ruota Geografica">
+                  </div>
                   <div class="materia-label" style="font-size: 0.75rem;">Ruota Geo</div>
                   <div class="materia-value" id="counter-ruota" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
               <div class="hub-card hub-game-filter" id="game-filter-travel" onclick="HubApp.filterByGameCard('Travel Agency')" title="Filtra Travel Agency">
-                  <img src="assets/travelagency-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                  <div class="game-filter-icon-wrap">
+                      <img src="assets/travelagency-logo.png?v=2" alt="Travel Agency">
+                  </div>
                   <div class="materia-label" style="font-size: 0.75rem;">Travel</div>
                   <div class="materia-value" id="counter-travel" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
               <div class="hub-card hub-game-filter" id="game-filter-quaderno" onclick="HubApp.filterByGameCard('Il mio quaderno alternativo')" title="Filtra Il mio quaderno alternativo">
-                  <img src="assets/quaderno-alternativo-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                  <div class="game-filter-icon-wrap">
+                      <img src="assets/quaderno-alternativo-logo.png?v=2" alt="Il mio quaderno alternativo">
+                  </div>
                   <div class="materia-label" style="font-size: 0.75rem;">Quaderno</div>
                   <div class="materia-value" id="counter-quaderno" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
               <div class="hub-card hub-game-filter" id="game-filter-fuori-registro" onclick="HubApp.filterByGameCard('Fuori Registro')" title="Filtra Fuori Registro">
-                  <img src="assets/fuori-registro-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                  <div class="game-filter-icon-wrap">
+                      <img src="assets/fuori-registro-logo.png?v=2" alt="Fuori Registro">
+                  </div>
                   <div class="materia-label" style="font-size: 0.75rem;">Fuori Reg.</div>
                   <div class="materia-value" id="counter-fuoriregistro" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
               <div class="hub-card hub-game-filter" id="game-filter-historygram" onclick="HubApp.filterByGameCard('HistoryGram')" title="Filtra HistoryGram">
-                  <img src="assets/historygram-logo.png" style="height: 60px; width: auto; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                  <div class="game-filter-icon-wrap">
+                      <img src="assets/historygram-logo.png?v=2" alt="HistoryGram">
+                  </div>
                   <div class="materia-label" style="font-size: 0.75rem;">HistoryGram</div>
                   <div class="materia-value" id="counter-historygram" style="font-size: 1.2rem; margin-top: 2px;">--</div>
               </div>
