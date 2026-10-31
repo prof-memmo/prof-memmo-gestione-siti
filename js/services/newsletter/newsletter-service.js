@@ -23,8 +23,9 @@ const NewsletterService = {
         const fallback = ['xkeysib', 'c306e89864434987d66cf8fb479280ef02d1b240e6d3728205df698fbf3f8151', 'O4E9cq3JSn8QYtET'].join('-');
         const cfg = window.HUB_BREVO_CONFIG || {};
         const apiKey = cfg.apiKey || (window.localStorage ? window.localStorage.getItem("hub_brevo_key") : "") || fallback;
-        const listId = cfg.listId || 3;
-        return { apiKey, listId };
+        const newsletterListId = cfg.newsletterListId || cfg.listId || 3;
+        const transacListId = cfg.transacListId || 6;
+        return { apiKey, listId: newsletterListId, newsletterListId, transacListId };
     },
 
     /**
@@ -36,15 +37,17 @@ const NewsletterService = {
             if (window.firebase && window.firebase.functions) {
                 const syncFn = window.firebase.functions().httpsCallable("syncAllBrevoContacts");
                 const result = await syncFn({});
-                if (result && result.data && result.data.success) {
+                // Se la Cloud Function remota è già aggiornata con la Lista 6, restituisci il risultato
+                if (result && result.data && result.data.success && result.data.transacListId) {
                     return result.data;
                 }
+                console.log("Cloud Function remota non ancora aggiornata con Lista 6, proseguo con allineamento diretto...");
             }
         } catch (fnErr) {
-            console.warn("Cloud function syncAllBrevoContacts non disponibile, fallback su sincronizzazione diretta:", fnErr);
+            console.warn("Cloud function syncAllBrevoContacts non disponibile, procedo con sincronizzazione diretta:", fnErr);
         }
 
-        // Fallback garantito con chiamata diretta REST API v3
+        // Sincronizzazione diretta dal browser verso Brevo garantita per Liste 6 e 3
         return await this.syncDirectToBrevo(usersOverride);
     },
 
@@ -64,16 +67,18 @@ const NewsletterService = {
             }
         }
 
-        const { apiKey, listId } = this.getBrevoConfig();
+        const { apiKey, newsletterListId, transacListId } = this.getBrevoConfig();
         if (!apiKey) {
             throw new Error("Chiave API Brevo non trovata.");
         }
 
         let consentedCount = 0;
+        let transacCount = 0;
         let nonConsentedCount = 0;
         let errorCount = 0;
 
         const usersWithConsent = [];
+        const usersTransacOnly = [];
         const emailsWithoutConsent = [];
         const seenEmails = new Set();
 
@@ -83,16 +88,21 @@ const NewsletterService = {
             if (seenEmails.has(email)) return;
             seenEmails.add(email);
 
+            // Escludi studenti
+            const rRaw = String(u.ruolo || u.role || "").toLowerCase();
+            if (rRaw.includes("student")) return;
+
             const hasConsent = u.newsletter === true || (u.consents && u.consents.newsletter === true);
             if (hasConsent) {
                 usersWithConsent.push(u);
             } else {
+                usersTransacOnly.push(u);
                 emailsWithoutConsent.push(email);
             }
         });
 
-        // 1. Invio contatti con consenso a Brevo
-        for (const u of usersWithConsent) {
+        // Helper per preparare il payload utente
+        const formatPayload = (u, targetLists) => {
             const email = (u.email || "").toLowerCase().trim();
             const fullName = (u.nome || u.name || "Utente").trim();
             const parts = fullName.split(" ");
@@ -102,7 +112,6 @@ const NewsletterService = {
             const rRaw = String(u.ruolo || u.role || "").toLowerCase();
             let ruolo = "Viandante";
             if (rRaw.includes("docente") || rRaw.includes("prof")) ruolo = "Docente";
-            else if (rRaw.includes("student")) ruolo = "Studente";
             else if (rRaw.includes("admin")) ruolo = "Amministratore";
 
             const pRaw = String(u.plan || u.abbonamento || u.piano || "").toLowerCase();
@@ -111,6 +120,21 @@ const NewsletterService = {
             else if (pRaw.includes("didattico")) piano = "Docente Didattico";
             else if (pRaw.includes("viandante")) piano = "Viandante";
 
+            return {
+                email: email,
+                attributes: {
+                    NOME: nome,
+                    COGNOME: cognome,
+                    RUOLO: ruolo,
+                    PIANO: piano
+                },
+                listIds: targetLists,
+                updateEnabled: true
+            };
+        };
+
+        // 1. Invio contatti con consenso a Brevo (Lista Transazionale 6 + Lista Newsletter 3)
+        for (const u of usersWithConsent) {
             try {
                 const resp = await fetch("https://api.brevo.com/v3/contacts", {
                     method: "POST",
@@ -119,36 +143,50 @@ const NewsletterService = {
                         "Content-Type": "application/json",
                         "Accept": "application/json"
                     },
-                    body: JSON.stringify({
-                        email: email,
-                        attributes: {
-                            NOME: nome,
-                            COGNOME: cognome,
-                            RUOLO: ruolo,
-                            PIANO: piano
-                        },
-                        listIds: [listId],
-                        updateEnabled: true
-                    })
+                    body: JSON.stringify(formatPayload(u, [transacListId, newsletterListId]))
                 });
 
                 if (resp.ok || resp.status === 201 || resp.status === 204 || resp.status === 200) {
                     consentedCount++;
+                    transacCount++;
                 } else {
                     const errJson = await resp.json().catch(() => ({}));
-                    console.warn(`Avviso invio contatto Brevo (${email}):`, errJson);
+                    console.warn(`Avviso invio contatto Brevo (${u.email}):`, errJson);
                     consentedCount++;
+                    transacCount++;
                 }
             } catch (e) {
-                console.error(`Errore invio Brevo per ${email}:`, e);
+                console.error(`Errore invio Brevo per ${u.email}:`, e);
                 errorCount++;
             }
         }
 
-        // 2. Rimozione contatti non iscritti dalla lista 3
+        // 2. Invio contatti senza consenso alla sola Lista Transazionale 6
+        for (const u of usersTransacOnly) {
+            try {
+                const resp = await fetch("https://api.brevo.com/v3/contacts", {
+                    method: "POST",
+                    headers: {
+                        "api-key": apiKey,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify(formatPayload(u, [transacListId]))
+                });
+
+                if (resp.ok || resp.status === 201 || resp.status === 204 || resp.status === 200) {
+                    transacCount++;
+                }
+            } catch (e) {
+                console.error(`Errore invio transazionale Brevo per ${u.email}:`, e);
+                errorCount++;
+            }
+        }
+
+        // 3. Rimozione contatti non iscritti dalla lista Newsletter (Lista 3)
         if (emailsWithoutConsent.length > 0) {
             try {
-                await fetch(`https://api.brevo.com/v3/contacts/lists/${listId}/contacts/remove`, {
+                await fetch(`https://api.brevo.com/v3/contacts/lists/${newsletterListId}/contacts/remove`, {
                     method: "POST",
                     headers: {
                         "api-key": apiKey,
@@ -161,11 +199,13 @@ const NewsletterService = {
             } catch (_) {}
         }
 
-        // 3. Salva timestamp su Firestore
+        // 4. Salva timestamp su Firestore
         const syncMeta = {
             lastSyncAt: firebase.firestore.FieldValue.serverTimestamp(),
-            listId: listId,
+            newsletterListId: newsletterListId,
+            transacListId: transacListId,
             totalEvaluated: seenEmails.size,
+            transacSynced: transacCount,
             consentedSynced: consentedCount,
             nonConsentedHandled: nonConsentedCount,
             errors: errorCount,
