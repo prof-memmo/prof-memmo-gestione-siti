@@ -18,7 +18,26 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-functions-compat.js"></script>
   
+  <!-- Anti-Flicker Porte d'Ingresso & Ruolo Diretto -->
+  <script>
+    (function() {
+      try {
+        var sp = new URLSearchParams(window.location.search);
+        var r = sp.get('role');
+        var c = sp.get('code') || sp.get('classCode');
+        var s = sp.get('step');
+        var sr = sessionStorage.getItem('pm_entry_role');
+        if (r || c || s || (sr && sr !== 'docente')) {
+          document.documentElement.classList.add('portal-direct-entry');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  
   <style>
+    html.portal-direct-entry #portal-door-selection {
+      display: none !important;
+    }
     :root {
       --bg-color: #f3f4f6;
       --surface-color: #ffffff;
@@ -986,6 +1005,6 @@
   <script src="js/firebase-init.js?v=20261022_v2"></script>
   <script src="js/services/auth/auth-service.js?v=20261022_v2"></script>
   <script src="js/services/users/user-service.js?v=20261101_v3"></script>
-  <script src="js/portal.js?v=20261022_v2"></script>
+  <script src="js/portal.js?v=20261101_v3"></script>
 </body>
 </html>
