@@ -597,13 +597,13 @@ const UsersUI = {
                     const planLower = String(newPlan).toLowerCase();
                     let updatedGiochi = [];
                     if (planLower === 'docente_ecosistema' || planLower.includes('ecosistema')) {
-                        updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica'];
+                        updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica', 'Travel Agency', 'Il mio quaderno alternativo', 'Fuori Registro'];
                     } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
-                        updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia'];
+                        updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'Fuori Registro'];
                     } else if (planLower === 'viandante') {
-                        updatedGiochi = ['La Rotta degli Eroi', 'FantaLetteratura', 'Palestra di Riflessione'];
+                        updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'La Ruota Geografica', 'Fuori Registro'];
                     } else {
-                        updatedGiochi = ['Palestra di Riflessione', 'FantaLetteratura'];
+                        updatedGiochi = ['FantaLetteratura', 'Palestra di Riflessione', 'Fuori Registro'];
                     }
                     usr.gioco = updatedGiochi.join(' / ');
                 }
