@@ -216,7 +216,7 @@ const CrossProjectsService = {
                     const ecoDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica', 'Travel Agency', 'Il mio quaderno alternativo', 'Fuori Registro'];
                     userGiochi = Array.from(new Set([...ecoDefault, ...userGiochi]));
                 } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
-                    const didatticoDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'Fuori Registro'];
+                    const didatticoDefault = ['FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'Fuori Registro'];
                     userGiochi = Array.from(new Set([...didatticoDefault, ...userGiochi]));
                 } else if (planLower === 'viandante') {
                     const viandanteDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'La Ruota Geografica', 'Fuori Registro'];
