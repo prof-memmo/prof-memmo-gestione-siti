@@ -201,8 +201,8 @@ const GamesUI = {
                     if (data.isFreeBaseVersion !== undefined) {
                         allowed.base = data.isFreeBaseVersion === true;
                     }
-                    if (gameId === 'l-oratore') {
-                        // L'Oratore è rigorosamente esclusivo di Piano Ecosistema Completo
+                    if (gameId === 'l-oratore' || gameId === 'il-mio-quaderno-alternativo' || gameId === 'historygram') {
+                        // L'Oratore, Il mio quaderno alternativo e HistoryGram sono rigorosamente esclusivi di Piano Ecosistema Completo
                         allowed.base = false;
                         allowed.viandante = false;
                         allowed.docente_didattico = false;

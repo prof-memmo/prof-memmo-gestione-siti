@@ -1118,14 +1118,19 @@
       </div>
       
       <div class="glass-panel" style="margin-bottom: 20px;">
-        <h3 style="margin-top:0; color:var(--text-main);">Visibilità Esperienze sul Sito Vetrina</h3>
-        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Accendi l'interruttore per mostrare le esperienze condivise dagli utenti sul sito vetrina principale (Prof. Memmo - Games&Co.).</p>
+        <h3 style="margin-top:0; color:var(--text-main);">Visibilità Elementi Pubblici sul Sito Vetrina</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Accendi o spegni gli elementi pubblici visibili sul sito vetrina principale (Prof. Memmo - Games&Co.): le esperienze condivise dagli utenti e la fascia animata con i numeri reali della community.</p>
         
-        <div class="switch-board">
+        <div class="switch-board" style="display: flex; gap: 20px; flex-wrap: wrap;">
           <div class="light-switch-btn" id="btn-toggle-esperienze" onclick="EcosistemaUI.toggleSwitchBtn('esperienze')">
             <i class="fa-solid fa-star"></i>
             <div class="status-text" id="status-text-esperienze">OFF</div>
             <div class="label-text">Visibilità "Esperienze"</div>
+          </div>
+          <div class="light-switch-btn" id="btn-toggle-numeri-community" onclick="EcosistemaUI.toggleSwitchBtn('numeri-community')">
+            <i class="fa-solid fa-chart-line"></i>
+            <div class="status-text" id="status-text-numeri-community">OFF</div>
+            <div class="label-text">Visibilità Numeri Community</div>
           </div>
         </div>
       </div>
@@ -3161,8 +3166,8 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   <script src="js/utils/db-fixer.js?v=20261011_v4"></script>
   
   <!-- Services -->
-  <script src="js/services/cross-projects.js?v=20261101_v1"></script>
-  <script src="js/services/users/user-service.js?v=20261011_v4"></script>
+  <script src="js/services/cross-projects.js?v=20261101_v7"></script>
+  <script src="js/services/users/user-service.js?v=20261101_v6"></script>
   <script src="js/services/messages/messages-service.js?v=20261011_v4"></script>
   <script src="js/services/games/games-service.js?v=20261011_v4"></script>
   <script>window.HUB_BREVO_CONFIG = window.HUB_BREVO_CONFIG || {};</script>
@@ -3174,9 +3179,9 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   
   <!-- UI Modules -->
   <script src="js/dashboard/messages-ui.js?v=20261011_v4"></script>
-  <script src="js/dashboard/ecosistema-ui.js?v=20261101_v1"></script>
-  <script src="js/dashboard/games-ui.js?v=20261011_v4"></script>
-  <script src="js/dashboard/users-ui.js?v=20261101_v1"></script>
+  <script src="js/dashboard/ecosistema-ui.js?v=20261101_v7"></script>
+  <script src="js/dashboard/games-ui.js?v=20261101_v6"></script>
+  <script src="js/dashboard/users-ui.js?v=20261101_v6"></script>
   <script src="js/dashboard/payments-ui.js?v=20261101_v2"></script>
   <script src="js/dashboard/vetrina-ui.js?v=20261011_v4"></script>
   

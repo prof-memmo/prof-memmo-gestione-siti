@@ -208,27 +208,23 @@ const CrossProjectsService = {
                     if (data.platforms.fuori_registro?.enabled || data.platforms['fuori-registro']?.enabled || data.platforms.fuoriregistro_users?.enabled) userGiochi.push('Fuori Registro');
                 }
 
-                const hasAdminOverride = data.admin_override === true || data.adminOverride === true;
-                const userPlan = isMemmo ? 'docente_ecosistema' : (data.abbonamento || data.plan || data.subscription || 'base');
+                const userPlan = isMemmo ? 'docente_ecosistema' : (data.piano || data.abbonamento || data.plan || data.subscription || 'base');
                 const userRole = isMemmo ? 'admin' : (rawRole.includes('docente') || rawRole.includes('teacher') || rawRole.includes('prof') ? 'docente' : (rawRole === 'admin' ? 'admin' : 'viandante'));
 
                 const planLower = String(userPlan).toLowerCase();
                 let planDefault = [];
-                if (userRole === 'admin' || planLower === 'docente_ecosistema' || planLower.includes('ecosistema')) {
+                if (userRole === 'admin' || planLower === 'docente_ecosistema' || planLower.includes('ecosistema') || planLower.includes('completo')) {
                     planDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica', 'Travel Agency', 'Il mio quaderno alternativo', 'Fuori Registro'];
                 } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
                     planDefault = ['FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'Fuori Registro'];
-                } else if (planLower === 'viandante') {
-                    planDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'La Ruota Geografica', 'Fuori Registro'];
+                } else if (planLower === 'viandante' || planLower.includes('viandante') || planLower.includes('pellegrino')) {
+                    planDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'La Ruota Geografica', 'Travel Agency', 'Fuori Registro'];
                 } else {
                     planDefault = ['FantaLetteratura', 'Palestra di Riflessione', 'Fuori Registro'];
                 }
 
-                if (hasAdminOverride && userGiochi.length > 0) {
-                    userGiochi = Array.from(new Set([...planDefault, ...userGiochi]));
-                } else {
-                    userGiochi = planDefault;
-                }
+                // Blindatura totale: le piattaforme sono rigorosamente governate dal piano selezionato
+                userGiochi = planDefault;
 
                 const finalScuola = (data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '').trim();
                 if (finalScuola && finalScuola.toUpperCase() !== 'N/A') {
@@ -344,6 +340,21 @@ const CrossProjectsService = {
             total: hubUsers.length
         };
         result.classes = hubClasses;
+
+        // Sincronizzazione in tempo reale statistiche aggregate per la vetrina pubblica
+        if (window.fbDb && window.fbDb.hub) {
+            const communityStats = {
+                totale_community: (totalRosterStudents || 0) + (cDocenti || 0) + (cViandanti || 0),
+                studenti: totalRosterStudents || 0,
+                docenti: cDocenti || 0,
+                viandanti: cViandanti || 0,
+                scuole: scuoleSet.size || 0,
+                lastUpdated: new Date().toISOString()
+            };
+            window.fbDb.hub.collection('hub_settings').doc('ecosistema').set({
+                community_stats: communityStats
+            }, { merge: true }).catch(() => {});
+        }
 
         return result;
     },

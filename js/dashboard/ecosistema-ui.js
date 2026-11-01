@@ -25,6 +25,7 @@ const EcosistemaUI = {
         this.updateSwitchVisuals('sostieni', !!data.sostieni_il_progetto);
         this.updateSwitchVisuals('monetizzazione', !!data.monetizzazione);
         this.updateSwitchVisuals('esperienze', !!data.esperienze);
+        this.updateSwitchVisuals('numeri-community', !!data.numeri_community);
         this.updateSwitchVisuals('come-funziona', data.come_funziona_visibile !== false);
 
         // Aggiornamento Campi Sostieni il Progetto
@@ -411,6 +412,7 @@ const EcosistemaUI = {
         const keyMap = {
             'sostieni': 'sostieni_il_progetto',
             'esperienze': 'esperienze',
+            'numeri-community': 'numeri_community',
             'monetizzazione': 'monetizzazione',
             'come-funziona': 'come_funziona_visibile',
         };
