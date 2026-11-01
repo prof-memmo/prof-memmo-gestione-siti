@@ -92,7 +92,7 @@ const EcosistemaUI = {
         this.renderPromozioniUI(promoConfig);
 
         // Massimale
-        const massimale = data.massimale_incassi || 4500;
+        const massimale = data.massimale_incassi || 4000;
         const incassato = data.totale_incassato_anno || 0;
         const residuo = Math.max(0, massimale - incassato);
 
@@ -380,7 +380,7 @@ const EcosistemaUI = {
     },
 
     saveMassimaleConfig: async function() {
-        const val = parseFloat(document.getElementById('hub-massimale-incassi').value) || 4500;
+        const val = parseFloat(document.getElementById('hub-massimale-incassi').value) || 4000;
         try {
             await window.EcosystemService.saveEcosystemSettings({ massimale_incassi: val });
             alert("✅ Massimale fiscale annuale salvato con successo: " + val.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' }));

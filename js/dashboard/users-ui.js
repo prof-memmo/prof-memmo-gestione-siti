@@ -233,6 +233,25 @@ const UsersUI = {
                 cleanGiocoHtml = `<span style="font-size: 0.8rem; font-weight: 600; color: ${meta.color}; white-space: nowrap;"><i class="fa-solid ${meta.icon}"></i> ${meta.name || singleGame}</span>`;
             }
 
+            // Pulsante Notifica Regalo Upgrade (Brevo Template 17)
+            let giftBtnHtml = '';
+            if (userPlan !== 'base' && !isAdminRole) {
+                const isSent = user.upgrade_email_sent === true;
+                const sentDateStr = user.upgrade_email_date ? (new Date(user.upgrade_email_date).toLocaleDateString('it-IT') + ' ' + new Date(user.upgrade_email_date).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })) : '';
+                const giftTitle = isSent 
+                    ? `Email Regalo inviata il ${sentDateStr} (clicca per reinviare)` 
+                    : `Invia Email Regalo (Brevo Template 17)`;
+                const giftColor = isSent ? '#10b981' : '#f59e0b';
+                const checkBadge = isSent ? `<span style="position: absolute; top: -5px; right: -6px; background: #10b981; color: white; border-radius: 50%; width: 12px; height: 12px; font-size: 8px; font-weight: 900; display: flex; align-items: center; justify-content: center; border: 1.5px solid white;">✓</span>` : '';
+
+                giftBtnHtml = `
+                    <button type="button" onclick="window.UsersUI.sendUpgradeEmailPrompt('${user.id}')" title="${giftTitle}" style="position: relative; background: none; border: none; padding: 2px; color: ${giftColor}; font-size: 1.05rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                        <i class="fa-solid fa-gift"></i>
+                        ${checkBadge}
+                    </button>
+                `;
+            }
+
             tr.innerHTML = `
                 <td style="text-align: center; padding: 6px 4px;"><input type="checkbox" class="user-select-cb" value="${user.id}" onchange="window.UsersUI.toggleUserSelection('${user.id}', this.checked)" ${isChecked}></td>
                 <td style="padding: 6px 8px 6px 4px;">
@@ -263,6 +282,7 @@ const UsersUI = {
                 </td>
                 <td style="padding: 6px; text-align:center;">
                     <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                        ${giftBtnHtml}
                         <a href="https://prof-memmo.github.io/games/profilo.html?preview=${user.id}" target="_blank" title="Anteprima Profilo Utente" style="color: #6366f1; font-size: 1rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-eye"></i>
                         </a>
@@ -593,9 +613,15 @@ const UsersUI = {
                 // Ricarica tabella con badge aggiornato
                 this.filterIscritti();
 
-                // Invia email di notifica all'utente
-                if (userEmail && newPlan !== 'base') {
-                    this.sendAbbonamentoEmail(userEmail, userName, newPlan);
+                const targetEmail = (usr?.email || userEmail || '').trim();
+                const targetName = (usr?.nome || userName || 'Utente').trim();
+
+                // Notifica opzionale per l'upgrade
+                if (targetEmail && newPlan !== 'base') {
+                    const askSend = confirm(`✅ Piano aggiornato con successo a "${newPlan}" per ${targetName}!\n\nVuoi inviare subito l'email con il regalo (Modello Brevo #17) a ${targetEmail}?`);
+                    if (askSend) {
+                        await this.sendUpgradeEmailPrompt(userId);
+                    }
                 }
             } else {
                 alert("Impossibile connettersi al database Hub.");
@@ -603,6 +629,68 @@ const UsersUI = {
         } catch (e) {
             console.error("Errore salvataggio piano:", e);
             alert("Errore durante l'aggiornamento del piano: " + e.message);
+        }
+    },
+
+    /**
+     * Invia la notifica email transazionale di upgrade tramite Brevo (Template 17) con registrazione traccia
+     */
+    sendUpgradeEmailPrompt: async function(userId) {
+        const user = (this.allUsers || []).find(u => String(u.id) === String(userId));
+        if (!user) {
+            alert("Utente non trovato.");
+            return;
+        }
+
+        const email = (user.email || '').trim();
+        if (!email || !email.includes('@')) {
+            alert("Questo utente non possiede un indirizzo email valido.");
+            return;
+        }
+
+        const nome = (user.nome || 'Utente').trim();
+        const planNames = {
+            'viandante': 'Piano Viandante',
+            'docente_didattico': 'Docente Didattico',
+            'docente_ecosistema': 'Ecosistema Completo'
+        };
+        const pKey = String(user.plan || '').toLowerCase();
+        const pianoLabel = planNames[pKey] || user.plan || 'Upgrade';
+
+        const isAlreadySent = user.upgrade_email_sent === true;
+        const lastSentStr = user.upgrade_email_date ? (new Date(user.upgrade_email_date).toLocaleDateString('it-IT') + ' alle ' + new Date(user.upgrade_email_date).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })) : '';
+
+        const msgConfirm = isAlreadySent
+            ? `⚠️ L'email con il regalo risulta GIÀ inviata a ${nome} (${email}) il ${lastSentStr}.\n\nVuoi reinviare la notifica transazionale (Modello Brevo #17)?`
+            : `🎁 Vuoi inviare l'email con il regalo (${pianoLabel}) a:\n\n👤 ${nome}\n📧 ${email}\n\nVerrà inviato il Modello Transazionale Brevo #17.`;
+
+        if (!confirm(msgConfirm)) return;
+
+        try {
+            if (!window.NewsletterService || typeof window.NewsletterService.sendUpgradeNotificationEmail !== 'function') {
+                throw new Error("Servizio Brevo non disponibile.");
+            }
+
+            await window.NewsletterService.sendUpgradeNotificationEmail(email, nome);
+
+            // Registra traccia su Firestore
+            const nowIso = new Date().toISOString();
+            if (window.fbDb && window.fbDb.hub && userId !== 'prof_memmo_admin') {
+                await window.fbDb.hub.collection('hub_users').doc(userId).set({
+                    upgrade_email_sent: true,
+                    upgrade_email_date: nowIso
+                }, { merge: true });
+            }
+
+            // Aggiorna stato locale e rinfresca la tabella
+            user.upgrade_email_sent = true;
+            user.upgrade_email_date = nowIso;
+            this.filterIscritti();
+
+            alert(`✅ Email regalo inviata con successo via Brevo a ${nome} (${email})!`);
+        } catch (err) {
+            console.error("Errore invio email upgrade Brevo:", err);
+            alert(`❌ Errore durante l'invio dell'email via Brevo:\n${err.message}`);
         }
     },
 

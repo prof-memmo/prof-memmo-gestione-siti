@@ -242,7 +242,7 @@ const PaymentsUI = {
             elIncassato.textContent = Math.max(0, netEarnings).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
         }
         if (elMassimale && elResiduo) {
-            const massimale = parseFloat(elMassimale.textContent.replace(/[^0-9.,]/g, '').replace(',', '.')) || 4000;
+            const massimale = parseFloat(elMassimale.textContent.replace(/\./g, '').replace(/[^0-9,]/g, '').replace(',', '.')) || 4000;
             const residuo = Math.max(0, massimale - Math.max(0, netEarnings));
             elResiduo.textContent = residuo.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
         }

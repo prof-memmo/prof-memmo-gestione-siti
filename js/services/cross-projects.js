@@ -96,7 +96,9 @@ const CrossProjectsService = {
                         dataValue: dataVal,
                         plan: rawPlan,
                         admin_override: rawOverride,
-                        abbonamento_scadenza: rawScadenza
+                        abbonamento_scadenza: rawScadenza,
+                        upgrade_email_sent: (fields.upgrade_email_sent && fields.upgrade_email_sent.booleanValue) || false,
+                        upgrade_email_date: (fields.upgrade_email_date && fields.upgrade_email_date.stringValue) || ''
                     };
                 });
             };
@@ -270,6 +272,8 @@ const CrossProjectsService = {
                         plan: userPlan,
                         admin_override: data.admin_override === true || data.adminOverride === true,
                         abbonamento_scadenza: data.abbonamento_scadenza || data.scadenza || '',
+                        upgrade_email_sent: data.upgrade_email_sent === true,
+                        upgrade_email_date: data.upgrade_email_date || '',
                         isHubMaster: true,
                         newsletter: data.newsletter === true || (data.consents && data.consents.newsletter === true),
                         consents: data.consents || (data.newsletter ? { newsletter: true } : {})

@@ -357,8 +357,8 @@ const AnalyticsUI = {
         const elMassimale = document.getElementById('analytics-massimale-display');
         const elResiduo = document.getElementById('analytics-residuo-display');
         if (elMassimale && elResiduo) {
-            const massimaleText = elMassimale.textContent.replace(/[^0-9.,]/g, '').replace(',', '.');
-            const massimale = parseFloat(massimaleText) || 4500;
+            const massimaleText = elMassimale.textContent.replace(/\./g, '').replace(/[^0-9,]/g, '').replace(',', '.');
+            const massimale = parseFloat(massimaleText) || 4000;
             const residuo = Math.max(0, massimale - realIncassato);
             elResiduo.textContent = residuo.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
         }
