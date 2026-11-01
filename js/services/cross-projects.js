@@ -209,22 +209,26 @@ const CrossProjectsService = {
                 }
 
                 const hasAdminOverride = data.admin_override === true || data.adminOverride === true;
-                const userPlan = isMemmo ? 'docente_ecosistema' : (data.abbonamento || data.plan || data.subscription || 'base');
+                const userPlan = isMemmo ? 'docente_ecosistema' : (data.piano || data.abbonamento || data.plan || data.subscription || 'base');
                 const userRole = isMemmo ? 'admin' : (rawRole.includes('docente') || rawRole.includes('teacher') || rawRole.includes('prof') ? 'docente' : (rawRole === 'admin' ? 'admin' : 'viandante'));
 
                 const planLower = String(userPlan).toLowerCase();
                 let planDefault = [];
-                if (userRole === 'admin' || planLower === 'docente_ecosistema' || planLower.includes('ecosistema')) {
+                if (userRole === 'admin' || planLower === 'docente_ecosistema' || planLower.includes('ecosistema') || planLower.includes('completo')) {
                     planDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica', 'Travel Agency', 'Il mio quaderno alternativo', 'Fuori Registro'];
                 } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
                     planDefault = ['FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'Fuori Registro'];
-                } else if (planLower === 'viandante') {
-                    planDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'La Ruota Geografica', 'Fuori Registro'];
+                } else if (planLower === 'viandante' || planLower.includes('viandante') || planLower.includes('pellegrino')) {
+                    planDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica', 'Travel Agency', 'Il mio quaderno alternativo', 'Fuori Registro'];
                 } else {
                     planDefault = ['FantaLetteratura', 'Palestra di Riflessione', 'Fuori Registro'];
                 }
 
-                if (hasAdminOverride && userGiochi.length > 0) {
+                // Per il Piano Base, i giochi sono SEMPRE e RIGOROSAMENTE solo i 3 del Base (senza ereditare vecchie piattaforme storiche)
+                const isBasePlan = !planLower.includes('docente') && !planLower.includes('ecosistema') && !planLower.includes('didattic') && !planLower.includes('viandante') && !planLower.includes('completo') && userRole !== 'admin';
+                if (isBasePlan) {
+                    userGiochi = planDefault;
+                } else if (hasAdminOverride && userGiochi.length > 0) {
                     userGiochi = Array.from(new Set([...planDefault, ...userGiochi]));
                 } else {
                     userGiochi = planDefault;
