@@ -195,14 +195,17 @@ const CrossProjectsService = {
 
                 let userGiochi = [];
                 if (data.platforms && typeof data.platforms === 'object') {
-                    if (data.platforms.eroi_users?.enabled || data.platforms.rotta_degli_eroi?.enabled) userGiochi.push('La Rotta degli Eroi');
-                    if (data.platforms.corte_users?.enabled || data.platforms.corte_della_commedia?.enabled) userGiochi.push('La Corte della Commedia');
+                    if (data.platforms.eroi_users?.enabled || data.platforms.rotta_degli_eroi?.enabled || data.platforms['la-rotta-degli-eroi']?.enabled) userGiochi.push('La Rotta degli Eroi');
+                    if (data.platforms.corte_users?.enabled || data.platforms.corte_della_commedia?.enabled || data.platforms['la-corte-della-commedia']?.enabled) userGiochi.push('La Corte della Commedia');
                     if (data.platforms.fanta_users?.enabled || data.platforms.fantaletteratura?.enabled) userGiochi.push('FantaLetteratura');
-                    if (data.platforms.palestra_users?.enabled || data.platforms.palestra_riflessione?.enabled) userGiochi.push('Palestra di Riflessione');
-                    if (data.platforms.ops_users?.enabled || data.platforms.ops_storia?.enabled) userGiochi.push('Ops! Operazione Storia');
-                    if (data.platforms.oratore_users?.enabled || data.platforms.l_oratore?.enabled || data.platforms.oratore?.enabled) userGiochi.push("L'Oratore");
+                    if (data.platforms.palestra_users?.enabled || data.platforms.palestra_riflessione?.enabled || data.platforms['palestra-di-riflessione']?.enabled) userGiochi.push('Palestra di Riflessione');
+                    if (data.platforms.ops_users?.enabled || data.platforms.ops_storia?.enabled || data.platforms['ops-storia']?.enabled) userGiochi.push('Ops! Operazione Storia');
+                    if (data.platforms.oratore_users?.enabled || data.platforms.l_oratore?.enabled || data.platforms['l-oratore']?.enabled || data.platforms.oratore?.enabled) userGiochi.push("L'Oratore");
                     if (data.platforms.historygram_users?.enabled || data.platforms.historygram?.enabled) userGiochi.push('HistoryGram');
                     if (data.platforms.ruota_users?.enabled || data.platforms.la_ruota_geografica?.enabled || data.platforms['la-ruota-geografica']?.enabled) userGiochi.push('La Ruota Geografica');
+                    if (data.platforms.travel_agency?.enabled || data.platforms.travel_users?.enabled || data.platforms['travel-agency']?.enabled) userGiochi.push('Travel Agency');
+                    if (data.platforms.quaderno_alternativo?.enabled || data.platforms['il-mio-quaderno-alternativo']?.enabled || data.platforms.quaderno_users?.enabled) userGiochi.push('Il mio quaderno alternativo');
+                    if (data.platforms.fuori_registro?.enabled || data.platforms['fuori-registro']?.enabled || data.platforms.fuoriregistro_users?.enabled) userGiochi.push('Fuori Registro');
                 }
 
                 const userPlan = isMemmo ? 'docente_ecosistema' : (data.abbonamento || data.plan || data.subscription || 'base');
@@ -210,14 +213,17 @@ const CrossProjectsService = {
 
                 const planLower = String(userPlan).toLowerCase();
                 if (userRole === 'admin' || planLower === 'docente_ecosistema' || planLower.includes('ecosistema')) {
-                    userGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica'];
+                    const ecoDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica', 'Travel Agency', 'Il mio quaderno alternativo', 'Fuori Registro'];
+                    userGiochi = Array.from(new Set([...ecoDefault, ...userGiochi]));
                 } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
-                    userGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia'];
+                    const didatticoDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'Fuori Registro'];
+                    userGiochi = Array.from(new Set([...didatticoDefault, ...userGiochi]));
                 } else if (planLower === 'viandante' || userRole === 'viandante') {
-                    const viandanteDefault = ['La Rotta degli Eroi', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'La Ruota Geografica', 'Fuori Registro'];
+                    const viandanteDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'La Ruota Geografica', 'Fuori Registro'];
                     userGiochi = Array.from(new Set([...viandanteDefault, ...userGiochi]));
-                } else if (userGiochi.length === 0) {
-                    userGiochi = ['Palestra di Riflessione', 'FantaLetteratura'];
+                } else {
+                    const baseDefault = ['FantaLetteratura', 'Palestra di Riflessione', 'Fuori Registro'];
+                    userGiochi = Array.from(new Set([...baseDefault, ...userGiochi]));
                 }
 
                 const finalScuola = (data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '').trim();
