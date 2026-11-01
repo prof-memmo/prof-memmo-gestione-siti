@@ -601,7 +601,7 @@ const UsersUI = {
                     } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
                         updatedGiochi = ['FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'Fuori Registro'];
                     } else if (planLower === 'viandante' || planLower.includes('viandante')) {
-                        updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica', 'Travel Agency', 'Il mio quaderno alternativo', 'Fuori Registro'];
+                        updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'HistoryGram', 'La Ruota Geografica', 'Travel Agency', 'Fuori Registro'];
                     } else {
                         updatedGiochi = ['FantaLetteratura', 'Palestra di Riflessione', 'Fuori Registro'];
                     }
