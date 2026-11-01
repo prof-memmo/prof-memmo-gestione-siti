@@ -126,6 +126,7 @@ const PortalApp = {
 
     backToDoorSelection: function() {
         this.hideError();
+        document.documentElement.classList.remove('portal-direct-entry');
         const doorEl = document.getElementById('portal-door-selection');
         const loginOverlay = document.getElementById('portal-login-overlay');
         const identityEl = document.getElementById('portal-identity');
