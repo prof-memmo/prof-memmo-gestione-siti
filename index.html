@@ -1857,6 +1857,66 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
         </div>
       </div>
 
+      <!-- Box Monitoraggio Scadenze Imminenti (30-60 Giorni) -->
+      <div id="analytics-scadenze-alert-box" class="glass-panel" style="margin-bottom: 20px; padding: 16px 20px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1.5px solid #fcd34d; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="background: #f59e0b; color: white; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(245,158,11,0.3);">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+          <div>
+            <div style="font-size: 0.95rem; font-weight: 800; color: #92400e; display: flex; align-items: center; gap: 8px;">
+              Monitoraggio Scadenze Abbonamenti Docenti
+            </div>
+            <div id="analytics-scadenze-summary-text" style="font-size: 0.85rem; color: #78350f; margin-top: 3px;">
+              Calcolo scadenze in corso...
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <div style="display: flex; gap: 8px;">
+            <span id="badge-scadenze-30" style="background: #ef4444; color: white; padding: 5px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(239,68,68,0.25);">
+              <i class="fa-solid fa-triangle-exclamation"></i> <span id="count-scad-30">0</span> entro 30 gg
+            </span>
+            <span id="badge-scadenze-60" style="background: #f59e0b; color: white; padding: 5px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(245,158,11,0.25);">
+              <i class="fa-regular fa-clock"></i> <span id="count-scad-60">0</span> in 31-60 gg
+            </span>
+          </div>
+          <button type="button" class="btn btn-sm" onclick="AnalyticsUI.filterUsersByExpiring()" style="font-size: 0.82rem; padding: 7px 14px; font-weight: 700; color: #92400e; border: 1px solid #d97706; background: white; cursor: pointer; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <i class="fa-solid fa-users-viewfinder"></i> Gestisci in Utenti
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra Filtri Temporali & Preset Sincronizzati -->
+      <div class="glass-panel" style="margin-bottom: 22px; padding: 16px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+          <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-calendar-days" style="color: #6366f1;"></i> Arco Temporale Analytics &amp; Registro (Sincronizzati)
+            <span id="analytics-active-preset-badge" style="background: rgba(99,102,241,0.12); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); font-size: 0.74rem; padding: 3px 9px; border-radius: 6px; font-weight: 700;">Anno Corrente 2026</span>
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="AnalyticsUI.setPresetDate('year')">Anno Corrente 2026</button>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="AnalyticsUI.setPresetDate('last30')">Ultimi 30 Giorni</button>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="AnalyticsUI.setPresetDate('month')">Questo Mese</button>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="AnalyticsUI.setPresetDate('all')">Tutto lo Storico</button>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px; color: #dc2626;" onclick="AnalyticsUI.setPresetDate('reset')"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="analytics-date-from" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Da Data:</label>
+            <input type="date" id="analytics-date-from" class="input-field" style="margin: 0; padding: 6px 10px; font-size: 0.85rem;" onchange="AnalyticsUI.onDateInputChange()">
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="analytics-date-to" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">A Data:</label>
+            <input type="date" id="analytics-date-to" class="input-field" style="margin: 0; padding: 6px 10px; font-size: 0.85rem;" onchange="AnalyticsUI.onDateInputChange()">
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-left: auto;">
+            <i class="fa-solid fa-link" style="color: #10b981;"></i> Sincronizzazione automatica bidirezionale con il Registro Pagamenti Stripe.
+          </div>
+        </div>
+      </div>
+
       <!-- KPI Grid -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
         
@@ -2128,11 +2188,12 @@ I presenti Termini sono regolati dalla legge italiana e dal Regolamento UE 2016/
             <i class="fa-solid fa-filter" style="color: var(--accent);"></i> Filtri &amp; Ricerca Registro
           </div>
           <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('month')">Questo Mese</button>
-            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('quarter')">Trimestre</button>
-            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('year')">Anno Corrente</button>
-            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('all')">Tutto lo Storico</button>
-            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px; color: #dc2626;" onclick="PaymentsUI.resetFilters()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('year')">Anno Corrente 2026</button>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('last30')">Ultimi 30 Giorni</button>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('month')">Questo Mese</button>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('quarter')">Trimestre</button>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="PaymentsUI.setPresetDate('all')">Tutto lo Storico</button>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px; color: #dc2626;" onclick="PaymentsUI.resetFilters()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
           </div>
         </div>
 
@@ -3114,11 +3175,11 @@ Stiamo migliorando l'ecosistema. Torna tra poco!</textarea>
   <script src="js/dashboard/ecosistema-ui.js?v=20261101_v1"></script>
   <script src="js/dashboard/games-ui.js?v=20261011_v4"></script>
   <script src="js/dashboard/users-ui.js?v=20261101_v1"></script>
-  <script src="js/dashboard/payments-ui.js?v=20261101_v1"></script>
+  <script src="js/dashboard/payments-ui.js?v=20261101_v2"></script>
   <script src="js/dashboard/vetrina-ui.js?v=20261011_v4"></script>
   
   <script src="js/dashboard/newsletter-ui.js?v=20261011_v4"></script>
-  <script src="js/dashboard/analytics-ui.js?v=20261101_v1"></script>
+  <script src="js/dashboard/analytics-ui.js?v=20261101_v2"></script>
   <script src="js/dashboard/notifications-ui.js?v=20261011_v4"></script>
   <script src="js/dashboard/legal-admin-ui.js?v=20261011_v4"></script>
   <script src="js/dashboard/impostazioni-ui.js?v=20261011_v4"></script>
