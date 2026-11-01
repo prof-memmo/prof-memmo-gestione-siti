@@ -588,26 +588,24 @@ const UsersUI = {
                     lastUpdated: new Date().toISOString()
                 }, { merge: true });
                 
-                if (this.allUsers) {
-                    const usr = this.allUsers.find(u => u.id === userId);
-                    if (usr) {
-                        usr.plan = newPlan;
-                        usr.admin_override = true;
-                        usr.abbonamento_scadenza = newPlan === 'base' ? null : scadenza;
+                let usr = (this.allUsers || []).find(u => u.id === userId);
+                if (usr) {
+                    usr.plan = newPlan;
+                    usr.admin_override = true;
+                    usr.abbonamento_scadenza = newPlan === 'base' ? null : scadenza;
 
-                        const planLower = String(newPlan).toLowerCase();
-                        let updatedGiochi = [];
-                        if (planLower === 'docente_ecosistema' || planLower.includes('ecosistema')) {
-                            updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica'];
-                        } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
-                            updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia'];
-                        } else if (planLower === 'viandante') {
-                            updatedGiochi = ['La Rotta degli Eroi', 'FantaLetteratura', 'Palestra di Riflessione'];
-                        } else {
-                            updatedGiochi = ['Palestra di Riflessione', 'FantaLetteratura'];
-                        }
-                        usr.gioco = updatedGiochi.join(' / ');
+                    const planLower = String(newPlan).toLowerCase();
+                    let updatedGiochi = [];
+                    if (planLower === 'docente_ecosistema' || planLower.includes('ecosistema')) {
+                        updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica'];
+                    } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
+                        updatedGiochi = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia'];
+                    } else if (planLower === 'viandante') {
+                        updatedGiochi = ['La Rotta degli Eroi', 'FantaLetteratura', 'Palestra di Riflessione'];
+                    } else {
+                        updatedGiochi = ['Palestra di Riflessione', 'FantaLetteratura'];
                     }
+                    usr.gioco = updatedGiochi.join(' / ');
                 }
 
                 // Ricarica tabella con badge aggiornato
