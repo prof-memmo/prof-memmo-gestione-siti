@@ -341,6 +341,21 @@ const CrossProjectsService = {
         };
         result.classes = hubClasses;
 
+        // Sincronizzazione in tempo reale statistiche aggregate per la vetrina pubblica
+        if (window.fbDb && window.fbDb.hub) {
+            const communityStats = {
+                totale_community: (totalRosterStudents || 0) + (cDocenti || 0) + (cViandanti || 0),
+                studenti: totalRosterStudents || 0,
+                docenti: cDocenti || 0,
+                viandanti: cViandanti || 0,
+                scuole: scuoleSet.size || 0,
+                lastUpdated: new Date().toISOString()
+            };
+            window.fbDb.hub.collection('hub_settings').doc('ecosistema').set({
+                community_stats: communityStats
+            }, { merge: true }).catch(() => {});
+        }
+
         return result;
     },
 
