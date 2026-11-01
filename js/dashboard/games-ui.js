@@ -195,14 +195,14 @@ const GamesUI = {
                     if (data.isFreeBaseVersion !== undefined) {
                         allowed.base = data.isFreeBaseVersion === true;
                     }
-                    if (gameId === 'l-oratore' || gameId === 'la-ruota-geografica') {
-                        // L'Oratore e La Ruota Geografica sono rigorosamente esclusivi di Piano Ecosistema Completo
+                    if (gameId === 'l-oratore') {
+                        // L'Oratore è rigorosamente esclusivo di Piano Ecosistema Completo
                         allowed.base = false;
                         allowed.viandante = false;
                         allowed.docente_didattico = false;
                         allowed.docente_ecosistema = true;
                     } else {
-                        // Di default La Rotta, Corte, Ops etc. sono inclusi in Viandante ed Ecosistema
+                        // Di default La Rotta, Corte, Ops, La Ruota Geografica etc. sono inclusi in Viandante ed Ecosistema
                         if (allowed.viandante === undefined) allowed.viandante = true;
                         if (allowed.docente_ecosistema === undefined) allowed.docente_ecosistema = true;
                     }

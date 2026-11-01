@@ -66,7 +66,7 @@ const EcosistemaUI = {
         setVal('features-base', '+ FantaLetteratura (Max 4 squadre, una sola classe)\n+ Palestra di Riflessione (Attività fondamentali)\n- FantaLetteratura: Tornei interni e missioni personalizzate\n- Palestra: Analisi logica, periodo, testi B1/B2, test cultura gen.');
         setVal('desc-viandante', 'Perfetto per appassionati e giocatori che vogliono esplorare i giochi e le storie.');
         setVal('btn-viandante', 'Scegli Viandante');
-        setVal('features-viandante', '+ FantaLetteratura (Versione Base)\n+ Palestra di Riflessione (Versione Base)\n+ Ops! Operazione Storia (1 Dispositivo e Party)\n+ La Rotta degli Eroi\n+ La Corte dei Dannati\n+ Accesso ai futuri giochi narrativi\n- Strumenti docente (creazione classi, tornei, dashboard)');
+        setVal('features-viandante', '+ FantaLetteratura (Versione Base)\n+ Palestra di Riflessione (Versione Base)\n+ Ops! Operazione Storia (1 Dispositivo e Party)\n+ La Ruota Geografica (Sfida a squadre e party game)\n+ La Rotta degli Eroi\n+ La Corte dei Dannati\n+ Accesso ai futuri giochi narrativi\n- Strumenti docente (creazione classi, tornei, dashboard)');
         setVal('desc-docente', 'Gli strumenti definitivi per gestire le tue classi e la didattica.');
         setVal('btn-docente', 'Scegli Docente');
         setVal('features-docente', '+ FantaLetteratura (Completo): Tornei, missioni\n+ Palestra (Completa): Analisi logica, testi B2\n+ Gestione Classi e Studenti\n+ Codici Classe privati\n+ Strumenti Docente e Dashboard avanzata\n- Non include La Rotta degli Eroi o Travel Agency');
