@@ -50,11 +50,7 @@ const UserService = {
             platforms: {
                 fantaletteratura: { enabled: true, permissions: [] },
                 palestra_riflessione: { enabled: true, permissions: [] },
-                rotta_degli_eroi: { enabled: true, permissions: [] },
-                corte_della_commedia: { enabled: true, permissions: [] },
-                ops_storia: { enabled: true, permissions: [] },
-                l_oratore: { enabled: true, permissions: [] },
-                supplenze: { enabled: true, permissions: [] }
+                fuori_registro: { enabled: true, permissions: [] }
             },
             survey: surveyData || null,
             adminOverrides: {},
