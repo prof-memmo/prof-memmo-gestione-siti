@@ -38,6 +38,12 @@ const AnalyticsUI = {
         // Inizializza listener spese (se non ancora agganciato)
         this.initExpenses();
 
+        // Inizializza date di default (Anno corrente)
+        this.setupDefaultDates();
+
+        // Monitoraggio scadenze imminenti abbonamenti docenti (30-60 giorni)
+        this.checkUpcomingExpirations(iscrittiAggregati);
+
         // 1. Elaborazione dati
         const stats = this.processData(iscrittiAggregati);
 
@@ -88,6 +94,153 @@ const AnalyticsUI = {
                 this.expensesList = Array.isArray(items) ? items : [];
                 this.updateExpensesKPIs();
             });
+        }
+    },
+
+    setupDefaultDates: function() {
+        const elFrom = document.getElementById('analytics-date-from');
+        const elTo = document.getElementById('analytics-date-to');
+        const currentYear = new Date().getFullYear();
+        if (elFrom && !elFrom.value) {
+            elFrom.value = `${currentYear}-01-01`;
+        }
+        if (elTo && !elTo.value) {
+            elTo.value = `${currentYear}-12-31`;
+        }
+    },
+
+    setPresetDate: function(preset, skipSync = false) {
+        const now = new Date();
+        const elFrom = document.getElementById('analytics-date-from');
+        const elTo = document.getElementById('analytics-date-to');
+        const badgeEl = document.getElementById('analytics-active-preset-badge');
+        if (!elFrom || !elTo) return;
+
+        let label = 'Personalizzato';
+        if (preset === 'year') {
+            const yr = now.getFullYear();
+            elFrom.value = `${yr}-01-01`;
+            elTo.value = `${yr}-12-31`;
+            label = `Anno Corrente ${yr}`;
+        } else if (preset === 'last30') {
+            const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            elFrom.value = d30.toISOString().split('T')[0];
+            elTo.value = now.toISOString().split('T')[0];
+            label = 'Ultimi 30 Giorni';
+        } else if (preset === 'month') {
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+            elFrom.value = firstDay;
+            elTo.value = lastDay;
+            label = 'Questo Mese';
+        } else if (preset === 'all' || preset === 'reset') {
+            elFrom.value = '';
+            elTo.value = '';
+            label = 'Tutto lo Storico';
+        }
+
+        if (badgeEl) badgeEl.textContent = label;
+
+        this.updateDateFilter();
+
+        // Sincronizza bidirezionalmente con il Registro Pagamenti Stripe
+        if (!skipSync && window.PaymentsUI && typeof window.PaymentsUI.syncDates === 'function') {
+            window.PaymentsUI.syncDates(elFrom.value, elTo.value);
+        }
+    },
+
+    onDateInputChange: function() {
+        const badgeEl = document.getElementById('analytics-active-preset-badge');
+        if (badgeEl) badgeEl.textContent = 'Personalizzato';
+        this.updateDateFilter();
+
+        const elFrom = document.getElementById('analytics-date-from');
+        const elTo = document.getElementById('analytics-date-to');
+        if (window.PaymentsUI && typeof window.PaymentsUI.syncDates === 'function') {
+            window.PaymentsUI.syncDates(elFrom ? elFrom.value : '', elTo ? elTo.value : '');
+        }
+    },
+
+    syncDates: function(fromDate, toDate, presetLabel) {
+        const elFrom = document.getElementById('analytics-date-from');
+        const elTo = document.getElementById('analytics-date-to');
+        const badgeEl = document.getElementById('analytics-active-preset-badge');
+        if (elFrom) elFrom.value = fromDate || '';
+        if (elTo) elTo.value = toDate || '';
+        if (badgeEl && presetLabel) badgeEl.textContent = presetLabel;
+        this.updateDateFilter();
+    },
+
+    checkUpcomingExpirations: function(users) {
+        if (!Array.isArray(users)) return;
+        const now = new Date();
+        const currentYear = now.getFullYear();
+
+        let count30 = 0;
+        let count60 = 0;
+        let expired = 0;
+        const expiringUserIds = [];
+
+        users.forEach(u => {
+            const role = (u.role || u.ruolo || '').toLowerCase();
+            const plan = (u.plan || u.piano || u.abbonamento || 'base').toLowerCase();
+            
+            // Esclude super admin con accesso permanente e utenti base gratuiti
+            if (role === 'admin' || role === 'super_admin' || plan === 'base' || plan === 'free') {
+                return;
+            }
+
+            let expDate = null;
+            if (u.abbonamento_scadenza) {
+                expDate = new Date(u.abbonamento_scadenza);
+            } else if (u.dataValue > 0) {
+                const dIsc = new Date(u.dataValue);
+                dIsc.setFullYear(dIsc.getFullYear() + 1);
+                expDate = dIsc;
+            } else {
+                expDate = new Date(`${currentYear}-12-31`);
+            }
+
+            if (!expDate || isNaN(expDate.getTime())) return;
+
+            const diffTime = expDate.getTime() - now.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                expired++;
+                expiringUserIds.push(u.id);
+            } else if (diffDays <= 30) {
+                count30++;
+                expiringUserIds.push(u.id);
+            } else if (diffDays <= 60) {
+                count60++;
+                expiringUserIds.push(u.id);
+            }
+        });
+
+        this.expiringUserIds = expiringUserIds;
+
+        const el30 = document.getElementById('count-scad-30');
+        const el60 = document.getElementById('count-scad-60');
+        const elSummary = document.getElementById('analytics-scadenze-summary-text');
+
+        if (el30) el30.textContent = count30;
+        if (el60) el60.textContent = count60;
+        if (elSummary) {
+            if (count30 === 0 && count60 === 0 && expired === 0) {
+                elSummary.textContent = "Nessun abbonamento docente in scadenza nei prossimi 60 giorni. Tutti i rinnovi risultano regolari.";
+            } else {
+                elSummary.innerHTML = `<strong>${count30}</strong> docenti in scadenza entro 30 giorni, <strong>${count60}</strong> nei successivi 31-60 giorni${expired > 0 ? ` (e <strong>${expired}</strong> già scaduti)` : ''}.`;
+            }
+        }
+    },
+
+    filterUsersByExpiring: function() {
+        if (typeof switchView === 'function') {
+            switchView('view-dashboard');
+        }
+        if (window.HubApp && typeof window.HubApp.filterIscrittiByCard === 'function') {
+            window.HubApp.filterIscrittiByCard('docente');
         }
     },
 
@@ -357,8 +510,8 @@ const AnalyticsUI = {
         const elMassimale = document.getElementById('analytics-massimale-display');
         const elResiduo = document.getElementById('analytics-residuo-display');
         if (elMassimale && elResiduo) {
-            const massimaleText = elMassimale.textContent.replace(/[^0-9.,]/g, '').replace(',', '.');
-            const massimale = parseFloat(massimaleText) || 4500;
+            const massimaleText = elMassimale.textContent.replace(/\./g, '').replace(/[^0-9,]/g, '').replace(',', '.');
+            const massimale = parseFloat(massimaleText) || 4000;
             const residuo = Math.max(0, massimale - realIncassato);
             elResiduo.textContent = residuo.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
         }

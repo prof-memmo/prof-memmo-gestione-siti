@@ -39,35 +39,62 @@ const PaymentsUI = {
         }
     },
 
-    setPresetDate: function(preset) {
+    setPresetDate: function(preset, skipSync = false) {
         const now = new Date();
         const elFrom = document.getElementById('payments-date-from');
         const elTo = document.getElementById('payments-date-to');
         if (!elFrom || !elTo) return;
 
+        let label = 'Personalizzato';
         if (preset === 'month') {
             const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
             const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
             elFrom.value = firstDay;
             elTo.value = lastDay;
+            label = 'Questo Mese';
+        } else if (preset === 'last30') {
+            const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            elFrom.value = d30.toISOString().split('T')[0];
+            elTo.value = now.toISOString().split('T')[0];
+            label = 'Ultimi 30 Giorni';
         } else if (preset === 'quarter') {
             const currentQuarter = Math.floor(now.getMonth() / 3);
             const firstDay = new Date(now.getFullYear(), currentQuarter * 3, 1).toISOString().split('T')[0];
             const lastDay = new Date(now.getFullYear(), (currentQuarter + 1) * 3, 0).toISOString().split('T')[0];
             elFrom.value = firstDay;
             elTo.value = lastDay;
+            label = 'Trimestre';
         } else if (preset === 'year') {
-            elFrom.value = `${now.getFullYear()}-01-01`;
-            elTo.value = `${now.getFullYear()}-12-31`;
+            const yr = now.getFullYear();
+            elFrom.value = `${yr}-01-01`;
+            elTo.value = `${yr}-12-31`;
+            label = `Anno Corrente ${yr}`;
         } else if (preset === 'all') {
             elFrom.value = '';
             elTo.value = '';
+            label = 'Tutto lo Storico';
         }
 
-        this.onFilterChange();
+        this.onFilterChange(skipSync);
+
+        // Sincronizzazione con AnalyticsUI
+        if (!skipSync && window.AnalyticsUI && typeof window.AnalyticsUI.syncDates === 'function') {
+            window.AnalyticsUI.syncDates(elFrom.value, elTo.value, label);
+        }
     },
 
-    onFilterChange: function() {
+    syncDates: function(fromDate, toDate) {
+        const elFrom = document.getElementById('payments-date-from');
+        const elTo = document.getElementById('payments-date-to');
+        if (elFrom) elFrom.value = fromDate || '';
+        if (elTo) elTo.value = toDate || '';
+
+        this.filters.dateFrom = fromDate || '';
+        this.filters.dateTo = toDate || '';
+        this.applyFilters();
+    },
+
+    onFilterChange: function(skipSync = false) {
         const elFrom = document.getElementById('payments-date-from');
         const elTo = document.getElementById('payments-date-to');
         const elPlan = document.getElementById('payments-filter-plan');
@@ -85,6 +112,11 @@ const PaymentsUI = {
         this.filters.search = elSearch ? elSearch.value.trim().toLowerCase() : '';
 
         this.applyFilters();
+
+        // Sincronizza date con Analytics se non richiesto diversamente
+        if (!skipSync && window.AnalyticsUI && typeof window.AnalyticsUI.syncDates === 'function') {
+            window.AnalyticsUI.syncDates(this.filters.dateFrom, this.filters.dateTo, 'Personalizzato');
+        }
     },
 
     resetFilters: function() {
@@ -242,7 +274,7 @@ const PaymentsUI = {
             elIncassato.textContent = Math.max(0, netEarnings).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
         }
         if (elMassimale && elResiduo) {
-            const massimale = parseFloat(elMassimale.textContent.replace(/[^0-9.,]/g, '').replace(',', '.')) || 4000;
+            const massimale = parseFloat(elMassimale.textContent.replace(/\./g, '').replace(/[^0-9,]/g, '').replace(',', '.')) || 4000;
             const residuo = Math.max(0, massimale - Math.max(0, netEarnings));
             elResiduo.textContent = residuo.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
         }

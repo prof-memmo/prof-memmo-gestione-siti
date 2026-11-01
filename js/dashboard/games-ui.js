@@ -23,6 +23,8 @@ const GamesUI = {
             { id: 'historygram', name: 'HistoryGram' }
         ];
 
+        this.defaultGames = defaultGames;
+
         window.GamesService.listenToGamesStatus(statusMap => {
 
             const tbody = document.getElementById('games-list-body');
@@ -37,6 +39,7 @@ const GamesUI = {
                 const data = statusMap[game.id] || { isActive: defaultActive, visibleInVetrina: true, popupType: 'wip_text' };
                 const isVetrinaVisible = data.visibleInVetrina !== false;
                 const isAccessOpen = !!data.isActive;
+                const safeGameName = (game.name || '').replace(/'/g, "\\'");
                 
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = '1px solid #e5e7eb';
@@ -61,13 +64,13 @@ const GamesUI = {
                     </td>
                     <td style="padding:15px 10px; text-align: right; white-space: nowrap;">
                         ${(game.id === 'il-mio-quaderno-alternativo' || game.id === 'travel-agency') ? `
-                            <button class="btn btn-sm" onclick="window.GamesUI.openEditionsModal('${game.id}', '${game.name}')" 
+                            <button class="btn btn-sm" onclick="window.GamesUI.openEditionsModal('${game.id}', '${safeGameName}')" 
                                 title="Gestisci lo stato delle singole classi ed edizioni"
                                 style="background:${game.id === 'il-mio-quaderno-alternativo' ? '#7c3aed' : '#0284c7'}; color:white; padding:6px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size: 0.82rem; margin-right: 8px; transition: transform 0.15s; display: inline-flex; align-items: center; gap: 6px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                                 <i class="fa-solid fa-layer-group"></i> Edizioni
                             </button>
                         ` : ''}
-                        <button class="btn btn-sm" onclick="HubApp.editGame('${game.id}', '${game.name}')" 
+                        <button class="btn btn-sm" onclick="HubApp.editGame('${game.id}', '${safeGameName}')" 
                             style="background:#4f46e5; color:white; padding:6px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size: 0.82rem; transition: transform 0.15s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                             <i class="fa-solid fa-pen-to-square"></i> Modifica Card
                         </button>
@@ -103,7 +106,10 @@ const GamesUI = {
     editGame: function(gameId, gameName) {
         if (!window.GamesService) return;
         
-        document.getElementById('edit-game-name').innerText = gameName;
+        const fallbackName = this.defaultGames ? this.defaultGames.find(g => g.id === gameId)?.name : null;
+        const finalName = gameName || fallbackName || gameId;
+        
+        document.getElementById('edit-game-name').innerText = finalName;
         document.getElementById('edit-game-id').value = gameId;
         
         window.GamesService.getGameDetails(gameId).then(data => {
@@ -195,14 +201,14 @@ const GamesUI = {
                     if (data.isFreeBaseVersion !== undefined) {
                         allowed.base = data.isFreeBaseVersion === true;
                     }
-                    if (gameId === 'l-oratore' || gameId === 'la-ruota-geografica') {
-                        // L'Oratore e La Ruota Geografica sono rigorosamente esclusivi di Piano Ecosistema Completo
+                    if (gameId === 'l-oratore') {
+                        // L'Oratore è rigorosamente esclusivo di Piano Ecosistema Completo
                         allowed.base = false;
                         allowed.viandante = false;
                         allowed.docente_didattico = false;
                         allowed.docente_ecosistema = true;
                     } else {
-                        // Di default La Rotta, Corte, Ops etc. sono inclusi in Viandante ed Ecosistema
+                        // Di default La Rotta, Corte, Ops, La Ruota Geografica etc. sono inclusi in Viandante ed Ecosistema
                         if (allowed.viandante === undefined) allowed.viandante = true;
                         if (allowed.docente_ecosistema === undefined) allowed.docente_ecosistema = true;
                     }

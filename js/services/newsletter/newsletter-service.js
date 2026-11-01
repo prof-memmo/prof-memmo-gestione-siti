@@ -25,7 +25,8 @@ const NewsletterService = {
         const apiKey = cfg.apiKey || (window.localStorage ? window.localStorage.getItem("hub_brevo_key") : "") || fallback;
         const newsletterListId = cfg.newsletterListId || cfg.listId || 3;
         const transacListId = cfg.transacListId || 6;
-        return { apiKey, listId: newsletterListId, newsletterListId, transacListId };
+        const upgradeTemplateId = cfg.upgradeTemplateId || 17;
+        return { apiKey, listId: newsletterListId, newsletterListId, transacListId, upgradeTemplateId };
     },
 
     /**
@@ -286,6 +287,48 @@ const NewsletterService = {
     deleteNewsletterDraft: async function(docId) {
         if (!window.fbDb || !window.fbDb.hub) throw new Error("Firebase non inizializzato");
         return window.fbDb.hub.collection("hub_newsletters").doc(docId).delete();
+    },
+
+    /**
+     * Invia l'email transazionale di notifica upgrade abbonamento tramite Modello Brevo (Template 17)
+     */
+    sendUpgradeNotificationEmail: async function(userEmail, userName = "Utente", templateIdOverride = null) {
+        const { apiKey, upgradeTemplateId } = this.getBrevoConfig();
+        if (!apiKey) throw new Error("Chiave API Brevo non configurata.");
+        if (!userEmail || !userEmail.includes("@")) throw new Error("Indirizzo email del destinatario non valido.");
+
+        const targetTemplateId = templateIdOverride || upgradeTemplateId || 17;
+        const cleanEmail = userEmail.toLowerCase().trim();
+        const cleanName = (userName || "Utente").trim();
+
+        const payload = {
+            to: [{
+                email: cleanEmail,
+                name: cleanName
+            }],
+            templateId: parseInt(targetTemplateId, 10)
+        };
+
+        const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+            method: "POST",
+            headers: {
+                "api-key": apiKey,
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            let errorMsg = `Errore HTTP ${response.status}`;
+            try {
+                const errData = await response.json();
+                if (errData && errData.message) errorMsg = errData.message;
+            } catch (_) {}
+            throw new Error(errorMsg);
+        }
+
+        return await response.json().catch(() => ({ success: true }));
     }
 };
 
