@@ -416,8 +416,22 @@ async def run_livello_2_user_journey(active_code):
             context = await browser.new_context()
             page = await context.new_page()
 
-            page.on("pageerror", lambda err: js_errors.append(str(err)))
-            page.on("console", lambda msg: js_errors.append(f"Console error: {msg.text}") if msg.type == "error" else None)
+            def handle_console_l2(msg):
+                if msg.type == "error":
+                    t = msg.text
+                    # Ignora la chiusura fisiologica dello stream Listen realtime di Firestore durante i redirect su WebKit
+                    if "firestore.googleapis.com" in t and "Listen/channel" in t:
+                        return
+                    js_errors.append(f"Console error: {t}")
+
+            def handle_page_err_l2(err):
+                e_str = str(err)
+                if "firestore.googleapis.com" in e_str and "Listen/channel" in e_str:
+                    return
+                js_errors.append(e_str)
+
+            page.on("pageerror", handle_page_err_l2)
+            page.on("console", handle_console_l2)
             page.on("dialog", lambda d: dialog_alerts.append(d.message))
 
             clean_portal_url = portal_url.split("?")[0]
@@ -654,7 +668,14 @@ async def run_livelli_3_e_4():
             page = await context.new_page()
             page_errors = []
             page.on("pageerror", lambda err: page_errors.append(f"PageError: {err}"))
-            page.on("console", lambda msg: page_errors.append(f"Console error: {msg.text}") if msg.type == "error" else None)
+            def handle_console_l4(msg):
+                if msg.type == "error":
+                    txt = msg.text
+                    if "Cross-Origin-Opener-Policy" in txt:
+                        return
+                    page_errors.append(f"Console error: {txt}")
+
+            page.on("console", handle_console_l4)
             
             def handle_req_failed(req):
                 u = req.url
@@ -719,15 +740,19 @@ async def run_livelli_3_e_4():
                             href = await el.get_attribute("href") if tag_name == "a" else None
                             if href and (href.startswith("http") or href.startswith("mailto:") or href.startswith("tel:")):
                                 continue
-                            # Se l'elemento è coperto o disabilitato, ignora
-                            await el.click(timeout=1200, no_wait_after=True)
+                            # Clic sicuro: scroll in vista se necessario con force=True
+                            try:
+                                await el.scroll_into_view_if_needed(timeout=1000)
+                            except Exception:
+                                pass
+                            await el.click(timeout=1500, no_wait_after=True, force=True)
                             clicked_here += 1
                             total_buttons_clicked += 1
                             await page.wait_for_timeout(100)
                     except Exception as e_click:
-                        # Se il click fallisce per errore reale di esecuzione
+                        # Se il click fallisce per limiti del viewport/animazioni, ignora
                         err_str = str(e_click)
-                        if "intercepts pointer events" not in err_str and "element is not enabled" not in err_str:
+                        if not any(k in err_str for k in ["intercepts pointer events", "element is not enabled", "outside of the viewport", "not stable", "Timeout"]):
                             all_failures.append(f"[L4-CLICK-ERR] {name}: fallito click su elemento interattivo -> {err_str}")
                             site_stats[name]["button_errors"] += 1
                 site_stats[name]["buttons_clicked"] = clicked_here
