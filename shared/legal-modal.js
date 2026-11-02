@@ -801,7 +801,7 @@
             }
           }
           if (sostieniLi) {
-            sostieniLi.innerHTML = '<a href="sostieni.html" style="color: #ef4444; font-weight: bold;"><i class="ph-fill ph-heart"></i> Sostieni il Progetto</a>';
+            sostieniLi.innerHTML = '<a href="https://prof-memmo.github.io/games/sostieni.html" style="color: #ef4444; font-weight: bold;"><i class="ph-fill ph-heart"></i> Sostieni il Progetto</a>';
           }
         } else if (sostieniLi) {
           sostieniLi.remove();

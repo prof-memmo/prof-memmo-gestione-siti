@@ -15,7 +15,7 @@
     'use strict';
 
     const SUPER_ADMIN_EMAIL = 'prof.memmo@gmail.com';
-    const HUB_PORTAL_URL = 'https://prof-memmo.github.io/games/prezzi.html';
+    const HUB_PORTAL_URL = 'https://prof-memmo.github.io/games/profilo.html';
 
     const HubSubscriptionGuard = {
         gameId: window.HUB_GAME_ID || 'fantaletteratura',
@@ -171,7 +171,7 @@
                     </div>
                     <div class="pm-guard-actions">
                         <a href="${HUB_PORTAL_URL}" class="pm-guard-btn-upgrade" id="pm-guard-cta-btn">
-                            <i class="fa-solid fa-crown"></i> Scopri i Piani &amp; Abbonati
+                            <i class="fa-solid fa-user"></i> Consulta il tuo Profilo
                         </a>
                         <a href="https://prof-memmo.github.io/games/giochi.html" class="pm-guard-btn-back" id="pm-guard-btn-back">
                             Torna al Catalogo Giochi
@@ -508,9 +508,10 @@
                 } else {
                     this.showBlockOverlay({
                         title: "Piano Non Compatibile",
-                        text: "Il tuo piano di abbonamento attuale non include l'accesso a questo gioco. Passa al Piano Ecosistema per sbloccare tutti i giochi e materiali.",
+                        text: "Il tuo piano attuale non include l'accesso a questo gioco. Consulta il tuo Profilo per verificare le funzionalità incluse.",
                         planLabel: this.PLAN_LABELS[userSub] || userSub,
-                        ctaText: "Passa a Ecosistema Completo",
+                        ctaText: "Consulta il tuo Profilo",
+                        ctaIcon: "fa-user",
                         ctaUrl: HUB_PORTAL_URL
                     });
                     return false;
