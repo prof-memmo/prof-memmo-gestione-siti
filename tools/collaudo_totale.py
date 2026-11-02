@@ -500,6 +500,64 @@ async def run_livello_2_user_journey(active_code):
             else:
                 print(f"        -> [{browser_type_name.upper()}] OK! Blindatura confermata: vista docente (view-setup-mode) inaccessibile per lo studente.")
 
+            # 4.2 Verifica Navigazione Tabs su Tutti i Giochi (Zero Regressioni NavBar)
+            print(f"        -> [{browser_type_name.upper()}] Collaudo Navigazione Tab Multi-Gioco (FantaLetteratura, HistoryGram, L'Oratore, Ruota)...")
+            nav_games_to_test = [
+                ("FantaLetteratura", f"{'https://prof-memmo.github.io/fantaletteratura/preview/' if is_preview else 'https://prof-memmo.github.io/fantaletteratura/'}", [
+                    ("view-welcome", "Home"),
+                    ("view-regolamento", "Regolamento"),
+                    ("view-classifiche", "Classifiche"),
+                    ("view-schede", "Schede"),
+                    ("view-salagiochi", "Sala Giochi")
+                ]),
+                ("HistoryGram", f"{'https://prof-memmo.github.io/historygram/preview/' if is_preview else 'https://prof-memmo.github.io/historygram/'}", [
+                    ("view-welcome", "Home"),
+                    ("view-regolamento", "Regolamento"),
+                    ("view-leaderboard", "Classifica")
+                ]),
+                ("L'Oratore", f"{'https://prof-memmo.github.io/l-oratore/preview/' if is_preview else 'https://prof-memmo.github.io/l-oratore/'}", [
+                    ("view-welcome", "Home"),
+                    ("view-regolamento", "Regolamento")
+                ]),
+                ("La Ruota Geografica", f"{'https://prof-memmo.github.io/la-ruota-geografica/preview/' if is_preview else 'https://prof-memmo.github.io/la-ruota-geografica/'}", [
+                    ("view-welcome", "Home"),
+                    ("view-regolamento", "Regolamento"),
+                    ("view-tabellone", "Tabellone")
+                ])
+            ]
+
+            for g_name, g_url, g_tabs in nav_games_to_test:
+                try:
+                    await page.goto(g_url, wait_until="domcontentloaded", timeout=12000)
+                    await page.wait_for_timeout(800)
+                    for target_view, tab_label in g_tabs:
+                        click_res = await page.evaluate(f"""async () => {{
+                            const tab = document.querySelector(`[data-view='{target_view}']`) || 
+                                        document.querySelector(`[onclick*='{target_view}']`);
+                            if (tab) {{
+                                tab.click();
+                            }} else if (typeof navigateTo === 'function') {{
+                                navigateTo('{target_view}');
+                            }} else if (window.HistoryGramApp && window.HistoryGramApp.showView) {{
+                                window.HistoryGramApp.showView('{target_view}');
+                            }} else if (window.App && window.App.showView) {{
+                                window.App.showView('{target_view}');
+                            }}
+                            const t = document.getElementById('{target_view}');
+                            if (!t) return {{ found: false }};
+                            const st = window.getComputedStyle(t);
+                            return {{
+                                found: true,
+                                active: t.classList.contains('active'),
+                                visible: st.display !== 'none' && !t.classList.contains('hidden')
+                            }};
+                        }}""")
+                        if not click_res.get('found') or not (click_res.get('active') or click_res.get('visible')):
+                            b_failures.append(f"[L2-{browser_type_name.upper()}-NAV-FAIL] {g_name}: Tab '{tab_label}' ({target_view}) non si attiva!")
+                            print(f"        ❌ [{browser_type_name.upper()}] {g_name}: Tab '{tab_label}' ({target_view}) FALLITA!")
+                except Exception as g_err:
+                    b_failures.append(f"[L2-{browser_type_name.upper()}-NAV-ERR] Errore navigazione su {g_name}: {g_err}")
+
             if js_errors:
                 for err in js_errors:
                     b_failures.append(f"[L2-{browser_type_name.upper()}-JS] Errore JavaScript: {err}")
@@ -651,10 +709,10 @@ async def run_livelli_3_e_4():
                 except Exception:
                     pass
 
-                # Clic elementi interattivi visibili (pulsanti, card ruoli, bottoni d'azione)
-                interactive_els = await page.query_selector_all("button, [role='button'], a.btn, .btn, .platform-card, [onclick]")
+                # Clic elementi interattivi visibili (pulsanti, card ruoli, bottoni d'azione, tabs di navigazione)
+                interactive_els = await page.query_selector_all("button, [role='button'], a.btn, .btn, .platform-card, [onclick], .tab-item, [data-view], [data-section], .nav-item, .admin-tab-btn")
                 clicked_here = 0
-                for el in interactive_els[:15]:
+                for el in interactive_els:
                     try:
                         if await el.is_visible() and await el.is_enabled():
                             tag_name = await page.evaluate("e => e.tagName.toLowerCase()", el)
