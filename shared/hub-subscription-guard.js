@@ -323,10 +323,17 @@
                     const classCollections = ['hub_classes', 'classes'];
                     for (const colName of classCollections) {
                         try {
-                            // Cerca per codice classe esatto (es. "3B")
+                            // Cerca per codice classe esatto (es. "MEMMO-KVAE" o "3B")
                             let snapClass = await db.collection(colName).where("code", "==", upperCode).limit(1).get();
                             if (snapClass.empty && upperCode !== cleanCode) {
                                 snapClass = await db.collection(colName).where("code", "==", cleanCode).limit(1).get();
+                            }
+                            // Cerca per nome classe (es. "3D" o "3B")
+                            if (snapClass.empty) {
+                                snapClass = await db.collection(colName).where("name", "==", upperCode).limit(1).get();
+                            }
+                            if (snapClass.empty && upperCode !== cleanCode) {
+                                snapClass = await db.collection(colName).where("name", "==", cleanCode).limit(1).get();
                             }
                             // Cerca per ID documento diretto (es. "classe_3b" o "3b")
                             if (snapClass.empty && lowerCode) {
