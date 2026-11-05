@@ -534,6 +534,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+    // Sessioni Live HistoryGram (Muro e Partite di Classe LIM + Dispositivi Studenti)
+    match /historygram_sessions/{sessionId} {
+      allow read, write: if true;
+    }
 
     // Impostazioni e Regolamento L'Oratore
     match /oratore_settings/{docId} {
