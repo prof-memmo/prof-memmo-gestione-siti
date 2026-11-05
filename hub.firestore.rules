@@ -177,7 +177,7 @@ service cloud.firestore {
     }
 
     match /fanta_teams/{teamId} {
-      allow read: if isAdmin() || isFantaAuthorized();
+      allow read: if true;
       allow create: if isFantaAuthorized() && request.resource.data.ownerEmail.lower() == currentUserEmail();
       allow update: if isAdmin() || (isFantaAuthorized() && (
         resource.data.ownerEmail.lower() == currentUserEmail() ||
@@ -196,13 +196,13 @@ service cloud.firestore {
     }
 
     match /fanta_missions/{missionId} {
-      allow read: if isAdmin() || isFantaAuthorized();
+      allow read: if true;
       allow create: if isFantaAuthorized() && request.resource.data.ownerEmail.lower() == currentUserEmail();
       allow update, delete: if isAdmin() || (isFantaAuthorized() && resource.data.ownerEmail.lower() == currentUserEmail());
     }
 
     match /fanta_tournaments/{tournamentId} {
-      allow read: if isAdmin() || isFantaAuthorized();
+      allow read: if true;
       allow create: if isFantaAuthorized() && request.resource.data.ownerEmail.lower() == currentUserEmail();
       allow update, delete: if isAdmin() || (isFantaAuthorized() && resource.data.ownerEmail.lower() == currentUserEmail());
     }
@@ -533,6 +533,10 @@ service cloud.firestore {
     match /historygram_rules/{docId} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+    // Sessioni Live HistoryGram (Muro e Partite di Classe LIM + Dispositivi Studenti)
+    match /historygram_sessions/{sessionId} {
+      allow read, write: if true;
     }
 
     // Impostazioni e Regolamento L'Oratore
