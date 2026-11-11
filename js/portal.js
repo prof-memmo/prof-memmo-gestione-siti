@@ -390,6 +390,26 @@ const PortalApp = {
                 throw new Error((data && data.message) || "Errore durante l'attivazione del profilo studente.");
             }
 
+            // Sincronizzazione immediata sessione studente in localStorage
+            try {
+                const sName = (data.student && (data.student.nickname || data.student.name)) || nickname || 'Studente';
+                const sAvatar = (data.student && data.student.avatar) || this.selectedStudentClaimAvatar || 'assets/avatars/6.png';
+                const sClass = (this.currentStudentClassCode || '').toUpperCase().trim();
+                localStorage.setItem('hub_user_name', sName);
+                localStorage.setItem('hub_user_role', 'studente');
+                localStorage.setItem('hub_user_avatar', sAvatar);
+                localStorage.setItem('hub_user_class', sClass);
+                localStorage.setItem('pm_student_class', sClass);
+                localStorage.setItem('pm_student_name', sName);
+                localStorage.setItem('pm_student_id', studentId);
+                localStorage.setItem('fanta_user_name', sName);
+                localStorage.setItem('fanta_user_role', 'studente');
+                localStorage.setItem('fanta_user_avatar', sAvatar);
+                localStorage.setItem('fanta_active_team_code', sClass);
+            } catch(eStorage) {
+                console.warn("Storage sync error claim:", eStorage);
+            }
+
             // Accesso immediato con Custom Token Firebase Auth
             await window.fbAuth.signInWithCustomToken(data.customToken);
             // onAuthStateChanged si occuperà del redirect automatico
@@ -438,6 +458,26 @@ const PortalApp = {
             const data = res.data;
             if (!data || !data.success || !data.customToken) {
                 throw new Error((data && data.message) || "Credenziali non corrette.");
+            }
+
+            // Sincronizzazione immediata sessione studente in localStorage
+            try {
+                const sName = (data.student && (data.student.nickname || data.student.name)) || 'Studente';
+                const sAvatar = (data.student && data.student.avatar) || 'assets/avatars/6.png';
+                const sClass = (this.currentStudentClassCode || '').toUpperCase().trim();
+                localStorage.setItem('hub_user_name', sName);
+                localStorage.setItem('hub_user_role', 'studente');
+                localStorage.setItem('hub_user_avatar', sAvatar);
+                localStorage.setItem('hub_user_class', sClass);
+                localStorage.setItem('pm_student_class', sClass);
+                localStorage.setItem('pm_student_name', sName);
+                localStorage.setItem('pm_student_id', studentId);
+                localStorage.setItem('fanta_user_name', sName);
+                localStorage.setItem('fanta_user_role', 'studente');
+                localStorage.setItem('fanta_user_avatar', sAvatar);
+                localStorage.setItem('fanta_active_team_code', sClass);
+            } catch(eStorage) {
+                console.warn("Storage sync error login:", eStorage);
             }
 
             // Accesso con Custom Token Firebase Auth
@@ -628,13 +668,28 @@ const PortalApp = {
             let snap = await window.fbDb.hub.collection("hub_users").doc(this.user.uid).get();
             
             if (!snap.exists) {
-                // Recupera il ruolo selezionato alla porta d'ingresso
-                const targetRole = this.pendingRole || sessionStorage.getItem('pm_entry_role') || 'docente';
-                this.selectRole(targetRole);
-                return; // Fermiamo qui l'esecuzione per completare identità e questionario.
+                // Se è uno studente virtuale autenticato (stud_...), non ha doc in hub_users ma la sua identità è già convalidata
+                if (this.user.uid && this.user.uid.startsWith('stud_')) {
+                    const sClass = localStorage.getItem('pm_student_class') || localStorage.getItem('hub_user_class') || this.currentStudentClassCode || '';
+                    const sName = localStorage.getItem('pm_student_name') || localStorage.getItem('hub_user_name') || this.user.displayName || 'Studente';
+                    const sAvatar = localStorage.getItem('hub_user_avatar') || 'assets/avatars/6.png';
+                    this.profile = {
+                        role: 'studente',
+                        nome: sName,
+                        avatar: sAvatar,
+                        classCode: sClass,
+                        classe: sClass,
+                        statusAccount: 'active'
+                    };
+                } else {
+                    // Recupera il ruolo selezionato alla porta d'ingresso
+                    const targetRole = this.pendingRole || sessionStorage.getItem('pm_entry_role') || 'docente';
+                    this.selectRole(targetRole);
+                    return; // Fermiamo qui l'esecuzione per completare identità e questionario.
+                }
+            } else {
+                this.profile = snap.data();
             }
-
-            this.profile = snap.data();
             
             // Aggiornamento additivo consenso Newsletter (Opt-In) se selezionato al login
             const newsCheckbox = document.getElementById('reg-newsletter');
@@ -717,7 +772,13 @@ const PortalApp = {
                     'profilo.html': isPreview ? 'https://prof-memmo.github.io/games/preview/profilo.html' : 'https://prof-memmo.github.io/games/profilo.html'
                 };
                 if (gameMap[redirectTarget]) {
-                    window.location.replace(gameMap[redirectTarget]);
+                    let targetUrl = gameMap[redirectTarget];
+                    const studentClass = localStorage.getItem('pm_student_class') || localStorage.getItem('hub_user_class') || (this.profile && (this.profile.classCode || this.profile.classe)) || '';
+                    if (studentClass && !targetUrl.includes('class=')) {
+                        const sep = targetUrl.includes('?') ? '&' : '?';
+                        targetUrl = `${targetUrl}${sep}class=${encodeURIComponent(studentClass)}`;
+                    }
+                    window.location.replace(targetUrl);
                     return;
                 }
             }

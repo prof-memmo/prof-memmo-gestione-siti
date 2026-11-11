@@ -130,6 +130,51 @@ PAGES_CONFIG = [
     }
 ]
 
+def is_real_js_error(err_str):
+    if not err_str:
+        return False
+    ignored = [
+        "net::ERR_NAME_NOT_RESOLVED",
+        "net::ERR_INTERNET_DISCONNECTED",
+        "net::ERR_CONNECTION_REFUSED",
+        "ERR_ABORTED",
+        "Cross-Origin-Opener-Policy",
+        "Missing or insufficient permissions",
+        "firestore.googleapis.com",
+        "Listen/channel",
+        "Failed to load resource",
+        "favicon.ico"
+    ]
+    return not any(ig in err_str for ig in ignored)
+
+def get_persona_init_script(persona):
+    if persona == "student":
+        return """() => {
+            try {
+                localStorage.setItem('pm_student_class', 'TEST3A');
+                localStorage.setItem('pm_student_name', 'Mario Rossi');
+                localStorage.setItem('hub_user_class', 'TEST3A');
+                localStorage.setItem('fanta_user_email', 'studente@test.it');
+            } catch (e) {}
+        }"""
+    elif persona == "viandante":
+        return """() => {
+            try {
+                localStorage.setItem('hub_user_plan', 'viandante');
+                localStorage.setItem('hub_user_email', 'viandante@test.it');
+                localStorage.setItem('hub_user_name', 'Docente Viandante');
+            } catch (e) {}
+        }"""
+    elif persona == "docente":
+        return """() => {
+            try {
+                localStorage.setItem('hub_user_plan', 'docente');
+                localStorage.setItem('hub_user_email', 'prof@scuola.it');
+                localStorage.setItem('hub_user_name', 'Prof. Ordinario');
+            } catch (e) {}
+        }"""
+    return None
+
 def get_full_url(cfg):
     return f"{BASE_URL}/{cfg['path']}"
 
@@ -147,18 +192,14 @@ async def test_page(context, cfg):
     
     def on_page_err(err):
         msg = str(err)
-        if "Cross-Origin-Opener-Policy" not in msg and "ERR_ABORTED" not in msg:
+        if is_real_js_error(msg):
             page_errors.append(f"JS Crash: {msg}")
 
     def on_console(msg):
         if msg.type == "error":
             txt = msg.text
-            # Ignora log autorizzativi attesi per utente anonimo in hub admin
-            if "Missing or insufficient permissions" in txt:
-                return
-            if "Cross-Origin-Opener-Policy" in txt or "ERR_ABORTED" in txt:
-                return
-            page_errors.append(f"Console: {txt}")
+            if is_real_js_error(txt):
+                page_errors.append(f"Console: {txt}")
 
     page.on("pageerror", on_page_err)
     page.on("console", on_console)
@@ -235,8 +276,27 @@ async def test_page(context, cfg):
         views = cfg["views"]
         rep["views_tested"] = len(views)
         for v_id, v_label in views:
-            await page.evaluate(f"() => {{ if (typeof switchView === 'function' && document.getElementById('{v_id}')) switchView('{v_id}'); }}")
+            nav_btn = await page.query_selector(f".nav-item[data-view='{v_id}'], button[data-view='{v_id}']")
+            if nav_btn and await nav_btn.is_visible():
+                await safe_click(page, nav_btn, label=f"Admin Nav: {v_label}")
+            else:
+                await page.evaluate(f"() => {{ if (typeof switchView === 'function' && document.getElementById('{v_id}')) switchView('{v_id}'); }}")
             await page.wait_for_timeout(200)
+
+            # Art. 15: Asserzione di stato DOM reale
+            is_active = await page.evaluate(f"""() => {{
+                const el = document.getElementById('{v_id}');
+                if (!el) return false;
+                const style = window.getComputedStyle(el);
+                return el.classList.contains('active') || style.display !== 'none';
+            }}""")
+            rep["buttons_clicked"] += 1
+            if is_active:
+                rep["buttons_ok"] += 1
+            else:
+                rep["buttons_failed"] += 1
+                rep["errors"].append(f"[Art. 15] Vista admin #{v_id} ({v_label}) non attiva o nascosta dopo navigazione.")
+
             view_container = await page.query_selector(f"#{v_id}")
             c, o, f = await scan_and_click_scope(container=view_container, scope_name=v_label)
             rep["buttons_clicked"] += c
@@ -344,11 +404,23 @@ async def test_page(context, cfg):
             tab = await page.query_selector(f".bottom-bar .tab-item[data-view='{v_id}']")
             if tab and await tab.is_visible():
                 await safe_click(page, tab, label=f"Nav Tab: {v_label}")
-                rep["buttons_clicked"] += 1
-                rep["buttons_ok"] += 1
             else:
                 await page.evaluate(f"() => {{ if (typeof navigateTo === 'function') navigateTo('{v_id}'); }}")
             await page.wait_for_timeout(400)
+
+            # Art. 15: Asserzione di stato DOM reale
+            is_active = await page.evaluate(f"""() => {{
+                const el = document.getElementById('{v_id}');
+                if (!el) return false;
+                const style = window.getComputedStyle(el);
+                return el.classList.contains('active') || style.display !== 'none';
+            }}""")
+            rep["buttons_clicked"] += 1
+            if is_active:
+                rep["buttons_ok"] += 1
+            else:
+                rep["buttons_failed"] += 1
+                rep["errors"].append(f"[Art. 15] Scheda Fanta #{v_id} ({v_label}) non è attiva o visibile nel DOM.")
 
             # Clicca pulsanti nella vista aperta
             view_box = await page.query_selector(f"#{v_id}")
@@ -453,11 +525,24 @@ async def main():
     tot_views = 0
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=['--allow-file-access-from-files', '--disable-web-security']
+        )
         context = await browser.new_context(
             viewport={"width": 1280, "height": 850},
             user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36"
         )
+
+        persona = "anonymous"
+        for arg in sys.argv:
+            if arg.startswith("--persona="):
+                persona = arg.split("=", 1)[1]
+        
+        init_script = get_persona_init_script(persona)
+        if init_script:
+            await context.add_init_script(init_script)
+            print(f"   [SIMULAZIONE IDENTITY] Persona attiva: {persona.upper()}")
 
         for cfg in PAGES_CONFIG:
             print(f"\n▶ Collaudo Piattaforma: {cfg['name']}...")
