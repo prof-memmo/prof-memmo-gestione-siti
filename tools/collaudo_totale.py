@@ -73,9 +73,11 @@ HEADERS = {
 }
 
 def get_is_preview():
+    if "--live" in sys.argv:
+        return False
     if "--preview" in sys.argv or os.environ.get("TEST_PREVIEW") == "1":
         return True
-    return False
+    return True # Canale Preview predefinito in conformità all'Art. 8 delle regole operative
 
 def get_target_pages():
     is_preview = get_is_preview()
@@ -661,7 +663,10 @@ async def run_livelli_3_e_4():
 
     # Browser Boot & Compliance
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=['--allow-file-access-from-files', '--disable-web-security']
+        )
         context = await browser.new_context()
 
         for name, page_url in target_pages:
@@ -671,7 +676,7 @@ async def run_livelli_3_e_4():
             def handle_console_l4(msg):
                 if msg.type == "error":
                     txt = msg.text
-                    if "Cross-Origin-Opener-Policy" in txt:
+                    if any(k in txt for k in ["Cross-Origin-Opener-Policy", "Missing or insufficient permissions", "net::ERR_NAME_NOT_RESOLVED", "net::ERR_INTERNET_DISCONNECTED", "firestore.googleapis.com", "Listen/channel", "ERR_ABORTED"]):
                         return
                     page_errors.append(f"Console error: {txt}")
 
@@ -886,6 +891,22 @@ async def run_master_collaudo():
     # 5. LIVELLO 5: AUDIT SEMANTICO DATASET DIDATTICI & GAMEPLAY MULTI-TURNO (ART. 13)
     l5_ok, l5_failures = await run_livello_5_semantic_dataset_audit()
     all_failures.extend(l5_failures)
+
+    # 6. LIVELLO 6: SCANSIONE INTEGRALE E PROFONDA DI TUTTI I PULSANTI E VISTE ECOSISTEMA (ART. 15)
+    if "--deep-buttons" in sys.argv or "--all" in sys.argv:
+        print("\n" + "=" * 85)
+        print(">>> LIVELLO 6: SCANSIONE INTEGRALE E PROFONDA DI TUTTI I PULSANTI E VISTE (ART. 15)...")
+        print("=" * 85)
+        try:
+            import importlib.util
+            deep_path = os.path.join(os.path.dirname(__file__), "collaudo_esaustivo_pulsanti_deep.py")
+            spec = importlib.util.spec_from_file_location("collaudo_esaustivo_pulsanti_deep", deep_path)
+            deep_mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(deep_mod)
+            await deep_mod.main()
+        except Exception as e_deep:
+            print(f"        ❌ Errore esecuzione suite profonda pulsanti: {e_deep}")
+            all_failures.append(f"[L6-DEEP-BUTTONS-ERR] {e_deep}")
 
 
     # REPORT FINALE

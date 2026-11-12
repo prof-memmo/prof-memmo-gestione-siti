@@ -1,5 +1,6 @@
 # BLUEPRINT E REGOLE D'USO PER I SITI DELL'ECOSISTEMA PROF. MEMMO
-# Versione 2.0 - Consolidata, Armonizzata e Blindata (30 Ottobre 2026)
+# Versione 2.1 - Consolidata, Armonizzata ed Estesa (Novembre 2026)
+# Master Source of Truth: prof-memmo-admin-gestione-generale/.agents/rules/prof-memmo-site-blueprint-rules.md (Replicato specularmente in prof-memmo-games/.agents/rules/)
 
 Questo documento costituisce il promemoria e la specifica tecnica ufficiale per la creazione, lo sviluppo e l'integrazione di **tutti i nuovi siti, giochi e applicazioni web** dell'Ecosistema Didattico Prof. Memmo.
 Ogni nuovo progetto deve rispettare scrupolosamente i parametri comuni, le convenzioni stilistiche e la checklist di innesto nell'Hub centrale.
@@ -200,6 +201,23 @@ Tutti i giochi includono nel `<head>` i parametri per l'esperienza standalone a 
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 ```
 
+### 8. Accesso Studenti No-Email & Codice Classe (GDPR & Scuola)
+Nei giochi che prevedono sessioni di classe o attività per studenti minori:
+* **Divieto di registrazione personale obbligatoria**: L'accesso studente deve avvenire prioritariamente senza richiesta di email personale, tramite:
+  1. **Codice Classe a 6 caratteri** generato dalla dashboard del docente.
+  2. Selezione del proprio nome/avatar dal **Roster di classe** fornito dalla sessione docente, oppure tramite modalità **Ospite Rapido**.
+* **Persistenza Locale**: Se lo studente gioca su un dispositivo condiviso (tablet scolastico), i progressi della sessione devono essere salvati in `localStorage` con chiave specifica per classe/studente, evitando conflitti tra classi successive.
+
+### 9. AudioEngine: Musica di Sottofondo vs Effetti Sonori (SFX) e Mute Globale
+* **Separazione Netta dei Canali**: Il motore audio deve gestire due canali indipendenti:
+  1. *Canale Musica*: Sottofondo didattico con credit a `FREETOUSE.COM/MUSIC` (gestito nel dropdown utente).
+  2. *Canale SFX*: Effetti sonori brevi (click, vittoria, errore, sblocco carta/elemento) alloggiati in `assets/audio/sfx/`.
+* **Mute Globale Condiviso**: Lo stato di disattivazione audio deve essere sincronizzato con la chiave `localStorage.getItem('pm_sound_muted')`. Se il docente silenzia l'audio alla LIM, sia la musica che tutti gli effetti sonori devono rispettare il muto assoluto senza eccezioni.
+
+### 10. Requisiti Ergonomici per Schermi Touch e LIM (WCAG 2.1)
+* **Target di Tocco Minimo**: Tutti i pulsanti, carte interattive e controlli di risposta devono rispettare un'area tattile minima di almeno **44x44px** (ottimale **48x48px**) con margine di separazione di almeno 8px per evitare tocchi accidentali alla LIM.
+* **Accessibilità Tastiera Docente**: Supporto ai tasti standard `Esc` (chiusura modali) e `Spazio/Invio` per avanzamento rapido, per agevolare il docente che opera dalla cattedra.
+
 ---
 
 ## PARTE 3 - CHECKLIST DI INNESTO NELL'HUB CENTRALE (`prof-memmo-admin-gestione-generale`)
@@ -215,7 +233,7 @@ Ogni volta che viene creato un nuovo sito/gioco, è **OBBLIGATORIO** inserire i 
 | **5** | `index.html` (Hub Admin) | Filtri iscritti e rilasci | Aggiungere `<option value="Nome Gioco">` nei selettori di filtro utenti e nella sezione di gestione versioni/rilasci |
 | **6** | `js/app_v2.js` | Mappa email approvazione | Aggiungere il testo predefinito dell'email di conferma iscrizione docente per il gioco specifico |
 | **7** | `functions/index.js` | Array repository autorizzati | Aggiungere il nome del repo nella lista dei progetti sincronizzati dalle Cloud Functions |
-| **8** | `hub.firestore.rules` & Firestore DB | Security Rules e `games_status` | Configurare le regole per il namespace `nome_gioco_*` e creare il documento `games_status/{nome_gioco}` con `allowedPlans: ['docente_ecosistema', 'docente_didattico', 'viandante', 'base']` |
+| **8** | `hub.firestore.rules` & Firestore DB | Security Rules e `games_status` | Configurare le regole per il namespace `nome_gioco_*` e creare il documento `games_status/{nome_gioco}` con `allowedPlans: ['docente_ecosistema', 'docente_didattico', 'viandante', 'base']`. Per giochi a collezione/progressi usare il pattern `{nome_gioco}_users/{uid}`. Se il gioco prevede edizioni separate per classe (es. *Quaderno* o *Travel Agency*), registrare `hasEditions: true` in `games-ui.js` |
 | **9** | `shared/legal-modal.js` & `portal.html` | Informativa Privacy / Termini | Aggiungere il nome del nuovo gioco tra le piattaforme ufficiali dell'ecosistema citate nei testi legali |
 
 ---
