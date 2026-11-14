@@ -684,8 +684,29 @@ const PortalApp = {
                 } else {
                     // Recupera il ruolo selezionato alla porta d'ingresso
                     const targetRole = this.pendingRole || sessionStorage.getItem('pm_entry_role') || 'docente';
+
+                    // Paracadute salva-lead: crea subito il profilo base su Firestore per non perdere l'utente
+                    try {
+                        const initialName = (this.user.displayName || (targetRole === 'docente' ? 'Nuovo Docente' : 'Nuovo Viandante')).trim();
+                        const initialEmail = (this.user.email || '').trim().toLowerCase();
+                        if (window.UserService && window.UserService.createUserProfile) {
+                            const hasNewsConsent = this.pendingNewsletterConsent === true || sessionStorage.getItem('pm_entry_newsletter') === '1';
+                            this.profile = await window.UserService.createUserProfile(
+                                this.user.uid,
+                                initialName,
+                                initialEmail,
+                                targetRole,
+                                { avatar: this.pendingAvatar || 'assets/avatars/6.png' },
+                                null,
+                                hasNewsConsent
+                            );
+                        }
+                    } catch(createErr) {
+                        console.warn("Creazione profilo base immediata non riuscita:", createErr);
+                    }
+
                     this.selectRole(targetRole);
-                    return; // Fermiamo qui l'esecuzione per completare identità e questionario.
+                    return; // Prosegue con completamento identità e questionario.
                 }
             } else {
                 this.profile = snap.data();
@@ -783,23 +804,8 @@ const PortalApp = {
                 }
             }
 
-            // Controllo monetizzazione per redirect
-            try {
-                const ecoDoc = await window.fbDb.hub.collection('hub_settings').doc('ecosistema').get();
-                const isMonetActive = ecoDoc.exists && !!ecoDoc.data().monetizzazione;
-                const userRole = (this.profile.role || this.profile.ruolo || 'viandante').toLowerCase();
-                const userSub = (this.profile.subscription || 'base').toLowerCase();
-
-                if (isMonetActive && userRole !== 'studente' && userSub === 'base' && !redirectTarget) {
-                    const prezziUrl = isPreview 
-                        ? 'https://prof-memmo.github.io/games/preview/prezzi.html' 
-                        : 'https://prof-memmo.github.io/games/prezzi.html';
-                    window.location.replace(prezziUrl);
-                    return;
-                }
-            } catch(ecoErr) {
-                console.warn("Controllo monetizzazione non riuscito:", ecoErr);
-            }
+            // La monetizzazione non forza più il redirect a prezzi.html durante il login.
+            // La protezione dei contenuti riservati è garantita dai blocchi Capibara (hub-subscription-guard.js).
 
             // Altrimenti va SEMPRE all'Area Profilo ufficiale
             const profileUrl = isPreview 
