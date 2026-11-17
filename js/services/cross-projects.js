@@ -205,6 +205,7 @@ const CrossProjectsService = {
                     if (data.platforms.ruota_users?.enabled || data.platforms.la_ruota_geografica?.enabled || data.platforms['la-ruota-geografica']?.enabled) userGiochi.push('La Ruota Geografica');
                     if (data.platforms.travel_agency?.enabled || data.platforms.travel_users?.enabled || data.platforms['travel-agency']?.enabled) userGiochi.push('Travel Agency');
                     if (data.platforms.quaderno_alternativo?.enabled || data.platforms['il-mio-quaderno-alternativo']?.enabled || data.platforms.quaderno_users?.enabled) userGiochi.push('Il mio quaderno alternativo');
+                    if (data.platforms.parla_con_me?.enabled || data.platforms['parla-con-me']?.enabled) userGiochi.push('Parla con Me');
                     if (data.platforms.fuori_registro?.enabled || data.platforms['fuori-registro']?.enabled || data.platforms.fuoriregistro_users?.enabled) userGiochi.push('Fuori Registro');
                 }
 
@@ -214,7 +215,7 @@ const CrossProjectsService = {
                 const planLower = String(userPlan).toLowerCase();
                 let planDefault = [];
                 if (userRole === 'admin' || planLower === 'docente_ecosistema' || planLower.includes('ecosistema') || planLower.includes('completo')) {
-                    planDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica', 'Travel Agency', 'Il mio quaderno alternativo', 'Fuori Registro'];
+                    planDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica', 'Travel Agency', 'Il mio quaderno alternativo', 'Parla con Me', 'Fuori Registro'];
                 } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
                     planDefault = ['FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'Fuori Registro'];
                 } else if (planLower === 'viandante' || planLower.includes('viandante') || planLower.includes('pellegrino')) {
