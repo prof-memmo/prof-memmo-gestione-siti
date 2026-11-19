@@ -18,6 +18,7 @@ const GamesUI = {
             { id: 'l-oratore', name: "L'Oratore" },
             { id: 'travel-agency', name: 'Travel Agency' },
             { id: 'il-mio-quaderno-alternativo', name: 'Il mio quaderno alternativo' },
+            { id: 'parla-con-me', name: 'Parla con Me' },
             { id: 'la-ruota-geografica', name: 'La Ruota Geografica' },
             { id: 'fuori-registro', name: 'Fuori Registro' },
             { id: 'historygram', name: 'HistoryGram' }
@@ -56,13 +57,18 @@ const GamesUI = {
                         </button>
                     </td>
                     <td style="padding:15px 10px; text-align: center;">
-                        <button class="btn btn-sm" onclick="window.GamesUI.toggleGameStatus('${game.id}', ${!isAccessOpen})" 
+                        <button class="btn btn-sm" onclick="window.GamesUI.toggleGameStatus('${game.id}', ${!isAccessOpen}, '${safeGameName}')" 
                             title="${isAccessOpen ? 'Accessibile e operativo' : 'Bloccato con pop-up Lavori in corso'}"
                             style="background:${isAccessOpen ? '#059669' : '#d97706'}; color:white; padding:6px 14px; border:none; border-radius:20px; cursor:pointer; font-weight:600; font-size: 0.8rem; width: 155px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
                             ${isAccessOpen ? '<i class="fa-solid fa-circle-check"></i> Aperto' : '<i class="fa-solid fa-person-digging"></i> Lavori in corso'}
                         </button>
                     </td>
                     <td style="padding:15px 10px; text-align: right; white-space: nowrap;">
+                        <button class="btn btn-sm" onclick="window.GamesUI.inviaNotificaRapida('${game.id}', '${safeGameName}')" 
+                            title="Invia una notifica di aggiornamento o novità per questo gioco agli utenti"
+                            style="background:#0284c7; color:white; padding:6px 12px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size: 0.82rem; margin-right: 8px; transition: transform 0.15s; display: inline-flex; align-items: center; gap: 5px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            <i class="fa-solid fa-paper-plane"></i> Notifica
+                        </button>
                         ${(game.id === 'il-mio-quaderno-alternativo' || game.id === 'travel-agency') ? `
                             <button class="btn btn-sm" onclick="window.GamesUI.openEditionsModal('${game.id}', '${safeGameName}')" 
                                 title="Gestisci lo stato delle singole classi ed edizioni"
@@ -92,15 +98,48 @@ const GamesUI = {
         });
     },
 
-    toggleGameStatus: function(gameId, targetStatus) {
+    toggleGameStatus: function(gameId, targetStatus, gameName) {
         if (!window.GamesService) return;
         
-        window.GamesService.updateGameStatus(gameId, targetStatus).then(() => {
+        window.GamesService.updateGameStatus(gameId, targetStatus).then(async () => {
             console.log("Game status updated");
+            if (targetStatus === true) {
+                const sendNotif = confirm(`🎉 "${gameName || gameId}" è ora aperto e accessibile!\n\nVuoi inviare subito una notifica a tutti gli iscritti sulla loro Bacheca Notifiche?`);
+                if (sendNotif) {
+                    await this.inviaNotificaRapida(gameId, gameName);
+                }
+            }
         }).catch((err) => {
             console.error("Firebase write error:", err);
             alert("Errore salvataggio stato gioco: " + err.message);
         });
+    },
+
+    inviaNotificaRapida: async function(gameId, gameName) {
+        const defaultTitle = `🎮 ${gameName || 'Nuovo Gioco'} è ora disponibile!`;
+        const title = prompt("Titolo della notifica per gli utenti:", defaultTitle);
+        if (!title) return;
+
+        const defaultBody = `È stato aperto o aggiornato ${gameName || 'un gioco'}. Accedi subito per provare le novità!`;
+        const body = prompt("Testo del messaggio:", defaultBody);
+        if (!body) return;
+
+        try {
+            if (window.fbDb && window.fbDb.hub) {
+                await window.fbDb.hub.collection('hub_notifications').add({
+                    targetGroup: 'all',
+                    targetGames: [gameName || gameId],
+                    title: title,
+                    body: body,
+                    type: 'game',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("✅ Notifica inviata con successo alla Bacheca degli utenti!");
+            }
+        } catch(e) {
+            console.error("Errore invio notifica rapida:", e);
+            alert("Errore durante l'invio della notifica: " + e.message);
+        }
     },
 
     editGame: function(gameId, gameName) {
@@ -120,6 +159,7 @@ const GamesUI = {
                 'palestra-di-riflessione': { shortDesc: "Un allenamento completo per la lingua: percorsi personalizzati per studenti, docenti e amici della palestra.", longDesc: "Un allenamento completo per la lingua: percorsi personalizzati per studenti, docenti e amici della palestra.", materia: "Grammatica / Italiano", giocatori: "Singolo", durata: "Flessibile", obiettivi: "Analisi logica e grammaticale", classe: "Sec. di 1° grado", uso: "Recupero, Laboratorio, Casa" },
                 'travel-agency': { shortDesc: "I giocatori diventano agenzie di viaggio e creano pacchetti turistici per clienti esigenti gestendo un budget.", longDesc: "I giocatori diventano agenzie di viaggio e creano pacchetti turistici per clienti esigenti gestendo un budget.", materia: "Geografia", giocatori: "2-4 (a squadre)", durata: "60-120 min", obiettivi: "Ricerca, gestione budget", classe: "Sec. di 1° grado", uso: "Classe, Laboratorio" },
                 'il-mio-quaderno-alternativo': { shortDesc: "Percorsi alternativi all'IRC per esplorare temi etici, filosofici e civici in modo attivo e creativo, classe per classe.", longDesc: "Percorsi alternativi all'IRC per esplorare temi etici, filosofici e civici in modo attivo e creativo, classe per classe.", materia: "Alternativa alla Religione", giocatori: "Singolo", durata: "Intero anno scolastico", obiettivi: "Etica, cittadinanza, valori", classe: "Sec. di 1° grado", uso: "Classe" },
+                'parla-con-me': { shortDesc: "Il Quaderno Operativo Digitale di Italiano L2: ascolto, pronuncia, 362 schede e penna digitale per Primaria e Secondaria.", longDesc: "Il percorso operativo completo per l'apprendimento dell'Italiano L2 (Livelli A1, A2, B1). 362 schede interattive, 6 camaleonti tematici, 16 episodi antologici per livello, sintesi vocale naturale e lavagna per penna LIM.", materia: "Italiano L2 / Inclusione", giocatori: "Singolo / Classe / LIM", durata: "Intero anno scolastico", obiettivi: "Alfabetizzazione, comprensione del testo, lessico di studio", classe: "Primaria e Secondaria 1° grado", uso: "Classe, Laboratorio L2, LIM, Casa" },
                 'la-corte-della-commedia': { shortDesc: "Trasforma la classe in un Tribunale Dantesco, dove gli studenti analizzano fascicoli processuali e dibattono per giudicare i personaggi della Divina Commedia.", longDesc: "Trasforma la classe in un Tribunale Dantesco, dove gli studenti analizzano fascicoli processuali e dibattono per giudicare i personaggi della Divina Commedia.", materia: "Letteratura", giocatori: "Squadre / Singoli", durata: "Intero anno scolastico", obiettivi: "Gamification, analisi testo", classe: "Sec. di 1° grado", uso: "Classe" },
                 'ops': { shortDesc: "Riscopri gli imprevisti storici e gli \"errori\" che hanno cambiato i destini del nostro passato.", longDesc: "Riscopri gli imprevisti storici e gli \"errori\" che hanno cambiato i destini del nostro passato.", materia: "Storia", giocatori: "2-4", durata: "45 min", obiettivi: "Causa-effetto, eventi storici", classe: "Sec. di 1° grado", uso: "Classe" },
                 'l-oratore': { shortDesc: "192 carte, mazzi tematici e sfide di retorica, oratoria e debate per LIM e classe (QCER A1-C2).", longDesc: "Sfide di oratoria, retorica viva e pensiero critico. 192 incipit persuasivi suddivisi su 8 mazzi tematici per la scuola secondaria.", materia: "Retorica / Debate / Italiano", giocatori: "Classe / LIM / Squadre", durata: "15-45 min", obiettivi: "Argomentazione, public speaking, pensiero critico", classe: "Sec. 1° e 2° grado", uso: "Classe, LIM" },

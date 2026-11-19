@@ -247,24 +247,26 @@
                 try {
                     this.statusListenerUnsubscribe = db.collection('games_status').doc(this.gameId).onSnapshot(doc => {
                         const isInternalGame = ['fantaletteratura', 'palestra-di-riflessione', 'fuori-registro'].includes(this.gameId);
+                        const isEcosistemaGame = ['parla-con-me', 'il-mio-quaderno-alternativo'].includes(this.gameId);
+                        const defaultFallbackPlans = isEcosistemaGame ? {
+                            base: false,
+                            viandante: false,
+                            docente_didattico: false,
+                            docente_ecosistema: true
+                        } : {
+                            base: isInternalGame,
+                            viandante: true,
+                            docente_didattico: isInternalGame,
+                            docente_ecosistema: true
+                        };
                         if (doc.exists) {
                             const data = doc.data();
                             this.currentStatusData = data;
-                            this.currentAllowedPlans = data.allowedPlans || {
-                                base: isInternalGame,
-                                viandante: true,
-                                docente_didattico: isInternalGame,
-                                docente_ecosistema: true
-                            };
+                            this.currentAllowedPlans = data.allowedPlans || defaultFallbackPlans;
                             this.checkMaintenanceStatus();
                         } else {
                             this.currentStatusData = null;
-                            this.currentAllowedPlans = {
-                                base: isInternalGame,
-                                viandante: true,
-                                docente_didattico: isInternalGame,
-                                docente_ecosistema: true
-                            };
+                            this.currentAllowedPlans = defaultFallbackPlans;
                             if (this.isMaintenanceBlocked) {
                                 this.isMaintenanceBlocked = false;
                                 this.hideBlockOverlay();
