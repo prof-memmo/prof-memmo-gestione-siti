@@ -357,8 +357,8 @@ const PortalApp = {
             return;
         }
 
-        if (!password || password.length < 4) {
-            this.showError("La password deve contenere almeno 4 caratteri.");
+        if (!password || password.length < 6) {
+            this.showError("La password deve contenere almeno 6 caratteri.");
             return;
         }
 
@@ -669,7 +669,8 @@ const PortalApp = {
             
             if (!snap.exists) {
                 // Se è uno studente virtuale autenticato (stud_...), non ha doc in hub_users ma la sua identità è già convalidata
-                if (this.user.uid && this.user.uid.startsWith('stud_')) {
+                const isStudentVirtual = (this.user.uid && this.user.uid.startsWith('stud_')) || (this.user.email && this.user.email.includes('@studente.profmemmo.it'));
+                if (isStudentVirtual) {
                     const sClass = localStorage.getItem('pm_student_class') || localStorage.getItem('hub_user_class') || this.currentStudentClassCode || '';
                     const sName = localStorage.getItem('pm_student_name') || localStorage.getItem('hub_user_name') || this.user.displayName || 'Studente';
                     const sAvatar = localStorage.getItem('hub_user_avatar') || 'assets/avatars/6.png';
@@ -743,8 +744,11 @@ const PortalApp = {
             
             // Sincronizzazione immediata sessione in localStorage per evitare flicker nei giochi (Safari ITP)
             try {
-                const ssoName = (this.profile && this.profile.anagrafica && this.profile.anagrafica.nome) || (this.profile && this.profile.nome) || (this.user && this.user.displayName) || 'Docente';
-                const ssoRole = (this.profile && (this.profile.role || this.profile.ruolo)) || 'docente';
+                const isStudent = (this.user && ((this.user.uid && this.user.uid.startsWith('stud_')) || (this.user.email && this.user.email.includes('@studente.profmemmo.it')))) || (this.profile && this.profile.role === 'studente');
+                const defaultRole = isStudent ? 'studente' : 'docente';
+                const defaultName = isStudent ? 'Studente' : 'Docente';
+                const ssoName = (this.profile && this.profile.anagrafica && this.profile.anagrafica.nome) || (this.profile && this.profile.nome) || (this.user && this.user.displayName) || defaultName;
+                const ssoRole = (this.profile && (this.profile.role || this.profile.ruolo)) || defaultRole;
                 const ssoAvatar = (this.profile && (this.profile.avatar || (this.profile.anagrafica && this.profile.anagrafica.avatar))) || (this.user && this.user.photoURL) || '';
                 const ssoPlan = (this.profile && (this.profile.subscription || this.profile.abbonamento)) || 'base';
 
