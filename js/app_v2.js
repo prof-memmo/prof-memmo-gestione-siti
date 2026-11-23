@@ -191,7 +191,7 @@ const HubApp = {
             if(window.NewsletterUI) window.NewsletterUI.setUsers(this.allUsers);
             
             // Passa i dati al modulo Analytics
-            if(window.AnalyticsUI) window.AnalyticsUI.render(this.allUsers);
+            if(window.AnalyticsUI) window.AnalyticsUI.render(this.allUsers, data.stats);
 
         } catch(e) {
             console.error("Errore aggregazione iscritti:", e);
