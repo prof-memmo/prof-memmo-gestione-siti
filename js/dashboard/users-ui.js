@@ -51,13 +51,20 @@ const UsersUI = {
         setHtml('counter-quaderno', stats.quaderno);
         setHtml('counter-fuoriregistro', stats.fuoriregistro);
         setHtml('counter-historygram', stats.historygram);
-        setHtml('counter-studenti', stats.studenti);
+        const studAttivi = stats.studentiAttivi !== undefined ? stats.studentiAttivi : stats.studenti;
+        setHtml('counter-studenti', studAttivi);
+        const cardStud = document.getElementById('card-stats-studenti');
+        if (cardStud && stats.studentiDaAttivare !== undefined) {
+            cardStud.title = `Studenti attivi: ${studAttivi || 0} • In attesa di primo accesso: ${stats.studentiDaAttivare || 0} • Totale iscritti al roster: ${stats.studentiTotali || studAttivi || 0}`;
+        }
         setHtml('counter-docenti', stats.docenti);
         setHtml('counter-viandanti', stats.viandanti);
         setHtml('counter-scuole', stats.scuoleSetSize);
-        setHtml('counter-tutti', stats.total);
-        setHtml('counter-total', stats.total);
-        setHtml('counter-total-games', stats.total);
+
+        const totCommunity = stats.totaleCommunity !== undefined ? stats.totaleCommunity : stats.total;
+        setHtml('counter-tutti', totCommunity);
+        setHtml('counter-total', totCommunity);
+        setHtml('counter-total-games', totCommunity);
     },
 
     /**
@@ -1227,7 +1234,7 @@ const UsersUI = {
             const c = String(user.classe || '').toUpperCase().trim();
 
             const isDoc = r.includes('teacher') || r.includes('admin') || r.includes('docente') || r.includes('prof') || r.includes('judge') || p.includes('docente') || p.includes('didattic') || p.includes('ecosistema') || e === 'prof.memmo@gmail.com';
-            const isStud = !isDoc && (r === 'studente' || r === 'student') && c !== 'N/A' && c !== 'N/D' && c !== '' && c !== 'TEST';
+            const isStud = !isDoc && (r.includes('student') || r === 'studente');
             const isViand = !isDoc && !isStud;
 
             let matchesRole = true;

@@ -27,13 +27,18 @@ const AnalyticsUI = {
         'Hub': { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.15)', icon: 'fa-globe' }
     },
 
-    render: function(iscrittiAggregati) {
+    render: function(iscrittiAggregati, globalStats) {
         if (!iscrittiAggregati || iscrittiAggregati.length === 0) {
             console.log("Nessun dato iscritto per gli analytics.");
             return;
         }
         
         this.iscrittiAggregati = iscrittiAggregati; // Salva per l'esportazione CSV
+        if (globalStats) {
+            this.globalStats = globalStats;
+        } else if (!this.globalStats && window.CrossProjectsService && window.CrossProjectsService.lastStats) {
+            this.globalStats = window.CrossProjectsService.lastStats;
+        }
 
         // Inizializza listener spese (se non ancora agganciato)
         this.initExpenses();
@@ -448,17 +453,23 @@ const AnalyticsUI = {
     },
 
     updateKPIs: function(stats, totalUsers) {
+        const gs = this.globalStats || (window.CrossProjectsService && window.CrossProjectsService.lastStats) || null;
+
         // Totali
         const elTot = document.getElementById('kpi-totali');
-        if (elTot) elTot.textContent = totalUsers;
+        if (elTot) {
+            elTot.textContent = (gs && gs.totaleCommunity) ? gs.totaleCommunity : totalUsers;
+        }
 
         // Docenti
-        const docentiCount = stats.ruoli['docente'] || 0;
+        const docentiCount = (gs && gs.docenti !== undefined) ? gs.docenti : (stats.ruoli['docente'] || 0);
         const elDoc = document.getElementById('kpi-docenti');
         if (elDoc) elDoc.textContent = docentiCount;
 
         // Studenti
-        const studentiCount = stats.ruoli['studente'] || 0;
+        const studentiCount = (gs && (gs.studentiAttivi !== undefined || gs.studenti !== undefined)) 
+            ? (gs.studentiAttivi || gs.studenti) 
+            : (stats.ruoli['studente'] || 0);
         const elStud = document.getElementById('kpi-studenti');
         if (elStud) elStud.textContent = studentiCount;
 
@@ -646,12 +657,18 @@ const AnalyticsUI = {
         if (!ctx) return;
         if (this.chartRuoli) this.chartRuoli.destroy();
 
+        const chartData = { ...data };
+        const gs = this.globalStats || (window.CrossProjectsService && window.CrossProjectsService.lastStats) || null;
+        if (gs && (gs.studentiAttivi !== undefined || gs.studenti !== undefined)) {
+            chartData['studente'] = Math.max(chartData['studente'] || 0, gs.studentiAttivi || gs.studenti || 0);
+        }
+
         this.chartRuoli = new Chart(ctx, {
             type: 'pie',
             data: {
-                labels: Object.keys(data).map(k => k.charAt(0).toUpperCase() + k.slice(1)),
+                labels: Object.keys(chartData).map(k => k.charAt(0).toUpperCase() + k.slice(1)),
                 datasets: [{
-                    data: Object.values(data),
+                    data: Object.values(chartData),
                     backgroundColor: ['#10b981', '#f59e0b', '#4f46e5', '#ec4899'],
                     borderWidth: 0
                 }]
