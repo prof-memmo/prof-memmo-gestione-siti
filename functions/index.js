@@ -605,7 +605,9 @@ function getBrevoConfig() {
     const newsletterListId = parseInt(listIdRaw, 10) || 3;
     const transacListIdRaw = process.env.BREVO_TRANSAC_LIST_ID || (functions.config().brevo && functions.config().brevo.transac_list_id) || "6";
     const transacListId = parseInt(transacListIdRaw, 10) || 6;
-    return { apiKey, listId: newsletterListId, newsletterListId, transacListId };
+    const collabTemplateIdRaw = process.env.BREVO_TEMPLATE_DOCENTE_COLLABORATORE || (functions.config().brevo && functions.config().brevo.template_collaboratore) || "20";
+    const collabTemplateId = parseInt(collabTemplateIdRaw, 10) || 20;
+    return { apiKey, listId: newsletterListId, newsletterListId, transacListId, collabTemplateId };
 }
 
 /**
@@ -1726,6 +1728,108 @@ exports.purgeGoogleStudents = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError("internal", "Errore durante la pulizia studenti: " + err.message);
     }
 });
+
+/**
+ * 6. TRIGGER FIRESTORE: onClassWriteNotifyCollaborators
+ * Scatta in automatico su ogni scrittura/aggiornamento in hub_classes/{classId}.
+ * Rileva se sono stati aggiunti nuovi docenti collaboratori (nell'array collaboratori)
+ * e invia l'email transazionale Brevo con Template #20 e parametri:
+ * - TEACHER_NAME
+ * - CLASS_NAME
+ * - CLASS_CODE
+ */
+exports.onClassWriteNotifyCollaborators = functions.runWith({
+    maxInstances: 5,
+    timeoutSeconds: 30,
+    memory: "128MB"
+}).firestore.document("hub_classes/{classId}").onWrite(async (change, context) => {
+    const classId = context.params.classId;
+    const beforeData = change.before.exists ? change.before.data() : null;
+    const afterData = change.after.exists ? change.after.data() : null;
+
+    // Se il documento è stato eliminato, nessuna azione
+    if (!afterData) return null;
+
+    // Estrai collaboratori precedenti e attuali
+    const beforeCollaboratori = new Set(
+        Array.isArray(beforeData && beforeData.collaboratori)
+            ? beforeData.collaboratori.map(e => String(e).toLowerCase().trim())
+            : []
+    );
+
+    const afterCollaboratori = Array.isArray(afterData.collaboratori)
+        ? afterData.collaboratori.map(e => String(e).toLowerCase().trim()).filter(e => e.includes("@"))
+        : [];
+
+    // Identifica le nuove email da notificare
+    const newCollaborators = afterCollaboratori.filter(email => !beforeCollaboratori.has(email));
+    if (newCollaborators.length === 0) {
+        return null; // Nessun nuovo collaboratore aggiunto
+    }
+
+    const { apiKey, collabTemplateId } = getBrevoConfig();
+    if (!apiKey) {
+        console.warn(`⚠️ onClassWriteNotifyCollaborators: Brevo API Key non configurata. Invio saltato per classe ${classId}.`);
+        return null;
+    }
+
+    // Risoluzione dettagli classe
+    const className = String(afterData.name || afterData.nome || "Classe Didattica").trim();
+    const classCode = String(afterData.code || afterData.codice || classId).trim();
+
+    // Risoluzione nome docente titolare
+    let teacherName = String(afterData.teacherName || afterData.docente || "").trim();
+    if (!teacherName && afterData.teacherId) {
+        try {
+            const teacherDoc = await db.collection("hub_users").doc(afterData.teacherId).get();
+            if (teacherDoc.exists) {
+                const tData = teacherDoc.data() || {};
+                const fullName = `${tData.nome || tData.name || ""} ${tData.cognome || ""}`.trim();
+                if (fullName) teacherName = fullName;
+            }
+        } catch (e) {
+            console.warn(`Avviso recupero anagrafica docente titolare ${afterData.teacherId}:`, e.message);
+        }
+    }
+    if (!teacherName && afterData.teacherEmail) {
+        teacherName = String(afterData.teacherEmail).split("@")[0];
+    }
+    if (!teacherName) {
+        teacherName = "Prof. Memmo";
+    }
+
+    console.log(`📧 Rilevati ${newCollaborators.length} nuovi collaboratori per classe [${classCode}] "${className}". Avvio invio email con Template #${collabTemplateId}...`);
+
+    for (const collabEmail of newCollaborators) {
+        try {
+            const emailPayload = {
+                to: [
+                    {
+                        email: collabEmail
+                    }
+                ],
+                templateId: collabTemplateId,
+                params: {
+                    TEACHER_NAME: teacherName,
+                    CLASS_NAME: className,
+                    CLASS_CODE: classCode
+                }
+            };
+
+            const sendRes = await callBrevoApi("/smtp/email", "POST", emailPayload);
+            if (sendRes.ok) {
+                console.log(`✅ Email invito collaboratore inviata con successo a ${collabEmail} per classe ${classCode} (Template #${collabTemplateId}).`);
+            } else {
+                console.error(`❌ Errore invio email Brevo a ${collabEmail}:`, sendRes.data || sendRes.error);
+            }
+        } catch (err) {
+            console.error(`❌ Eccezione durante invio email a ${collabEmail}:`, err);
+        }
+    }
+
+    return null;
+});
+
 
 
 
