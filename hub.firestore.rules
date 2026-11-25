@@ -189,7 +189,13 @@ service cloud.firestore {
           request.resource.data.name == resource.data.name &&
           request.resource.data.collaboratori.hasAll([currentUserEmail()])
         )
-      ));
+      )) || (
+        // Permesso controllato per compilazione Draft 5 Star e Rosa Autori da parte della classe/studenti
+        request.resource.data.ownerEmail == resource.data.ownerEmail &&
+        request.resource.data.name == resource.data.name &&
+        request.resource.data.joinCode == resource.data.joinCode &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['authors', 'budgetRemaining', 'draftCompleted', 'mode', 'lastUpdated', 'mercatoExchangeUsed'])
+      );
       allow delete: if isAdmin() || (isFantaAuthorized() && (
         resource.data.ownerEmail.lower() == currentUserEmail() ||
         ('collaboratori' in resource.data && resource.data.collaboratori != null && resource.data.collaboratori.hasAny([currentUserEmail()]))
