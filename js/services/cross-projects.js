@@ -124,8 +124,6 @@ const CrossProjectsService = {
         let hubClasses = [];
         const scuoleSet = new Set();
         let totalRosterStudents = 0;
-        let activeRosterStudents = 0;
-        let pendingRosterStudents = 0;
 
         // Lista email di test e collaudo da escludere dai conteggi e utenti reali
         const TEST_EMAILS = [
@@ -154,25 +152,14 @@ const CrossProjectsService = {
                                     cName.startsWith('test ') || 
                                     cName === 'test' ||
                                     cName.includes('collaudo') ||
-                                    cName.includes('prova') ||
-                                    cName.includes('demo') ||
                                     TEST_EMAILS.includes(tEmail);
 
                 if (!isTestClass) {
-                    if (cData.school && cData.school.trim() && cData.school.toUpperCase() !== 'N/A' && cData.school.toUpperCase() !== 'N/D') {
-                        const normSchool = cData.school.trim().toLowerCase().replace(/\s+/g, ' ');
-                        scuoleSet.add(normSchool);
+                    if (cData.school && cData.school.trim() && cData.school.toUpperCase() !== 'N/A') {
+                        scuoleSet.add(cData.school.trim().toLowerCase());
                     }
                     if (Array.isArray(cData.students)) {
-                        cData.students.forEach(st => {
-                            if (!st) return;
-                            totalRosterStudents++;
-                            if (st.claimed === true) {
-                                activeRosterStudents++;
-                            } else {
-                                pendingRosterStudents++;
-                            }
-                        });
+                        totalRosterStudents += cData.students.length;
                     }
                 }
             });
@@ -187,7 +174,12 @@ const CrossProjectsService = {
             const snapHub = await window.fbDb.hub.collection("hub_users").get();
             snapHub.forEach(doc => {
                 const data = doc.data() || {};
-                const rawRole = String(data.role || data.ruolo || '').toLowerCase().trim();
+                const rawRole = String(data.role || data.ruolo || '').toLowerCase();
+                
+                // ESCLUDI account studente legacy: gli studenti vivono solo nei roster interni delle classi (Zero Email)
+                if (rawRole === 'studente' || rawRole === 'student') {
+                    return;
+                }
 
                 const emailKey = (data.email || '').trim().toLowerCase();
                 const isMemmo = emailKey === 'prof.memmo@gmail.com' || (data.nome && data.nome.toLowerCase().includes('profmemmo'));
@@ -217,20 +209,8 @@ const CrossProjectsService = {
                     if (data.platforms.fuori_registro?.enabled || data.platforms['fuori-registro']?.enabled || data.platforms.fuoriregistro_users?.enabled) userGiochi.push('Fuori Registro');
                 }
 
-                let userRole = 'viandante';
-                if (isMemmo || rawRole === 'admin') {
-                    userRole = 'admin';
-                } else if (rawRole.includes('docente') || rawRole.includes('teacher') || rawRole.includes('prof')) {
-                    userRole = 'docente';
-                } else if (rawRole.includes('studente') || rawRole.includes('student')) {
-                    userRole = 'studente';
-                } else if (rawRole.includes('viandante') || (data.piano && String(data.piano).toLowerCase().includes('viandante'))) {
-                    userRole = 'viandante';
-                } else {
-                    userRole = 'viandante';
-                }
-
-                const userPlan = isMemmo ? 'docente_ecosistema' : (data.piano || data.abbonamento || data.plan || data.subscription || (userRole === 'studente' ? 'studente' : 'base'));
+                const userPlan = isMemmo ? 'docente_ecosistema' : (data.piano || data.abbonamento || data.plan || data.subscription || 'base');
+                const userRole = isMemmo ? 'admin' : (rawRole.includes('docente') || rawRole.includes('teacher') || rawRole.includes('prof') ? 'docente' : (rawRole === 'admin' ? 'admin' : 'viandante'));
 
                 const planLower = String(userPlan).toLowerCase();
                 let planDefault = [];
@@ -238,8 +218,6 @@ const CrossProjectsService = {
                     planDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', "L'Oratore", 'HistoryGram', 'La Ruota Geografica', 'Travel Agency', 'Il mio quaderno alternativo', 'Parla con Me', 'Fuori Registro'];
                 } else if (planLower === 'docente_didattico' || planLower.includes('didattic')) {
                     planDefault = ['FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'Fuori Registro'];
-                } else if (userRole === 'studente') {
-                    planDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'La Ruota Geografica', 'Travel Agency', 'Il mio quaderno alternativo', 'Parla con Me', 'Fuori Registro'];
                 } else if (planLower === 'viandante' || planLower.includes('viandante') || planLower.includes('pellegrino')) {
                     planDefault = ['La Rotta degli Eroi', 'La Corte della Commedia', 'FantaLetteratura', 'Palestra di Riflessione', 'Ops! Operazione Storia', 'La Ruota Geografica', 'Travel Agency', 'Fuori Registro'];
                 } else {
@@ -250,8 +228,8 @@ const CrossProjectsService = {
                 userGiochi = planDefault;
 
                 const finalScuola = (data.scuola || data.school || (data.anagrafica && data.anagrafica.scuola) || '').trim();
-                if (finalScuola && finalScuola.toUpperCase() !== 'N/A' && finalScuola.toUpperCase() !== 'N/D') {
-                    scuoleSet.add(finalScuola.toLowerCase().replace(/\s+/g, ' '));
+                if (finalScuola && finalScuola.toUpperCase() !== 'N/A') {
+                    scuoleSet.add(finalScuola.toLowerCase());
                 }
 
                 const dedupeKey = isMemmo ? 'prof.memmo@gmail.com' : (emailKey || doc.id);
@@ -318,17 +296,13 @@ const CrossProjectsService = {
 
         hubUsers.sort((a, b) => (b.dataValue || 0) - (a.dataValue || 0));
 
-        let cDocenti = 0, cViandanti = 0, cStudentiSSO = 0;
+        let cDocenti = 0, cViandanti = 0;
         let cEroi = 0, cCommedia = 0, cFanta = 0, cPalestra = 0, cOps = 0, cOratore = 0;
         let cRuota = 0, cTravel = 0, cQuaderno = 0, cFuoriRegistro = 0, cHistorygram = 0;
 
         hubUsers.forEach(u => {
             if (u.ruolo === 'docente' || u.ruolo === 'admin') {
                 cDocenti++;
-            } else if (u.ruolo === 'studente') {
-                cStudentiSSO++;
-            } else if (u.ruolo === 'viandante') {
-                cViandanti++;
             } else {
                 cViandanti++;
             }
@@ -347,12 +321,6 @@ const CrossProjectsService = {
             if (gStr.includes('history') || gStr.includes('histori')) cHistorygram++;
         });
 
-        // Studenti Attivi: studenti con claimed === true nei roster delle classi + studenti registrati con Google SSO
-        const studentiAttivi = (activeRosterStudents || 0) + (cStudentiSSO || 0);
-        const studentiDaAttivare = pendingRosterStudents || 0;
-        const studentiTotali = (totalRosterStudents || 0) + (cStudentiSSO || 0);
-        const totaleCommunity = (studentiAttivi || 0) + (cDocenti || 0) + (cViandanti || 0);
-
         result.users = hubUsers;
         result.stats = {
             eroi: cEroi,
@@ -366,27 +334,19 @@ const CrossProjectsService = {
             quaderno: cQuaderno,
             fuoriregistro: cFuoriRegistro,
             historygram: cHistorygram,
-            studenti: studentiAttivi,
-            studentiAttivi: studentiAttivi,
-            studentiDaAttivare: studentiDaAttivare,
-            studentiTotali: studentiTotali,
+            studenti: totalRosterStudents,
             docenti: cDocenti,
             viandanti: cViandanti,
             scuoleSetSize: scuoleSet.size,
-            total: hubUsers.length,
-            totaleCommunity: totaleCommunity
+            total: hubUsers.length
         };
-        CrossProjectsService.lastStats = result.stats;
         result.classes = hubClasses;
 
         // Sincronizzazione in tempo reale statistiche aggregate per la vetrina pubblica
         if (window.fbDb && window.fbDb.hub) {
             const communityStats = {
-                totale_community: totaleCommunity,
-                studenti: studentiAttivi || 0,
-                studenti_attivi: studentiAttivi || 0,
-                studenti_da_attivare: studentiDaAttivare || 0,
-                studenti_totali: studentiTotali || 0,
+                totale_community: (totalRosterStudents || 0) + (cDocenti || 0) + (cViandanti || 0),
+                studenti: totalRosterStudents || 0,
                 docenti: cDocenti || 0,
                 viandanti: cViandanti || 0,
                 scuole: scuoleSet.size || 0,
